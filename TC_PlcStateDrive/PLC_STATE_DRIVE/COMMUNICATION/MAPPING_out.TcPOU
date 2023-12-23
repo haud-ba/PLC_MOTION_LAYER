@@ -1,0 +1,40 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="MAPPING_out" Id="{f452c8f5-5dcb-0f99-160c-afb3c9dfaf6c}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM MAPPING_out
+VAR CONSTANT
+{IF defined (AXIS_MAP)}
+  {info 'MAPPING_in - ACTIVE'}
+  bBypassMapping    : BOOL  := FALSE;
+{ELSE}
+  {info 'MAPPING_in - BY_PASS'}
+  bBypassMapping    : BOOL  := TRUE;
+{END_IF}
+END_VAR
+VAR
+{IF defined (AXIS_MAP)}
+  AxisState         : U_AXIS_STATE;
+  AxisInfo          : U_AXIS_INFO;
+  AxisParameterRd   : U_AXIS_NC_PARAMETER_RD;
+{ELSE}
+  AxisState         : BYTE;
+  AxisInfo          : BYTE;
+  AxisParameterRd   : BYTE;
+{END_IF}
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF bBypassMapping THEN RETURN; END_IF
+
+memcpy(ADR(AxisState),         ADR(GVL_AXIS.State),             SIZEOF(GVL_AXIS.State));
+memcpy(ADR(AxisInfo),          ADR(GVL_AXIS.Info),              SIZEOF(GVL_AXIS.Info));
+memcpy(ADR(AxisParameterRd),   ADR(GVL_AXIS.NcParameterRd),     SIZEOF(GVL_AXIS.NcParameterRd));
+]]></ST>
+    </Implementation>
+    <LineIds Name="MAPPING_out">
+      <LineId Id="5" Count="0" />
+      <LineId Id="44" Count="3" />
+      <LineId Id="43" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

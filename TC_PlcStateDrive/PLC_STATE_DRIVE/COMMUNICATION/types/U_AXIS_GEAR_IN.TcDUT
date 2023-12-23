@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <DUT Name="U_AXIS_GEAR_IN" Id="{b7da2e13-202f-0e79-190e-3874455a40fc}">
+    <Declaration><![CDATA[TYPE U_AXIS_GEAR_IN :
+UNION
+
+  stCtrl              : ARRAY[1..MAX_AXIS] OF ST_GEAR_IN;
+
+{IF defined (AXIS_MAP)}
+  {info 'U_AXIS_GEAR_IN mapping activated'}
+  byCtrl    AT %I*    : ARRAY[1..MAX_AXIS] OF
+                        ARRAY[1..SIZEOF(ST_GEAR_IN)] OF BYTE;
+{ELSE}
+  byCtrl              : ARRAY[1..MAX_AXIS] OF
+                        ARRAY[1..SIZEOF(ST_GEAR_IN)] OF BYTE;
+{END_IF}
+END_UNION
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

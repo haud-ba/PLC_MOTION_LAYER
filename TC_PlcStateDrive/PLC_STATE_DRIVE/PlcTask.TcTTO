@@ -5,6 +5,9 @@
     <CycleTime>10000</CycleTime>
     <Priority>20</Priority>
     <PouCall>
+      <Name>MAPPING_in</Name>
+    </PouCall>
+    <PouCall>
       <Name>MAIN</Name>
     </PouCall>
     <PouCall>
@@ -12,6 +15,9 @@
     </PouCall>
     <PouCall>
       <Name>CAM</Name>
+    </PouCall>
+    <PouCall>
+      <Name>MAPPING_out</Name>
     </PouCall>
     <TaskFBGuid>{bf8fb095-c9c3-450f-83bf-2568f78c0a27}</TaskFBGuid>
     <Fb_init>{77da28fa-bfa6-4cc5-8042-bf47a6385f7e}</Fb_init>

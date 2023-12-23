@@ -21,12 +21,43 @@
     <ProjectVersion>00.01.01</ProjectVersion>
     <Author>D. Hauer</Author>
     <Description>MCPtP, NCI, Camming execution layer</Description>
+    <CompilerDefines />
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="CAM.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="COMMUNICATION\MAPPING.TcPOU">
+    <Compile Include="COMMUNICATION\MAPPING_in.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="COMMUNICATION\MAPPING_out.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="COMMUNICATION\types\U_AXIS_CTRL.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="COMMUNICATION\types\U_AXIS_NC_PARAMETER_WRT.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="COMMUNICATION\types\U_AXIS_HOMING.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="COMMUNICATION\types\U_AXIS_MOTION_OPTIONS.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="COMMUNICATION\types\U_AXIS_MOVE_DATA.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="COMMUNICATION\types\U_AXIS_GEAR_IN.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="COMMUNICATION\types\U_AXIS_NC_PARAMETER_RD.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="COMMUNICATION\types\U_AXIS_STATE.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="COMMUNICATION\types\U_AXIS_INFO.TcDUT">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="NCI.TcPOU">

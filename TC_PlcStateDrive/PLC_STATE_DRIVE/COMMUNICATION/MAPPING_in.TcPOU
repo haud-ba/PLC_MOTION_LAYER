@@ -1,0 +1,59 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="MAPPING_in" Id="{e84de69b-ba26-07ad-1592-7be68e226b51}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM MAPPING_in
+VAR CONSTANT
+{IF defined (AXIS_MAP)}
+  {info 'MAPPING_in - ACTIVE'}
+  bBypassMapping    : BOOL  := FALSE;
+{ELSE}
+  {info 'MAPPING_in - BY_PASS'}
+  bBypassMapping    : BOOL  := TRUE;
+{END_IF}
+END_VAR
+VAR
+{IF defined (AXIS_MAP)}
+  AxisCTrl          : U_AXIS_CTRL;
+  AxisMoveData      : U_AXIS_MOVE_DATA;
+  AxisMotionOptions : U_AXIS_MOTION_OPTIONS;
+
+  AxisGearInData    : U_AXIS_GEAR_IN;
+  AxisHoming        : U_AXIS_HOMING;
+  AxisParameterWrt  : U_AXIS_NC_PARAMETER_WRT;
+  
+{ELSE}
+  AxisCTrl          : BYTE;
+  AxisMoveData      : BYTE;
+  AxisMotionOptions : BYTE;
+
+  AxisGearInData    : BYTE;
+  AxisHoming        : BYTE;
+  AxisParameterWrt  : BYTE;
+{END_IF}
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF bBypassMapping THEN RETURN; END_IF
+
+
+memcpy(ADR(GVL_AXIS.Ctrl),            ADR(AxisCtrl),           SIZEOF(GVL_AXIS.Ctrl));
+memcpy(ADR(GVL_AXIS.Data),            ADR(AxisMoveData),       SIZEOF(GVL_AXIS.Data));
+memcpy(ADR(GVL_AXIS.MotionOptions),   ADR(AxisMotionOptions),  SIZEOF(GVL_AXIS.MotionOptions));
+
+memcpy(ADR(GVL_AXIS.GearInParameter), ADR(AxisGearInData),     SIZEOF(GVL_AXIS.GearInParameter));
+memcpy(ADR(GVL_AXIS.HomeParameter),   ADR(AxisHoming),         SIZEOF(GVL_AXIS.HomeParameter));
+memcpy(ADR(GVL_AXIS.NcParameterWrt),  ADR(AxisParameterWrt),   SIZEOF(GVL_AXIS.NcParameterWrt));
+]]></ST>
+    </Implementation>
+    <LineIds Name="MAPPING_in">
+      <LineId Id="5" Count="0" />
+      <LineId Id="54" Count="1" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="66" Count="1" />
+      <LineId Id="69" Count="0" />
+      <LineId Id="68" Count="0" />
+      <LineId Id="70" Count="1" />
+      <LineId Id="13" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

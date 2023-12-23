@@ -17,7 +17,8 @@ VAR
   _Info                     : POINTER TO ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_AXIS_INFO;    // axis state and position data to read from
   _Data                     : POINTER TO ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_MOVE_DATA;    // structure for cyclic interface
 
-  _NcParameter              : POINTER TO ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_NC_PARAMETER; // R/W struct for a single parameter
+  _NcParameterWrt           : POINTER TO ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_NC_PARAMETER; // W struct for a single parameter
+  _NcParameterRd            : POINTER TO ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_NC_PARAMETER; // R struct for a single parameter
   _HomeParameter            : POINTER TO ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_HOMING;       // homing parameter for each axis
 
   _GearInParameter          : POINTER TO ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_GEAR_IN;
@@ -123,7 +124,7 @@ OF
     _eResult                        := MoveBufferVelo(TRUE, _Data^[_nAxisIndex]);
 
   E_AXIS_STATE.AXIS_PARAMETER_READ:
-    _eResult                        := ParameterRead(TRUE, _NcParameter^[_nAxisIndex].ParameterNumber);
+    _eResult                        := ParameterRead(TRUE, _NcParameterWrt^[_nAxisIndex].ParameterNumber);
 
 
   E_AXIS_STATE.AXIS_PARAMETER_WRITE:
@@ -722,30 +723,6 @@ AxisInit := _eState;
 ]]></ST>
       </Implementation>
     </Method>
-    <Property Name="AxisNcParameter" Id="{a00e8910-77c8-0a98-3ecf-242a3b2549b9}" FolderPath="properties\">
-      <Declaration><![CDATA[PROPERTY AxisNcParameter : pointer to ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF st_nc_parameter]]></Declaration>
-      <Set Name="Set" Id="{15199a8a-b1d7-019e-133f-411483cbf6d2}">
-        <Declaration><![CDATA[VAR
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[_NcParameter := AxisNcParameter;
-]]></ST>
-        </Implementation>
-      </Set>
-    </Property>
-    <Property Name="AxisNcParameterValue" Id="{4f83dc68-3391-08cc-2ba6-0dca5b6f9170}" FolderPath="properties\">
-      <Declaration><![CDATA[PROPERTY AxisNcParameterValue : Lreal]]></Declaration>
-      <Get Name="Get" Id="{c17f1740-3dbe-0323-21bb-d695e230a5f7}">
-        <Declaration><![CDATA[VAR
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[AxisNcParameterValue := _rParameterReadValue;
-]]></ST>
-        </Implementation>
-      </Get>
-    </Property>
     <Method Name="AxisReset" Id="{983134b4-72eb-0c42-3ead-aaa67397970d}">
       <Declaration><![CDATA[METHOD AxisReset : E_PROGRESS
 VAR_INPUT
@@ -930,7 +907,13 @@ THEN
   RETURN;
 END_IF
 
-IF NOT (_NcParameter <> 0)
+IF NOT (_NcParameterWrt <> 0)
+THEN
+  _eCheck                 := E_CHECK_STATE.AXIS_NC_PARAMETER_POINTER_INVALID;
+  RETURN;
+END_IF
+
+IF NOT (_NcParameterRd <> 0)
 THEN
   _eCheck                 := E_CHECK_STATE.AXIS_NC_PARAMETER_POINTER_INVALID;
   RETURN;
@@ -1065,19 +1048,19 @@ ELSE
         _estate             := E_AXIS_STATE.AXIS_MOVE_BUFFER_VELO;
     
       E_AXIS_CTRL.AXIS_PARAMETER_READ:
-        _eCtrlParameterNr   := _NcParameter^[_nAxisIndex].ParameterNumber;
+        _eCtrlParameterNr   := _NcParameterWrt^[_nAxisIndex].ParameterNumber;
         _eres               := ParameterRead(FALSE, _eCtrlParameterNr);
         _estate             := E_AXIS_STATE.AXIS_PARAMETER_READ;
 
       E_AXIS_CTRL.AXIS_PARAMETER_WRITE:
-        _eCtrlParameterNr   := _NcParameter^[_nAxisIndex].ParameterNumber;
-        _rParameterWrtValue := _NcParameter^[_nAxisIndex].rValue;
+        _eCtrlParameterNr   := _NcParameterWrt^[_nAxisIndex].ParameterNumber;
+        _rParameterWrtValue := _NcParameterWrt^[_nAxisIndex].rValue;
 
         _estate             := E_AXIS_STATE.AXIS_PARAMETER_WRITE;
 
       E_AXIS_CTRL.AXIS_PARAMETER_WRITE_PERSISTENT:
-        _eCtrlParameterNr   := _NcParameter^[_nAxisIndex].ParameterNumber;
-        _rParameterWrtValue := _NcParameter^[_nAxisIndex].rValue;
+        _eCtrlParameterNr   := _NcParameterWrt^[_nAxisIndex].ParameterNumber;
+        _rParameterWrtValue := _NcParameterWrt^[_nAxisIndex].rValue;
 
         _estate             := E_AXIS_STATE.AXIS_PARAMETER_WRITE_PERSISTENT;
     
@@ -1603,6 +1586,18 @@ END_VAR
         </Implementation>
       </Set>
     </Property>
+    <Property Name="NcParameterValue" Id="{4f83dc68-3391-08cc-2ba6-0dca5b6f9170}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY NcParameterValue : Lreal]]></Declaration>
+      <Get Name="Get" Id="{c17f1740-3dbe-0323-21bb-d695e230a5f7}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[NcParameterValue := _rParameterReadValue;
+]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
     <Method Name="ParameterRead" Id="{e888c5ae-12ad-0616-229c-9fc3342dcc87}">
       <Declaration><![CDATA[METHOD ParameterRead : E_PROGRESS
 VAR_INPUT
@@ -1658,7 +1653,7 @@ OF
                                   Execute         := FALSE,
                                   ParameterNumber := ParameterNr);
 
-    _NcParameter^[_nAxisIndex].rValue :=
+    _NcParameterWrt^[_nAxisIndex].rValue :=
     _rParameterReadValue              := ReadParameterValue;
     _eState                           := E_PROGRESS.DONE;
 END_CASE
@@ -1690,7 +1685,7 @@ OF
     IF Execute 
     THEN
       memset(ADR(_stMsg),0,SIZEOF(_stMsg));
-      _rValue                     := _NcParameter^[_nAxisIndex].rValue;
+      _rValue                     := _NcParameterWrt^[_nAxisIndex].rValue;
       _eState                     := E_PROGRESS.BUSY;
     END_IF
 END_CASE
@@ -1755,7 +1750,7 @@ OF
     IF Execute 
     THEN
       memset(ADR(_stMsg),0,SIZEOF(_stMsg));
-      _rValue                     := _NcParameter^[_nAxisIndex].rValue;
+      _rValue                     := _NcParameterWrt^[_nAxisIndex].rValue;
       _eState                     := E_PROGRESS.BUSY;
     END_IF
 END_CASE
@@ -1797,6 +1792,18 @@ ParameterWritePersistent          := _eState;
 ]]></ST>
       </Implementation>
     </Method>
+    <Property Name="ReadNcParameter" Id="{73c29011-949c-0182-1bfa-4914a1c5e4f4}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY ReadNcParameter : pointer to ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF st_nc_parameter]]></Declaration>
+      <Set Name="Set" Id="{35143572-1cc0-0e7a-19af-74d16589d588}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_NcParameterRd := ReadNcParameter;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
     <Method Name="ResetSoE" Id="{4d30f9e6-607e-0983-163c-f478b48c7089}" FolderPath="private\">
       <Declaration><![CDATA[METHOD PRIVATE ResetSoE : E_PROGRESS
 VAR_INPUT
@@ -1988,9 +1995,20 @@ Template_1 := _eState;
 ]]></ST>
       </Implementation>
     </Method>
+    <Property Name="WriteNcParameter" Id="{a00e8910-77c8-0a98-3ecf-242a3b2549b9}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY WriteNcParameter : pointer to ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF st_nc_parameter]]></Declaration>
+      <Set Name="Set" Id="{15199a8a-b1d7-019e-133f-411483cbf6d2}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_NcParameterWrt := WriteNcParameter;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
     <LineIds Name="FB_AxisControl">
-      <LineId Id="1208" Count="110" />
-      <LineId Id="1320" Count="35" />
+      <LineId Id="1444" Count="146" />
       <LineId Id="17" Count="0" />
     </LineIds>
     <LineIds Name="FB_AxisControl.AxisCtrl.Set">
@@ -2134,14 +2152,6 @@ Template_1 := _eState;
       <LineId Id="60" Count="2" />
       <LineId Id="5" Count="0" />
     </LineIds>
-    <LineIds Name="FB_AxisControl.AxisNcParameter.Set">
-      <LineId Id="2" Count="0" />
-      <LineId Id="5" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_AxisControl.AxisNcParameterValue.Get">
-      <LineId Id="2" Count="0" />
-      <LineId Id="5" Count="0" />
-    </LineIds>
     <LineIds Name="FB_AxisControl.AxisReset">
       <LineId Id="744" Count="16" />
       <LineId Id="791" Count="0" />
@@ -2188,7 +2198,10 @@ Template_1 := _eState;
       <LineId Id="19" Count="3" />
       <LineId Id="126" Count="5" />
       <LineId Id="38" Count="0" />
-      <LineId Id="55" Count="16" />
+      <LineId Id="55" Count="10" />
+      <LineId Id="133" Count="0" />
+      <LineId Id="135" Count="4" />
+      <LineId Id="66" Count="5" />
       <LineId Id="48" Count="0" />
       <LineId Id="72" Count="4" />
       <LineId Id="49" Count="0" />
@@ -2393,6 +2406,10 @@ Template_1 := _eState;
       <LineId Id="2" Count="0" />
       <LineId Id="5" Count="0" />
     </LineIds>
+    <LineIds Name="FB_AxisControl.NcParameterValue.Get">
+      <LineId Id="2" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
     <LineIds Name="FB_AxisControl.ParameterRead">
       <LineId Id="744" Count="8" />
       <LineId Id="754" Count="7" />
@@ -2446,6 +2463,10 @@ Template_1 := _eState;
       <LineId Id="810" Count="0" />
       <LineId Id="786" Count="3" />
       <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisControl.ReadNcParameter.Set">
+      <LineId Id="2" Count="0" />
+      <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_AxisControl.ResetSoE">
       <LineId Id="17" Count="8" />
@@ -2506,6 +2527,10 @@ Template_1 := _eState;
     <LineIds Name="FB_AxisControl.Template">
       <LineId Id="674" Count="45" />
       <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisControl.WriteNcParameter.Set">
+      <LineId Id="2" Count="0" />
+      <LineId Id="5" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>

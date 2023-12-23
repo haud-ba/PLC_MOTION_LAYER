@@ -1,4 +1,4 @@
-<TcModuleRefactorInfos RefactorCnt="1">
+<TcModuleRefactorInfos RefactorCnt="3">
   <TcModuleRefactorInfo RefactorCnt="1" DateTime="2023-12-22T09:00:36">
     <Renames>
       <RenameTypeItem>
@@ -15,6 +15,47 @@
         <Type>ST_AXIS_INFO</Type>
         <From>uiErrorId</From>
         <To>nErrorId</To>
+      </RenameTypeItem>
+    </Renames>
+  </TcModuleRefactorInfo>
+  <TcModuleRefactorInfo RefactorCnt="2" DateTime="2023-12-23T09:09:40">
+    <Renames>
+      <RenameSymbol>
+        <From>MAPPING.bBypassMapping</From>
+        <To>MAPPING_in.bBypassMapping</To>
+      </RenameSymbol>
+      <RenameSymbol>
+        <From>MAPPING.AxisCTrl</From>
+        <To>MAPPING_in.AxisCTrl</To>
+      </RenameSymbol>
+      <RenameSymbol>
+        <From>MAPPING.AxisMoveData</From>
+        <To>MAPPING_in.AxisMoveData</To>
+      </RenameSymbol>
+      <RenameSymbol>
+        <From>MAPPING.AxisMotionOptions</From>
+        <To>MAPPING_in.AxisMotionOptions</To>
+      </RenameSymbol>
+      <RenameSymbol>
+        <From>MAPPING.AxisGearInData</From>
+        <To>MAPPING_in.AxisGearInData</To>
+      </RenameSymbol>
+      <RenameSymbol>
+        <From>MAPPING.AxisHoming</From>
+        <To>MAPPING_in.AxisHoming</To>
+      </RenameSymbol>
+      <RenameSymbol>
+        <From>MAPPING.AxisParameterWrt</From>
+        <To>MAPPING_in.AxisParameterWrt</To>
+      </RenameSymbol>
+    </Renames>
+  </TcModuleRefactorInfo>
+  <TcModuleRefactorInfo RefactorCnt="3" DateTime="2023-12-23T09:31:02">
+    <Renames>
+      <RenameTypeItem>
+        <Type>FB_AxisControl</Type>
+        <From>_NcParameter</From>
+        <To>_NcParameterWrt</To>
       </RenameTypeItem>
     </Renames>
   </TcModuleRefactorInfo>

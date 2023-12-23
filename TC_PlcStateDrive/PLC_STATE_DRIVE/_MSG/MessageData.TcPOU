@@ -154,6 +154,8 @@ CASE nState OF
 		iCount := iStart;
 		nState := 220;
 
+END_CASE
+CASE nState OF
 	220:
 		IF aWriteList[iCount].eType > 0
 		THEN
@@ -174,17 +176,19 @@ CASE nState OF
 		iCount := iCount + 1;
 		nState := 225;
 
+END_CASE
+CASE nState OF
 	225:
-		IF iCount > iEnd
+		IF NOT (iCount > iEnd)
 		THEN
+			nState := 220;
+    ELSE
 			IF (StringLen(ADR(sWriteData)) > 0)
 			THEN
 				nState := 230;
 			ELSE
 				nState := 250;
 			END_IF
-		ELSE
-			nState := 220;
 		END_IF
 
 
@@ -510,7 +514,14 @@ bErrorWrite := fbFileOpen.bError OR fbFileWrite.bError;
       <LineId Id="3142" Count="0" />
       <LineId Id="2971" Count="16" />
       <LineId Id="3143" Count="0" />
-      <LineId Id="2988" Count="52" />
+      <LineId Id="2988" Count="17" />
+      <LineId Id="3190" Count="1" />
+      <LineId Id="3006" Count="19" />
+      <LineId Id="3192" Count="1" />
+      <LineId Id="3026" Count="2" />
+      <LineId Id="3194" Count="1" />
+      <LineId Id="3029" Count="5" />
+      <LineId Id="3037" Count="3" />
       <LineId Id="3042" Count="5" />
       <LineId Id="3093" Count="0" />
       <LineId Id="3051" Count="3" />

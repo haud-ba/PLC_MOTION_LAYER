@@ -12,7 +12,9 @@ VAR_GLOBAL
   Info                        : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_AXIS_INFO;    // axis state and position data to read from
   Data                        : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_MOVE_DATA;    // axis data to write into
 
-  NcParameter                 : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_NC_PARAMETER; // struct for a single parameter value put/get your data here before/after using Ctrl
+  NcParameterWrt              : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_NC_PARAMETER; // struct for a single parameter value put/get your data here before/after using Ctrl
+  NcParameterRd               : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_NC_PARAMETER; // struct for a single parameter value put/get your data here before/after using Ctrl
+
   HomeParameter               : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_HOMING;       // homing parameter for each axis
 
   GearInParameter             : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_GEAR_IN;

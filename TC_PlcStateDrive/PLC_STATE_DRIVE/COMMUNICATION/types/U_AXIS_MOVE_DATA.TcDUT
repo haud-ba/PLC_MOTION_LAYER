@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <DUT Name="U_AXIS_MOVE_DATA" Id="{e2995197-d128-089f-00b0-eef4250b8a19}">
+    <Declaration><![CDATA[TYPE U_AXIS_MOVE_DATA :
+UNION
+
+  stCtrl              : ARRAY[1..MAX_AXIS] OF ST_MOVE_DATA;
+
+{IF defined (AXIS_MAP)}
+  {info 'U_AXIS_MOVE_DATA mapping activated'}
+  byCtrl    AT %I*    : ARRAY[1..MAX_AXIS] OF
+                        ARRAY[1..SIZEOF(ST_MOVE_DATA)] OF BYTE;
+{ELSE}
+  byCtrl              : ARRAY[1..MAX_AXIS] OF
+                        ARRAY[1..SIZEOF(ST_MOVE_DATA)] OF BYTE;
+{END_IF}
+END_UNION
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

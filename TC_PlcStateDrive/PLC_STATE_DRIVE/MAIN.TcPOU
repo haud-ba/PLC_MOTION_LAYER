@@ -28,7 +28,10 @@ DO
   GVL_AXIS.Control[nAxis].AxisInfo                := ADR(GVL_AXIS.Info);          // act values and bits from axis
   GVL_AXIS.Control[nAxis].AxisData                := ADR(GVL_AXIS.Data);          // position and dynamic constraints for movement
   GVL_AXIS.Control[nAxis].AxisGearInParameter     := ADR(GVL_AXIS.GearInParameter);
-  GVL_AXIS.Control[nAxis].AxisNcParameter         := ADR(GVL_AXIS.NcParameter);
+
+  GVL_AXIS.Control[nAxis].WriteNcParameter        := ADR(GVL_AXIS.NcParameterWrt);
+  GVL_AXIS.Control[nAxis].ReadNcParameter         := ADR(GVL_AXIS.NcParameterRd);
+
   GVL_AXIS.Control[nAxis].MultiMasterGearIn       := ADR(GVL_AXIS.GearMultiMasterParameter);
   GVL_AXIS.Control[nAxis].HomingParameter         := ADR(GVL_AXIS.HomeParameter);
   GVL_AXIS.Control[nAxis].MotionOptions           := ADR(GVL_AXIS.MotionOptions);
@@ -94,7 +97,10 @@ END_IF
       <LineId Id="100" Count="0" />
       <LineId Id="99" Count="0" />
       <LineId Id="101" Count="0" />
-      <LineId Id="104" Count="3" />
+      <LineId Id="121" Count="0" />
+      <LineId Id="104" Count="0" />
+      <LineId Id="119" Count="1" />
+      <LineId Id="105" Count="2" />
       <LineId Id="7" Count="0" />
       <LineId Id="80" Count="14" />
       <LineId Id="63" Count="0" />
