@@ -124,7 +124,7 @@ OF
     _eResult                        := MoveBufferVelo(TRUE, _Data^[_nAxisIndex]);
 
   E_AXIS_STATE.AXIS_PARAMETER_READ:
-    _eResult                        := ParameterRead(TRUE, _NcParameterWrt^[_nAxisIndex].ParameterNumber);
+    _eResult                        := ParameterRead(TRUE, _NcParameterRd^[_nAxisIndex].ParameterNumber);
 
 
   E_AXIS_STATE.AXIS_PARAMETER_WRITE:

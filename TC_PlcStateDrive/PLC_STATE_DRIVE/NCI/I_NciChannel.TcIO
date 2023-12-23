@@ -1,0 +1,294 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <Itf Name="I_NciChannel" Id="{ef75f316-959e-0835-3611-b097b1464fc3}">
+    <Declaration><![CDATA[INTERFACE I_NciChannel
+]]></Declaration>
+    <Folder Name="methods" Id="{7fce770d-3531-05aa-1905-6d00b5c632d8}" />
+    <Folder Name="properties" Id="{0690ff06-16e0-0d03-0f0a-1ff0ca2e7337}" />
+    <Method Name="BuildGroup" Id="{d52daa5c-7471-0296-1f17-b93f184f579b}" FolderPath="methods\">
+      <Declaration><![CDATA[(*
+===============================================================
+Implementation of Tc2_NCI.CfgBuildExt3DGroup
+
+  Builds complete NCI-Group with all configured axes
+===============================================================
+*)
+METHOD BuildGroup : HRESULT
+VAR_INPUT
+  Execute: BOOL;
+END_VAR
+]]></Declaration>
+    </Method>
+    <Property Name="CfgAxes" Id="{e959d955-18de-02ce-14fa-e733ce52994b}" FolderPath="properties\">
+      <Declaration><![CDATA[(*
+===============================================================
+NCI-Group configured axes structure
+===============================================================
+*)
+PROPERTY CfgAxes : Tc2_NCI.NCI_EXT3DGROUP
+]]></Declaration>
+      <Set Name="Set" Id="{3f1a4be5-8b39-0437-2911-83e3a01695e0}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Method Name="ClearGroup" Id="{c798c201-0845-06dc-009d-78909091e8b7}" FolderPath="methods\">
+      <Declaration><![CDATA[(*
+===============================================================
+Implementation of Tc2_NCI.CfgReconfigGroup
+
+  remove all axes from NCI-Group
+===============================================================
+*)
+METHOD ClearGroup : HRESULT
+VAR_INPUT
+  Execute: BOOL;
+END_VAR
+]]></Declaration>
+    </Method>
+    <Method Name="ConfirmHSK" Id="{0d406a5e-23e2-0cba-066f-fa56b048ff6f}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD ConfirmHSK : HRESULT
+VAR_INPUT
+  Execute: BOOL;
+END_VAR
+]]></Declaration>
+    </Method>
+    <Method Name="DelDTG" Id="{70588d51-249e-08d5-0452-0a91762645b7}" FolderPath="methods\">
+      <Declaration><![CDATA[(*
+===============================================================
+Implementation of Tc2_NCI.ItpDelDtgEx
+
+  DelDTG ( delete distance to go ) wird aus dem NC Programm satzweise aktiviert. 
+  Dieses Kommando ermöglicht es, aus der SPS ( TcNci.lib ItpDelDtgEx) den Restweg der aktuellen Geometrie zu löschen. 
+  D.h. trifft das Kommando während der Abarbeitung des Satzes ein so wird mit den üblichen Verzögerungsrampen die Bewegung angehalten. 
+  Anschließend wird mit dem nächsten Satz im NC Programm fortgefahren.
+  Falls das SPS-Kommando nicht während der Ausführung eines Satzes mit angewähltem Restweglöschen eintrifft, wird dieses mit einer Fehlermeldung beantwortet.
+  Das Restweglöschen bewirkt immer einen impliziten Dekodierstop, d.h. es erfolgt am Satzende immer ein Genauhalt.
+===============================================================
+*)
+METHOD DelDTG : HRESULT
+VAR_INPUT
+  Execute: BOOL;
+END_VAR
+]]></Declaration>
+    </Method>
+    <Property Name="Error" Id="{a0fcd797-547b-05f8-20ed-e20e2eb30c9e}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY Error : BOOL]]></Declaration>
+      <Get Name="Get" Id="{bc3a971e-6baf-0dd4-393d-58c12720dff1}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+    </Property>
+    <Method Name="Error_Get" Id="{866d3dcb-c26a-0ff2-184a-d609bf919bfa}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD Error_Get : BOOL
+]]></Declaration>
+    </Method>
+    <Method Name="EStop" Id="{70ad2762-4ba5-0ba2-28e1-2bf2e5ad9b79}" FolderPath="methods\">
+      <Declaration><![CDATA[(*
+===============================================================
+Implementation of Tc2_NCI.ItpEStopEx
+===============================================================
+*)
+METHOD EStop : HRESULT
+VAR_INPUT
+  Execute: BOOL;
+END_VAR
+]]></Declaration>
+    </Method>
+    <Method Name="GetChannelOverride" Id="{a0a611ed-68fe-0e47-1d52-f04dfa521f53}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD GetChannelOverride : real
+VAR_INPUT
+END_VAR
+]]></Declaration>
+    </Method>
+    <Method Name="GetItpState" Id="{ddad27ce-da12-0fe9-28d4-1b131687076d}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD GetItpState : uint
+VAR_INPUT
+END_VAR
+]]></Declaration>
+    </Method>
+    <Property Name="HSK" Id="{82ef3e74-653c-0fc6-37e2-15947a05077a}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY HSK : BOOL]]></Declaration>
+      <Get Name="Get" Id="{ff9a3b1e-07fc-0a13-2bb3-648ee35cac80}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+    </Property>
+    <Property Name="I_AuxAxis" Id="{9c5f5ff1-bd46-0a0d-0b60-b7299ca9a7af}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY I_AuxAxis : ARRAY[1..GVL_NCI.cAuxAxisCount] OF I_McAxis
+]]></Declaration>
+      <Set Name="Set" Id="{438d9bcd-f050-0e57-3e6b-8eb5d7f31fd5}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="I_McAxis" Id="{7789d8cb-86cd-0789-2cef-6a56969e2fc1}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY I_McAxis : array[1..GVL_NCI.cMcAxisCount] of I_McAxis]]></Declaration>
+      <Set Name="Set" Id="{8191ca4f-9ec1-01cf-2ec4-bbf1213fd38c}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="ItpAxes" Id="{2803c89e-139e-02c7-1945-7246ef0ebfc6}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY ItpAxes : Tc2_NCI.NCI_EXT3DGROUP]]></Declaration>
+      <Get Name="Get" Id="{f9a161e0-6ebf-0bb7-2fe9-5f30c35306cf}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+    </Property>
+    <Method Name="ItpReset" Id="{70fc19b7-6ef5-00eb-22cd-0c73da322945}" FolderPath="methods\">
+      <Declaration><![CDATA[(*
+===============================================================
+Implementation of Tc2_NCI.ItpResetEx2
+===============================================================
+*)
+METHOD ItpReset : HRESULT
+VAR_INPUT
+  Execute: BOOL;
+END_VAR
+]]></Declaration>
+    </Method>
+    <Method Name="LoadProg" Id="{4aba7b43-9320-09ad-36a6-c6a5c00f9802}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD LoadProg : HRESULT
+VAR_INPUT
+  Execute: BOOL;
+END_VAR
+]]></Declaration>
+    </Method>
+    <Property Name="MFunc" Id="{048a1d93-74f1-02a4-11cb-11aa30bc3e5e}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY MFunc : INT]]></Declaration>
+      <Get Name="Get" Id="{9ba60045-3368-05f9-0db9-a93b932f2b05}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+    </Property>
+    <Property Name="Override" Id="{4eb36591-331a-0275-01dc-33262c9030ce}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY Override : LREAL
+]]></Declaration>
+      <Get Name="Get" Id="{b40478d6-ec46-0ba2-1cb1-d8f61cdc4d54}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+      <Set Name="Set" Id="{b1a8429f-0480-0907-166d-d20b6e28ec10}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="PathVelo" Id="{701a03e8-3db9-0d78-0b2a-11afb2bfa66f}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY PathVelo : LREAL]]></Declaration>
+      <Get Name="Get" Id="{22dff717-b943-044d-3ef3-32dc6f6dec48}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+    </Property>
+    <Property Name="pNciChannelRef" Id="{c87958a4-b5cd-0135-08c5-b68f327a6e1f}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY pNciChannelRef : POINTER TO ST_NciChannel_Ref
+]]></Declaration>
+      <Get Name="Get" Id="{4bbdbca3-7a58-0290-0f8b-7665a67cb5cd}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+    </Property>
+    <Property Name="Prog" Id="{7e42e321-48cc-087e-1362-67b765397b3b}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY Prog : STRING(255)
+]]></Declaration>
+      <Get Name="Get" Id="{40d26ddc-39a5-03d2-1cd5-21e8696b0c48}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+      <Set Name="Set" Id="{29943464-31fa-0dca-2e54-1325d4b99154}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Method Name="ReadLine" Id="{725b31be-707b-0c11-0968-171baa50f3f9}" FolderPath="methods\">
+      <Declaration><![CDATA[(*
+===============================================================
+Implementation of Tc2_System.ADSREADEX
+
+  reads actual interpreter G-Code Line
+===============================================================
+*)
+METHOD ReadLine : HRESULT
+VAR_INPUT
+  Execute: BOOL;
+END_VAR
+//Read G-Code actual Line
+VAR_OUTPUT
+  ActProgLine: STRING(100);
+END_VAR
+]]></Declaration>
+    </Method>
+    <Method Name="ReadRParams" Id="{36fadb0f-cf36-0537-084c-b82d24f21ccc}" FolderPath="methods\">
+      <Declaration><![CDATA[(*
+===============================================================
+Implementation of Tc2_NCI.ItpReadRParamsEx
+
+  read R-Parameter(s) from NCI
+===============================================================
+*)
+METHOD ReadRParams : HRESULT
+VAR_INPUT
+  Execute :BOOL;
+  Addr    :POINTER TO LREAL;  //Adresse der Zielvariablen der zu lesenden Daten. 
+        //Dabei werden die Daten direkt ab der angegebenen Adresse von der NC beschrieben  
+        //D.h. nIndex ist nicht als Offset zu pAddr zu sehen. Die Daten befinden sich z.B. 
+        //in einem Array vom Typ LREAL, das vom Anwender definiert werden muss.
+  Index   :DINT;
+  Count   :DINT;
+END_VAR
+]]></Declaration>
+    </Method>
+    <Method Name="StartStop" Id="{27f43592-5b89-0a77-1c34-e8b71df8b16b}" FolderPath="methods\">
+      <Declaration><![CDATA[(*
+===============================================================
+Implementation of Tc2_NCI.ItpStartStopEx
+
+  Start Interpreter
+===============================================================
+*)
+METHOD StartStop : HRESULT
+VAR_INPUT
+  Start: BOOL;
+  Stop: BOOL;
+END_VAR
+]]></Declaration>
+    </Method>
+    <Method Name="StepOnAfterEStop" Id="{99590ed1-e8da-0125-2982-2ccaedbba350}" FolderPath="methods\">
+      <Declaration><![CDATA[(*
+===============================================================
+Implementation of Tc2_NCI.ItpStopOnAfterEStopEx
+===============================================================
+*)
+METHOD StepOnAfterEStop : HRESULT
+VAR_INPUT
+  Execute: BOOL;
+END_VAR
+]]></Declaration>
+    </Method>
+    <Method Name="WriteRParams" Id="{dda1af33-72ce-0e42-11e5-0c4700c7bfcc}" FolderPath="methods\">
+      <Declaration><![CDATA[(*
+===============================================================
+Implementation of Tc2_NCI.ItpWriteRParamsEx
+
+  write R-Parameter(s) to NCI
+===============================================================
+*)
+METHOD WriteRParams : HRESULT
+VAR_INPUT
+  Execute :BOOL;
+  Addr    :POINTER TO LREAL;  //Adresse der Zielvariablen der Daten. 
+        //Dabei werden die Daten direkt ab der angegebenen Adresse von der NC beschrieben  
+        //D.h. nIndex ist nicht als Offset zu pAddr zu sehen. Die Daten befinden sich z.B. 
+        //in einem Array vom Typ LREAL, das vom Anwender definiert werden muss.
+  Index   :DINT;
+  Count   :DINT;
+END_VAR
+]]></Declaration>
+    </Method>
+    <ObjectProperties>
+      <XmlArchive>
+        <Data>
+          <o xml:space="preserve" t="UMLStereoTypeContainerObject">
+            <v n="IsType" t="UMLType">BaseArea</v>
+            <v n="Stereotype">""</v>
+            <d n="Stereotypes" t="Hashtable" />
+          </o>
+        </Data>
+        <TypeList>
+          <Type n="Hashtable">System.Collections.Hashtable</Type>
+          <Type n="String">System.String</Type>
+          <Type n="UMLStereoTypeContainerObject">{30250973-b110-4e31-b562-c102e042dca4}</Type>
+          <Type n="UMLType">{0197b136-405a-42ee-bb27-fd08b621d0cf}</Type>
+        </TypeList>
+      </XmlArchive>
+    </ObjectProperties>
+  </Itf>
+</TcPlcObject>

@@ -63,10 +63,71 @@
     <Compile Include="NCI.TcPOU">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="NCI\FB_Ctrl_NciChannel.TcPOU">
+      <SubType>Code</SubType>
+      <CompilerDefines>NCI</CompilerDefines>
+    </Compile>
+    <Compile Include="NCI\FB_NciChannel.TcPOU">
+      <SubType>Code</SubType>
+      <CompilerDefines>NCI</CompilerDefines>
+    </Compile>
+    <Compile Include="NCI\I_NciChannel.TcIO">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="NCI\I_Nci_Ctrl.TcIO">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="NCI\types\E_NCI_CTRL.TcDUT">
+      <SubType>Code</SubType>
+      <CompilerDefines>NCI</CompilerDefines>
+    </Compile>
+    <Compile Include="NCI\types\E_NCI_CHANNEL_ERROR.TcDUT">
+      <SubType>Code</SubType>
+      <CompilerDefines>NCI</CompilerDefines>
+    </Compile>
+    <Compile Include="NCI\types\E_NCI_INTERPRETER_STATE.TcDUT">
+      <SubType>Code</SubType>
+      <CompilerDefines>NCI</CompilerDefines>
+    </Compile>
+    <Compile Include="NCI\types\ST_3D_Group.TcDUT">
+      <SubType>Code</SubType>
+      <CompilerDefines>NCI</CompilerDefines>
+    </Compile>
+    <Compile Include="NCI\types\ST_CTRL_NCI.TcDUT">
+      <SubType>Code</SubType>
+      <CompilerDefines>NCI</CompilerDefines>
+    </Compile>
+    <Compile Include="NCI\types\ST_NCI_CTRL_M_FUNC.TcDUT">
+      <SubType>Code</SubType>
+      <CompilerDefines>NCI</CompilerDefines>
+    </Compile>
+    <Compile Include="NCI\types\ST_Index_Group.TcDUT">
+      <SubType>Code</SubType>
+      <CompilerDefines>NCI</CompilerDefines>
+    </Compile>
+    <Compile Include="NCI\types\ST_Interface_Group.TcDUT">
+      <SubType>Code</SubType>
+      <CompilerDefines>NCI</CompilerDefines>
+    </Compile>
+    <Compile Include="NCI\types\ST_NciChannel_Ref.TcDUT">
+      <SubType>Code</SubType>
+      <CompilerDefines>NCI</CompilerDefines>
+    </Compile>
+    <Compile Include="NCI\types\ST_R_Parameter.TcDUT">
+      <SubType>Code</SubType>
+      <CompilerDefines>NCI</CompilerDefines>
+    </Compile>
+    <Compile Include="NCI\types\ST_STATE_NCI.TcDUT">
+      <SubType>Code</SubType>
+      <CompilerDefines>NCI</CompilerDefines>
+    </Compile>
     <Compile Include="NC_PTP\FB_AxisControl.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="NC_PTP\FB_McAxis.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="NC_PTP\I_McAxis.TcIO">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="NC_PTP\types\axis\E_AxisEncoderType.TcDUT">
@@ -247,6 +308,8 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="COMMUNICATION\types" />
+    <Folder Include="NCI\files" />
+    <Folder Include="NCI\types" />
     <Folder Include="NC_PTP\types\control" />
     <Folder Include="NC_PTP\types\axis" />
     <Folder Include="COMMUNICATION" />
@@ -272,11 +335,31 @@
       <ExcludeFromBuild>true</ExcludeFromBuild>
     </SubObject>
     <SubObject Include="FB_McAxis.WriteParameterPersistent" />
+    <SubObject Include="FB_NciChannel.BuilDGroup_">
+      <ExcludeFromBuild>true</ExcludeFromBuild>
+    </SubObject>
   </ItemGroup>
   <ItemGroup>
     <None Include="PLC_STATE_DRIVE.tmc">
       <SubType>Content</SubType>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="NCI\files\Test_GST.nc">
+      <SubType>Content</SubType>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <LibraryReference Include="Tc2_NCI,3.3.15.0,Beckhoff Automation GmbH">
+      <Namespace>Tc2_NCI</Namespace>
+      <Optional>true</Optional>
+      <Condition>NCI</Condition>
+    </LibraryReference>
+    <LibraryReference Include="Tc2_PlcInterpolation,3.3.18.0,Beckhoff Automation GmbH">
+      <Namespace>Tc2_PlcInterpolation</Namespace>
+      <Optional>true</Optional>
+      <Condition>NCI</Condition>
+    </LibraryReference>
   </ItemGroup>
   <ProjectExtensions>
     <PlcProjectOptions>

@@ -3,6 +3,24 @@
   <GVL Name="GVL_NCI" Id="{fb0ea162-1b4f-012e-0c6b-68867ef723da}">
     <Declaration><![CDATA[{attribute 'qualified_only'}
 VAR_GLOBAL
+
+  gstAxisIndex                : ARRAY[1..MAX_NCI_CH] OF ST_Index_Group;  // index of gstAxisCtontrl[]
+  gstAxisConfig               : ARRAY[1..MAX_NCI_CH] OF ST_3D_Group;     // NC Axis Id to build NCI group
+
+  gstChannelCtrl              : ARRAY[1..MAX_NCI_CH] OF ST_CTRL_NCI;
+  gstChannelState             : ARRAY[1..MAX_NCI_CH] OF ST_STATE_NCI;
+
+  gsProgName                  : ARRAY[1..MAX_NCI_CH] OF STRING(255):= ['/usr/local/etc/TwinCAT/Mc/Nci/Test_GST.nc'];
+  gsProgNameActive            : ARRAY[1..MAX_NCI_CH] OF STRING(255);
+
+  gstRParameter               : ARRAY[1..MAX_NCI_CH] OF ST_R_Parameter;
+
+{IF defined (NCI)}
+  gfbNciCtrl                  : ARRAY[1..MAX_NCI_CH] OF FB_Ctrl_NciChannel;
+{ELSE}
+  gfbNciCtrl                  : ARRAY[1..MAX_NCI_CH] OF I_Nci_Ctrl;
+{END_IF}
+
 END_VAR]]></Declaration>
   </GVL>
 </TcPlcObject>

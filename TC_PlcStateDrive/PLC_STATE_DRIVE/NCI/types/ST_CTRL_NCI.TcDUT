@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <DUT Name="ST_CTRL_NCI" Id="{409f0024-413b-084a-0caa-73fd90ffc9ad}">
+    <Declaration><![CDATA[{attribute 'pack_mode' := '2'}
+TYPE ST_CTRL_NCI :
+STRUCT
+  eCmd        : E_NCI_CTRL := E_NCI_CTRL.INIT;
+  rOverride   : REAL := 47.11;
+
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

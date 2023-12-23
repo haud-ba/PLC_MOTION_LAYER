@@ -1,0 +1,1623 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="FB_NciChannel" Id="{4fc926fe-507f-0c5c-2d9c-1283cf9bcfbb}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_NciChannel IMPLEMENTS I_NciChannel
+VAR
+  stMsg                 : ST_Message;
+  ChannelDevice         : e_Device;
+
+//NCI-Channel reference
+  _refNciChannelRef     : POINTER TO ST_NciChannel_Ref;
+
+//MCS-Axes
+  _ipMcsAxis            : ARRAY[1..MAX_NCI_CH] OF I_McAxis;
+
+//Aux-Axes
+  _ipAuxAxis            : ARRAY[1..MAX_NCI_CH] OF I_McAxis;
+
+
+  _iMcCount,
+  _iMcCountConfigured   : DINT;
+  _bMcAxisMismatch      : BOOL;
+
+  _iAuxCount,
+  _iAuxCountConfigured  : DINT;
+  _bAuxAxisMismatch     : BOOL;
+
+  _bErrorCyclicChecks   : BOOL;
+
+//NCI-Error
+  _ErrorCode            : UDINT;
+  
+//NCI-Group
+  fbBuildGroup          : Tc2_NCI.CfgBuildExt3DGroup;
+  fbClearGroup          : Tc2_NCI.CfgReconfigGroup;
+
+  _stCfgAxes            : Tc2_NCI.NCI_EXT3DGROUP;   //Configured Group Axes
+
+  _fOverride            : LREAL := 100;
+
+  _Build, 
+  _Move                 : BOOL;
+
+  _mdx,
+  _adx                  : UINT;
+  
+//NCI-Program
+  fbLoadProg            : Tc2_NCI.ItpLoadProgEx;
+
+  _sProg                : STRING(255);
+
+//Interpreter
+  fbReset               : Tc2_NCI.ItpResetEx2;
+  fbStartStop           : Tc2_NCI.ItpStartStopEx;
+  fbEStop               : Tc2_NCI.ItpEStopEx;
+  fbStepOnAfterEStop    : Tc2_NCI.ItpStepOnAfterEStopEx;
+
+  fbItpConfirmHsk       : Tc2_NCI.ItpConfirmHsk;
+  fbItpReadRParams      : Tc2_NCI.ItpReadRParamsEx;
+  fbItpWriteRParams     : Tc2_NCI.ItpWriteRParamsEx;
+  fbItpDelDtg           : Tc2_NCI.ItpDelDtgEx;
+
+  
+//ADS-Communication
+  fbReadLine            : Tc2_System.ADSREADEX;
+
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[
+
+IF NOT (_refNciChannelRef^.NcToPlc.ChnId <> 0)
+THEN
+  RETURN;
+END_IF
+
+ChannelDevice := e_Device.NciChannel + (_refNciChannelRef.NcToPlc.ChnId);
+
+_iMcCount   := 0;
+_iAuxCount  := 0;
+
+FOR _mdx := 1 TO GVL_NCI.cMcAxisCount
+DO
+  IF (_ipMcsAxis[_mdx] <> 0)
+  THEN
+    _iMcCount := _iMcCount + 1;
+  END_IF
+END_FOR
+
+FOR _adx := 1 TO GVL_NCI.cAuxAxisCount
+DO
+  IF (_ipAuxAxis[_adx] <> 0)
+  THEN
+    _iAuxCount := _iAuxCount + 1;
+  END_IF
+END_FOR
+
+IF (_iAuxCount <> _iAuxCountConfigured) OR
+   (_iMcCount  <> _iMcCountConfigured) 
+THEN
+  // get first occurance of error
+  IF NOT _bMcAxisMismatch
+  THEN
+    stMsg.eType             := E_MessageType.eMessageError;
+    stMsg.eDevice           := ChannelDevice;
+    stMsg.eSubdevice        := e_Subdevice.General;
+    stMsg.iErrorNumber      := E_NCI_CHANNEL_ERROR.e_AxisConfigurationMismatch_McAxis;
+    stMsg.sText             := 'MC Axis count mismatch';
+    f_MessageSet(stMsg);
+  END_IF
+
+  // get first ocurrance of error
+  IF NOT _bAuxAxisMismatch
+  THEN
+    stMsg.eType             := E_MessageType.eMessageError;
+    stMsg.eDevice           := ChannelDevice;
+    stMsg.eSubdevice        := e_Subdevice.General;
+    stMsg.iErrorNumber      := E_NCI_CHANNEL_ERROR.e_AxisConfigurationMismatch_AuxAxis;
+    stMsg.sText             := 'Aux Axis count mismatch';
+    f_MessageSet(stMsg);
+  END_IF
+ELSE
+  // get change of error
+  IF _bMcAxisMismatch
+  THEN
+    stMsg.eType             := E_MessageType.eMessageInfo;
+    stMsg.eDevice           := ChannelDevice;
+    stMsg.eSubdevice        := e_Subdevice.General;
+    stMsg.iErrorNumber      := E_NCI_CHANNEL_ERROR.e_AxisConfigurationMismatch_McAxis;
+    stMsg.sText             := 'MC Axis count match';
+    f_MessageSet(stMsg);
+  END_IF
+
+  // get change of error
+  IF _bAuxAxisMismatch
+  THEN
+    stMsg.eType             := E_MessageType.eMessageInfo;
+    stMsg.eDevice           := ChannelDevice;
+    stMsg.eSubdevice        := e_Subdevice.General;
+    stMsg.iErrorNumber      := E_NCI_CHANNEL_ERROR.e_AxisConfigurationMismatch_AuxAxis;
+    stMsg.sText             := 'Aux Axis count match';
+    f_MessageSet(stMsg);
+  END_IF
+END_IF
+
+_bMcAxisMismatch  := (_iMcCount  <> _iMcCountConfigured);
+_bAuxAxisMismatch := (_iAuxCount <> _iAuxCountConfigured);
+
+
+]]></ST>
+    </Implementation>
+    <Folder Name="methods" Id="{31d0ae4f-7268-087b-0095-8a7f06f6a71d}" />
+    <Folder Name="private" Id="{a1dced49-12ae-0dd4-11f4-bd3aff7b080b}" />
+    <Folder Name="properties" Id="{f152d130-2071-0c7a-003b-853121063191}" />
+    <Method Name="BuildGroup" Id="{20be8ee2-0cf2-0940-1552-2c4ec8a9b537}" FolderPath="methods\">
+      <Declaration><![CDATA[(*
+===============================================================
+Implementation of Tc2_NCI.CfgBuildExt3DGroup
+
+  Builds complete NCI-Group with all configured axes
+===============================================================
+*)
+METHOD BuildGroup : HRESULT
+VAR_INPUT
+  Execute        : BOOL;
+END_VAR
+VAR_INST
+  istate          : DINT;
+  stMsg           : ST_Message;
+  hr              : HRESULT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[
+
+IF NOT Execute
+THEN
+  istate := 0;
+END_IF
+
+
+CASE istate OF
+  0:
+    hr:= S_FALSE;
+    fbBuildGroup( bExecute  := FALSE, 
+                  nGroupId  := ItpGetGroupId(sNciToPlc:=_refNciChannelRef.NcToPlc) , 
+                  nXAxisId  := _stCfgAxes.nXAxisId,
+                  nYAxisId  := _stCfgAxes.nYAxisId, 
+                  nZAxisId  := _stCfgAxes.nZAxisId, 
+                  nQ1AxisId := _stCfgAxes.nQ1AxisId,
+                  nQ2AxisId := _stCfgAxes.nQ2AxisId, 
+                  nQ3AxisId := _stCfgAxes.nQ3AxisId, 
+                  nQ4AxisId := _stCfgAxes.nQ4AxisId, 
+                  nQ5AxisId := _stCfgAxes.nQ5AxisId);
+
+    IF Execute
+    THEN
+      istate                := 10;
+    END_IF
+END_CASE
+CASE istate OF
+  10:
+    fbBuildGroup( bExecute  := TRUE, 
+                  nGroupId  := ItpGetGroupId(sNciToPlc:=_refNciChannelRef.NcToPlc));
+
+    IF fbBuildGroup.bBusy 
+    THEN
+      hr:= S_FALSE;
+    
+    ELSIF fbBuildGroup.bErr 
+    THEN
+      istate                := 99;
+
+      stMsg.eType           := E_MessageType.eMessageError;
+      stMsg.eDevice         := ChannelDevice;
+      stMsg.eSubdevice      := e_Subdevice.fbBuildGroup;
+      stMsg.iErrorNumber    := fbBuildGroup.nErrId;
+      stMsg.sText           := concat('BuildGroup Error: ', TO_STRING(fbBuildGroup.nErrId));
+      f_MessageSet(stMsg);
+
+      hr:= TO_DINT(fbBuildGroup.nErrId);
+
+    ELSE
+      istate                := 100;
+
+      stMsg.eType           := E_MessageType.eMessageInfo;
+      stMsg.eDevice         := ChannelDevice;
+      stMsg.eSubdevice      := e_Subdevice.fbBuildGroup;
+      stMsg.iErrorNumber    := fbBuildGroup.nErrId;
+      stMsg.sText           := concat('BuildGroup Done: ', TO_STRING(fbBuildGroup.nErrId));
+      f_MessageSet(stMsg);
+    END_IF
+END_CASE
+CASE istate OF
+  100:
+    hr:= S_OK;
+END_CASE
+
+//Return Result
+BuildGroup:= hr;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="BuilDGroup_" Id="{f0f69d76-b6ca-0cfe-225e-863dbd551f02}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD BuilDGroup_ : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+END_VAR
+VAR_INST
+  _eState           : E_PROGRESS;
+  _rValue           : LREAL;
+  _udiErr           : UDINT;
+  _stMsg            : ST_Message;
+
+
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT Check() THEN _eState := E_PROGRESS.ERROR; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+
+CASE _eState
+OF
+  E_PROGRESS.INIT:
+    IF Execute 
+    THEN
+      memset(ADR(_stMsg),0,SIZEOF(_stMsg));
+      _udiErr                       := 0;
+      _rValue                       := 0;
+      _eState                       := E_PROGRESS.BUSY;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.BUSY:
+    _eState                         := E_PROGRESS.STARTUP;
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.STARTUP:
+    _eState                         := E_PROGRESS.PREPARE;
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PREPARE:
+    _eState                         := E_PROGRESS.READY;
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.READY:
+    _eState                         := E_PROGRESS.WAITING;
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.WAITING:
+    _eState                         := E_PROGRESS.WORKING;
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.WORKING:
+    _eState                         := E_PROGRESS.DONE;
+END_CASE
+
+BuilDGroup_                         := _eState;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="CfgAxes" Id="{6682d548-6364-022a-0be9-334431c45b1f}" FolderPath="properties\">
+      <Declaration><![CDATA[(*
+===============================================================
+NCI-Group configured axes structure
+===============================================================
+*)
+PROPERTY CfgAxes : Tc2_NCI.NCI_EXT3DGROUP
+]]></Declaration>
+      <Set Name="Set" Id="{3f21a688-4a65-0616-3362-9c84f2e67e36}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_stCfgAxes := CfgAxes;  //Configured Group Axes
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Method Name="Check" Id="{d9ef509f-396a-0fec-3bd3-8c28926cfe17}" FolderPath="private\">
+      <Declaration><![CDATA[METHOD PRIVATE Check : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ClearGroup" Id="{ba742d26-d2d1-0439-2b05-0521cf1c693b}" FolderPath="methods\">
+      <Declaration><![CDATA[(*
+===============================================================
+Implementation of Tc2_NCI.CfgReconfigGroup
+
+  remove all axes from NCI-Group
+===============================================================
+*)
+METHOD ClearGroup : HRESULT
+VAR_INPUT
+  Execute   : BOOL;
+END_VAR
+VAR_INST
+  istate    : DINT;
+  stMsg     : ST_Message;
+  hr        : HRESULT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[
+IF NOT Execute
+THEN
+  istate := 0;
+END_IF
+
+
+CASE istate OF
+  0:
+    hr:= S_FALSE;
+    fbClearGroup( bExecute:= FALSE, 
+                  nGroupId:= ItpGetGroupId(sNciToPlc:= _refNciChannelRef.NcToPlc));
+
+    IF Execute
+    THEN
+      istate                := 10;
+    END_IF
+END_CASE
+CASE istate OF
+  10:
+    fbClearGroup( bExecute:= TRUE, 
+                  nGroupId:= ItpGetGroupId(sNciToPlc:= _refNciChannelRef.NcToPlc));
+
+    IF fbClearGroup.bBusy 
+    THEN
+      hr:= S_FALSE;
+    
+    ELSIF fbClearGroup.bErr 
+    THEN
+      istate                := 99;
+
+      stMsg.eType           := E_MessageType.eMessageError;
+      stMsg.eDevice         := ChannelDevice;
+      stMsg.eSubdevice      := e_Subdevice.fbClearGroup;
+      stMsg.iErrorNumber    := fbClearGroup.nErrId;
+      stMsg.sText           := concat('BuildGroup Error: ', TO_STRING(fbClearGroup.nErrId));
+      f_MessageSet(stMsg);
+
+      hr:= TO_DINT(fbClearGroup.nErrId);
+
+    ELSE
+      istate                := 100;
+
+      stMsg.eType           := E_MessageType.eMessageInfo;
+      stMsg.eDevice         := ChannelDevice;
+      stMsg.eSubdevice      := e_Subdevice.fbClearGroup;
+      stMsg.iErrorNumber    := fbClearGroup.nErrId;
+      stMsg.sText           := concat('ClearGroup Done: ', TO_STRING(fbClearGroup.nErrId));
+      f_MessageSet(stMsg);
+
+    END_IF
+END_CASE
+CASE istate OF
+  100:
+    hr := S_OK;
+END_CASE
+
+//Return Result
+ClearGroup:= hr;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ConfirmHSK" Id="{2d1176c9-403d-0a4a-2439-6d113f0b9fc1}" FolderPath="methods\">
+      <Declaration><![CDATA[(*
+===============================================================
+Implementation of Tc2_NCI.ItpConfirmHsk
+
+  acknowledge M-Function
+===============================================================
+*)
+METHOD ConfirmHSK : HRESULT
+VAR_INPUT
+  Execute   : BOOL;
+END_VAR
+VAR_INST
+  hr        : HRESULT;
+  istate    : DINT;
+  stMsg     : ST_Message;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[
+IF NOT Execute
+THEN
+  istate              := 0;
+END_IF
+
+
+CASE istate OF
+  0:
+    hr                                        := S_FALSE;
+    _refNciChannelRef.PlcToNc.MFuncGranted    := 0;
+
+    IF Execute
+    THEN
+      IF (_refNciChannelRef.PlcToNc.ChnAxesOvr > 0) AND NOT
+         (_refNciChannelRef.NcToPlc.ChnState.8)
+      THEN
+        IF (_refNciChannelRef.NcToPlc.HskMFuncReq = 1)
+        THEN
+          istate                              := 10;
+        END_IF
+      END_IF
+    END_IF
+
+  10:
+    _refNciChannelRef.PlcToNc.MFuncGranted    := 1;
+
+    IF (_refNciChannelRef.NcToPlc.HskMFuncReq = 0)
+    THEN
+      istate                                  := 100;
+      _refNciChannelRef.PlcToNc.MFuncGranted  := 0;
+    END_IF
+END_CASE
+CASE istate OF
+  100:
+    hr                                        := S_OK;
+END_CASE
+
+//Return Result
+ConfirmHSK:= hr;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Cycle" Id="{e4a16d35-4363-0d03-3b5a-05c413856ef9}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD Cycle : e_progress
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="DelDTG" Id="{73ec7dec-8315-051f-346e-db31461f2a17}" FolderPath="methods\">
+      <Declaration><![CDATA[// delete distance to go
+METHOD DelDTG : HRESULT
+VAR_INPUT
+  Execute     : BOOL;
+END_VAR
+VAR_INST
+  istate      : DINT;
+  stMsg       : ST_Message;
+  hr          : HRESULT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[
+IF NOT Execute
+THEN
+  istate := 0;
+END_IF
+
+
+CASE istate OF
+  0:
+    hr:= S_FALSE;
+
+    fbItpDelDtg(sNciToPlc   := _refNciChannelRef.NcToPlc, 
+                bExecute    := FALSE);
+
+    IF Execute
+    THEN
+      istate                := 10;
+    END_IF
+END_CASE
+CASE istate OF
+  10:
+    fbItpDelDtg(sNciToPlc   := _refNciChannelRef.NcToPlc, 
+                bExecute    := TRUE);
+
+    IF fbItpDelDtg.bBusy 
+    THEN
+      hr:= S_FALSE;
+    
+    ELSIF fbItpDelDtg.bErr 
+    THEN
+      istate                := 99;
+
+      stMsg.eType           := E_MessageType.eMessageError;
+      stMsg.eDevice         := ChannelDevice;
+      stMsg.eSubdevice      := e_Subdevice.fbDelDtgItp;
+      stMsg.iErrorNumber    := fbItpDelDtg.nErrId;
+      stMsg.sText           := concat('fbItpDelDtg Error: ', TO_STRING(fbItpDelDtg.nErrId));
+      f_MessageSet(stMsg);
+
+      hr:= TO_DINT(stMsg.iErrorNumber);
+
+    ELSE
+      istate                := 100;
+
+      stMsg.eType           := E_MessageType.eMessageInfo;
+      stMsg.eDevice         := ChannelDevice;
+      stMsg.eSubdevice      := e_Subdevice.fbDelDtgItp;
+      stMsg.iErrorNumber    := fbItpDelDtg.nErrId;
+      stMsg.sText           := concat('fbItpDelDtg Done: ', TO_STRING(fbItpDelDtg.nErrId));
+      f_MessageSet(stMsg);
+    END_IF
+END_CASE
+CASE istate OF
+  100:
+    hr:= S_OK;
+END_CASE
+
+//Return Result
+DelDTG:= hr;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="Error" Id="{776af921-cac5-08fc-3997-b0add301e34c}" FolderPath="properties\">
+      <Declaration><![CDATA[(*
+===============================================================
+Error-Flag
+===============================================================
+*)
+PROPERTY Error : BOOL]]></Declaration>
+      <Get Name="Get" Id="{49ff423d-e1e1-0fe2-250e-7d28e831ba42}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[// get error from channel state
+Error:= Error_Get();
+]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="Error_Get" Id="{d0aa5d5d-0d7f-00d5-2d9e-7312283e8234}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD Error_Get : BOOL
+VAR_INST
+  i               : INT;
+  stMsg           : ST_Message;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//Return Value
+Error_Get:= FALSE;
+
+//NciChannel
+IF _refNciChannelRef.NcToPlc.ErrorCode <> 0 
+THEN
+  stMsg.eType         := E_MessageType.eMessageError;
+  stMsg.eDevice       := ChannelDevice;
+  stMsg.eSubdevice    := e_Subdevice.Get_Error;
+  stMsg.iErrorNumber  := _refNciChannelRef.NcToPlc.ErrorCode;
+  stMsg.sText         := concat('NCI-Error: ', TO_STRING(_refNciChannelRef.NcToPlc.ErrorCode));
+  f_MessageSet(stMsg);
+  Error_Get:= TRUE;
+  RETURN;
+END_IF
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="EStop" Id="{1702e11a-1f54-05d2-2c11-02f962455771}" FolderPath="methods\">
+      <Declaration><![CDATA[(*
+===============================================================
+Implementation of Tc2_NCI.ItpEStopEx
+===============================================================
+*)
+METHOD EStop : HRESULT
+VAR_INPUT
+  Execute   : BOOL;
+END_VAR
+VAR_INST
+  istate    : DINT;
+  stMsg     : ST_Message;
+  hr        : HRESULT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[
+IF NOT Execute
+THEN
+  istate := 0;
+END_IF
+
+
+CASE istate OF
+  0:
+    hr                    := S_FALSE;
+
+    fbEStop(sNciToPlc     := _refNciChannelRef.NcToPlc, 
+            bExecute      := FALSE);
+
+    IF Execute
+    THEN
+      istate              := 10;
+    END_IF
+END_CASE
+CASE istate OF
+  10:
+    fbEStop(sNciToPlc     := _refNciChannelRef.NcToPlc, 
+            bExecute      := TRUE);
+
+    IF fbEStop.bBusy 
+    THEN
+      hr:= S_FALSE;
+    
+    ELSIF fbEStop.bErr 
+    THEN
+      istate                := 99;
+
+      stMsg.eType           := E_MessageType.eMessageError;
+      stMsg.eDevice         := ChannelDevice;
+      stMsg.eSubdevice      := e_Subdevice.fbEStopItp;
+      stMsg.iErrorNumber    := fbEStop.nErrId;
+      stMsg.sText           := concat('fbEStopItp Error: ', TO_STRING(fbEStop.nErrId));
+      f_MessageSet(stMsg);
+
+      hr:= TO_DINT(fbEStop.nErrId);
+    ELSE
+      istate                := 100;
+
+      stMsg.eType           := E_MessageType.eMessageInfo;
+      stMsg.eDevice         := ChannelDevice;
+      stMsg.eSubdevice      := e_Subdevice.fbEStopItp;
+      stMsg.iErrorNumber    := fbEStop.nErrId;
+      stMsg.sText           := concat('fbEStopItp Done: ', TO_STRING(fbEStop.nErrId));
+      f_MessageSet(stMsg);
+    END_IF
+END_CASE
+CASE istate OF
+  100:
+    hr:= S_OK;
+END_CASE
+
+//Return Result
+EStop:= hr;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="GetChannelOverride" Id="{c7e62bfe-58e0-076d-2cf3-eb4814bbcc2c}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD GetChannelOverride : real
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[GetChannelOverride := TO_REAL(_refNciChannelRef.PlcToNc.ChnAxesOvr)/10_000.0;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="GetItpState" Id="{ef07c72a-6d44-05b7-34da-2cf429417db2}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD GetItpState : uint
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[GetItpState := _refNciChannelRef.NcToPlc.ItpState;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="HSK" Id="{c44fb810-a1ba-008d-0d5f-e9fee3235b7d}" FolderPath="properties\">
+      <Declaration><![CDATA[(*
+===============================================================
+Handshake: Announce and acknowledge M-Functions
+===============================================================
+*)
+PROPERTY HSK : BOOL]]></Declaration>
+      <Get Name="Get" Id="{d8073b19-c4f8-01b9-2092-104926a0a43c}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[
+HSK :=  TO_BOOL(_refNciChannelRef.NcToPlc.HskMFuncReq);
+
+]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="I_AuxAxis" Id="{32758125-2b71-0bff-32fa-ea665a4e63b0}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY I_AuxAxis : ARRAY[1..GVL_NCI.cAuxAxisCount] OF I_McAxis
+]]></Declaration>
+      <Set Name="Set" Id="{a18b5db1-9f74-04d5-0a3b-109b1529afff}">
+        <Declaration><![CDATA[VAR
+  idx : DINT;
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_ipAuxAxis := I_AuxAxis;
+
+_iAuxCountConfigured := 0;
+FOR idx := 1 TO GVL_NCI.cAuxAxisCount
+DO
+  IF (_ipAuxAxis[idx] <> 0)
+  THEN
+    _iAuxCountConfigured := _iAuxCountConfigured + 1;
+  END_IF
+END_FOR
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="I_McAxis" Id="{e9553ea2-930d-0a79-2c0f-d65855a40180}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY I_McAxis : array[1..GVL_NCI.cMcAxisCount] of I_McAxis]]></Declaration>
+      <Set Name="Set" Id="{2acbb6e9-6899-0c2c-32e3-538e7e384e94}">
+        <Declaration><![CDATA[VAR
+  idx : dint;
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_ipMcsAxis := I_McAxis;
+
+_iMcCountConfigured := 0;
+FOR idx := 1 TO GVL_NCI.cMcAxisCount
+DO
+  IF (_ipMcsAxis[idx] <> 0)
+  THEN
+    _iMcCountConfigured := _iMcCountConfigured + 1;
+  END_IF
+END_FOR
+
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="ItpAxes" Id="{2ef1133b-3cbf-0feb-0dde-ca5cc03c5cac}" FolderPath="properties\">
+      <Declaration><![CDATA[(*
+===============================================================
+NCI-Group configured axes structure
+===============================================================
+*)
+PROPERTY ItpAxes : Tc2_NCI.NCI_EXT3DGROUP
+]]></Declaration>
+      <Get Name="Get" Id="{67f22660-de01-0ef5-077d-64ed12435f0d}">
+        <Declaration><![CDATA[VAR
+  stItpAxes     :Tc2_NCI.NCI_EXT3DGROUP;
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[
+stItpAxes.nXAxisId := _refNciChannelRef.NcToPlc.AcsAxisIDs[0];
+stItpAxes.nYAxisId := _refNciChannelRef.NcToPlc.AcsAxisIDs[1];
+stItpAxes.nZAxisId := _refNciChannelRef.NcToPlc.AcsAxisIDs[2];
+stItpAxes.nQ1AxisId := _refNciChannelRef.NcToPlc.AcsAxisIDs[3];
+stItpAxes.nQ2AxisId := _refNciChannelRef.NcToPlc.AcsAxisIDs[4];
+stItpAxes.nQ3AxisId := _refNciChannelRef.NcToPlc.AcsAxisIDs[5];
+stItpAxes.nQ4AxisId := _refNciChannelRef.NcToPlc.AcsAxisIDs[6];
+stItpAxes.nQ5AxisId := _refNciChannelRef.NcToPlc.AcsAxisIDs[7];
+
+ItpAxes := stItpAxes;
+]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="ItpReset" Id="{ecb4ecf9-6ac2-0251-0c14-b72bb547b558}" FolderPath="methods\">
+      <Declaration><![CDATA[(*
+===============================================================
+Implementation of Tc2_NCI.ItpResetEx2
+===============================================================
+*)
+METHOD ItpReset   : HRESULT
+VAR_INPUT
+  Execute         : BOOL;
+END_VAR
+VAR_INST
+  stMsg           : ST_Message;
+  nState,
+  nStateError     : DINT;
+
+  hr              : HRESULT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[
+IF NOT Execute
+THEN
+  nState                    := 0;
+  nStateError               := 0;
+END_IF
+
+CASE nState OF
+  0:
+  hr                        := S_FALSE;
+
+  fbReset(bExecute          := FALSE, 
+          tTimeOut          := T#1S, 
+          sNciToPlc         := _refNciChannelRef.NcToPlc);
+ 
+  IF Execute 
+  THEN
+    nState                  := 10;
+  END_IF
+END_CASE
+CASE nState OF
+  10:
+  fbReset(bExecute          := TRUE, 
+          tTimeOut          := T#1S, 
+          sNciToPlc         := _refNciChannelRef.NcToPlc);
+
+  IF fbReset.bBusy 
+  THEN
+    hr                      := S_FALSE;
+  ELSIF fbReset.bErr 
+  THEN
+    stMsg.eType             := E_MessageType.eMessageError;
+    stMsg.eDevice           := ChannelDevice;
+    stMsg.eSubdevice        := e_Subdevice.fbResetItp;
+    stMsg.iErrorNumber      := fbReset.nErrId;
+    stMsg.sText             := concat('ItpReset Error: ', UDINT_TO_STRING(fbReset.nErrId));
+    f_MessageSet(stMsg);
+
+    hr                      := UDINT_TO_DINT(fbReset.nErrId);
+    nStateError             := nState;
+    nState                  := 99;
+  ELSE
+    _sProg                  := '';
+    nState                  := 100;
+  END_IF
+END_CASE
+CASE nState OF
+  100:
+  //Done
+  hr                         := S_OK;
+END_CASE
+//Return Result
+ItpReset:= hr;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="LoadProg" Id="{2546f843-8e7c-0086-1864-d0682e3e8c98}" FolderPath="methods\">
+      <Declaration><![CDATA[(*
+===============================================================
+Implementation of Tc2_NCI.ItpLoadProgEx
+===============================================================
+*)
+METHOD LoadProg   : HRESULT
+VAR_INPUT
+  Execute         : BOOL;
+END_VAR
+VAR_INST
+  stMsg           : ST_Message;
+  nState,
+  nStateError     : DINT;
+
+  hr              : HRESULT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[
+IF NOT Execute
+THEN
+  nState                            := 0;
+  nStateError                       := 0;
+END_IF
+
+CASE nState OF
+  0:
+    hr                              := S_FALSE;
+
+    fbLoadProg(sNciToPlc            := _refNciChannelRef.NcToPlc, 
+               bExecute             := FALSE, 
+               sPrg                 := _sProg, 
+               nLength              := TO_UDINT(LEN(_sProg)));
+    IF Execute
+    THEN
+      nState := 10;
+    END_IF
+END_CASE
+CASE nState OF
+  10:
+    fbLoadProg(sNciToPlc            := _refNciChannelRef.NcToPlc, 
+               bExecute             := TRUE, 
+               sPrg                 := _sProg, 
+               nLength              := TO_UDINT(LEN(_sProg)));
+  
+    IF fbLoadProg.bErr
+    THEN
+      stMsg.eType                   := E_MessageType.eMessageError;
+      stMsg.eDevice                 := ChannelDevice;
+      stMsg.eSubdevice              := e_Subdevice.fbLoadProg;
+      stMsg.iErrorNumber            := fbLoadProg.nErrId;
+      stMsg.sText                   := concat('LoadProg Error: ', TO_STRING(fbLoadProg.nErrId));
+      f_MessageSet(stMsg);
+
+      hr                            := TO_DINT(fbLoadProg.nErrId);
+
+      nState                        := 99;
+   
+    ELSIF NOT fbLoadProg.bBusy
+    THEN
+      nState                        := 100;
+
+      stMsg.eType                   := E_MessageType.eMessageInfo;
+      stMsg.eDevice                 := ChannelDevice;
+      stMsg.eSubdevice              := e_Subdevice.fbLoadProg;
+      stMsg.iErrorNumber            := fbLoadProg.nErrId;
+      stMsg.sText                   := concat('LoadProg Done: ', fbLoadProg.sPrg);
+      f_MessageSet(stMsg);
+    END_IF
+END_CASE
+CASE nState OF
+  100:
+    //Done
+    hr                              := S_OK;
+END_CASE
+//Return Result
+LoadProg:= hr;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="MFunc" Id="{eef8001b-c1c5-07ab-1a61-aed038458c5a}" FolderPath="properties\">
+      <Declaration><![CDATA[(*
+===============================================================
+M-Function
+===============================================================
+*)
+PROPERTY MFunc : INT]]></Declaration>
+      <Get Name="Get" Id="{28b6bc37-1eb7-064a-08e5-4496be8c9da7}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[
+MFunc := TO_INT(_refNciChannelRef.NcToPlc.HskMFuncNo);
+]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="Override" Id="{6df53c65-715d-0448-2557-23ffa7fe1427}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY Override : LREAL
+]]></Declaration>
+      <Get Name="Get" Id="{102bae0c-37b7-0566-2921-081f0d197219}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Override := Tc2_NCI.ItpGetOverridePercent(_refNciChannelRef.PlcToNc);
+]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{4510a4ae-97db-060e-1a29-be88ffaddd94}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Tc2_NCI.ItpSetOverridePercent(Override, _refNciChannelRef.PlcToNc);
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="PathVelo" Id="{1dce381d-dc83-078e-226b-7bea705ecd77}" FolderPath="properties\">
+      <Declaration><![CDATA[(*
+===============================================================
+actual path velo [Units/s]
+===============================================================
+*)
+PROPERTY PathVelo : LREAL]]></Declaration>
+      <Get Name="Get" Id="{17f3ac0c-0527-01e6-04b9-4fae644d315c}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[
+PathVelo := _refNciChannelRef.NcToPlc.PathVelo;
+]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="pNciChannelRef" Id="{764b1865-4bb9-0d04-31f4-9b6c197c4c91}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY pNciChannelRef : POINTER TO ST_NciChannel_Ref
+]]></Declaration>
+      <Get Name="Get" Id="{cea00c93-3b66-0eaa-001e-ff0e2ac7d34a}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[pNciChannelRef := ADR(_refNciChannelRef);
+
+]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="Prog" Id="{f0979216-da40-0b6b-24d0-e233a2991073}" FolderPath="properties\">
+      <Declaration><![CDATA[(*
+===============================================================
+G-Code Program Name (sFilePath)
+===============================================================
+*)
+PROPERTY Prog : STRING(255)
+]]></Declaration>
+      <Get Name="Get" Id="{7499b1b3-b43f-0723-3421-84b3a37293f6}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Prog:=_sProg;
+]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{3acdfd6d-af8f-03c0-1290-56053a4682ee}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_sProg:=Prog;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Method Name="ReadLine" Id="{174751b2-ea7f-06b9-35a2-8b138d7f353d}" FolderPath="methods\">
+      <Declaration><![CDATA[(*
+===============================================================
+Implementation of Tc2_System.ADSREADEX
+
+  reads actual interpreter G-Code Line
+===============================================================
+*)
+METHOD ReadLine   : HRESULT
+VAR_INPUT
+  Execute         : BOOL;
+END_VAR
+//Read G-Code actual Line
+VAR_OUTPUT
+  ActProgLine     : STRING(100);
+END_VAR
+VAR_INST
+  ReadString      : STRING(100);
+  nBlockNo        : UDINT;
+
+  stMsg           : ST_Message;
+  nState,
+  nStateError     : DINT;
+
+  hr              : HRESULT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[
+IF NOT Execute
+THEN
+  nState                    := 0;
+  nStateError               := 0;
+END_IF
+
+CASE nState OF
+  0:
+  hr                        := S_FALSE;
+
+  fbReadLine(PORT           := 500, 
+             IDXGRP         := 16#2300 + _refNciChannelRef.NcToPlc.ChnId, // + ChannelID
+             IDXOFFS        := 16#2000_0001,
+             LEN            := SIZEOF(ReadString),
+             DESTADDR       := ADR(ReadString), 
+             READ           := FALSE);
+  
+  IF Execute 
+  THEN
+    nState                  := 10;
+    nBlockNo                := _refNciChannelRef.NcToPlc.BlockNo;
+  END_IF
+END_CASE
+CASE nState OF
+  10:
+  fbReadLine(PORT           := 500, 
+             IDXGRP         := 16#2300 + _refNciChannelRef.NcToPlc.ChnId, // + ChannelID
+             IDXOFFS        := 16#2000_0001,
+             LEN            := SIZEOF(ReadString),
+             DESTADDR       := ADR(ReadString), 
+             READ           := TRUE);
+
+  IF fbReadLine.ERR
+  THEN
+    stMsg.eType             := E_MessageType.eMessageError;
+    stMsg.eDevice           := ChannelDevice;
+    stMsg.eSubdevice        := e_Subdevice.fbReadLine;
+    stMsg.iErrorNumber      := fbReadLine.ERRID;
+    stMsg.sText             := concat('fbReadLine ADS error: ', TO_STRING(fbReadLine.ERRID));
+    f_MessageSet(stMsg);
+
+    nStateError             := nState;
+    nState                  := 99;
+
+  ELSIF NOT fbReadLine.BUSY
+  THEN
+    nState                  := 100;
+    ActProgLine             := ReadString;
+
+    stMsg.eType             := E_MessageType.eMessageInfo;
+    stMsg.eDevice           := ChannelDevice;
+    stMsg.eSubdevice        := e_Subdevice.fbReadLine;
+    stMsg.iErrorNumber      := fbReadLine.ERRID;
+    stMsg.sText             := CONCAT(CONCAT(CONCAT('ReadLine Done: ', ReadString), ' Lines:'), TO_STRING(fbReadLine.COUNT_R));
+    f_MessageSet(stMsg);
+  END_IF
+END_CASE
+CASE nState OF
+  100:
+  //Done
+  hr                        := S_OK;
+END_CASE
+
+//Return Result
+ReadLine:= hr;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ReadRParams" Id="{a9bcfa84-86e2-0751-29e9-b277466a8bf4}" FolderPath="methods\">
+      <Declaration><![CDATA[(*
+===============================================================
+Implementation of Tc2_NCI.ItpReadRParamsEx
+
+  read R-Parameter(s) from NCI
+===============================================================
+*)
+METHOD ReadRParams : HRESULT
+VAR_INPUT
+  Execute  : BOOL;
+  Addr     : POINTER TO LREAL;  // start adr of rParam array 
+  Index    : DINT;              // start index of R[Index] in NCI
+  Count    : DINT;              // count of R[index+i] in NCI
+END_VAR
+VAR_INST
+  stMsg           : ST_Message;
+  nState,
+  nStateError     : DINT;
+
+  hr              : HRESULT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[
+IF NOT Execute
+THEN
+  nState                            := 0;
+  nStateError                       := 0;
+END_IF
+
+CASE nState OF
+  0:
+  hr                                := S_FALSE;
+
+  fbItpReadRParams( sNciToPlc       := _refNciChannelRef.NcToPlc, 
+                    bExecute        := FALSE, 
+                    pAddr           := Addr, 
+                    nIndex          := Index, 
+                    nCount          := Count);
+  
+  IF Execute 
+  THEN
+    nState                          := 10;
+  END_IF
+END_CASE
+CASE nState OF
+  10:
+  fbItpReadRParams( sNciToPlc       := _refNciChannelRef.NcToPlc, 
+                    bExecute        := TRUE, 
+                    pAddr           := Addr, 
+                    nIndex          := Index, 
+                    nCount          := Count);
+
+  IF fbItpReadRParams.bErr
+  THEN
+    stMsg.eType                     := E_MessageType.eMessageError;
+    stMsg.eDevice                   := ChannelDevice;
+    stMsg.eSubdevice                := e_Subdevice.fbItpReadRParams;
+    stMsg.iErrorNumber              := fbItpReadRParams.nErrId;
+    stMsg.sText                     := concat('fbItpReadRParams Error: ', 
+                                              TO_STRING(fbItpReadRParams.nERRID));
+    f_MessageSet(stMsg);
+
+    hr                              := TO_DINT(fbItpReadRParams.nErrId);
+    nStateError                     := nState;
+    nState                          := 99;
+
+  ELSIF NOT fbItpReadRParams.bBusy
+  THEN
+    nState                          := 100;
+
+    stMsg.eType                     := E_MessageType.eMessageInfo;
+    stMsg.eDevice                   := ChannelDevice;
+    stMsg.eSubdevice                := e_Subdevice.fbItpReadRParams;
+    stMsg.iErrorNumber              := fbItpReadRParams.nErrId;
+    stMsg.sText                     := concat('fbItpReadRParams Done: ', 
+                                              TO_STRING(fbItpReadRParams.nCount));
+    f_MessageSet(stMsg);
+  END_IF
+END_CASE
+CASE nState OF
+  100:
+  //Done
+  hr                                := S_OK;
+END_CASE
+
+//Return Result
+ReadRParams:= hr;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="StartStop" Id="{37115a80-ba9d-0a1f-2550-c96eb87f43f5}" FolderPath="methods\">
+      <Declaration><![CDATA[(*
+===============================================================
+Implementation of Tc2_NCI.ItpStartStopEx
+
+  Start Interpreter
+===============================================================
+*)
+METHOD StartStop : HRESULT
+VAR_INPUT
+  Start: BOOL;
+  Stop: BOOL;
+END_VAR
+VAR_INST
+  stMsg           : ST_Message;
+  nState,
+  nStateError     : DINT;
+
+  hr              : HRESULT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[
+fbStartStop(bStart                  := Start, 
+            bStop                   := Stop, 
+            sNciToPlc               := _refNciChannelRef.NcToPlc);
+
+  
+IF fbStartStop.bBusy 
+THEN
+  hr                                := S_FALSE;
+
+ELSIF fbStartStop.bErr 
+THEN
+  IF (stMsg.iErrorNumber <> fbStartStop.nErrId)
+  THEN
+    stMsg.eType                     := E_MessageType.eMessageError;
+    stMsg.eDevice                   := ChannelDevice;
+    stMsg.eSubdevice                := e_Subdevice.fbStartStopItp;
+    stMsg.iErrorNumber              := fbStartStop.nErrId;
+    stMsg.sText                     := concat('Start Interpreter ERROR: ', TO_STRING(fbStartStop.nErrId));
+    f_MessageSet(stMsg);
+  END_IF
+
+  hr                                := UDINT_TO_DINT(fbStartStop.nErrId);
+ELSE
+  IF Start
+  THEN
+    stMsg.eType                     := E_MessageType.eMessageInfo;
+    stMsg.eDevice                   := ChannelDevice;
+    stMsg.eSubdevice                := e_Subdevice.fbStartStopItp;
+    stMsg.iErrorNumber              := 0;
+    stMsg.sText                     := concat('Start file: ', _sProg);
+    f_MessageSet(stMsg);
+
+  ELSIF Stop
+  THEN
+    stMsg.eType                     := E_MessageType.eMessageInfo;
+    stMsg.eDevice                   := ChannelDevice;
+    stMsg.eSubdevice                := e_Subdevice.fbStartStopItp;
+    stMsg.iErrorNumber              := 0;
+    stMsg.sText                     := concat('Stop file: ', _sProg);
+    f_MessageSet(stMsg);
+  END_IF
+  hr                                := S_OK;
+END_IF
+
+//Return Result
+StartStop:= hr;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="StepOnAfterEStop" Id="{fbae9513-49a8-040b-1d9e-7f0e1bedec21}" FolderPath="methods\">
+      <Declaration><![CDATA[(*
+===============================================================
+Implementation of Tc2_NCI.ItpStopOnAfterEStopEx
+===============================================================
+*)
+METHOD StepOnAfterEStop : HRESULT
+VAR_INPUT
+  Execute: BOOL;
+END_VAR
+VAR_INST
+  stMsg           : ST_Message;
+  nState,
+  nStateError     : DINT;
+
+  hr              : HRESULT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[
+IF NOT Execute
+THEN
+  nState                            := 0;
+  nStateError                       := 0;
+END_IF
+
+CASE nState OF
+  0:
+    hr                              := S_FALSE;
+    fbStepOnAfterEStop(bExecute     := FALSE, 
+                       sNciToPlc    := _refNciChannelRef.NcToPlc);
+
+    IF Execute
+    THEN
+      nState                        := 10;
+    END_IF
+END_CASE
+CASE nState OF
+  10:
+    fbStepOnAfterEStop(bExecute     := TRUE, 
+                     sNciToPlc      := _refNciChannelRef.NcToPlc);
+  
+    IF fbStepOnAfterEStop.bErr
+    THEN
+      stMsg.eType                   := E_MessageType.eMessageError;
+      stMsg.eDevice                 := ChannelDevice;
+      stMsg.eSubdevice              := e_Subdevice.fbStepOnAfterEStopItp;
+      stMsg.iErrorNumber            := fbStepOnAfterEStop.nErrId;
+      stMsg.sText                   := concat('StepOn Error: ', TO_STRING(fbStepOnAfterEStop.nErrId));
+      f_MessageSet(stMsg);
+
+      hr                            := TO_DINT(fbStepOnAfterEStop.nErrId);
+
+      nState                        := 99;
+   
+    ELSIF NOT fbStepOnAfterEStop.bBusy
+    THEN
+      nState                        := 100;
+
+      stMsg.eType                   := E_MessageType.eMessageInfo;
+      stMsg.eDevice                 := ChannelDevice;
+      stMsg.eSubdevice              := e_Subdevice.fbStepOnAfterEStopItp;
+      stMsg.iErrorNumber            := fbStepOnAfterEStop.nErrId;
+      stMsg.sText                   := concat('StepOn Group: ', UDINT_TO_STRING(_refNciChannelRef.NcToPlc.GrpId));
+      f_MessageSet(stMsg);
+
+
+      fbStepOnAfterEStop(bExecute   := FALSE, 
+                         sNciToPlc  := _refNciChannelRef.NcToPlc);
+  
+    END_IF
+END_CASE
+CASE nState OF
+  100:
+  //Done
+  hr                                := S_OK;
+END_CASE
+
+//Return Result
+StepOnAfterEStop:= hr;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="WriteRParams" Id="{00021f79-5035-0bce-14b0-68c04f5d3f82}" FolderPath="methods\">
+      <Declaration><![CDATA[(*
+===============================================================
+Implementation of Tc2_NCI.ItpWriteRParamsEx
+
+  write R-Parameter(s) to NCI
+===============================================================
+*)
+METHOD WriteRParams : HRESULT
+VAR_INPUT
+  Execute : BOOL;
+  Addr    : POINTER TO LREAL; // Adresse der Zielvariablen der Daten. 
+                              // Dabei werden die Daten direkt ab der angegebenen Adresse von der NC beschrieben  
+                              // D.h. nIndex ist nicht als Offset zu pAddr zu sehen. Die Daten befinden sich z.B. 
+                              // in einem Array vom Typ LREAL, das vom Anwender definiert werden muss.
+  Index   : DINT;
+  Count   : DINT;
+END_VAR
+VAR_INST
+  stMsg           : ST_Message;
+  nState,
+  nStateError     : DINT;
+
+  hr              : HRESULT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[
+IF NOT Execute
+THEN
+  nState                            := 0;
+  nStateError                       := 0;
+END_IF
+
+CASE nState OF
+  0:
+    hr                              := S_FALSE;
+
+    fbItpWriteRParams(bExecute      := FALSE, 
+                      pAddr         := Addr, 
+                      nIndex        := Index, 
+                      nCount        := Count, 
+                      sNciToPlc     := _refNciChannelRef.NcToPlc);
+    IF Execute
+    THEN
+      nState                        := 10;
+    END_IF
+END_CASE
+CASE nState OF
+  10:
+    fbItpWriteRParams(bExecute      := TRUE, 
+                      pAddr         := Addr, 
+                      nIndex        := Index, 
+                      nCount        := Count, 
+                      sNciToPlc     := _refNciChannelRef.NcToPlc);
+
+    IF fbItpWriteRParams.bErr
+    THEN
+      stMsg.eType                   := E_MessageType.eMessageError;
+      stMsg.eDevice                 := ChannelDevice;
+      stMsg.eSubdevice              := e_Subdevice.fbItpWriteRParams;
+      stMsg.iErrorNumber            := fbItpWriteRParams.nErrId;
+      stMsg.sText                   := concat('fbItpWriteRParams Error: ', 
+                                                TO_STRING(fbItpWriteRParams.nERRID));
+      f_MessageSet(stMsg);
+  
+      hr                            := TO_DINT(fbItpWriteRParams.nErrId);
+      nStateError                   := nState;
+      nState                        := 99;
+  
+    ELSIF NOT fbItpWriteRParams.bBusy
+    THEN
+      nState                        := 100;
+  
+      stMsg.eType                   := E_MessageType.eMessageInfo;
+      stMsg.eDevice                 := ChannelDevice;
+      stMsg.eSubdevice              := e_Subdevice.fbItpWriteRParams;
+      stMsg.iErrorNumber            := fbItpWriteRParams.nErrId;
+      stMsg.sText                   := concat('fbItpWriteRParams Done: ', 
+                                                TO_STRING(fbItpWriteRParams.nCount));
+      f_MessageSet(stMsg);
+    END_IF
+END_CASE
+CASE nState OF
+  100:
+  //Done
+  hr                                := S_OK;
+END_CASE
+//Return Result
+WriteRParams:= hr;
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <ObjectProperties>
+      <XmlArchive>
+        <Data>
+          <o xml:space="preserve" t="UMLStereoTypeContainerObject">
+            <v n="IsType" t="UMLType">BaseArea</v>
+            <v n="Stereotype">""</v>
+            <d n="Stereotypes" t="Hashtable" />
+          </o>
+        </Data>
+        <TypeList>
+          <Type n="Hashtable">System.Collections.Hashtable</Type>
+          <Type n="String">System.String</Type>
+          <Type n="UMLStereoTypeContainerObject">{30250973-b110-4e31-b562-c102e042dca4}</Type>
+          <Type n="UMLType">{0197b136-405a-42ee-bb27-fd08b621d0cf}</Type>
+        </TypeList>
+      </XmlArchive>
+    </ObjectProperties>
+    <LineIds Name="FB_NciChannel">
+      <LineId Id="151" Count="1" />
+      <LineId Id="3" Count="77" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannel.BuildGroup">
+      <LineId Id="3" Count="66" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannel.BuilDGroup_">
+      <LineId Id="674" Count="45" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannel.CfgAxes.Set">
+      <LineId Id="3" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannel.Check">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannel.ClearGroup">
+      <LineId Id="3" Count="58" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannel.ConfirmHSK">
+      <LineId Id="3" Count="39" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannel.Cycle">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannel.DelDTG">
+      <LineId Id="3" Count="58" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannel.Error.Get">
+      <LineId Id="3" Count="1" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannel.Error_Get">
+      <LineId Id="3" Count="15" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannel.EStop">
+      <LineId Id="3" Count="57" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannel.GetChannelOverride">
+      <LineId Id="3" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannel.GetItpState">
+      <LineId Id="3" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannel.HSK.Get">
+      <LineId Id="3" Count="2" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannel.I_AuxAxis.Set">
+      <LineId Id="3" Count="9" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannel.I_McAxis.Set">
+      <LineId Id="3" Count="10" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannel.ItpAxes.Get">
+      <LineId Id="3" Count="10" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannel.ItpReset">
+      <LineId Id="3" Count="52" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannel.LoadProg">
+      <LineId Id="3" Count="58" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannel.MFunc.Get">
+      <LineId Id="3" Count="1" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannel.Override.Get">
+      <LineId Id="3" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannel.Override.Set">
+      <LineId Id="3" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannel.PathVelo.Get">
+      <LineId Id="3" Count="1" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannel.pNciChannelRef.Get">
+      <LineId Id="3" Count="1" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannel.Prog.Get">
+      <LineId Id="3" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannel.Prog.Set">
+      <LineId Id="3" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannel.ReadLine">
+      <LineId Id="3" Count="65" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannel.ReadRParams">
+      <LineId Id="3" Count="64" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannel.StartStop">
+      <LineId Id="3" Count="46" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannel.StepOnAfterEStop">
+      <LineId Id="3" Count="60" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannel.WriteRParams">
+      <LineId Id="3" Count="63" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

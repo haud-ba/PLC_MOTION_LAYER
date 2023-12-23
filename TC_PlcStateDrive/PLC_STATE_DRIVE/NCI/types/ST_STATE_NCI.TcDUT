@@ -1,0 +1,41 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <DUT Name="ST_STATE_NCI" Id="{f7beadfd-24e7-0d45-397c-ffc8ba50f566}">
+    <Declaration><![CDATA[{attribute 'pack_mode' := '2'}
+TYPE ST_STATE_NCI :
+STRUCT
+  eState        : E_NCI_CTRL; // eCmd with offsets for busy and done
+
+  bMFuncReq     : BIT;  // M function request is active from channel
+
+  nMFunc        : WORD; // number of active M function
+
+  nItpState     : UINT; 
+                         (*  Interpreter Operation State:
+                            0  = Init failed
+                            1  = Idle
+                            2  = Ready
+                            3  = Started
+                            4  = Scanning
+                            5  = Running
+                            6  = Stay running
+                            7  = Write table
+                            8  = Search line
+                            9  = End
+                            10 = Single Step
+                            11 = Aborting
+                            12 = Aborted
+                            13 = Fault
+                            14 = Reset
+                            15 = Stop
+                            16 = Wait function
+                            17 = Flush buffers
+                          *) 
+
+  rAxisOverride : REAL; // active override in cyclic NCI interface
+
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

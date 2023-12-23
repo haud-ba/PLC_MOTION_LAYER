@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.9">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
   <Itf Name="I_Nci_Ctrl" Id="{da5b91af-8aa6-06a0-1287-af2f86da2e54}">
     <Declaration><![CDATA[INTERFACE I_Nci_Ctrl
 ]]></Declaration>
@@ -18,7 +18,7 @@ END_VAR
 ]]></Declaration>
     </Method>
     <Property Name="eCmd" Id="{7146535b-566c-4f51-8c67-218d2af445a7}" FolderPath="properties\">
-      <Declaration><![CDATA[PROPERTY eCmd : e_Ctrl_NciCommand]]></Declaration>
+      <Declaration><![CDATA[PROPERTY eCmd : E_NCI_CTRL]]></Declaration>
       <Get Name="Get" Id="{58397bbe-29f5-490f-877a-c15434d1a318}">
         <Declaration><![CDATA[]]></Declaration>
       </Get>
@@ -27,7 +27,7 @@ END_VAR
       </Set>
     </Property>
     <Property Name="eState" Id="{5e306cc8-2113-4246-ac64-4b099491155d}" FolderPath="properties\">
-      <Declaration><![CDATA[PROPERTY eState : e_Ctrl_NciCommand]]></Declaration>
+      <Declaration><![CDATA[PROPERTY eState : E_NCI_CTRL]]></Declaration>
       <Get Name="Get" Id="{b869c2c5-43f2-4607-8d9b-f77dbbb1279b}">
         <Declaration><![CDATA[]]></Declaration>
       </Get>

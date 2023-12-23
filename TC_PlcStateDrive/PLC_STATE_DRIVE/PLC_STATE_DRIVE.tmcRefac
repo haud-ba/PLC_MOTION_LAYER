@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Refactors>
+  <Renames>
+    <RenamedType>
+      <Type guid="e5e0593b-02dc-4a86-9ec1-848e709b5872">E_CTRL_NCICOMMAND</Type>
+      <From>e_Ctrl_NciCommand</From>
+      <To>E_NCI_CTRL</To>
+    </RenamedType>
+    <RenamedType>
+      <Type guid="44f0e889-19df-4506-a12e-35038f5cc979">E_NCICHANNELERROR</Type>
+      <From>e_NciChannelError</From>
+      <To>E_NCI_CHANNEL_ERROR</To>
+    </RenamedType>
+    <RenamedType>
+      <Type guid="915e7627-13bb-4596-b876-ae3c9e2869bb">ST_CTRL_NCIMFUNCCYCLE</Type>
+      <From>ST_Ctrl_NciMFuncCycle</From>
+      <To>ST_NCI_CTRL_M_FUNC</To>
+    </RenamedType>
+  </Renames>
+</Refactors>

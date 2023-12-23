@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
-  <POU Name="FB_Ctrl_NciChannel" Id="{d98e917a-dfce-0af8-11d1-14c6cc8b4bc0}" SpecialFunc="None">
+  <POU Name="FB_Ctrl_NciChannel" Id="{08de930f-89ec-0b64-0188-963be0624f4a}" SpecialFunc="None">
     <Declaration><![CDATA[(*
 -------------------------------------------------------------------------------
 	NCI Channel Control
@@ -20,7 +20,7 @@
 
 FUNCTION_BLOCK FB_Ctrl_NciChannel IMPLEMENTS I_Nci_Ctrl
 VAR
-  _eCmd                 : e_Ctrl_NciCommand;
+  _eCmd                 : E_NCI_CTRL;
 
   _sState                : STRING;
   _nErrorId              : UDINT;
@@ -30,7 +30,7 @@ VAR
   _nBlockNo              : UDINT;
   _sProgLine             : STRING(100); 
   _nMFunc                : INT;
-  _eState                : e_Ctrl_NciCommand;
+  _eState                : E_NCI_CTRL;
   _uiStateItp            : UINT;
 
 
@@ -42,7 +42,7 @@ VAR
   _eCmdExec,
   _eCmdExecOld,
   _eCmdOld,
-  _eCmdActive            : e_Ctrl_NciCommand;
+  _eCmdActive            : E_NCI_CTRL;
 
   _sCmd,
   _sCmdOld,
@@ -57,7 +57,7 @@ VAR
   _sProg                : STRING(255) := '/usr/local/etc/TwinCAT/Mc/Nci/Test_GST.nc';
 {END_IF}
 
-  _stMFuncCyclic        : ST_Ctrl_NciMFuncCycle;
+  _stMFuncCyclic        : ST_NCI_CTRL_M_FUNC;
 
   _nChnId               : UINT;
   // R[] Params used in G-Code
@@ -98,10 +98,10 @@ END_VAR
     <Implementation>
       <ST><![CDATA[]]></ST>
     </Implementation>
-    <Folder Name="Actions" Id="{1e29f249-e801-0c4a-3fcf-d3181fe0aa79}" />
-    <Folder Name="methods" Id="{aa9abe98-f25f-43e0-978d-3bc6b8798b9a}" />
-    <Folder Name="properties" Id="{c041ba04-f33c-4e1b-9bc1-5ba9e5058261}" />
-    <Action Name="Channel_BuildGroup" Id="{35144abe-bf23-0ecb-1df2-6eec99dde6e4}" FolderPath="Actions\">
+    <Folder Name="Actions" Id="{39434ede-33a9-0fb1-0bf2-635e1271e9b6}" />
+    <Folder Name="methods" Id="{ba370446-9d57-0cc3-1566-665e50cb472c}" />
+    <Folder Name="properties" Id="{0bad9cd3-48af-0c30-025a-aeccaaa1800d}" />
+    <Action Name="Channel_BuildGroup" Id="{909c4c10-f2bf-0926-130c-e76bcade6acb}" FolderPath="Actions\">
       <Implementation>
         <ST><![CDATA[CASE _nState OF
   0:
@@ -110,8 +110,8 @@ END_VAR
 END_CASE
 CASE _nState OF
   10:
-    _eCmdActive               := eCmd + e_Ctrl_NciCommand.CMD_BUSY;
-    _eCmdExec                 := e_Ctrl_NciCommand.CMD_BUSY;
+    _eCmdActive               := eCmd + E_NCI_CTRL.CMD_BUSY;
+    _eCmdExec                 := E_NCI_CTRL.CMD_BUSY;
 
     _ipNciChannel.I_AuxAxis   := _ipAuxAxis;
     _ipNciChannel.I_McAxis    := _ipMcsAxis;
@@ -138,17 +138,17 @@ CASE _nState OF
 END_CASE
 CASE _nState OF
   100:
-    _eCmdActive               := eCmd + e_Ctrl_NciCommand.CMD_DONE;
-    _eCmdExec                 := e_Ctrl_NciCommand.CMD_DONE;
+    _eCmdActive               := eCmd + E_NCI_CTRL.CMD_DONE;
+    _eCmdExec                 := E_NCI_CTRL.CMD_DONE;
 END_CASE
 CASE _nState OF
   900:
-    _eCmdActive               := eCmd + e_Ctrl_NciCommand.CMD_ERROR;
-    _eCmdExec                 := e_Ctrl_NciCommand.CMD_ERROR;
+    _eCmdActive               := eCmd + E_NCI_CTRL.CMD_ERROR;
+    _eCmdExec                 := E_NCI_CTRL.CMD_ERROR;
 END_CASE]]></ST>
       </Implementation>
     </Action>
-    <Action Name="Channel_ClearGroup" Id="{521fc1e3-7d19-006e-25e4-1083121a71bd}" FolderPath="Actions\">
+    <Action Name="Channel_ClearGroup" Id="{47394805-b496-0bb4-3f10-28e323c20b8f}" FolderPath="Actions\">
       <Implementation>
         <ST><![CDATA[CASE _nState OF
   0:
@@ -158,8 +158,8 @@ END_CASE]]></ST>
 
   10:
     _ipNciChannel.pNciChannelRef^.PlcToNc.MFuncGranted := 0;
-    _eCmdActive               := eCmd + e_Ctrl_NciCommand.CMD_BUSY;
-    _eCmdExec                 := e_Ctrl_NciCommand.CMD_BUSY;
+    _eCmdActive               := eCmd + E_NCI_CTRL.CMD_BUSY;
+    _eCmdExec                 := E_NCI_CTRL.CMD_BUSY;
 
     _ipNciChannel.I_AuxAxis   := _ipAuxAxis;
     _ipNciChannel.I_McAxis    := _ipMcsAxis;
@@ -187,17 +187,17 @@ END_CASE]]></ST>
 
   100:
     _ipNciChannel.pNciChannelRef^.PlcToNc.MFuncGranted := 0;
-    _eCmdActive               := eCmd + e_Ctrl_NciCommand.CMD_DONE;
-    _eCmdExec                 := e_Ctrl_NciCommand.CMD_DONE;
+    _eCmdActive               := eCmd + E_NCI_CTRL.CMD_DONE;
+    _eCmdExec                 := E_NCI_CTRL.CMD_DONE;
 END_CASE
 CASE _nState OF
   900:
-    _eCmdActive               := eCmd + e_Ctrl_NciCommand.CMD_ERROR;
-    _eCmdExec                 := e_Ctrl_NciCommand.CMD_ERROR;
+    _eCmdActive               := eCmd + E_NCI_CTRL.CMD_ERROR;
+    _eCmdExec                 := E_NCI_CTRL.CMD_ERROR;
 END_CASE]]></ST>
       </Implementation>
     </Action>
-    <Action Name="Channel_Confirm" Id="{c2ea154e-7799-0b31-3fcc-288d14a792ac}" FolderPath="Actions\">
+    <Action Name="Channel_Confirm" Id="{851e0ce6-5650-0a37-26f3-daeeae6208d5}" FolderPath="Actions\">
       <Implementation>
         <ST><![CDATA[CASE _nState OF
   0:
@@ -206,8 +206,8 @@ END_CASE]]></ST>
 END_CASE
 CASE _nState OF
   10:
-    _eCmdActive               := eCmd + e_Ctrl_NciCommand.CMD_BUSY;
-    _eCmdExec                 := e_Ctrl_NciCommand.CMD_BUSY;
+    _eCmdActive               := eCmd + E_NCI_CTRL.CMD_BUSY;
+    _eCmdExec                 := E_NCI_CTRL.CMD_BUSY;
 
     IF (_stMFuncCyclic.HskMFuncReq > 0)
     THEN
@@ -233,17 +233,17 @@ CASE _nState OF
 END_CASE
 CASE _nState OF
   100:
-    _eCmdActive               := eCmd + e_Ctrl_NciCommand.CMD_DONE;
-    _eCmdExec                 := e_Ctrl_NciCommand.CMD_DONE;
+    _eCmdActive               := eCmd + E_NCI_CTRL.CMD_DONE;
+    _eCmdExec                 := E_NCI_CTRL.CMD_DONE;
 END_CASE
 CASE _nState OF
   900:
-    _eCmdActive               := eCmd + e_Ctrl_NciCommand.CMD_ERROR;
-    _eCmdExec                 := e_Ctrl_NciCommand.CMD_ERROR;
+    _eCmdActive               := eCmd + E_NCI_CTRL.CMD_ERROR;
+    _eCmdExec                 := E_NCI_CTRL.CMD_ERROR;
 END_CASE]]></ST>
       </Implementation>
     </Action>
-    <Action Name="Channel_LoadProg" Id="{4a7c3119-e6cf-0795-20fd-7085a929dd28}" FolderPath="Actions\">
+    <Action Name="Channel_LoadProg" Id="{71105c07-3b8c-0db8-3a6e-2d05dd9dc2f9}" FolderPath="Actions\">
       <Implementation>
         <ST><![CDATA[CASE _nState OF
   0:
@@ -253,8 +253,8 @@ END_CASE]]></ST>
 
   10:
     _ipNciChannel.pNciChannelRef^.PlcToNc.MFuncGranted := 0;
-    _eCmdActive          := eCmd + e_Ctrl_NciCommand.CMD_BUSY;
-    _eCmdExec            := e_Ctrl_NciCommand.CMD_BUSY;
+    _eCmdActive          := eCmd + E_NCI_CTRL.CMD_BUSY;
+    _eCmdExec            := E_NCI_CTRL.CMD_BUSY;
 
     IF NOT (len(NcProg) > 10)
     THEN
@@ -287,17 +287,17 @@ END_CASE]]></ST>
 
   100:
     _ipNciChannel.pNciChannelRef^.PlcToNc.MFuncGranted := 0;
-    _eCmdActive          := eCmd + e_Ctrl_NciCommand.CMD_DONE;
-    _eCmdExec            := e_Ctrl_NciCommand.CMD_DONE;
+    _eCmdActive          := eCmd + E_NCI_CTRL.CMD_DONE;
+    _eCmdExec            := E_NCI_CTRL.CMD_DONE;
 END_CASE
 CASE _nState OF
   900:
-    _eCmdActive          := eCmd + e_Ctrl_NciCommand.CMD_ERROR;
-    _eCmdExec            := e_Ctrl_NciCommand.CMD_ERROR;
+    _eCmdActive          := eCmd + E_NCI_CTRL.CMD_ERROR;
+    _eCmdExec            := E_NCI_CTRL.CMD_ERROR;
 END_CASE]]></ST>
       </Implementation>
     </Action>
-    <Action Name="Channel_R_Read" Id="{fc030524-31c6-094a-2132-bde3524ca233}" FolderPath="Actions\">
+    <Action Name="Channel_R_Read" Id="{be5f8309-0c77-0607-38b2-159f5bf2d6a5}" FolderPath="Actions\">
       <Implementation>
         <ST><![CDATA[CASE _nState OF
   0:
@@ -306,8 +306,8 @@ END_CASE]]></ST>
 END_CASE
 CASE _nState OF
   10:
-    _eCmdActive    := eCmd + e_Ctrl_NciCommand.CMD_BUSY;
-    _eCmdExec      := e_Ctrl_NciCommand.CMD_BUSY;
+    _eCmdActive    := eCmd + E_NCI_CTRL.CMD_BUSY;
+    _eCmdExec      := E_NCI_CTRL.CMD_BUSY;
 
     _iri          := _iRParamIndex;
     _irc          := _iRParamCount;
@@ -344,17 +344,17 @@ CASE _nState OF
 END_CASE
 CASE _nState OF
   100:
-    _eCmdActive    := eCmd + e_Ctrl_NciCommand.CMD_DONE;
-    _eCmdExec      := e_Ctrl_NciCommand.CMD_DONE;
+    _eCmdActive    := eCmd + E_NCI_CTRL.CMD_DONE;
+    _eCmdExec      := E_NCI_CTRL.CMD_DONE;
 END_CASE
 CASE _nState OF
   900:
-    _eCmdActive    := eCmd + e_Ctrl_NciCommand.CMD_ERROR;
-    _eCmdExec      := e_Ctrl_NciCommand.CMD_ERROR;
+    _eCmdActive    := eCmd + E_NCI_CTRL.CMD_ERROR;
+    _eCmdExec      := E_NCI_CTRL.CMD_ERROR;
 END_CASE]]></ST>
       </Implementation>
     </Action>
-    <Action Name="Channel_R_Write" Id="{7f126f08-63eb-0591-1298-c1478aae5baa}" FolderPath="Actions\">
+    <Action Name="Channel_R_Write" Id="{fb5d44a8-06cd-02ec-29d5-e6a9f015d822}" FolderPath="Actions\">
       <Implementation>
         <ST><![CDATA[CASE _nState OF
   0:
@@ -363,8 +363,8 @@ END_CASE]]></ST>
 END_CASE
 CASE _nState OF
   10:
-    _eCmdActive    := eCmd + e_Ctrl_NciCommand.CMD_BUSY;
-    _eCmdExec      := e_Ctrl_NciCommand.CMD_BUSY;
+    _eCmdActive    := eCmd + E_NCI_CTRL.CMD_BUSY;
+    _eCmdExec      := E_NCI_CTRL.CMD_BUSY;
 
     _iri          := _iRParamIndex;
     _irc          := _iRParamCount;
@@ -401,17 +401,17 @@ CASE _nState OF
 END_CASE
 CASE _nState OF
   100:
-    _eCmdActive    := eCmd + e_Ctrl_NciCommand.CMD_DONE;
-    _eCmdExec      := e_Ctrl_NciCommand.CMD_DONE;
+    _eCmdActive    := eCmd + E_NCI_CTRL.CMD_DONE;
+    _eCmdExec      := E_NCI_CTRL.CMD_DONE;
 END_CASE
 CASE _nState OF
   900:
-    _eCmdActive    := eCmd + e_Ctrl_NciCommand.CMD_ERROR;
-    _eCmdExec      := e_Ctrl_NciCommand.CMD_ERROR;
+    _eCmdActive    := eCmd + E_NCI_CTRL.CMD_ERROR;
+    _eCmdExec      := E_NCI_CTRL.CMD_ERROR;
 END_CASE]]></ST>
       </Implementation>
     </Action>
-    <Action Name="Channel_Reset" Id="{ed297de6-be1f-0380-3acc-35fc72405db0}" FolderPath="Actions\">
+    <Action Name="Channel_Reset" Id="{50a33252-096c-02bb-3e41-95aa8baee370}" FolderPath="Actions\">
       <Implementation>
         <ST><![CDATA[CASE _nState OF
   0:
@@ -420,8 +420,8 @@ END_CASE]]></ST>
 END_CASE
 CASE _nState OF
   10:
-    _eCmdActive    := eCmd + e_Ctrl_NciCommand.CMD_BUSY;
-    _eCmdExec      := e_Ctrl_NciCommand.CMD_BUSY;
+    _eCmdActive    := eCmd + E_NCI_CTRL.CMD_BUSY;
+    _eCmdExec      := E_NCI_CTRL.CMD_BUSY;
 
     _hr           := _ipNciChannel.ItpReset(FALSE);
 
@@ -445,17 +445,17 @@ CASE _nState OF
 END_CASE
 CASE _nState OF
   100:
-    _eCmdActive    := eCmd + e_Ctrl_NciCommand.CMD_DONE;
-    _eCmdExec      := e_Ctrl_NciCommand.CMD_DONE;
+    _eCmdActive    := eCmd + E_NCI_CTRL.CMD_DONE;
+    _eCmdExec      := E_NCI_CTRL.CMD_DONE;
 END_CASE
 CASE _nState OF
   900:
-    _eCmdActive    := eCmd + e_Ctrl_NciCommand.CMD_ERROR;
-    _eCmdExec      := e_Ctrl_NciCommand.CMD_ERROR;
+    _eCmdActive    := eCmd + E_NCI_CTRL.CMD_ERROR;
+    _eCmdExec      := E_NCI_CTRL.CMD_ERROR;
 END_CASE]]></ST>
       </Implementation>
     </Action>
-    <Action Name="Channel_Restart" Id="{9a4e750b-e652-0ae6-2cfc-d36a403ebbb0}" FolderPath="Actions\">
+    <Action Name="Channel_Restart" Id="{0d289702-76a4-048d-0206-c91637b8cd79}" FolderPath="Actions\">
       <Implementation>
         <ST><![CDATA[CASE _nState OF
   0:
@@ -464,8 +464,8 @@ END_CASE]]></ST>
 END_CASE
 CASE _nState OF
   10:
-    _eCmdActive              := eCmd + e_Ctrl_NciCommand.CMD_BUSY;
-    _eCmdExec                := e_Ctrl_NciCommand.CMD_BUSY;
+    _eCmdActive              := eCmd + E_NCI_CTRL.CMD_BUSY;
+    _eCmdExec                := E_NCI_CTRL.CMD_BUSY;
 
     _hr                     := _ipNciChannel.StepOnAfterEStop(FALSE);
 
@@ -489,17 +489,17 @@ CASE _nState OF
 END_CASE
 CASE _nState OF
   100:
-    _eCmdActive              := eCmd + e_Ctrl_NciCommand.CMD_DONE;
-    _eCmdExec                := e_Ctrl_NciCommand.CMD_DONE;
+    _eCmdActive              := eCmd + E_NCI_CTRL.CMD_DONE;
+    _eCmdExec                := E_NCI_CTRL.CMD_DONE;
 END_CASE
 CASE _nState OF
   900:
-    _eCmdActive              := eCmd + e_Ctrl_NciCommand.CMD_ERROR;
-    _eCmdExec                := e_Ctrl_NciCommand.CMD_ERROR;
+    _eCmdActive              := eCmd + E_NCI_CTRL.CMD_ERROR;
+    _eCmdExec                := E_NCI_CTRL.CMD_ERROR;
 END_CASE]]></ST>
       </Implementation>
     </Action>
-    <Action Name="Channel_Start" Id="{4cbe882f-e9ca-0acf-27cc-62aaf82d4421}" FolderPath="Actions\">
+    <Action Name="Channel_Start" Id="{c59a79f3-b20e-041f-0975-135263d187e2}" FolderPath="Actions\">
       <Implementation>
         <ST><![CDATA[CASE _nState OF
   0:
@@ -508,8 +508,8 @@ END_CASE]]></ST>
 END_CASE
 CASE _nState OF
   10:
-    _eCmdActive              := eCmd + e_Ctrl_NciCommand.CMD_BUSY;
-    _eCmdExec                := e_Ctrl_NciCommand.CMD_BUSY;
+    _eCmdActive              := eCmd + E_NCI_CTRL.CMD_BUSY;
+    _eCmdExec                := E_NCI_CTRL.CMD_BUSY;
 
     _hr                     := _ipNciChannel.StartStop(FALSE, FALSE);
 
@@ -533,17 +533,17 @@ CASE _nState OF
 END_CASE
 CASE _nState OF
   100:
-    _eCmdActive              := eCmd + e_Ctrl_NciCommand.CMD_DONE;
-    _eCmdExec                := e_Ctrl_NciCommand.CMD_DONE;
+    _eCmdActive              := eCmd + E_NCI_CTRL.CMD_DONE;
+    _eCmdExec                := E_NCI_CTRL.CMD_DONE;
 END_CASE
 CASE _nState OF
   900:
-    _eCmdActive              := eCmd + e_Ctrl_NciCommand.CMD_ERROR;
-    _eCmdExec                := e_Ctrl_NciCommand.CMD_ERROR;
+    _eCmdActive              := eCmd + E_NCI_CTRL.CMD_ERROR;
+    _eCmdExec                := E_NCI_CTRL.CMD_ERROR;
 END_CASE]]></ST>
       </Implementation>
     </Action>
-    <Action Name="Channel_Stop" Id="{39d2a555-f01a-0651-3c69-f2b9dc3edae9}" FolderPath="Actions\">
+    <Action Name="Channel_Stop" Id="{b3249cbc-3c82-0ab7-16a7-cd8fa483ce00}" FolderPath="Actions\">
       <Implementation>
         <ST><![CDATA[CASE _nState OF
   0:
@@ -552,8 +552,8 @@ END_CASE]]></ST>
 END_CASE
 CASE _nState OF
   10:
-    _eCmdActive              := eCmd + e_Ctrl_NciCommand.CMD_BUSY;
-    _eCmdExec                := e_Ctrl_NciCommand.CMD_BUSY;
+    _eCmdActive              := eCmd + E_NCI_CTRL.CMD_BUSY;
+    _eCmdExec                := E_NCI_CTRL.CMD_BUSY;
 
     _hr                     := _ipNciChannel.StartStop(FALSE, FALSE);
 
@@ -577,19 +577,19 @@ CASE _nState OF
 END_CASE
 CASE _nState OF
   100:
-    _eCmdActive              := eCmd + e_Ctrl_NciCommand.CMD_DONE;
-    _eCmdExec                := e_Ctrl_NciCommand.CMD_DONE;
+    _eCmdActive              := eCmd + E_NCI_CTRL.CMD_DONE;
+    _eCmdExec                := E_NCI_CTRL.CMD_DONE;
 END_CASE
 CASE _nState OF
   900:
-    _eCmdActive              := eCmd + e_Ctrl_NciCommand.CMD_ERROR;
-    _eCmdExec                := e_Ctrl_NciCommand.CMD_ERROR;
+    _eCmdActive              := eCmd + E_NCI_CTRL.CMD_ERROR;
+    _eCmdExec                := E_NCI_CTRL.CMD_ERROR;
 END_CASE]]></ST>
       </Implementation>
     </Action>
-    <Property Name="ChnId" Id="{ae567423-dad6-0874-178e-8318ecd18b03}" FolderPath="properties\">
+    <Property Name="ChnId" Id="{b4fc453f-6a7a-04a9-081a-3b969f557243}" FolderPath="properties\">
       <Declaration><![CDATA[PROPERTY ChnId : udint]]></Declaration>
-      <Get Name="Get" Id="{d7fc7be6-d84a-00d2-2780-d406f996464f}">
+      <Get Name="Get" Id="{e0b113b9-9605-07d3-2a83-391ba3c31228}">
         <Declaration><![CDATA[VAR
 END_VAR
 ]]></Declaration>
@@ -599,7 +599,7 @@ END_VAR
         </Implementation>
       </Get>
     </Property>
-    <Method Name="Cycle" Id="{c228d3fc-298b-467d-8576-29da44a851c2}" FolderPath="methods\">
+    <Method Name="Cycle" Id="{372cd73d-5fcd-0bb1-188a-ff874b868db7}" FolderPath="methods\">
       <Declaration><![CDATA[METHOD Cycle
 VAR_INPUT
 END_VAR
@@ -613,7 +613,7 @@ _ipNciChannel := _fbNciChannel;
 // cyclic plausibility checks
 IF Init() <> S_OK 
 THEN
-  eState  := e_Ctrl_NciCommand.NO_INIT;
+  eState  := E_NCI_CTRL.NO_INIT;
   RETURN;
 END_IF
 
@@ -645,68 +645,68 @@ END_IF
 
 CASE _eCmdState OF
 
-  e_Ctrl_NciCommand.INIT:
-    _eCmdActive                := _eCmdState + e_Ctrl_NciCommand.CMD_DONE;
-    _eCmdExec                  := e_Ctrl_NciCommand.CMD_DONE;
+  E_NCI_CTRL.INIT:
+    _eCmdActive                := _eCmdState + E_NCI_CTRL.CMD_DONE;
+    _eCmdExec                  := E_NCI_CTRL.CMD_DONE;
     _nState                    := 0;
 
-  e_Ctrl_NciCommand.IDLE:
-    _eCmdActive                := _eCmdState + e_Ctrl_NciCommand.CMD_BUSY;
-    _eCmdExec                  := e_Ctrl_NciCommand.CMD_BUSY;
+  E_NCI_CTRL.IDLE:
+    _eCmdActive                := _eCmdState + E_NCI_CTRL.CMD_BUSY;
+    _eCmdExec                  := E_NCI_CTRL.CMD_BUSY;
 
     _uiStateItp                := _ipNciChannel.GetItpState();
 
     IF (_uiStateItp = TO_UINT(E_NCI_INTERPRETER_STATE.NCI_INTERPRETER_IDLE)) OR
        (_uiStateItp = TO_UINT(E_NCI_INTERPRETER_STATE.NCI_INTERPRETER_READY))
     THEN
-      _eCmdActive              := _eCmdState + e_Ctrl_NciCommand.CMD_DONE;
-      _eCmdExec                := e_Ctrl_NciCommand.CMD_DONE;
+      _eCmdActive              := _eCmdState + E_NCI_CTRL.CMD_DONE;
+      _eCmdExec                := E_NCI_CTRL.CMD_DONE;
       _nState                  := 0;
     END_IF
 
 
-  e_Ctrl_NciCommand.RESET:
+  E_NCI_CTRL.RESET:
     // reset for error
     // after reset nc file has to be loaded again
     Channel_Reset();
 
-  e_Ctrl_NciCommand.LOAD_PROG:
+  E_NCI_CTRL.LOAD_PROG:
     // set property NcProg before use
     // load nc file
     // syntax check on load done by NCI
     // error case: syntax check failed
     Channel_LoadProg();
 
-  e_Ctrl_NciCommand.BUILD_GROUP:
+  E_NCI_CTRL.BUILD_GROUP:
     // set property GroupAxisConfig before use
     Channel_BuildGroup();
 
-  e_Ctrl_NciCommand.CLEAR_GROUP:
+  E_NCI_CTRL.CLEAR_GROUP:
     Channel_ClearGroup();
 
-  e_Ctrl_NciCommand.START:
+  E_NCI_CTRL.START:
     // starts nc file execution
     Channel_Start();
 
-  e_Ctrl_NciCommand.STOP,
-  e_Ctrl_NciCommand.STO_STOP:
+  E_NCI_CTRL.STOP,
+  E_NCI_CTRL.STO_STOP:
     Channel_Stop();
 
-  e_Ctrl_NciCommand.RESTART_STEP_ON:
+  E_NCI_CTRL.RESTART_STEP_ON:
     // sart from last nc block
     Channel_Restart();
 
-  e_Ctrl_NciCommand.M_FUNC_QUIT:
+  E_NCI_CTRL.M_FUNC_QUIT:
     Channel_Confirm();
 
-  e_Ctrl_NciCommand.READ_R_PARA:
+  E_NCI_CTRL.READ_R_PARA:
     Channel_R_Read();
 
-  e_Ctrl_NciCommand.WRITE_R_PARA:
+  E_NCI_CTRL.WRITE_R_PARA:
     Channel_R_Write();
 
   ELSE
-    _eState                  := e_Ctrl_NciCommand.NO_INIT;
+    _eState                  := E_NCI_CTRL.NO_INIT;
     _sState                  := concat(TO_STRING(_eCmdState), ' NOT valid eCmd');
     RETURN;
 END_CASE
@@ -750,9 +750,9 @@ _eCmdExecOld                 := _eCmdExec;
 ]]></ST>
       </Implementation>
     </Method>
-    <Property Name="eCmd" Id="{aada2267-d2f8-4ccd-9c2a-ad4fbfa3855a}" FolderPath="properties\">
+    <Property Name="eCmd" Id="{452faa8a-91ad-0a00-27a5-10c08e19ae70}" FolderPath="properties\">
       <Declaration><![CDATA[PROPERTY eCmd : E_NCI_CTRL]]></Declaration>
-      <Get Name="Get" Id="{31b52fc1-c86c-4cb0-8c01-b0179a55f17e}">
+      <Get Name="Get" Id="{990f316d-1b51-0f45-27ac-9c43f492dd72}">
         <Declaration><![CDATA[VAR
 END_VAR
 ]]></Declaration>
@@ -761,7 +761,7 @@ END_VAR
 ]]></ST>
         </Implementation>
       </Get>
-      <Set Name="Set" Id="{498be40c-4cc5-4d23-8e54-787202cee764}">
+      <Set Name="Set" Id="{55d99e98-e05d-018a-1eda-39aaa9804fb0}">
         <Declaration><![CDATA[VAR
 END_VAR
 ]]></Declaration>
@@ -771,9 +771,9 @@ END_VAR
         </Implementation>
       </Set>
     </Property>
-    <Property Name="eState" Id="{c140c931-672f-418a-b4ed-3611e134ab7d}" FolderPath="properties\">
+    <Property Name="eState" Id="{8d7adff6-d1a4-0628-38e1-e301415f51ed}" FolderPath="properties\">
       <Declaration><![CDATA[PROPERTY eState : E_NCI_CTRL]]></Declaration>
-      <Get Name="Get" Id="{fa1a870c-11c9-4dba-81f1-bfba35f0301a}">
+      <Get Name="Get" Id="{7ce56b4c-4d01-0308-35d3-a03cee60e0b1}">
         <Declaration><![CDATA[VAR
 END_VAR
 ]]></Declaration>
@@ -781,7 +781,7 @@ END_VAR
           <ST><![CDATA[eState := _eState;]]></ST>
         </Implementation>
       </Get>
-      <Set Name="Set" Id="{e6927e30-4fa0-499b-822d-1eca35070390}">
+      <Set Name="Set" Id="{4982b1a8-e6db-0aa5-1d6a-403822327625}">
         <Declaration><![CDATA[VAR
 END_VAR
 ]]></Declaration>
@@ -791,9 +791,9 @@ END_VAR
         </Implementation>
       </Set>
     </Property>
-    <Property Name="GroupAxisConfig" Id="{f40f685e-b357-0831-286e-3aa112bcf283}" FolderPath="properties\">
+    <Property Name="GroupAxisConfig" Id="{bc25b515-3120-02cc-2e4f-44411f89f512}" FolderPath="properties\">
       <Declaration><![CDATA[PROPERTY GroupAxisConfig : ST_3D_Group]]></Declaration>
-      <Get Name="Get" Id="{9ff830b7-377d-0091-257b-1dbb099d4a88}">
+      <Get Name="Get" Id="{5190a6b9-59b7-087a-1fe4-95cdb342149f}">
         <Declaration><![CDATA[VAR
   st3DGroup       : ST_3D_Group;
   stNciExt3dGroup : NCI_EXT3DGROUP;
@@ -806,7 +806,7 @@ GroupAxisConfig := st3DGroup;
 ]]></ST>
         </Implementation>
       </Get>
-      <Set Name="Set" Id="{b3db89d1-a44b-09c2-233e-1785b1057c6d}">
+      <Set Name="Set" Id="{12036f52-d6f1-063c-1cfe-fdc01a29724f}">
         <Declaration><![CDATA[VAR
   st3DGroup       : ST_3D_Group;
   stNciExt3dGroup : NCI_EXT3DGROUP;
@@ -822,9 +822,9 @@ _fbNciChannel.CfgAxes := stNciExt3dGroup;
         </Implementation>
       </Set>
     </Property>
-    <Property Name="I_AuxAxis" Id="{90471759-78fd-4d2d-998a-9cadc4fd79da}" FolderPath="properties\">
+    <Property Name="I_AuxAxis" Id="{b82b701d-7c88-002e-3d68-8a54a1f1381a}" FolderPath="properties\">
       <Declaration><![CDATA[PROPERTY I_AuxAxis : array[1..GVL_NCI.cAuxAxisCount] of I_McAxis]]></Declaration>
-      <Get Name="Get" Id="{3298412d-9d81-43bc-b801-83755d490f2b}">
+      <Get Name="Get" Id="{478d79c0-fd41-04f6-3ad9-afe3f3fd0fd9}">
         <Declaration><![CDATA[VAR
 END_VAR
 ]]></Declaration>
@@ -833,7 +833,7 @@ END_VAR
 ]]></ST>
         </Implementation>
       </Get>
-      <Set Name="Set" Id="{7fe3eb18-32bf-4076-accf-05ff95301b2a}">
+      <Set Name="Set" Id="{0e42dd19-ab13-0b53-3511-d4780541632e}">
         <Declaration><![CDATA[VAR
   idx : DINT;
 END_VAR
@@ -853,9 +853,9 @@ END_FOR
         </Implementation>
       </Set>
     </Property>
-    <Property Name="I_McAxis" Id="{d31ec148-4790-475b-aab9-02297ff7d001}" FolderPath="properties\">
+    <Property Name="I_McAxis" Id="{0c93d8dd-2c40-0ec8-23cc-99238abc8d1d}" FolderPath="properties\">
       <Declaration><![CDATA[PROPERTY I_McAxis : array[1..GVL_NCI.cMcAxisCount] of I_McAxis]]></Declaration>
-      <Get Name="Get" Id="{c4791b3a-4134-485f-84d4-f83bea82e8fc}">
+      <Get Name="Get" Id="{8b4809d1-f53f-0c0a-0140-dacbe2f6e0f1}">
         <Declaration><![CDATA[VAR
 END_VAR
 ]]></Declaration>
@@ -865,7 +865,7 @@ END_VAR
 ]]></ST>
         </Implementation>
       </Get>
-      <Set Name="Set" Id="{de58be49-19c3-43e0-b0e6-99a9e5f3ce97}">
+      <Set Name="Set" Id="{850b03d4-c032-06c2-23b5-b87bac145d26}">
         <Declaration><![CDATA[VAR
   idx : DINT;
 END_VAR
@@ -885,9 +885,9 @@ END_FOR
         </Implementation>
       </Set>
     </Property>
-    <Property Name="I_NcChannel" Id="{9610ce9e-8811-0073-334f-033f1b63090b}" FolderPath="properties\">
+    <Property Name="I_NcChannel" Id="{22dcada6-8c79-0a1f-20d6-c91e1ad35eeb}" FolderPath="properties\">
       <Declaration><![CDATA[PROPERTY I_NcChannel : I_NciChannel]]></Declaration>
-      <Get Name="Get" Id="{829c9b92-ad62-0732-1ee8-22c5ce3f2308}">
+      <Get Name="Get" Id="{bea2cc95-baad-064f-06ec-640ee1aad343}">
         <Declaration><![CDATA[VAR
 END_VAR
 ]]></Declaration>
@@ -896,7 +896,7 @@ END_VAR
         </Implementation>
       </Get>
     </Property>
-    <Method Name="Init" Id="{872ac587-7d0c-0295-07d1-2d899ab8a6b3}" FolderPath="methods\">
+    <Method Name="Init" Id="{af039363-83ae-0df5-1e7c-9cec0c417a6a}" FolderPath="methods\">
       <Declaration><![CDATA[METHOD PRIVATE Init : HRESULT
 VAR_INST
   hr    : HRESULT   := S_FALSE;
@@ -946,7 +946,7 @@ THEN
       _stMsg.eType             := E_MessageType.eMessageError;
       _stMsg.eDevice           := _ChannelDevice;
       _stMsg.eSubdevice        := e_Subdevice.General;
-      _stMsg.iErrorNumber      := e_NciChannelError.e_AxisConfigurationMismatch_McAxis;
+      _stMsg.iErrorNumber      := E_NCI_CHANNEL_ERROR.e_AxisConfigurationMismatch_McAxis;
       _stMsg.sText             := 'MC Axis count mismatch';
       f_MessageSet(_stMsg);
     END_IF
@@ -957,7 +957,7 @@ THEN
       _stMsg.eType             := E_MessageType.eMessageError;
       _stMsg.eDevice           := _ChannelDevice;
       _stMsg.eSubdevice        := e_Subdevice.General;
-      _stMsg.iErrorNumber      := e_NciChannelError.e_AxisConfigurationMismatch_AuxAxis;
+      _stMsg.iErrorNumber      := E_NCI_CHANNEL_ERROR.e_AxisConfigurationMismatch_AuxAxis;
       _stMsg.sText             := 'Aux Axis count mismatch';
       f_MessageSet(_stMsg);
     END_IF
@@ -968,7 +968,7 @@ THEN
       _stMsg.eType             := E_MessageType.eMessageInfo;
       _stMsg.eDevice           := _ChannelDevice;
       _stMsg.eSubdevice        := e_Subdevice.General;
-      _stMsg.iErrorNumber      := e_NciChannelError.e_AxisConfigurationMismatch_McAxis;
+      _stMsg.iErrorNumber      := E_NCI_CHANNEL_ERROR.e_AxisConfigurationMismatch_McAxis;
       _stMsg.sText             := 'MC Axis count match';
       f_MessageSet(_stMsg);
     END_IF
@@ -979,7 +979,7 @@ THEN
       _stMsg.eType             := E_MessageType.eMessageInfo;
       _stMsg.eDevice           := _ChannelDevice;
       _stMsg.eSubdevice        := e_Subdevice.General;
-      _stMsg.iErrorNumber      := e_NciChannelError.e_AxisConfigurationMismatch_AuxAxis;
+      _stMsg.iErrorNumber      := E_NCI_CHANNEL_ERROR.e_AxisConfigurationMismatch_AuxAxis;
       _stMsg.sText             := 'Aux Axis count match';
       f_MessageSet(_stMsg);
     END_IF
@@ -1000,7 +1000,7 @@ THEN
 
   _bError                  := FALSE;
   hr                       := S_OK;
-  _eCmdState               := e_Ctrl_NciCommand.INIT;
+  _eCmdState               := E_NCI_CTRL.INIT;
   // initial assignement, 
   // if required; change on calling BuildGroup
   _fbNciChannel.I_AuxAxis := I_AuxAxis;
@@ -1012,9 +1012,9 @@ Init := hr;
 ]]></ST>
       </Implementation>
     </Method>
-    <Property Name="M_FuncReq" Id="{01c52311-847e-0dea-32a2-3bfa6ef1e56c}" FolderPath="properties\">
+    <Property Name="M_FuncReq" Id="{23775d9b-7f7c-0592-3be9-888d1a3a9c00}" FolderPath="properties\">
       <Declaration><![CDATA[PROPERTY M_FuncReq : word]]></Declaration>
-      <Get Name="Get" Id="{817e4c3c-ddbc-0085-2ae9-5c51d2ea8d03}">
+      <Get Name="Get" Id="{8865e760-c60a-08d5-19cc-583b1adfd46c}">
         <Declaration><![CDATA[VAR
 END_VAR
 ]]></Declaration>
@@ -1024,9 +1024,9 @@ END_VAR
         </Implementation>
       </Get>
     </Property>
-    <Property Name="NcProg" Id="{4baf68ea-a9e4-0c81-0ecd-42a8d6feb3ec}" FolderPath="properties\">
+    <Property Name="NcProg" Id="{6499fde1-ed06-092e-2fc6-32ffa80c60fa}" FolderPath="properties\">
       <Declaration><![CDATA[PROPERTY NcProg : string(255)]]></Declaration>
-      <Get Name="Get" Id="{8a8addbe-f00b-030d-3765-a37afb4f4307}">
+      <Get Name="Get" Id="{90b7459a-6e90-0853-2b7b-49f83b1c595f}">
         <Declaration><![CDATA[VAR
 END_VAR
 ]]></Declaration>
@@ -1035,7 +1035,7 @@ END_VAR
 ]]></ST>
         </Implementation>
       </Get>
-      <Set Name="Set" Id="{c8fd5635-adba-0cd6-0102-4970871a58bb}">
+      <Set Name="Set" Id="{d8f9fec6-b10c-0e0d-25be-5b003bea1e6a}">
         <Declaration><![CDATA[VAR
 END_VAR
 ]]></Declaration>
@@ -1045,9 +1045,9 @@ END_VAR
         </Implementation>
       </Set>
     </Property>
-    <Property Name="R_Param_Read" Id="{d6483ca0-3754-0f69-04e8-7282ca9c6f8b}" FolderPath="properties\">
+    <Property Name="R_Param_Read" Id="{31b9c523-238b-0043-3441-afce2546cdca}" FolderPath="properties\">
       <Declaration><![CDATA[PROPERTY R_Param_Read : ARRAY [0..GVL_NCI.cRParamCount] OF lreal]]></Declaration>
-      <Get Name="Get" Id="{51dd28d0-3a90-0584-3b1b-d898bc9605a6}">
+      <Get Name="Get" Id="{22bae2a2-6fa8-0707-2884-51d14cbb61c0}">
         <Declaration><![CDATA[VAR
 END_VAR
 ]]></Declaration>
@@ -1056,7 +1056,7 @@ END_VAR
 ]]></ST>
         </Implementation>
       </Get>
-      <Set Name="Set" Id="{f2f272a4-470b-0622-04d1-158a686158ec}">
+      <Set Name="Set" Id="{35d9d1c8-cd6c-0d43-0e06-5ab6ad65497c}">
         <Declaration><![CDATA[VAR
 END_VAR
 ]]></Declaration>
@@ -1066,9 +1066,9 @@ END_VAR
         </Implementation>
       </Set>
     </Property>
-    <Property Name="R_Param_Write" Id="{12aee3ae-4da5-0900-119e-f491d508c0d0}" FolderPath="properties\">
+    <Property Name="R_Param_Write" Id="{219db0bb-895e-0701-2cc0-826ff23c4848}" FolderPath="properties\">
       <Declaration><![CDATA[PROPERTY R_Param_Write : ARRAY [0..GVL_NCI.cRParamCount] OF lreal]]></Declaration>
-      <Get Name="Get" Id="{c1b3b004-a197-0fde-0de2-f262aba5b1b7}">
+      <Get Name="Get" Id="{74a4e56c-22ca-03ef-2e6e-948f4c063086}">
         <Declaration><![CDATA[VAR
 END_VAR
 ]]></Declaration>
@@ -1077,7 +1077,7 @@ END_VAR
 ]]></ST>
         </Implementation>
       </Get>
-      <Set Name="Set" Id="{6db2df1a-1666-0b81-2921-d6ec1cb8efd5}">
+      <Set Name="Set" Id="{a013445e-8da8-01e3-3bee-8d2e49de0f35}">
         <Declaration><![CDATA[VAR
 END_VAR
 ]]></Declaration>
@@ -1087,9 +1087,9 @@ END_VAR
         </Implementation>
       </Set>
     </Property>
-    <Property Name="R_ParamCount" Id="{f7a566d5-012b-0122-09e8-1a790dec9913}" FolderPath="properties\">
+    <Property Name="R_ParamCount" Id="{8a3c52ab-dac7-092b-0292-66d69e6a687a}" FolderPath="properties\">
       <Declaration><![CDATA[PROPERTY R_ParamCount : DINT]]></Declaration>
-      <Get Name="Get" Id="{44c1835a-e36a-0b8b-0438-398610628b0d}">
+      <Get Name="Get" Id="{b6d3976f-e8b6-0161-2763-6beffca696db}">
         <Declaration><![CDATA[VAR
 END_VAR
 ]]></Declaration>
@@ -1098,7 +1098,7 @@ END_VAR
 ]]></ST>
         </Implementation>
       </Get>
-      <Set Name="Set" Id="{da43b84b-685e-04f8-18bd-46c2ee872924}">
+      <Set Name="Set" Id="{9d3422f1-b79d-0717-1f66-838ed6115990}">
         <Declaration><![CDATA[VAR
 END_VAR
 ]]></Declaration>
@@ -1108,9 +1108,9 @@ END_VAR
         </Implementation>
       </Set>
     </Property>
-    <Property Name="R_ParamIndex" Id="{08f4c028-49c7-0fb8-2904-db1129516b8b}" FolderPath="properties\">
+    <Property Name="R_ParamIndex" Id="{530b9e5f-dfb6-052c-26a0-17d9f9486d64}" FolderPath="properties\">
       <Declaration><![CDATA[PROPERTY R_ParamIndex : DINT]]></Declaration>
-      <Get Name="Get" Id="{1bee1e37-49ff-0882-29c6-457f6296ce5e}">
+      <Get Name="Get" Id="{e00ab9c4-7197-0e85-2616-4be68719d5fa}">
         <Declaration><![CDATA[VAR
 END_VAR
 ]]></Declaration>
@@ -1119,7 +1119,7 @@ END_VAR
 ]]></ST>
         </Implementation>
       </Get>
-      <Set Name="Set" Id="{5b8f6a4d-f6f5-0be7-09fe-4d13b772f9c2}">
+      <Set Name="Set" Id="{cec9fde3-5653-0b7f-32a0-776e8758fe31}">
         <Declaration><![CDATA[VAR
 END_VAR
 ]]></Declaration>
@@ -1129,9 +1129,9 @@ END_VAR
         </Implementation>
       </Set>
     </Property>
-    <Property Name="sCmd" Id="{5686fd42-d29a-4fd7-adf2-c5328087da1a}" FolderPath="properties\">
+    <Property Name="sCmd" Id="{a129b11f-a0c3-0392-231d-28430a2acdb8}" FolderPath="properties\">
       <Declaration><![CDATA[PROPERTY sCmd : string]]></Declaration>
-      <Get Name="Get" Id="{34e591ad-8742-42f7-bd2c-429db07b4b0e}">
+      <Get Name="Get" Id="{f147bc31-3f4f-00e8-0689-c138c2223fe4}">
         <Declaration><![CDATA[VAR
 END_VAR
 ]]></Declaration>
@@ -1140,7 +1140,7 @@ END_VAR
 ]]></ST>
         </Implementation>
       </Get>
-      <Set Name="Set" Id="{0de46316-d0b6-4cba-ab2f-2a7609e1c1fc}">
+      <Set Name="Set" Id="{32a59a0c-e5e8-0195-2476-4636a4e74328}">
         <Declaration><![CDATA[VAR
 END_VAR
 ]]></Declaration>
