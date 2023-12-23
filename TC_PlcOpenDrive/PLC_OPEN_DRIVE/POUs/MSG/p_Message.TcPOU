@@ -1,0 +1,139 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.18">
+  <POU Name="p_Message" Id="{73f25005-15f7-4639-abba-2bc02df878f8}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM p_Message
+VAR_INPUT
+  bReset        : BOOL;
+  pListInternal : POINTER TO ARRAY[1..GVL_AXIS_CTRL.gciMaxMessage] OF ST_Message;
+END_VAR
+VAR_OUTPUT
+  bActive       : BOOL;
+  stMessageList : ST_MessageList;
+END_VAR
+VAR
+  ui,uj,uk, ue  : INT := 1;
+  bFoundEntry   : BOOL;
+  iResetCount   : INT;
+  atListWrite   : ARRAY[1..GVL_AXIS_CTRL.gciMaxMessage] OF ST_Message;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[
+IF bReset
+THEN
+  bActive := FALSE;
+  bReset  := FALSE;
+  iResetCount := iResetCount + 1;
+  stMessageList.sTextBox := '';
+
+  memset(pListInternal, 0, SIZEOF(pListInternal^));
+  memset(ADR(stMessageList.atMessages), 0, SIZEOF(stMessageList.atMessages));
+  FOR uj :=  1 TO GVL_AXIS_CTRL.gciMaxMessage
+  DO
+    stMessageList.atMessages[uj].eType := '-1';
+  END_FOR
+END_IF
+
+// copy to display list
+FOR uk := ue TO GVL_AXIS_CTRL.gciMaxMessage
+DO
+  IF (pListInternal^[uk].udiError <> 0)
+  THEN
+    stMessageList.atMessages[uk].iErrorNumber := pListInternal^[uk].udiError;
+    stMessageList.atMessages[uk].sTime        := pListInternal^[uk].tTime;
+    stMessageList.atMessages[uk].sDevice      := DINT_TO_STRING(pListInternal^[uk].eDevice);
+  ELSE
+    EXIT;
+  END_IF
+END_FOR
+
+
+
+
+// Look for text when message is selected
+(*
+(* Valid flag and iIndex coming from table visu element *)
+IF stMessageList.bValid AND 
+   stMessageList.iIndex <> stMessageList.iIndexOld
+THEN
+  stMessageList.sTextBox := '';
+
+  IF pListInternal^[stMessageList.iIndex].eSubdevice >= e_SubDevice.SUB_DEVICE_AXIS_GENERAL
+  THEN
+    FOR ui := 1 TO cMaxMessagesNC
+    DO
+      IF GVL_NC_MESSAGES.gstNcAxisMessages[ui].id = stMessageList.atMessages[stMessageList.iIndex].iErrorNumber
+      THEN
+        stMessageList.sTextBox := GVL_NC_MESSAGES.gstNcAxisMessages[ui].FehlerText;
+        EXIT;
+      END_IF
+    END_FOR
+  (* TODO - append more Lists, e.g. ADS Errors *)
+  END_IF
+  stMessageList.iIndexOld := stMessageList.iIndex;
+END_IF
+*)
+
+FOR uk := 1 TO GVL_AXIS_CTRL.gciMaxMessage
+DO
+  IF pListInternal^[uk].udiError <> 0
+  THEN
+    bActive := TRUE; // can be used for visual indication
+  END_IF
+END_FOR
+]]></ST>
+    </Implementation>
+    <LineIds Name="p_Message">
+      <LineId Id="468" Count="0" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="251" Count="0" />
+      <LineId Id="266" Count="0" />
+      <LineId Id="141" Count="0" />
+      <LineId Id="235" Count="0" />
+      <LineId Id="19" Count="0" />
+      <LineId Id="315" Count="0" />
+      <LineId Id="197" Count="0" />
+      <LineId Id="296" Count="3" />
+      <LineId Id="43" Count="0" />
+      <LineId Id="27" Count="0" />
+      <LineId Id="345" Count="0" />
+      <LineId Id="287" Count="0" />
+      <LineId Id="282" Count="0" />
+      <LineId Id="190" Count="1" />
+      <LineId Id="186" Count="0" />
+      <LineId Id="189" Count="0" />
+      <LineId Id="193" Count="1" />
+      <LineId Id="354" Count="1" />
+      <LineId Id="283" Count="0" />
+      <LineId Id="295" Count="0" />
+      <LineId Id="292" Count="0" />
+      <LineId Id="380" Count="0" />
+      <LineId Id="318" Count="1" />
+      <LineId Id="316" Count="0" />
+      <LineId Id="221" Count="0" />
+      <LineId Id="199" Count="0" />
+      <LineId Id="206" Count="0" />
+      <LineId Id="201" Count="0" />
+      <LineId Id="218" Count="1" />
+      <LineId Id="205" Count="0" />
+      <LineId Id="208" Count="0" />
+      <LineId Id="202" Count="0" />
+      <LineId Id="210" Count="1" />
+      <LineId Id="214" Count="1" />
+      <LineId Id="217" Count="0" />
+      <LineId Id="216" Count="0" />
+      <LineId Id="212" Count="0" />
+      <LineId Id="203" Count="0" />
+      <LineId Id="220" Count="0" />
+      <LineId Id="213" Count="0" />
+      <LineId Id="204" Count="0" />
+      <LineId Id="200" Count="0" />
+      <LineId Id="160" Count="0" />
+      <LineId Id="317" Count="0" />
+      <LineId Id="162" Count="1" />
+      <LineId Id="249" Count="0" />
+      <LineId Id="165" Count="3" />
+      <LineId Id="7" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

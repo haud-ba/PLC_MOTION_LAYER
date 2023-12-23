@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="ST_AxisController" Id="{3e23c619-7f59-46de-8866-2d8f3c8e24d5}">
+    <Declaration><![CDATA[{attribute 'pack_mode' := '2'}
+TYPE ST_AxisController :
+STRUCT
+
+{IF defined (AXIS_MAP)}
+  {info 'TEST ST_AxisController'}
+  ToPlc    AT %I* : ST_In;
+  FromPlc  AT %Q* : ST_Out;
+{ELSE}
+  ToPlc    : ST_In;
+  FromPlc  : ST_Out;
+{END_IF}
+
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

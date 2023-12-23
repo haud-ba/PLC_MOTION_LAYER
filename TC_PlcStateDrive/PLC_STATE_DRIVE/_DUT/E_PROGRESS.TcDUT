@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <DUT Name="E_PROGRESS" Id="{01ea6048-5c71-0a1f-04ff-ba0b7cf1e485}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+{attribute 'to_string'}
+TYPE E_PROGRESS :
+(
+  // progress is used in project to mirror state of requested command/function
+  INIT,
+	BUSY          :=  100,
+  STARTUP       :=  200,
+  PREPARE       :=  300,
+  READY         :=  400,
+  WAITING       :=  500,
+
+  WORKING       :=  800,
+  ERROR         :=  900,
+  DONE          := 1000
+)UINT;
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

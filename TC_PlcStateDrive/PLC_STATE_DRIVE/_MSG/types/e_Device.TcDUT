@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <DUT Name="e_Device" Id="{4f07530f-18fb-0dc6-20fc-45bddec0ddd2}">
+    <Declaration><![CDATA[{attribute 'to_string'}
+TYPE e_Device :
+(
+  General         := 0,
+
+  // first NC Axis, all other Axis are incremented
+  Axis            := 1000,
+
+  // NCI channel control instance
+  NciChannelCtrl  := 2000,
+
+  // NCI channel
+  NciChannel      := 3000,
+
+  // message function blocks
+  Data            := 10000
+)DINT;
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

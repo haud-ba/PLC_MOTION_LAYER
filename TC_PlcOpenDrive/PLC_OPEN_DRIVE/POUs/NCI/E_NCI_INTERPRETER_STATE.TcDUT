@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.9">
+  <DUT Name="E_NCI_INTERPRETER_STATE" Id="{92d92692-9dd8-0dec-221b-9a065f4e868f}">
+    <Declaration><![CDATA[// Interpreter state, see also library tc2_nci.Global_Variables.NCI_INTERPRETER_xxx
+//  Date    Name  Version   Remarks
+//  2016/09/29  FJK   1.0     1st Version
+{attribute -'to_string'}
+TYPE E_NCI_INTERPRETER_STATE :
+(
+  NCI_INTERPRETER_INITFAILED := 0,
+  NCI_INTERPRETER_IDLE := 1,
+  NCI_INTERPRETER_READY := 2,
+  NCI_INTERPRETER_STARTED := 3,
+  NCI_INTERPRETER_SCANNING := 4,
+  NCI_INTERPRETER_RUNNING := 5,
+  NCI_INTERPRETER_STAY_RUNNING := 6,
+  NCI_INTERPRETER_WRITETABLE := 7,
+  NCI_INTERPRETER_SEARCHLINE := 8,
+  NCI_INTERPRETER_END := 9,
+  NCI_INTERPRETER_SINGLESTOP := 10, 
+  NCI_INTERPRETER_ABORTING := 11,
+  NCI_INTERPRETER_ABORTED := 12,
+  NCI_INTERPRETER_FAULT := 13,
+  NCI_INTERPRETER_RESET := 14,
+  NCI_INTERPRETER_STOP := 15,
+  NCI_INTERPRETER_WAITFUNC := 16,
+  NCI_INTERPRETER_FLUSHBUFFERS := 17
+) DWORD;    //Basis-Datentyp
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

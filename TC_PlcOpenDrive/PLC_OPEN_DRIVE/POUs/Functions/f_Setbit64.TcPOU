@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.18">
+  <POU Name="f_Setbit64" Id="{3bde0ab1-c1b5-4ae3-8f39-8ea86e049c15}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION f_Setbit64 : LWORD
+VAR_INPUT
+  inVal   : LWORD;
+  bitNo   : INT;
+END_VAR
+VAR
+  wConst  : LWORD := 1;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[f_Setbit64 := inVal OR SHL( wConst,INT_TO_SINT(bitNo) MOD 64 );]]></ST>
+    </Implementation>
+    <LineIds Name="f_Setbit64">
+      <LineId Id="7" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

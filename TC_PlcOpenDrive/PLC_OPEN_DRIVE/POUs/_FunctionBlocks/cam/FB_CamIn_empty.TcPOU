@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.9">
+  <POU Name="FB_CamIn_empty" Id="{41c3a096-0f5f-0263-3b7e-37393841b3af}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_CamIn_empty
+VAR_INPUT
+  Master            : REFERENCE TO Tc2_MC2.AXIS_REF;
+  Slave             : REFERENCE TO Tc2_MC2.AXIS_REF; 
+  Execute           : BOOL;
+  MasterOffset      : REAL; 
+  SlaveOffset       : REAL; 
+  MasterScaling     : REAL;
+  SlaveScaling      : REAL;
+  StartMode         : INT;
+  CamTableID        : UDINT;
+END_VAR
+VAR_OUTPUT
+  Busy              : BOOL;
+  Error             : BOOL;
+  Done              : BOOL;
+  InSync            : BOOL;
+  ErrorId           : UDINT;
+END_VAR
+VAR
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[
+Error   := TRUE;
+ErrorId := 9999; // function is not activated by compiler def CAM
+]]></ST>
+    </Implementation>
+    <LineIds Name="FB_CamIn_empty">
+      <LineId Id="31" Count="2" />
+      <LineId Id="9" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <GVL Name="PLC_VERSION" Id="{d2395695-97e2-030c-1191-ad6e09085440}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL CONSTANT
+  VERSION               : STRING := 'V 00.01.01';
+
+
+  //  2023 10 19
+  //  HAUD
+  // first draft 
+  // TODO: everything
+
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

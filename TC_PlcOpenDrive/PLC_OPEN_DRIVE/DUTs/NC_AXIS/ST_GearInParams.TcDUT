@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4023.8">
+  <DUT Name="ST_GearInParams" Id="{8d79a5ba-ad57-49ce-80c1-5ca5984915dc}">
+    <Declaration><![CDATA[TYPE ST_GearInParams :
+STRUCT
+  Enable        : BOOL;
+  GearRatio     : LREAL;
+  GearRatio2    : LREAL;
+  GearRatio3    : LREAL;
+  GearRatio4    : LREAL;
+  Acceleration  : LREAL;
+  Deceleration  : LREAL;
+  Jerk          : LREAL;
+  Options       : Tc2_MC2.ST_GearInMultiMasterOptions;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

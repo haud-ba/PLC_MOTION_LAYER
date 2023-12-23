@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="f_MessageSet" Id="{68680699-6ae9-0021-1a6b-106e0f1ea7b6}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION f_MessageSet : BOOL
+VAR_INPUT
+  stMessage   : ST_Message;
+END_VAR
+VAR
+  _uiIndex   : INT;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[stMessage.tTime                     := GVL_MSG.sLocalTime;
+
+FOR _uiIndex := 1 TO PLC_CONSTANT.MAX_MESSAGE
+DO
+  IF (GVL_MSG.Messages[_uiIndex].eType = e_MessageType.eMessageEmpty)
+  THEN
+    GVL_MSG.Messages[_uiIndex]      := stMessage;
+    GVL_MSG.MessageIndex             := _uiIndex;
+    EXIT;
+  END_IF
+END_FOR
+
+
+
+
+]]></ST>
+    </Implementation>
+    <LineIds Name="f_MessageSet">
+      <LineId Id="104" Count="0" />
+      <LineId Id="152" Count="0" />
+      <LineId Id="130" Count="12" />
+      <LineId Id="7" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

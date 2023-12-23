@@ -1,0 +1,64 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4023.8">
+  <DUT Name="ST_AxisStatusCompact" Id="{11c9410e-7294-485e-a93c-3c488b186f02}">
+    <Declaration><![CDATA[TYPE ST_AxisStatusCompact :
+STRUCT
+
+    Error                : BIT;  (* axis error state *)
+
+    (* PLCopen motion control statemachine states: *)
+    ErrorStop            : BIT;
+    Disabled             : BIT;
+    Stopping             : BIT;
+
+    StandStill           : BIT;
+    DiscreteMotion       : BIT;
+    ContinuousMotion     : BIT; 
+    SynchronizedMotion   : BIT;
+
+    Homing               : BIT;
+
+    (* additional status - (PLCopen definition)*)
+    ConstantVelocity     : BIT; 
+    Accelerating         : BIT;
+    Decelerating         : BIT;
+
+    (* Axis.NcToPlc.StateDWord *)
+    Operational          : BIT; 
+    ControlLoopClosed    : BIT; (* operational and position control active *)
+    HasJob               : BIT; 
+    HasBeenStopped       : BIT; 
+    NewTargetPosition    : BIT; (* new target position commanded during move *)
+    InPositionArea       : BIT; 
+    InTargetPosition     : BIT; 
+ 
+    Homed                : BIT; 
+    HomingBusy           : BIT; 
+    MotionCommandsLocked : BIT; (* stop 'n hold *)
+    SoftLimitMinExceeded : BIT; (* reverse soft travel limit exceeded *)
+    SoftLimitMaxExceeded : BIT; (* forward soft travel limit exceeded *)
+
+    Moving               : BIT; 
+    PositiveDirection    : BIT; 
+    NegativeDirection    : BIT; 
+    NotMoving            : BIT; 
+    Compensating         : BIT; (* superposition - overlayed motion *)
+
+    ExtSetPointGenEnabled: BIT; 
+    ExternalLatchValid   : BIT; 
+    CamDataQueued        : BIT; 
+    CamTableQueued       : BIT; 
+    CamScalingPending    : BIT; 
+    CmdBuffered          : BIT; 
+    PTPmode              : BIT; 
+    DriveDeviceError     : BIT; 
+    IoDataInvalid        : BIT; 
+
+    (* Axis.NcToPlc.CoupleState *)
+    Coupled              : BIT;
+
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

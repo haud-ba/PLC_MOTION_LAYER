@@ -1,0 +1,131 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="FB_Ctrl_Cam" Id="{ec589a30-c0cb-07ed-066e-6383c15441f2}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_Ctrl_Cam IMPLEMENTS I_Cam_Ctrl
+VAR_INPUT
+END_VAR
+VAR_OUTPUT
+END_VAR
+VAR
+  _bInSync,
+  _bBusy,
+  _bError         : BOOL;
+
+  _udiError       : UDINT;
+
+  _pAxisSlave,
+  _pAxisMaster    : POINTER TO Tc2_MC2.AXIS_REF;  
+
+  _fbCamIn        : Tc2_MC2_Camming.MC_CamIn_V2;
+  _fbCamOut       : Tc2_MC2_Camming.MC_CamOut;
+
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[
+
+]]></ST>
+    </Implementation>
+    <Method Name="CamIn" Id="{3f9750f1-fba9-0a95-0065-08ee42705959}">
+      <Declaration><![CDATA[METHOD CamIn : BOOL
+VAR_INPUT
+  bExecute      : BOOL;
+  stCamIn       : ST_CamIn;
+END_VAR
+VAR_INST
+  _nState       : UINT;
+
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT (_pAxisMaster <> 0) OR
+   NOT (_pAxisSlave <> 0)
+THEN
+  RETURN;
+END_IF
+
+IF NOT bExecute
+THEN
+  _nState         := 0;
+END_IF
+
+CASE _nState 
+OF
+  0:
+    _fbCamIn(
+          Master              := _pAxisMaster^, 
+          Slave               := _pAxisSlave^, 
+          Execute             := FALSE, 
+          ActivationMode      := stCamIn.StartMode, 
+          ActivationPosition:= , 
+          CamTableID:= , 
+          Scaling:= , 
+          Options:= , 
+          InSync=> , 
+          Busy=> , 
+          Active=> , 
+          CommandAborted=> , 
+          Error=> , 
+          ErrorID=> );
+
+
+END_CASE
+]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="MasterAxis" Id="{e9ea0207-855a-0548-0716-961e2367e1ea}">
+      <Declaration><![CDATA[PROPERTY MasterAxis : POINTER TO Tc2_MC2.AXIS_REF]]></Declaration>
+      <Set Name="Set" Id="{0a9470a5-2a30-0d8f-36f1-350a54b8ca71}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_pAxisMaster := MasterAxis;	
+
+
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="SlaveAxis" Id="{2852ae05-60dc-06b3-3437-9244c97fcebd}">
+      <Declaration><![CDATA[PROPERTY SlaveAxis : POINTER TO Tc2_MC2.AXIS_REF]]></Declaration>
+      <Set Name="Set" Id="{f7a3f116-7de2-069b-015b-1b5ea80624b7}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[	_pAxisSlave := SlaveAxis;	
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <LineIds Name="FB_Ctrl_Cam">
+      <LineId Id="25" Count="1" />
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_Ctrl_Cam.CamIn">
+      <LineId Id="5" Count="0" />
+      <LineId Id="11" Count="3" />
+      <LineId Id="16" Count="4" />
+      <LineId Id="22" Count="0" />
+      <LineId Id="21" Count="0" />
+      <LineId Id="27" Count="0" />
+      <LineId Id="25" Count="0" />
+      <LineId Id="29" Count="13" />
+      <LineId Id="28" Count="0" />
+      <LineId Id="26" Count="0" />
+      <LineId Id="24" Count="0" />
+      <LineId Id="23" Count="0" />
+      <LineId Id="15" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_Ctrl_Cam.MasterAxis.Set">
+      <LineId Id="6" Count="0" />
+      <LineId Id="8" Count="1" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_Ctrl_Cam.SlaveAxis.Set">
+      <LineId Id="6" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

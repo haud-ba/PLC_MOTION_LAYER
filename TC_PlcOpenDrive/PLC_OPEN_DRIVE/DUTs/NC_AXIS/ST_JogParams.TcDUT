@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4023.8">
+  <DUT Name="ST_JogParams" Id="{04d28434-28b8-4dff-837d-9709d95cf9b3}">
+    <Declaration><![CDATA[TYPE ST_JogParams :
+STRUCT
+  JogForward    : BOOL;
+  JogBackwards  : BOOL;
+  Mode          : Tc2_MC2.E_JogMode;
+  Position      : LREAL;
+  Velocity      : LREAL;
+  Acceleration  : LREAL;
+  Deceleration  : LREAL;
+  Jerk          : LREAL;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

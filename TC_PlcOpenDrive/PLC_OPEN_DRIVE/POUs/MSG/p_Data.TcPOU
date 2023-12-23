@@ -1,0 +1,322 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="p_Data" Id="{4a653593-c5ff-424a-8908-cf6908514be9}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM p_Data
+VAR_INPUT
+	bPowerFail		: BOOL;
+	bWriteFile		: BOOL;
+	bReset				: BOOL;
+	pList					: POINTER TO ARRAY[1..GVL_AXIS_CTRL.gciMaxMessage] OF ST_Message;
+	pLocalTime		: POINTER TO DT; 
+END_VAR
+VAR_OUTPUT
+	bBusy					: BOOL;
+	VisuList		  : ARRAY[1..GVL_AXIS_CTRL.gciMaxMessage] OF ST_Message;
+END_VAR
+VAR
+	diStep 				: DINT;
+
+	rtrigReset		: Tc2_Standard.R_TRIG;
+	aWriteList		: ARRAY[1..GVL_AXIS_CTRL.gciMaxMessage] OF ST_Message;
+	sWriteData		: STRING(32767);
+	sNewLine			: STRING := '$N';
+	sTab					: STRING := '$T';
+	iCount, 
+	iStart, 
+	iEnd					: INT;
+
+	fbWrite				: fb_WriteData;
+	fbCreateDir		: Tc2_System.FB_CreateDir;
+	sTmp          : STRING(256);
+	sFilename			: STRING(256);
+	sFolderDate		: STRING;
+	bFileCreated	: BOOL;
+
+  ivis          : INT;
+END_VAR
+VAR CONSTANT
+	MSG_WRITE_COUNT	: INT := 10;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[(* pointer check *)
+IF NOT (pList <> 0) OR
+	 NOT (pLocalTime <> 0)
+THEN
+	RETURN;
+END_IF
+
+IF (f_FolderDate(pLocalTime) <> sFolderDate)
+THEN
+	bFileCreated := FALSE;
+END_IF
+
+
+rtrigReset(CLK:= bReset);
+IF rtrigReset.Q
+THEN
+	bReset := FALSE;
+	diStep := 0;
+END_IF
+
+
+CASE diStep OF
+	0:
+		bBusy := FALSE;
+    IF bWriteFile
+    THEN
+      IF (GVL_AXIS_CTRL.giMsgIndex > 1)
+      THEN
+        diStep := 5;
+      END_IF
+		ELSIF (GVL_AXIS_CTRL.giMsgIndex >= MSG_WRITE_COUNT) OR
+			     bPowerFail
+		THEN
+      IF GVL_AXIS_CTRL.gbEnableLogging
+      THEN
+        diStep := 5;
+      END_IF
+		END_IF
+END_CASE
+CASE diStep OF
+  5:
+			memcpy(ADR(aWriteList), pList, SIZEOF(aWriteList));
+			memset(pList, 0, SIZEOF(aWriteList));
+			bBusy   := TRUE;
+			iStart 	:= 1;
+			iEnd 		:= SEL((GVL_AXIS_CTRL.giMsgIndex > GVL_AXIS_CTRL.gciMaxMessage),GVL_AXIS_CTRL.giMsgIndex,GVL_AXIS_CTRL.gciMaxMessage);
+			GVL_AXIS_CTRL.giMsgIndex := 1;
+
+			fbWrite.bExecute := FALSE;
+			IF NOT bFileCreated
+			THEN
+				diStep := 10;
+			ELSE
+				diStep := 200;
+			END_IF
+END_CASE
+CASE diStep OF
+	10:
+		fbCreateDir.sPathName := left(GVL_AXIS_CTRL.gcsLogDir,len(GVL_AXIS_CTRL.gcsLogDir)-1);
+		fbCreateDir.bExecute  := FALSE;
+		diStep := 20;
+
+	20:
+		(* create root folder *)
+		fbCreateDir.bExecute	:= TRUE;
+		IF fbCreateDir.bBusy
+		THEN
+			diStep := 30;
+		END_IF
+
+	30:
+		IF NOT fbCreateDir.bBusy
+		THEN
+			sFolderDate := f_FolderDate(pLocalTime);
+			fbCreateDir.sPathName := concat(GVL_AXIS_CTRL.gcsLogDir, sFolderDate);
+			fbCreateDir.bExecute  := FALSE;
+			diStep := 40;
+		END_IF
+
+	40:
+		(* create active folder *)
+		fbCreateDir.bExecute	:= TRUE;
+		IF fbCreateDir.bBusy
+		THEN
+			diStep := 50;
+		END_IF
+
+	50:
+		IF NOT fbCreateDir.bBusy
+		THEN
+			fbCreateDir.bExecute  := FALSE;
+			// build complete file path
+			sTmp := concat(concat(GVL_AXIS_CTRL.gcsLogFile, sFolderDate),'.txt');
+			sTmp := concat('\', sTmp);
+			sFilename := concat(fbCreateDir.sPathName, sTmp);
+			bFileCreated := TRUE;
+			diStep := 200;
+		END_IF
+
+END_CASE
+CASE diStep OF
+	200:
+		memset(ADR(sWriteData),0,SIZEOF(sWriteData));
+		iCount := iStart;
+		diStep := 220;
+
+	220:
+		IF aWriteList[iCount].eType > 0
+		THEN
+			sTmp := TO_STRING(aWriteList[iCount].eType);
+			sTmp := Tc2_Standard.CONCAT(sTmp, sTab);
+			sTmp := Tc2_Standard.CONCAT(sTmp, aWriteList[iCount].tTime);
+			sTmp := Tc2_Standard.CONCAT(sTmp, sTab);
+			sTmp := Tc2_Standard.CONCAT(sTmp, Device_To_String(aWriteList[iCount].eDevice));
+			sTmp := Tc2_Standard.CONCAT(sTmp, sTab);
+			sTmp := Tc2_Standard.CONCAT(sTmp, TO_STRING(aWriteList[iCount].eSubdevice));
+			sTmp := Tc2_Standard.CONCAT(sTmp, sTab);
+			sTmp := Tc2_Standard.CONCAT(sTmp, TO_STRING(aWriteList[iCount].iErrorNumber));
+			sTmp := Tc2_Standard.CONCAT(sTmp, sTab);
+			sTmp := Tc2_Standard.CONCAT(sTmp, aWriteList[iCount].sText);
+			sTmp := Tc2_Standard.CONCAT(sTmp, sNewLine);
+			f_Builder(ADR(sTmp), ADR(sWriteData), len(sTmp));
+		END_IF
+		iCount := iCount + 1;
+		diStep := 225;
+
+	225:
+		IF iCount > iEnd
+		THEN
+			IF (len(sWriteData) > 0)
+			THEN
+				diStep := 230;
+			ELSE
+				diStep := 250;
+			END_IF
+		ELSE
+			diStep := 220;
+		END_IF
+
+
+	230:
+		fbWrite.bExecute 	:= TRUE;
+		IF fbWrite.bBusy
+		THEN
+			diStep := 240;
+		END_IF
+
+	240:
+		IF NOT fbWrite.bBusy
+		THEN
+			fbWrite.bExecute := FALSE;
+			diStep := 250;
+		END_IF
+
+	250:
+		IF NOT bWriteFile
+		THEN
+			diStep := 0;
+		END_IF
+END_CASE
+
+fbWrite(
+	bExecute:= , 
+	sFileName:= sFilename, 
+	psData:= ADR(sWriteData), 
+	bBusy=> , 
+	bDone=> , 
+	bError=> );
+
+fbCreateDir(
+	sNetId:= , 
+	sPathName:=, 
+	ePath:= , 
+	bExecute:= , 
+	tTimeout:= , 
+	bBusy=> , 
+	bError=> , 
+	nErrId=> );
+
+// copy list for visu
+FOR ivis := 1 TO GVL_AXIS_CTRL.giMsgIndex
+DO
+  VisuList[ivis] := pList^[ivis];
+END_FOR
+
+]]></ST>
+    </Implementation>
+    <Method Name="Device_to_String" Id="{77b390fb-8d92-0a70-144d-90148b3c4790}">
+      <Declaration><![CDATA[METHOD Device_to_String : string
+VAR_INPUT
+  eMsgDevice    : e_Device;
+END_VAR
+VAR
+  // first NC Axis, all other Axis are incremented
+  nmodAxis            : DINT := 1000;
+
+  // first NCI channel control instance
+  nmodNciChannelCtrl  : DINT := 2000;
+
+  // NCI channel
+  nmodNciChannel      : DINT := 3000;
+
+  // message function blocks
+  nmodData            : DINT := 10000;
+
+  sId                 : STRING := '_ID_';
+  nId                 : DINT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[
+IF (eMsgDevice <= nmodAxis)
+THEN
+  // general case with no added indices
+  Device_to_String := TO_STRING(eMsgDevice);
+ELSE
+
+  IF (eMsgDevice > nModData)
+  THEN
+    nId := eMsgDevice MOD nmodData;
+    sId := concat(sId, TO_STRING(nId));
+ 
+    Device_to_String := concat(TO_STRING(e_device.Data), sId);
+
+  ELSIF (eMsgDevice > nmodNciChannel)
+  THEN
+    nId := eMsgDevice MOD nmodNciChannel;
+    sId := concat(sId, TO_STRING(nId));
+ 
+    Device_to_String := concat(TO_STRING(e_device.NciChannel), sId);
+
+  ELSIF (eMsgDevice > nmodNciChannelCtrl)
+  THEN
+    nId := eMsgDevice MOD nmodNciChannelCtrl;
+    sId := concat(sId, TO_STRING(nId));
+ 
+    Device_to_String := concat(TO_STRING(e_device.NciChannelCtrl), sId);
+
+  ELSIF (eMsgDevice > nmodAxis)
+  THEN
+    nId := eMsgDevice MOD nmodAxis;
+    sId := concat(sId, TO_STRING(nId));
+ 
+    Device_to_String := concat(TO_STRING(e_device.Axis), sId);
+  ELSE
+    Device_to_String := TO_STRING(eMsgDevice);
+  END_IF
+END_IF
+]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="p_Data">
+      <LineId Id="2607" Count="177" />
+      <LineId Id="2821" Count="0" />
+      <LineId Id="2823" Count="4" />
+      <LineId Id="2822" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="p_Data.Device_to_String">
+      <LineId Id="24" Count="2" />
+      <LineId Id="30" Count="0" />
+      <LineId Id="27" Count="1" />
+      <LineId Id="34" Count="0" />
+      <LineId Id="32" Count="0" />
+      <LineId Id="35" Count="1" />
+      <LineId Id="39" Count="1" />
+      <LineId Id="38" Count="0" />
+      <LineId Id="42" Count="0" />
+      <LineId Id="41" Count="0" />
+      <LineId Id="43" Count="0" />
+      <LineId Id="46" Count="3" />
+      <LineId Id="44" Count="0" />
+      <LineId Id="50" Count="5" />
+      <LineId Id="45" Count="0" />
+      <LineId Id="56" Count="7" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="31" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4023.8">
+  <DUT Name="ST_PhasingRelParams" Id="{74f4356f-5b51-426d-9db6-d7dedbef7ced}">
+    <Declaration><![CDATA[TYPE ST_PhasingRelParams :
+STRUCT
+	PhaseShift		: LREAL;
+	Velocity		: LREAL;
+	Acceleration	: LREAL;
+	Deceleration	: LREAL;
+	Jerk			: LREAL;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

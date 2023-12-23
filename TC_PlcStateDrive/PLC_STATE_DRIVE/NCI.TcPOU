@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="NCI" Id="{da86f3fe-4721-09d7-2e2d-987f1b92458d}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM NCI
+VAR
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF NOT PLC_CONSTANT.NCI_ACTIVE THEN RETURN; END_IF
+
+]]></ST>
+    </Implementation>
+    <LineIds Name="NCI">
+      <LineId Id="5" Count="0" />
+      <LineId Id="7" Count="0" />
+      <LineId Id="6" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

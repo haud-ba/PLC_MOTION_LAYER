@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <DUT Name="ST_GEAR_IN" Id="{4efdd300-d04e-0b13-188d-d85306bab98e}">
+    <Declaration><![CDATA[{attribute 'pack_mode' := '2'}
+TYPE ST_GEAR_IN :
+STRUCT  
+  nAxisIndexMaster    : ARRAY [1..4] OF BYTE; // Index of Master1-4
+  rGearRatio          : ARRAY [1..4] OF REAL; 
+  Acceleration        : REAL;
+  Deceleration        : REAL;
+  Jerk                : REAL;  
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

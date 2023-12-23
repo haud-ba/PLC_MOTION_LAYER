@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.9">
+  <DUT Name="ST_3D_Group" Id="{05e7b59f-4ea4-07ed-15c5-d9e216cb768f}">
+    <Declaration><![CDATA[{attribute 'pack_mode' := '2'}
+TYPE ST_3D_Group :
+STRUCT
+  nXAxisId    : UDINT := 1;
+  nYAxisId    : UDINT := 2;
+  nZAxisId    : UDINT := 3;
+  nQ1AxisId   : UDINT;
+  nQ2AxisId   : UDINT;
+  nQ3AxisId   : UDINT;
+  nQ4AxisId   : UDINT;
+  nQ5AxisId   : UDINT;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

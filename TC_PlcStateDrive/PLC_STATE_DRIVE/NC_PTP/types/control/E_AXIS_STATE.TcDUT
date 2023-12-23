@@ -1,0 +1,40 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <DUT Name="E_AXIS_STATE" Id="{19bc62c1-10fb-0154-0f89-7452ad5aeffe}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'to_string'}
+TYPE E_AXIS_STATE :
+(
+  AXIS_INVALID,   // no valid command
+  AXIS_INIT,
+  AXIS_DISABLE,
+  AXIS_ENABLE,
+
+  AXIS_IDLE     := 10, // clear axis and enable
+  AXIS_HOME,
+  AXIS_MOVE_POS,
+  AXIS_MOVE_VELO,
+  AXIS_HALT,
+  AXIS_STOP,
+
+  AXIS_RESET              := 19,
+  AXIS_STARTUP            := 20,
+
+  AXIS_MOVE_BUFFER        := 30,
+  AXIS_MOVE_BUFFER_VELO,
+
+  AXIS_PARAMETER_READ     := 40, // command for reading and writing parameter
+  AXIS_PARAMETER_WRITE,
+  AXIS_PARAMETER_WRITE_PERSISTENT,
+
+
+  AXIS_GEAR_IN            := 50,
+  AXIS_GEAR_OUT,
+  AXIS_GEAR_IN_MULTIMASTER
+
+
+)UINT;
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

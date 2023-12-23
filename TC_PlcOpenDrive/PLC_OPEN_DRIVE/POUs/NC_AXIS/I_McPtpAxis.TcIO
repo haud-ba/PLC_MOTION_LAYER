@@ -1,0 +1,249 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4023.8">
+  <Itf Name="I_McPtpAxis" Id="{5d0173a9-1083-44ab-8bc9-faa2d6769897}">
+    <Declaration><![CDATA[(* Interface to a Motion Control Axis that extends the interface I_McAxis by basic properties and methodes for Manual Motion, Software Limit Switches and Homing
+ as well as basic movement commands. The properties Done, CommandAborted and Error will indicate the status and termination result of a command. *)
+INTERFACE I_McPtpAxis EXTENDS I_McAxis
+ ]]></Declaration>
+    <Property Name="CalibrationCam" Id="{4d15d2eb-89a9-4f78-8674-231f617b03f2}">
+      <Declaration><![CDATA[(* Write only; If plc cam is used for homing, this property needs to be set to the address of the calibration cam input prior to calling the Home methode *)
+PROPERTY CalibrationCam : POINTER TO BOOL
+]]></Declaration>
+      <Set Name="Set" Id="{f5377d69-cddd-4dff-b1e9-beb441ed030a}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Method Name="Halt" Id="{322ae9ae-9303-4476-b394-bdebad8e4965}">
+      <Declaration><![CDATA[(* Halt stops an axis with a defined braking ramp. In contrast to Stop, the axis is not locked against further movement commands. The axis can therefore
+	be restarted through a further command during the braking ramp or after it has come to a halt. Refer to MC_Halt Function Block in the Tc2_MC2 library *) 
+METHOD Halt : ST_McOutputs;
+VAR_INPUT
+	Deceleration	: LREAL;	(* Deceleration. If not specified, DefaultDeceleration will be used. For safety reasons MC_Halt and MC_Stop cannot be executed 
+								with weaker dynamics than the currently active travel command. The parameterization is adjusted automatically, if necessary *)
+	Jerk			: LREAL;	(* Jerk. If not specified, DefaultJerk will be used. For safety reasons MC_Halt and MC_Stop cannot be executed 
+								with weaker dynamics than the currently active travel command. The parameterization is adjusted automatically, if necessary *)
+	BufferMode		: MC_BufferMode; 	(* The BufferMode is analyzed, if the axis is already executing another command. The running command can be aborted,
+										or the new command becomes active after the running command. The BufferMode also determines the transition condition from 
+										the current to the next command. If the command is applied to a coupled slave axis used, the only available buffer mode is Aborting.
+										Special characteristics of MC_Halt: The MC_buffer mode has no effect, if the command is executed when the system is at a standstill.
+										The blending modes MC_BlendingNext andMC_BlendingLow do not change the last	target position, although they can result in a change in
+										dynamics (deceleration) of the stop ramp. The modes MC_BlendingPrevious andMC_BlendingHigh extend the travel to the original target position.
+										The stop ramp is only initiated when this position is reached (defined braking point). *)
+END_VAR
+]]></Declaration>
+    </Method>
+    <Method Name="Home" Id="{a68b57e9-47c5-4161-83a3-7adc080218ad}">
+      <Declaration><![CDATA[(* Initiates the calibration of the coordinates of the NC axis referencing). Certain parameters of the NC axis will have influence on the behavior
+	Will return without action if HomingMode equals MC_DefaultHoming and CalibrationCam property is not set; in case of MC_DefaultHoming the property 
+	CalibrationCam has to be set prior to calling this methode. Refer to MC_Home Function Block in the Tc2_MC2 library *)
+METHOD Home : ST_McOutputs
+VAR_INPUT
+	Position	: LREAL := DEFAULT_HOME_POSITION;	(* Absolute reference position to which the axis is set after homing.
+													The Default setting DEFAULT_HOME_POSITION, the Reference position for homing specified in the TwinCAT System Manager is used.
+													Attention: Since the reference position is generally set during the motion, the axis will not stop exactly at this position. 
+													The standstill position differs by the braking distance of the axis, although the calibration is nevertheless exact *)
+	HomingMode	: Tc2_MC2.MC_HomingMode := MC_DefaultHoming;	(* determines in which way the calibration is carried out: 
+																MC_DefaultHoming initiates standard homing; 
+																MC_Direct sets the axis position directly to Position without executing a movement.
+																MC_ForceCalibration enforces the "axis is calibrated" state. No movement takes place, and the position remains unchanged; 
+																MC_ResetCalibration resets the calibration state of the axis. No movement takes place, and the position remains unchanged. *)
+	Options		: Tc2_MC2.ST_HomingOptions;	(* Options.ClearPositionLag is only active in mode MC_Direct and can optionally be used to set the set and actual positions to the same value.
+											In this case the following error is cancelled. *)
+
+END_VAR
+]]></Declaration>
+    </Method>
+    <Property Name="HomingSearchVelo" Id="{181cd042-65e9-45cc-807f-95157ae7543e}">
+      <Declaration><![CDATA[(* Velocity used for searching the reference cam. The NC-Axis Parameter Homing velocity (towards plc cam) may be read and written with this property *)
+PROPERTY HomingSearchVelo : LREAL
+]]></Declaration>
+      <Get Name="Get" Id="{ef1cf828-3822-43c5-a166-49c971ca1c39}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+      <Set Name="Set" Id="{2eea876b-80d2-4f7b-899a-20496a0844f1}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="HomingVelo" Id="{c24af51b-b381-4086-9a98-0f38dd72ca8c}">
+      <Declaration><![CDATA[(* Velocity used for leaving the reference cam. The NC-Axis Parameter Homing Velocity (off plc cam) may be read and written with this property *)
+PROPERTY HomingVelo : LREAL
+]]></Declaration>
+      <Get Name="Get" Id="{ef08a565-68ab-4a1b-a846-d1abe96733d6}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+      <Set Name="Set" Id="{248f3c2e-f01d-466b-8ee3-4fa493562bc9}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Method Name="Jog" Id="{c5170147-3c7f-49b1-85f4-5ca69b80c560}">
+      <Declaration><![CDATA[(* This methode provides easy to use manual motion commands by the JogForward and JogBackwards inputs. The required operating mode is specified via the mode input. 
+	An inching mode for moving the axis by a specified distance whenever the JogForward and JogBackwards inputs are set is  also available. The velocity and dynamics 
+	of the motion can be specified depending on the mode. If the mode is not an inching mode, the methode needs to be called cyclically for proper evaluation of the Jog Inputs.
+	Refer to MC_JOG Function Block in the Tc2_MC2 library *)
+METHOD Jog : ST_McOutputs;
+VAR_INPUT
+	JogForward		: BOOL; (* The command is executed with increasing edge, and the axis is moved in positive direction of travel. Depending on the mode, the axis moves as long as 
+							the signal remains TRUE, or it stops automatically after a specified distance. During the motion no further signal edges are accepted 
+							(this includes the JogBackwards input). If signal edges occur simultaneously at the JogForward and JogBackwards inputs, JogForward has priority *)
+	JogBackwards	: BOOL; (* The command is executed with increasing edge, and the axis is moved in negative direction of travel. JogForward and JogBackwards should be triggered 
+							alternatively, although they are also mutually locked internally *)
+	Mode			: E_JogMode; (* The Mode input determines the operating mode in which the manual function is executed.
+					MC_JOGMODE_STANDARD_SLOW The axis is moved as long as the signal at one of the jog inputs is TRUE. Thelow velocity for manual functions specified in the TwinCAT 
+						System Manager and standard dynamics are used. In this mode the position, velocity and dynamics data specified in the function block have no effect. 
+					MC_JOGMODE_STANDARD_FAST.The axis is moved as long as the signal at one of the jog inputs is TRUE. Thehigh velocity for manual functions specified in the TwinCAT
+						System Manager and standard dynamics are used. In this mode the position, velocity and dynamics data specified in the function block have no effect. 
+					MC_JOGMODE_CONTINOUS The axis is moved as long as the signal at one of the jog inputs is TRUE. The velocity and dynamics data specified by the user are used.
+						The position has no effect.
+					MC_JOGMODE_INCHING.With rising edge at one of the jog inputs the axis is moved by a certain distance, which is specified via the position input. The axis stops
+						automatically, irrespective of the state of the jog inputs. A new movement step is only executed once a further rising edge is encountered. At each start 
+						the velocity and dynamics data specified by the user are used. 
+					MC_JOGMODE_INCHING_MODULO.With rising edge at one of the jog inputs the axis is moved by a certain distance, which is specified via the position input. The axis
+						position will snap to an integer multiple of the position parameter. The axis stops automatically, irrespective of the state of the jog inputs. A new movement
+						step is only executed once a further rising edge is encountered. With each start the velocity and dynamics data specified by the user are used *)
+	Position		: LREAL; (* Relative distance for movements in MC_JOGMODE_INCHING mode *)
+	Velocity		: LREAL; (* Maximum travel velocity. If not specified, DefaultVelocity will be used *)
+	Acceleration	: LREAL; (* Acceleration. If not specified, DefaultAcceleration will be used *)
+	Deceleration	: LREAL; (* Deceleration. If not specified, DefaultDeceleration will be used *)
+	Jerk			: LREAL; (* Jerk. If not specified, DefaultJerk will be used *)
+END_VAR
+]]></Declaration>
+    </Method>
+    <Property Name="LocalTime" Id="{f9078fbc-eb36-4fe6-b2d6-f1805a530d4b}">
+      <Declaration><![CDATA[PROPERTY LocalTime : DT]]></Declaration>
+      <Get Name="Get" Id="{36a04b05-170b-4d09-9d14-fd6443fd3edc}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+    </Property>
+    <Method Name="MoveAbsolute" Id="{3852bbdb-4b87-429d-8e33-a86b3ad027a1}">
+      <Declaration><![CDATA[(* MoveAbsolute starts positioning to an absolute target position with monitoring of the axis movement over the whole travel path. Refer to MC_MoveAbsolute Function Block in the
+	Tc2_MC2 library. To instances of MC_MoveAbsolute are used to trigger new parameter during movement; Use Buffermode to control the transition. *) 
+METHOD MoveAbsolute : ST_McOutputs;
+VAR_INPUT
+	Position		: LREAL; (* Absolute target position to be used for positioning *)
+	Velocity		: LREAL; (* Maximum travel velocity. If not specified, DefaultVelocity will be used *)
+	Acceleration	: LREAL; (* Acceleration. If not specified, DefaultAcceleration will be used *)
+	Deceleration	: LREAL; (* Deceleration. If not specified, DefaultDeceleration will be used *)
+	Jerk			: LREAL; (* Jerk. If not specified, DefaultJerk will be used *)
+	BufferMode		: MC_BufferMode;	(* The BufferMode is analyzed, if the axis is already executing another command. The running command can be aborted,
+										or the new command becomes active after the running command. The BufferMode also determines the transition condition from the current to the next command.
+										If the command is applied to a coupled slave axis used, the only available buffer mode is Aborting. *)
+END_VAR
+]]></Declaration>
+    </Method>
+    <Method Name="MoveVelocity" Id="{e6e7eb3d-9c02-469b-9e2b-d6cfbdc5f315}">
+      <Declaration><![CDATA[(* MoveVelocity starts a continuous movement with specified velocity and direction. The movement can be stopped through an other travel command. Refer to MC_MoveVelocity Function Block
+	in the Tc2_MC2 library; In Velocity will be indicated by the return value member Done. To instances of MC_MoveVelocity are used to trigger new parameter during movement *) 
+METHOD MoveVelocity : ST_McOutputs;
+VAR_INPUT
+	Velocity		: LREAL; (* Maximum travel velocity. If not specified, DefaultVelocity will be used *)
+	Acceleration	: LREAL; (* Acceleration. If not specified, DefaultAcceleration will be used *)
+	Deceleration	: LREAL; (* Deceleration. If not specified, DefaultDeceleration will be used *)
+	Jerk			: LREAL; (* Jerk. If not specified, DefaultJerk will be used *)
+	Direction		: MC_Direction := MC_Positive_Direction; (* direction of travel: MC_Positive_Direction, MC_Shortest_Way, MC_Negative_Direction, MC_Current_Direction *)
+	BufferMode		: MC_BufferMode;	(* The BufferMode is analyzed, if the axis is already executing another command. The running command can be aborted,
+										or the new command becomes active after the running command. The BufferMode also determines the transition condition from the current to the next command.
+										If the command is applied to a coupled slave axis used, the only available buffer mode is Aborting. *)
+END_VAR
+]]></Declaration>
+    </Method>
+    <Method Name="ReadParameter" Id="{c573941f-4d18-4765-8766-216fda598eed}">
+      <Declaration><![CDATA[(* Will try to read a parameter from the NC axis; If the value is read, the Value is available at the ReadParamValue property.
+	Refer to MC_ReadParameter Function Block in the Tc2_MC2 library; READMODE_ONCE is used as ReadMode *) 
+METHOD ReadParameter : ST_McOutputs;
+VAR_INPUT
+	ParameterNumber : MC_AxisParameter; (* Number of the parameter to be read. Refer to the MC_AxisParameter type defined at Tc2_MC2 library *) 
+END_VAR
+]]></Declaration>
+    </Method>
+    <Property Name="ReadParamValue" Id="{4d3377f0-efbe-460a-90ff-7df94327c0c5}">
+      <Declaration><![CDATA[(* Read only; Returns the value from the last successful read by ReadParameter methode *)
+PROPERTY ReadParamValue : LREAL
+]]></Declaration>
+      <Get Name="Get" Id="{fbf34701-965a-47fe-9eec-114df176bea1}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+    </Property>
+    <Method Name="Stop" Id="{943b0239-5be8-4012-a66e-bf606c86dcea}">
+      <Declaration><![CDATA[(* Stop stops an axis with a defined braking ramp. In contrast to Halt, the axis is locked against further movement commands. The axis will therefore
+	block a further command during the braking ramp until it has come to a halt. Refer to MC_Stop Function Block in the Tc2_MC2 library *) 
+METHOD Stop : ST_McOutputs;
+VAR_INPUT
+	Deceleration	: LREAL;	(* Deceleration. If not specified, DefaultDeceleration will be used. For safety reasons MC_Halt and MC_Stop cannot be executed 
+								with weaker dynamics than the currently active travel command. The parameterization is adjusted automatically, if necessary *)
+	Jerk			: LREAL;	(* Jerk. If not specified, DefaultJerk will be used. For safety reasons MC_Halt and MC_Stop cannot be executed 
+								with weaker dynamics than the currently active travel command. The parameterization is adjusted automatically, if necessary *)
+END_VAR
+]]></Declaration>
+    </Method>
+    <Property Name="SwPosLimitNegative" Id="{69e823d2-fc5e-40a8-9f15-168d25c76dc4}">
+      <Declaration><![CDATA[(* defines the minimum Position the setpoint generator will use if the software limit switch negative is active. The NC-Axis Parameter Minimum Position may be read and written with this property *)
+PROPERTY SwPosLimitNegative : LREAL
+]]></Declaration>
+      <Get Name="Get" Id="{3b2006d9-1501-46ae-ba20-48d685d77d3f}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+      <Set Name="Set" Id="{193f99ba-848c-4d92-adeb-e7bd39ca5a43}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="SwPosLimitNegativeActive" Id="{924789bd-dd40-439f-b195-e3922abf0722}">
+      <Declaration><![CDATA[(* Acivates and deactivates the software limit switch in negative direction. The NC-Axis Parameter Soft Position Limit Minimum Monitoring may be read and written with this property *)
+PROPERTY SwPosLimitNegativeActive : BOOL
+]]></Declaration>
+      <Get Name="Get" Id="{3422a277-0346-45fd-98d1-7f106a555487}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+      <Set Name="Set" Id="{9ba46612-b5af-4c98-bdd5-a29f6f7bcc1a}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="SwPosLimitPositive" Id="{4ca44924-4a22-4613-96a9-a98255b507b5}">
+      <Declaration><![CDATA[(* defines the maximum Position the setpoint generator will use if the software limit switch positive is active. The NC-Axis Parameter Maximum Position may be read and written with this property *)
+PROPERTY SwPosLimitPositive : LREAL
+ ]]></Declaration>
+      <Get Name="Get" Id="{c6c31df3-3198-4e28-86a2-8428fbe10ba3}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+      <Set Name="Set" Id="{aef7205d-1296-4d87-9de0-b66cb860c5d0}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="SwPosLimitPositiveActive" Id="{e1a7dd51-1130-4a4f-8c0d-534a24592e0a}">
+      <Declaration><![CDATA[(* Acivates and deactivates the software limit switch in positive direction. The NC-Axis Parameter Soft Position Limit Maximum Monitoring may be read and written with this property *)
+PROPERTY SwPosLimitPositiveActive : BOOL
+]]></Declaration>
+      <Get Name="Get" Id="{9df158a6-0aaf-460d-8ae6-3d5cbfa690d5}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+      <Set Name="Set" Id="{fea512b2-2fb3-4885-a79e-879dbb20f149}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Method Name="WriteParameter" Id="{7894e520-4f95-440f-ae3d-593d9334ecce}">
+      <Declaration><![CDATA[(* Will try to write a parameter from the NC axis; Refer to MC_WriteParameter Function Block in the Tc2_MC2 library *)
+METHOD WriteParameter : ST_McOutputs;
+VAR_INPUT
+	ParameterNumber : MC_AxisParameter; (* Number of the parameter to be written. Refer to the MC_AxisParameter type defined at Tc2_MC2 library *) 
+	Value   		: LREAL; (* defines the value to be written to the parameter *)
+END_VAR
+]]></Declaration>
+    </Method>
+    <ObjectProperties>
+      <XmlArchive>
+        <Data>
+          <o xml:space="preserve" t="UMLStereoTypeContainerObject">
+            <v n="IsType" t="UMLType">BaseArea</v>
+            <v n="Stereotype">""</v>
+            <d n="Stereotypes" t="Hashtable" />
+          </o>
+        </Data>
+        <TypeList>
+          <Type n="Hashtable">System.Collections.Hashtable</Type>
+          <Type n="String">System.String</Type>
+          <Type n="UMLStereoTypeContainerObject">{30250973-b110-4e31-b562-c102e042dca4}</Type>
+          <Type n="UMLType">{0197b136-405a-42ee-bb27-fd08b621d0cf}</Type>
+        </TypeList>
+      </XmlArchive>
+    </ObjectProperties>
+  </Itf>
+</TcPlcObject>

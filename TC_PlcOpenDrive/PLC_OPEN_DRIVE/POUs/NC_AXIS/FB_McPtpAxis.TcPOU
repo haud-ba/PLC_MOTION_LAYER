@@ -1,0 +1,3052 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="FB_McPtpAxis" Id="{f3c5c8ba-2006-4413-9dba-e7093a448a41}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_McPtpAxis IMPLEMENTS I_McAxis
+VAR
+  _AxisRef                    : Tc2_MC2.AXIS_REF;
+  pCalibrationCam             : POINTER TO BOOL;
+  bConnectProps2NcParams      : BOOL := TRUE;
+  stDefaultAcceleration       : ST_Param;
+  stDefaultDeceleration       : ST_Param;
+  stDefaultJerk               : ST_Param;
+  fDefaultVelocity            : LREAL;
+
+  stHomingSearchVelo          : ST_Param;
+  stHomingVelo                : ST_Param;
+  stMaxAcceleration           : ST_Param;
+  stMaxDeceleration           : ST_Param;
+  stMaxVelocity               : ST_Param;
+  stTargetPositionWindow      : ST_Param;
+
+
+  stSwPosLimitNegative        : ST_Param;
+  stSwPosLimitNegativeActive  : ST_BoolParam;
+  stSwPosLimitPositive        : ST_Param;
+  stSwPosLimitPositiveActive  : ST_BoolParam;
+  fReadParamValue             : LREAL;
+  stAxisStatus                : Tc2_MC2.ST_AxisStatus;
+
+  // name and encoder type are read by ADSREAD instance from NC
+  stAxisName                  : STRING(30) := 'NO NAME'; // AxisName is limited to 30 chars, IdxGrp := 4000 + _AxisRef.NcToPlc.AxisId, IdxOffs := 16#02
+  stEncoderType               : STRING(30) := 'NO TYPE';
+  eEncoderType                : E_AxisEncoderType;
+  
+  // Motion Control FB Instances
+  fbPower                     : MC_Power;
+  fbReset                     : MC_Reset;
+  fbHalt                      : MC_Halt;
+  fbStop                      : MC_Stop;
+  fbHome                      : MC_Home;
+  fbJog                       : MC_Jog;
+
+  fbReadParameter             : MC_ReadParameter;
+  fbWriteParameter            : Tc2_MC2.MC_WriteParameter;
+  fbMoveVelocity1             : MC_MoveVelocity;
+  fbMoveVelocity2             : MC_MoveVelocity;
+  fbMoveAbsolute1             : MC_MoveAbsolute;
+  fbMoveAbsolute2             : MC_MoveAbsolute;
+  fbMoveEndless               : Tc2_MC2.MC_MoveContinuousAbsolute;
+
+  // ADS read instance for reading startup information from NC
+  fbADSRead                   : ADSREAD;
+
+  // private vars for Methode Params
+  stHaltParams                : ST_HaltParams;
+  stHomeParams                : ST_HomeParams;
+  stJogParams                 : ST_JogParams;
+  stMoveAbsParams             : ST_MoveAbsParams;
+  stMoveVeloParams            : ST_MoveVeloParams;
+  stReadParamParams           : ST_ReadParamParams; 
+  stStopParams                : ST_StopParams;
+  stWriteParamParams          : ST_WriteParamParams;
+
+  // local message list for online debug
+  stMsg                       : ST_Message;
+  atMsg                       : ARRAY[1..MAX_MSG_INTERN] OF ST_Message;
+  itMsg                       : DINT := 1;
+
+  // startup states for getting ADS information from NC
+  _nStartUpErrorState,
+  _nStartUp                   : DINT := 0;
+
+  _bStartUpError,
+  _bStartUp                   : BOOL;
+
+  _uiEncoderType              : UDINT;
+
+  _rCycleTime                 : LREAL;
+  fbGetCurTaskIndex           : Tc2_System.GETCURTASKINDEX;
+
+END_VAR
+VAR CONSTANT
+  MAX_MSG_INTERN              : DINT := 10;
+END_VAR
+
+
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[fbPower(Axis:= _AxisRef);
+_AxisRef();
+
+IF NOT _bStartUp
+THEN
+  CASE _nStartUp OF
+    0:
+      // wait for cyclic data to be valid / connected
+      IF (_AxisRef.NcToPlc.AxisId > 0)
+      THEN
+        fbADSRead(NETID       := '', 
+                  PORT        := 501, 
+                  IDXGRP      := (16#5000 + _AxisRef.NcToPlc.AxisId), 
+                  IDXOFFS     := 16#00000003, // offset for encoder type
+                  LEN         := SIZEOF(_uiEncoderType), 
+                  DESTADDR    := ADR(_uiEncoderType),
+                  TMOUT       := T#200MS,
+                  READ        := FALSE);
+
+        // clear required ADS information
+        stAxisName            := 'NO NAME';
+        _uiEncoderType        :=  0;
+        _nStartUpErrorState   :=  0;  // debug
+        _nStartUp             := 10;
+      END_IF
+
+  10:
+    fbADSRead(NETID           := '', 
+              PORT            := 501, 
+              IDXGRP          := (16#5000 + _AxisRef.NcToPlc.AxisId), 
+              IDXOFFS         := 16#00000003, // offset for encoder type
+              LEN             := SIZEOF(_uiEncoderType), 
+              DESTADDR        := ADR(_uiEncoderType),
+              READ            := TRUE);
+
+    IF fbADSRead.ERR
+    THEN
+      stMsg.eType             := E_MessageType.eMessageError;
+      stMsg.eDevice           := e_Device.Axis;
+      stMsg.eSubdevice        := e_Subdevice.General;
+      stMsg.iErrorNumber      := fbAdsRead.ERRID;
+      stMsg.sText             := 'StartUp Ads Error Read Encoder Type';
+
+      MsgAdd(stMsg);
+      f_MessageSet(stMsg);
+
+      _nStartUpErrorState     := _nStartUp; // debug
+
+      _nStartUp               := 90;
+
+    ELSIF (_uiEncoderType > 0)
+    THEN
+      eEncoderType            := _uiEncoderType;
+      stEncoderType           := TO_STRING(eEncoderType);
+
+      fbADSRead(NETID         := '', 
+                PORT          := 501, 
+                IDXGRP        := (16#4000 + _AxisRef.NcToPlc.AxisId), 
+                IDXOFFS       := 16#00000002, // offset for axis name
+                LEN           := SIZEOF(stAxisName), 
+                DESTADDR      := ADR(stAxisName),
+                READ          := FALSE);
+
+      _nStartUp               := 20;
+    END_IF
+
+  20:
+    // the name must be read last, 
+    // because this indicates the startup is done 
+    // FB_AxisController is checking this entry
+    fbADSRead(NETID           := '', 
+              PORT            := 501, 
+              IDXGRP          := (16#4000 + _AxisRef.NcToPlc.AxisId), 
+              IDXOFFS         := 16#00000002, // offset for axis name
+              LEN             := SIZEOF(stAxisName), 
+              DESTADDR        := ADR(stAxisName),
+              READ            := TRUE);
+    IF fbADSRead.ERR
+    THEN
+      stMsg.eType             := E_MessageType.eMessageError;
+      stMsg.eDevice           := e_Device.Axis;
+      stMsg.eSubdevice        := e_Subdevice.General;
+      stMsg.iErrorNumber      := fbAdsRead.ERRID;
+      stMsg.sText             := 'StartUp Ads Error Read Axis Name';
+
+      MsgAdd(stMsg);
+      f_MessageSet(stMsg);
+
+      _nStartUpErrorState     := _nStartUp; // debug
+
+      _nStartUp               := 90;
+
+    ELSIF (stAxisName <> 'NO NAME')
+    THEN
+      fbADSRead(READ          := FALSE);
+      _nStartUp               := 100;
+    END_IF
+
+  90:
+    _bStartUpError            := TRUE;
+    _bStartUp                 := FALSE;
+
+  100:
+    _bStartUpError            := FALSE;
+    _bStartUp                 := TRUE;
+    _nStartUp                 := 0;
+  END_CASE
+END_IF
+
+IF (_AxisRef.NcToPlc.AxisId > 0)
+THEN
+  ParamCheck();
+END_IF
+
+]]></ST>
+    </Implementation>
+    <Folder Name="methods" Id="{44f8c903-4637-4556-ab6d-cc6c76fbd8eb}" />
+    <Folder Name="properties" Id="{944ec22e-60c6-4f8f-9dd6-e99049cbdd59}" />
+    <Property Name="CalibrationCam" Id="{e1a009ac-41e5-459d-a0a4-9c9b011a2441}" FolderPath="properties\">
+      <Declaration><![CDATA[(* Write only; If plc cam is used for homing, this property needs to be set to the address of the calibration cam input prior to calling the Home methode *)
+PROPERTY CalibrationCam : POINTER TO BOOL
+]]></Declaration>
+      <Set Name="Set" Id="{6a8239cf-29c6-4e53-a985-75fa9de235a4}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[IF CalibrationCam <> 0 THEN
+  pCalibrationCam := CalibrationCam;
+END_IF]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Method Name="Clear" Id="{eced9563-68bc-00bb-28b3-e58423e5ef6d}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD Clear : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[fbMoveAbsolute1 (Axis   := _AxisRef, Execute:= FALSE);
+fbMoveAbsolute2 (Axis   := _AxisRef, Execute:= FALSE);
+fbMoveEndless   (Axis   := _AxisRef, Execute:= FALSE);
+fbMoveVelocity1 (Axis   := _AxisRef, Execute:= FALSE);
+fbMoveVelocity2 (Axis   := _AxisRef, Execute:= FALSE);
+fbStop          (Axis   := _AxisRef, Execute:= FALSE);
+fbReset         (Axis   := _AxisRef, Execute:= FALSE);
+fbHalt          (Axis   := _AxisRef, Execute:= FALSE);
+]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="Enable" Id="{b26bcc79-df69-4578-8171-b8b761bc76d3}" FolderPath="properties\">
+      <Declaration><![CDATA[(* Axis will be enabled (=> Control Release will be set) or disabled (=> Control Release will be reseted) by this property. Refer to MC_Power Function Block in the Tc2_MC2 library *)
+PROPERTY Enable : BOOL
+]]></Declaration>
+      <Get Name="Get" Id="{967f82e7-4ee8-40cd-a4c3-296273989271}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Enable := fbPower.Status;
+]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{9a97adb9-e012-4d3f-b124-065be842b685}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[fbPower.Enable := Enable;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="EncoderType" Id="{8868cd57-5ec4-09ea-33c9-e16a5d48cfc0}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY EncoderType : E_AxisEncoderType]]></Declaration>
+      <Get Name="Get" Id="{dc31c13b-298a-0ede-18c7-96a12472f3a4}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[EncoderType := eEncoderType;
+]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="ErrorReset" Id="{881f2a4c-d803-4905-b719-dd81e3936e28}" FolderPath="methods\">
+      <Declaration><![CDATA[{attribute '''NORMAL__COMMENT' := ' Will try to reset an active error; Refer to MC_Reset Function Block in the Tc2_MC2 library '}
+(* Will try to reset an active error; Refer to MC_Reset Function Block in the Tc2_MC2 library *)
+METHOD ErrorReset : Tc2_MC2.ST_McOutputs
+VAR_INPUT
+  Execute : BOOL;
+END_VAR
+VAR_INST
+  res    : Tc2_MC2.ST_McOutputs;
+  nState : DINT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[CASE nState OF
+  0:
+    IF Execute
+    THEN
+      memset(ADR(res),0,SIZEOF(res));
+      res.Busy                := TRUE;
+
+      fbReset(Axis            := _AxisRef,
+              Execute         := FALSE);
+
+      nState                  := 10;
+    END_IF
+END_CASE
+CASE nState OF
+  10:
+    fbReset(Axis              := _AxisRef,
+            Execute           := TRUE);
+
+    IF fbReset.Done
+    THEN
+      fbReset(Axis            := _AxisRef,
+              Execute         := FALSE);
+
+      _nStartUp               := 0;
+      nState                  := 20;
+    ELSE
+      IF fbReset.Error
+      THEN
+        res.ErrorID           := fbReset.ErrorID;
+
+        stMsg.eType           := E_MessageType.eMessageError;
+        stMsg.eDevice         := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
+        stMsg.eSubdevice      := e_SubDevice.fbReset;
+        stMsg.iErrorNumber    := fbReset.ErrorID;
+
+        f_MessageSet(stMsg);
+        MsgAdd(stMsg);
+
+        fbReset(Axis          := _AxisRef,
+                Execute       := FALSE);
+
+        nState                := 99;
+      ELSIF NOT fbReset.Busy
+      THEN
+        fbReset(Axis          := _AxisRef,
+                Execute       := FALSE);
+  
+        nState                := 20;
+      END_IF
+    END_IF
+END_CASE
+CASE nState OF
+  20:
+    res.Busy                  := FALSE;
+    res.Done                  := TRUE;
+  
+  99:
+    res.Busy                  := FALSE;
+    res.Error                 := TRUE;
+END_CASE
+
+IF NOT Execute
+THEN
+  memset(ADR(res),0,SIZEOF(res));
+  nState                      := 0;
+END_IF
+
+ErrorReset := res;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="FeedEnable_Negative" Id="{f55aa515-3832-4e0a-8afb-94b77b9e9b88}" FolderPath="properties\">
+      <Declaration><![CDATA[(* Enables Movement in negative direction if set to TRUE. Refer to MC_Power Function Block in the Tc2_MC2 library *)
+PROPERTY FeedEnable_Negative : BOOL
+]]></Declaration>
+      <Get Name="Get" Id="{976fbf56-fe5b-4766-85e1-4211ce252867}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[FeedEnable_Negative := fbPower.Enable_Negative;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{5d515cb9-73ac-4c3e-b9db-eb64f881cd0e}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[fbPower.Enable_Negative := FeedEnable_Negative;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="FeedEnable_Positive" Id="{5cca1e87-378d-4dc4-9f3c-9b790bb34082}" FolderPath="properties\">
+      <Declaration><![CDATA[(* Enables Movement in positive direction if set to TRUE. Refer to MC_Power Function Block in the Tc2_MC2 library *)
+PROPERTY FeedEnable_Positive : BOOL
+]]></Declaration>
+      <Get Name="Get" Id="{df729fe8-b1ee-48d7-80eb-54cf344e66df}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[FeedEnable_Positive := fbPower.Enable_Positive;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{7adff4fe-242b-4693-88b2-0dfa3dc795c8}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[fbPower.Enable_Positive := FeedEnable_Positive;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Method Name="Halt" Id="{d25c8185-8716-42ab-934f-5a905f62d1de}" FolderPath="methods\">
+      <Declaration><![CDATA[{attribute '''NORMAL__COMMENT' := ' Halt stops an axis with a defined braking ramp. In contrast to Stop, the axis is not locked against further movement commands. The axis can therefore
+  be restarted through a further command during the braking ramp or after it has come to a halt. Refer to MC_Halt Function Block in the Tc2_MC2 library '}
+(* Halt stops an axis with a defined braking ramp. In contrast to Stop, the axis is not locked against further movement commands. The axis can therefore
+  be restarted through a further command during the braking ramp or after it has come to a halt. Refer to MC_Halt Function Block in the Tc2_MC2 library *)
+METHOD Halt : Tc2_MC2.ST_McOutputs
+VAR_INPUT
+  Execute : BOOL;
+  (* Deceleration. If not specified, DefaultDeceleration will be used. For safety reasons MC_Halt and MC_Stop cannot be executed 
+                with weaker dynamics than the currently active travel command. The parameterization is adjusted automatically, if necessary *)
+  {attribute '''NORMAL__COMMENT' := ' Deceleration. If not specified, DefaultDeceleration will be used. For safety reasons MC_Halt and MC_Stop cannot be executed 
+                with weaker dynamics than the currently active travel command. The parameterization is adjusted automatically, if necessary '}
+  Deceleration  : LREAL;
+  (* Jerk. If not specified, DefaultJerk will be used. For safety reasons MC_Halt and MC_Stop cannot be executed 
+                with weaker dynamics than the currently active travel command. The parameterization is adjusted automatically, if necessary *)
+  {attribute '''NORMAL__COMMENT' := ' Jerk. If not specified, DefaultJerk will be used. For safety reasons MC_Halt and MC_Stop cannot be executed 
+                with weaker dynamics than the currently active travel command. The parameterization is adjusted automatically, if necessary '}
+  Jerk  : LREAL;
+  (* The BufferMode is analyzed, if the axis is already executing another command. The running command can be aborted,
+                    or the new command becomes active after the running command. The BufferMode also determines the transition condition from 
+                    the current to the next command. If the command is applied to a coupled slave axis used, the only available buffer mode is Aborting.
+                    Special characteristics of MC_Halt: The MC_buffer mode has no effect, if the command is executed when the system is at a standstill.
+                    The blending modes MC_BlendingNext andMC_BlendingLow do not change the last target position, although they can result in a change in
+                    dynamics (deceleration) of the stop ramp. The modes MC_BlendingPrevious andMC_BlendingHigh extend the travel to the original target position.
+                    The stop ramp is only initiated when this position is reached (defined braking point). *)
+  {attribute '''NORMAL__COMMENT' := ' The BufferMode is analyzed, if the axis is already executing another command. The running command can be aborted,
+                    or the new command becomes active after the running command. The BufferMode also determines the transition condition from 
+                    the current to the next command. If the command is applied to a coupled slave axis used, the only available buffer mode is Aborting.
+                    Special characteristics of MC_Halt: The MC_buffer mode has no effect, if the command is executed when the system is at a standstill.
+                    The blending modes MC_BlendingNext andMC_BlendingLow do not change the last target position, although they can result in a change in
+                    dynamics (deceleration) of the stop ramp. The modes MC_BlendingPrevious andMC_BlendingHigh extend the travel to the original target position.
+                    The stop ramp is only initiated when this position is reached (defined braking point). '}
+  BufferMode  : Tc2_MC2.MC_BufferMode;
+END_VAR
+VAR_INST
+  res       : Tc2_MC2.ST_McOutputs;
+  nState    : DINT;
+  fUsedDec,
+  fUsedJerk : LREAL;
+  itmp      : ARRAY[1..3] OF DINT;
+END_VAR
+
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT Execute
+THEN
+  memset(ADR(res),0,SIZEOF(res));
+  nState                    := 0;
+END_IF
+
+
+CASE nState OF
+  0:
+    IF Execute
+    THEN
+      memset(ADR(res),  0, SIZEOF(res));
+      memset(ADR(itmp), 0, SIZEOF(itmp));
+
+      res.Busy              := TRUE;
+
+      fUsedDec := SEL((Deceleration = 0),Deceleration, stDefaultDeceleration.fValue);
+      fUsedJerk:= SEL((Jerk = 0),Jerk, stDefaultJerk.fValue);
+
+      fbHalt(Axis           := _AxisRef, 
+             Execute        := FALSE, 
+             Deceleration   := fUsedDec, 
+             Jerk           := fUsedJerk, 
+             BufferMode     := Tc2_MC2.MC_BufferMode.MC_Aborting);
+
+      nState := 10;
+    END_IF
+END_CASE
+CASE nState OF
+  10:
+    fbHalt(Axis             := _AxisRef, 
+           Execute          := TRUE);
+
+    IF _AxisRef.Status.Stopping
+    THEN
+      nState                := 30;
+    ELSE
+      itmp[1]               := itmp[1] + 1;
+
+      IF (itmp[1] MOD 100 = 0)
+      THEN
+        fbHalt(Axis         := _AxisRef, 
+               Execute      := FALSE);
+
+        fbStop(Axis         := _AxisRef, 
+               Execute      := TRUE);
+
+        stMsg.eType         := E_MessageType.eMessageInfo;
+        stMsg.eDevice       := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
+        stMsg.eSubdevice    := e_SubDevice.fbHalt;
+        stMsg.iErrorNumber  := _AxisRef.NcToPlc.AxisId;
+        stMsg.sText         := 'timeout 1 stopping';
+        f_MessageSet(stMsg);
+
+        nState              := 15;
+      END_IF
+    END_IF
+
+    IF fbHalt.Error
+    THEN
+      res.ErrorID           := fbHalt.ErrorID;
+      stMsg.eType           := E_MessageType.eMessageError;
+      stMsg.eDevice         := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
+      stMsg.eSubdevice      :=  e_SubDevice.fbHalt;
+      stMsg.iErrorNumber    := fbHalt.ErrorID;
+
+      f_MessageSet(stMsg);
+      MsgAdd(stMsg);
+
+      nState                := 99;
+    END_IF
+END_CASE
+CASE nState OF
+  15:
+    fbStop(Axis             := _AxisRef, 
+           Execute          := TRUE);
+
+    IF _AxisRef.Status.Stopping
+    THEN
+      nState                := 30;
+    ELSE
+      itmp[2]               := itmp[2] + 1;
+
+      IF (itmp[2] MOD 50 = 0)
+      THEN
+        fbStop (Axis        := _AxisRef, 
+                Execute     := FALSE);
+
+        fbReset(Axis        := _AxisRef, 
+                Execute     := TRUE);
+
+        stMsg.eType         := E_MessageType.eMessageInfo;
+        stMsg.eDevice       := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
+        stMsg.eSubdevice    := e_SubDevice.fbStop;
+        stMsg.iErrorNumber  := _AxisRef.NcToPlc.AxisId;
+        stMsg.sText         := 'timeout 2 reset';
+
+        f_MessageSet(stMsg);
+
+        nState              := 20;
+      END_IF
+    END_IF
+END_CASE
+CASE nState OF
+  20:
+    IF _AxisRef.Status.NotMoving
+    THEN
+      fbReset(Axis          := _AxisRef, 
+              Execute       := FALSE);
+
+      nState                := 40;
+    ELSE
+      itmp[3]               := itmp[3] + 1;
+
+      IF (itmp[3] MOD 100 = 0)
+      THEN
+        fbStop (Axis        := _AxisRef, 
+                Execute     := FALSE);
+
+        fbReset(Axis        := _AxisRef, 
+                Execute     := FALSE);
+
+        stMsg.eType         := E_MessageType.eMessageInfo;
+        stMsg.eDevice       := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
+        stMsg.eSubdevice    := e_SubDevice.fbReset;
+        stMsg.iErrorNumber  := _AxisRef.NcToPlc.AxisId;
+        stMsg.sText         := 'timeout 3 retry';
+
+        f_MessageSet(stMsg);
+
+        nState              := 15;
+      END_IF
+    END_IF
+END_CASE
+CASE nState OF
+  30:
+    IF _AxisRef.Status.NotMoving
+    THEN
+      fbStop(Axis           := _AxisRef, 
+             Execute        := FALSE);
+
+      fbReset(Axis          := _AxisRef, 
+              Execute       := TRUE);
+
+      nState                := 39;
+    END_IF
+END_CASE
+CASE nState OF
+  39:
+    fbReset(Axis            := _AxisRef, 
+            Execute         := FALSE);
+
+    nState                  := 40;
+END_CASE
+CASE nState OF
+  40:
+    res.Error               := FALSE;
+    res.Busy                := FALSE;
+    res.Done                := TRUE;
+
+  99:
+    res.Error               := TRUE;
+    res.Busy                := FALSE;
+    res.Done                := FALSE;
+END_CASE
+
+
+
+Halt := res;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Home" Id="{33449f51-8e06-49b0-973d-184867ca267a}" FolderPath="methods\">
+      <Declaration><![CDATA[{attribute '''NORMAL__COMMENT' := ' Initiates the calibration of the coordinates of the NC axis referencing). Certain parameters of the NC axis will have influence on the behavior
+  Will return without action if HomingMode equals MC_DefaultHoming and CalibrationCam property is not set; in case of MC_DefaultHoming the property 
+  CalibrationCam has to be set prior to calling this methode. Refer to MC_Home Function Block in the Tc2_MC2 library '}
+(* Initiates the calibration of the coordinates of the NC axis referencing). Certain parameters of the NC axis will have influence on the behavior
+  Will return without action if HomingMode equals MC_DefaultHoming and CalibrationCam property is not set; in case of MC_DefaultHoming the property 
+  CalibrationCam has to be set prior to calling this methode. Refer to MC_Home Function Block in the Tc2_MC2 library *)
+METHOD Home : Tc2_MC2.ST_McOutputs
+VAR_INPUT
+  Execute   : BOOL;
+  (* Absolute reference position to which the axis is set after homing.
+                          The Default setting DEFAULT_HOME_POSITION, the Reference position for homing specified in the TwinCAT System Manager is used.
+                          Attention: Since the reference position is generally set during the motion, the axis will not stop exactly at this position. 
+                          The standstill position differs by the braking distance of the axis, although the calibration is nevertheless exact *)
+  {attribute '''NORMAL__COMMENT' := ' Absolute reference position to which the axis is set after homing.
+                          The Default setting DEFAULT_HOME_POSITION, the Reference position for homing specified in the TwinCAT System Manager is used.
+                          Attention: Since the reference position is generally set during the motion, the axis will not stop exactly at this position. 
+                          The standstill position differs by the braking distance of the axis, although the calibration is nevertheless exact '}
+  Position  : LREAL := DEFAULT_HOME_POSITION;
+  (* determines in which way the calibration is carried out: 
+                                MC_DefaultHoming initiates standard homing; 
+                                MC_Direct sets the axis position directly to Position without executing a movement.
+                                MC_ForceCalibration enforces the "axis is calibrated" state. No movement takes place, and the position remains unchanged; 
+                                MC_ResetCalibration resets the calibration state of the axis. No movement takes place, and the position remains unchanged. *)
+  {attribute '''NORMAL__COMMENT' := ' determines in which way the calibration is carried out: 
+                                MC_DefaultHoming initiates standard homing; 
+                                MC_Direct sets the axis position directly to Position without executing a movement.
+                                MC_ForceCalibration enforces the "axis is calibrated" state. No movement takes place, and the position remains unchanged; 
+                                MC_ResetCalibration resets the calibration state of the axis. No movement takes place, and the position remains unchanged. '}
+  HomingMode  : Tc2_MC2.MC_HomingMode := MC_DefaultHoming;
+  (* Options.ClearPositionLag is only active in mode MC_Direct and can optionally be used to set the set and actual positions to the same value.
+                      In this case the following error is cancelled. *)
+  {attribute '''NORMAL__COMMENT' := ' Options.ClearPositionLag is only active in mode MC_Direct and can optionally be used to set the set and actual positions to the same value.
+                      In this case the following error is cancelled. '}
+  Options : Tc2_MC2.ST_HomingOptions;
+END_VAR
+VAR_INST
+  res       : Tc2_MC2.ST_McOutputs;
+  nState    : DINT;
+  fUsedDec,
+  fUsedJerk : LREAL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// do nothing if at Default Homing Mode Property CalibrationCam is invalid
+IF (HomingMode = MC_DefaultHoming) 
+THEN
+  IF (pCalibrationCam = 0) 
+  THEN
+    res.Error                 := TRUE;
+    res.ErrorID               := 666;
+    Home                      := res;
+    RETURN;
+  ELSE 
+    fbHome.bCalibrationCam    := pCalibrationCam^;
+  END_IF
+END_IF
+
+
+CASE nState OF
+  0:
+    IF Execute
+    THEN
+      memset(ADR(res),0,SIZEOF(res));
+      res.Busy                := TRUE;
+
+      fbHome(Axis             := _AxisRef, 
+             Execute          := FALSE, 
+             Position         := Position, 
+             HomingMode       := HomingMode, 
+             BufferMode       := , 
+             Options          := Options, 
+             bCalibrationCam  := pCalibrationCam^);
+
+      nState                  := 10;
+    END_IF
+END_CASE
+CASE nState OF
+  10:
+    fbHome(Execute            := TRUE, 
+           Axis               := _AxisRef);
+
+    IF fbHome.Done
+    THEN
+      fbHome(Execute          := FALSE, 
+             Axis             := _AxisRef);
+
+      nState                  := 20;
+
+    ELSE
+      IF fbHome.Error
+      THEN
+        res.ErrorID           := fbHome.ErrorID;
+
+        stMsg.eType           := E_MessageType.eMessageError;
+        stMsg.eDevice         := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
+        stMsg.eSubdevice      :=  e_SubDevice.fbHome;
+        stMsg.iErrorNumber    := fbHome.ErrorID;
+
+        f_MessageSet(stMsg);
+        MsgAdd(stMsg);
+
+        fbHome(Execute        := FALSE, 
+               Axis           := _AxisRef);
+
+        nState                := 99;
+      END_IF
+    END_IF
+END_CASE
+CASE nState OF
+  20:
+    res.Error                 := FALSE;
+    res.Busy                  := FALSE;
+    res.Done                  := TRUE;
+
+END_CASE
+CASE nState OF
+  99:
+    res.Error                 := TRUE;
+    res.Busy                  := FALSE;
+    res.Done                  := FALSE;
+END_CASE
+
+IF NOT Execute
+THEN
+  memset(ADR(res),0,SIZEOF(res));
+  nState                      := 0;
+END_IF
+
+Home := res;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Jog" Id="{135545b6-1d6d-4e5e-93b3-3a22aef9105e}" FolderPath="methods\">
+      <Declaration><![CDATA[{attribute '''NORMAL__COMMENT' := ' This methode provides easy to use manual motion commands by the JogForward and JogBackwards inputs. The required operating mode is specified via the mode input. 
+  An inching mode for moving the axis by a specified distance whenever the JogForward and JogBackwards inputs are set is  also available. The velocity and dynamics 
+  of the motion can be specified depending on the mode. If the mode is not an inching mode, the methode needs to be called cyclically for proper evaluation of the Jog Inputs.
+  Refer to MC_JOG Function Block in the Tc2_MC2 library '}
+(* This methode provides easy to use manual motion commands by the JogForward and JogBackwards inputs. The required operating mode is specified via the mode input. 
+  An inching mode for moving the axis by a specified distance whenever the JogForward and JogBackwards inputs are set is  also available. The velocity and dynamics 
+  of the motion can be specified depending on the mode. If the mode is not an inching mode, the methode needs to be called cyclically for proper evaluation of the Jog Inputs.
+  Refer to MC_JOG Function Block in the Tc2_MC2 library *)
+METHOD Jog : Tc2_MC2.ST_McOutputs
+VAR_INPUT
+  (* The command is executed with increasing edge, and the axis is moved in positive direction of travel. Depending on the mode, the axis moves as long as 
+              the signal remains TRUE, or it stops automatically after a specified distance. During the motion no further signal edges are accepted 
+              (this includes the JogBackwards input). If signal edges occur simultaneously at the JogForward and JogBackwards inputs, JogForward has priority *)
+  {attribute '''NORMAL__COMMENT' := ' The command is executed with increasing edge, and the axis is moved in positive direction of travel. Depending on the mode, the axis moves as long as 
+              the signal remains TRUE, or it stops automatically after a specified distance. During the motion no further signal edges are accepted 
+              (this includes the JogBackwards input). If signal edges occur simultaneously at the JogForward and JogBackwards inputs, JogForward has priority '}
+  JogForward  : BOOL;
+  (* The command is executed with increasing edge, and the axis is moved in negative direction of travel. JogForward and JogBackwards should be triggered 
+              alternatively, although they are also mutually locked internally *)
+  {attribute '''NORMAL__COMMENT' := ' The command is executed with increasing edge, and the axis is moved in negative direction of travel. JogForward and JogBackwards should be triggered 
+              alternatively, although they are also mutually locked internally '}
+  JogBackwards  : BOOL;
+  (* The Mode input determines the operating mode in which the manual function is executed.
+          MC_JOGMODE_STANDARD_SLOW The axis is moved as long as the signal at one of the jog inputs is TRUE. The low velocity for manual functions specified in the TwinCAT 
+            System Manager and standard dynamics are used. In this mode the position, velocity and dynamics data specified in the function block have no effect. 
+          MC_JOGMODE_STANDARD_FAST.The axis is moved as long as the signal at one of the jog inputs is TRUE. The high velocity for manual functions specified in the TwinCAT
+            System Manager and standard dynamics are used. In this mode the position, velocity and dynamics data specified in the function block have no effect. 
+          MC_JOGMODE_CONTINOUS The axis is moved as long as the signal at one of the jog inputs is TRUE. The velocity and dynamics data specified by the user are used.
+            The position has no effect.
+          MC_JOGMODE_INCHING.With rising edge at one of the jog inputs the axis is moved by a certain distance, which is specified via the position input. The axis stops
+            automatically, irrespective of the state of the jog inputs. A new movement step is only executed once a further rising edge is encountered. At each start 
+            the velocity and dynamics data specified by the user are used. 
+          MC_JOGMODE_INCHING_MODULO.With rising edge at one of the jog inputs the axis is moved by a certain distance, which is specified via the position input. The axis
+            position will snap to an integer multiple of the position parameter. The axis stops automatically, irrespective of the state of the jog inputs. A new movement
+            step is only executed once a further rising edge is encountered. With each start the velocity and dynamics data specified by the user are used *)
+  {attribute '''NORMAL__COMMENT' := ' The Mode input determines the operating mode in which the manual function is executed.
+          MC_JOGMODE_STANDARD_SLOW The axis is moved as long as the signal at one of the jog inputs is TRUE. The low velocity for manual functions specified in the TwinCAT 
+            System Manager and standard dynamics are used. In this mode the position, velocity and dynamics data specified in the function block have no effect. 
+          MC_JOGMODE_STANDARD_FAST.The axis is moved as long as the signal at one of the jog inputs is TRUE. The high velocity for manual functions specified in the TwinCAT
+            System Manager and standard dynamics are used. In this mode the position, velocity and dynamics data specified in the function block have no effect. 
+          MC_JOGMODE_CONTINOUS The axis is moved as long as the signal at one of the jog inputs is TRUE. The velocity and dynamics data specified by the user are used.
+            The position has no effect.
+          MC_JOGMODE_INCHING.With rising edge at one of the jog inputs the axis is moved by a certain distance, which is specified via the position input. The axis stops
+            automatically, irrespective of the state of the jog inputs. A new movement step is only executed once a further rising edge is encountered. At each start 
+            the velocity and dynamics data specified by the user are used. 
+          MC_JOGMODE_INCHING_MODULO.With rising edge at one of the jog inputs the axis is moved by a certain distance, which is specified via the position input. The axis
+            position will snap to an integer multiple of the position parameter. The axis stops automatically, irrespective of the state of the jog inputs. A new movement
+            step is only executed once a further rising edge is encountered. With each start the velocity and dynamics data specified by the user are used '}
+  Mode  : Tc2_MC2.E_JogMode;
+  (* Relative distance for movements in MC_JOGMODE_INCHING mode *)
+  {attribute '''NORMAL__COMMENT' := ' Relative distance for movements in MC_JOGMODE_INCHING mode '}
+  Position  : LREAL;
+  (* Maximum travel velocity. If not specified, DefaultVelocity will be used *)
+  {attribute '''NORMAL__COMMENT' := ' Maximum travel velocity. If not specified, DefaultVelocity will be used '}
+  Velocity  : LREAL;
+  (* Acceleration. If not specified, DefaultAcceleration will be used *)
+  {attribute '''NORMAL__COMMENT' := ' Acceleration. If not specified, DefaultAcceleration will be used '}
+  Acceleration  : LREAL;
+  (* Deceleration. If not specified, DefaultDeceleration will be used *)
+  {attribute '''NORMAL__COMMENT' := ' Deceleration. If not specified, DefaultDeceleration will be used '}
+  Deceleration  : LREAL;
+  (* Jerk. If not specified, DefaultJerk will be used *)
+  {attribute '''NORMAL__COMMENT' := ' Jerk. If not specified, DefaultJerk will be used '}
+  Jerk  : LREAL;
+END_VAR
+VAR_INST
+  rtrigErr  : Tc2_Standard.R_TRIG;
+  fUsedVel, 
+  fUsedAcc, 
+  fUsedDec, 
+  fUsedJrk  : LREAL;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// Select Default values of dynamic parameter if 0 is specified
+fUsedVel := SEL((Velocity = 0),     Velocity,     fDefaultVelocity);
+fUsedAcc := SEL((Acceleration = 0), Acceleration, stDefaultAcceleration.fValue);
+fUsedDec := SEL((Deceleration = 0), Deceleration, stDefaultDeceleration.fValue);
+fUsedJrk := SEL((Jerk = 0),         Jerk,         stDefaultJerk.fValue);
+
+
+// call fbJog
+fbJog(Axis                  := _AxisRef, 
+      JogForward            := JogForward, 
+      JogBackwards          := JogBackwards, 
+      Mode                  := Mode, 
+      Position              := Position, 
+      Velocity              := fUsedVel, 
+      Acceleration          := fUsedAcc, 
+      Deceleration          := fUsedDec, 
+      Jerk                  := fUsedJrk);
+
+
+rtrigErr(CLK                := fbJog.Error);
+
+
+stJogParams.Acceleration    := Acceleration;
+stJogParams.Deceleration    := Deceleration;
+stJogParams.Jerk            := Jerk;
+stJogParams.JogBackwards    := JogBackwards;
+stJogParams.JogForward      := JogForward;
+stJogParams.Mode            := Mode;
+stJogParams.Position        := Position;
+stJogParams.Velocity        := Velocity;
+
+// return status
+Jog.Active                  := fbJog.Active;
+Jog.Busy                    := fbJog.Busy;
+Jog.CommandAborted          := fbJog.CommandAborted;
+Jog.Done                    := fbJog.Done;
+Jog.Error                   := fbJog.Error;
+Jog.ErrorID                 := fbJog.ErrorID;
+
+// push error
+IF rtrigErr.Q
+THEN
+  // write list entry
+  stMsg.eType               := E_MessageType.eMessageError;
+  stMsg.eDevice             := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
+  stMsg.eSubdevice          :=  e_SubDevice.fbJog;
+  stMsg.iErrorNumber        := fbJog.ErrorID;
+
+  f_MessageSet(stMsg);
+  MsgAdd(stMsg);
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="LocalParameterReload" Id="{e73a2c6f-9615-0742-2a87-f93af64275bc}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD LocalParameterReload : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[
+stSwPosLimitNegativeActive.bValid   := FALSE;
+stSwPosLimitPositiveActive.bValid   := FALSE;
+
+stDefaultAcceleration.bValid        := FALSE;
+stDefaultDeceleration.bValid        := FALSE;
+
+stDefaultJerk.bValid                := FALSE;
+
+stMaxAcceleration.bValid            := FALSE;
+stMaxDeceleration.bValid            := FALSE;
+
+stMaxVelocity.bValid                := FALSE;
+
+stSwPosLimitNegative.bValid         := FALSE;
+stSwPosLimitPositive.bValid         := FALSE;
+
+stHomingSearchVelo.bValid           := FALSE;
+
+stHomingVelo.bValid                 := FALSE;
+
+stTargetPositionWindow.bValid       := FALSE;
+
+LocalParameterReload                := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="MoveAbsolute" Id="{a322a60e-0d69-4a09-afa0-9deadaad3135}" FolderPath="methods\">
+      <Declaration><![CDATA[{attribute '''NORMAL__COMMENT' := ' MoveAbsolute starts positioning to an absolute target position with monitoring of the axis movement over the whole travel path. Refer to MC_MoveAbsolute Function Block in the
+  Tc2_MC2 library. To instances of MC_MoveAbsolute are used to trigger new parameter during movement; Use Buffermode to control the transition. '}
+(* MoveAbsolute starts positioning to an absolute target position with monitoring of the axis movement over the whole travel path. Refer to MC_MoveAbsolute Function Block in the
+  Tc2_MC2 library. To instances of MC_MoveAbsolute are used to trigger new parameter during movement; Use Buffermode to control the transition. *)
+METHOD MoveAbsolute : Tc2_MC2.ST_McOutputs
+VAR_INPUT
+  Enable    : BOOL;
+  (* Absolute target position to be used for positioning *)
+  {attribute '''NORMAL__COMMENT' := ' Absolute target position to be used for positioning '}
+  Position  : LREAL;
+  (* Maximum travel velocity. If not specified, DefaultVelocity will be used *)
+  {attribute '''NORMAL__COMMENT' := ' Maximum travel velocity. If not specified, DefaultVelocity will be used '}
+  Velocity  : LREAL;
+  (* Acceleration. If not specified, DefaultAcceleration will be used *)
+  {attribute '''NORMAL__COMMENT' := ' Acceleration. If not specified, DefaultAcceleration will be used '}
+  Acceleration  : LREAL;
+  (* Deceleration. If not specified, DefaultDeceleration will be used *)
+  {attribute '''NORMAL__COMMENT' := ' Deceleration. If not specified, DefaultDeceleration will be used '}
+  Deceleration  : LREAL;
+  (* Jerk. If not specified, DefaultJerk will be used *)
+  {attribute '''NORMAL__COMMENT' := ' Jerk. If not specified, DefaultJerk will be used '}
+  Jerk  : LREAL;
+  (* The BufferMode is analyzed, if the axis is already executing another command. The running command can be aborted,
+                    or the new command becomes active after the running command. The BufferMode also determines the transition condition from the current to the next command.
+                    If the command is applied to a coupled slave axis used, the only available buffer mode is Aborting. *)
+  {attribute '''NORMAL__COMMENT' := ' The BufferMode is analyzed, if the axis is already executing another command. The running command can be aborted,
+                    or the new command becomes active after the running command. The BufferMode also determines the transition condition from the current to the next command.
+                    If the command is applied to a coupled slave axis used, the only available buffer mode is Aborting. '}
+  BufferMode  : Tc2_MC2.MC_BufferMode;
+END_VAR
+VAR_INST
+  res       : Tc2_MC2.ST_McOutputs;
+  nState    : DINT;
+  fUsedPos,
+  fUsedVel,
+  fUsedAcc,
+  fUsedDec,
+  fUsedJrk    : LREAL;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// Select Default values of dynamic parameter if 0 is specified
+fUsedVel := SEL((Velocity = 0),     Velocity,       fDefaultVelocity);
+fUsedAcc := SEL((Acceleration = 0), Acceleration,   stDefaultAcceleration.fValue);
+fUsedDec := SEL((Deceleration = 0), Deceleration,   stDefaultDeceleration.fValue);
+fUsedJrk := SEL((Jerk = 0),         Jerk,           stDefaultJerk.fValue);
+
+
+fUsedVel := SEL((Velocity > stMaxVelocity.fValue),          Velocity,       stMaxVelocity.fValue);
+fUsedAcc := SEL((Acceleration > stMaxAcceleration.fValue),  Acceleration,   stMaxAcceleration.fValue);
+fUsedDec := SEL((Deceleration > stMaxDeceleration.fValue),  Deceleration,   stMaxDeceleration.fValue);
+
+
+CASE nState OF
+  0:
+    IF Enable
+    THEN
+      memset(ADR(res),0,SIZEOF(res));
+      res.Busy                      := TRUE;
+      fUsedPos                      := Position;
+
+      fbMoveAbsolute1(Axis          := _AxisRef, 
+                      Execute       := FALSE,
+                      Position      := fUsedPos, 
+                      Velocity      := fUsedVel, 
+                      Acceleration  := fUsedAcc, 
+                      Deceleration  := fUsedDec, 
+                      Jerk          := fUsedJrk, 
+                      BufferMode    := BufferMode);
+
+      fbMoveAbsolute2(Axis          := _AxisRef, 
+                      Execute       := FALSE, 
+                      Velocity      := fUsedVel, 
+                      Acceleration  := fUsedAcc, 
+                      Deceleration  := fUsedDec, 
+                      Jerk          := fUsedJrk, 
+                      BufferMode    := BufferMode);
+
+      nState                        := 10;
+    END_IF
+END_CASE
+CASE nState OF
+  10:
+    fbMoveAbsolute1(Axis            := _AxisRef, 
+                    Execute         := TRUE, 
+                    Velocity        := fUsedVel, 
+                    Acceleration    := fUsedAcc, 
+                    Deceleration    := fUsedDec, 
+                    Jerk            := fUsedJrk, 
+                    BufferMode      := BufferMode);
+
+    fbMoveAbsolute2(Axis            := _AxisRef, 
+                    Execute         := FALSE, 
+                    Velocity        := fUsedVel, 
+                    Acceleration    := fUsedAcc, 
+                    Deceleration    := fUsedDec, 
+                    Jerk            := fUsedJrk, 
+                    BufferMode      := BufferMode);
+
+    IF fbMoveAbsolute1.Busy OR 
+       fbMoveAbsolute1.Done
+    THEN
+      nState                        := 20;
+    ELSE
+      IF fbMoveAbsolute1.Error
+      THEN
+        stMsg.eType                 := E_MessageType.eMessageError;
+        stMsg.eDevice               := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
+        stMsg.eSubdevice            :=  e_SubDevice.fbMoveAbsolute1;
+        stMsg.iErrorNumber          := fbMoveAbsolute1.ErrorID;
+        f_MessageSet(stMsg);
+        MsgAdd(stMsg);
+
+        res.ErrorID                 := fbMoveAbsolute1.ErrorID;
+
+        nState                      := 99;
+      END_IF
+    END_IF
+END_CASE
+CASE nState OF
+  20:
+    fbMoveAbsolute1(Axis            := _AxisRef);
+    fbMoveAbsolute2(Axis            := _AxisRef);
+
+    res.Active                      := TRUE;
+
+    IF fbMoveAbsolute1.Error
+    THEN
+      stMsg.eType                   := E_MessageType.eMessageError;
+      stMsg.eDevice                 := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
+      stMsg.eSubdevice              :=  e_SubDevice.fbMoveAbsolute1;
+      stMsg.iErrorNumber            := fbMoveAbsolute1.ErrorID;
+      f_MessageSet(stMsg);
+      MsgAdd(stMsg);
+
+      res.ErrorID                   := fbMoveAbsolute1.ErrorID;
+
+      nState                        := 99;
+
+    ELSIF (Position <> fUsedPos)
+    THEN
+      fUsedPos                      := Position;
+
+      fbMoveAbsolute2(Axis          := _AxisRef, 
+                      Execute       := TRUE,
+                      Position      := fUsedPos, 
+                      Velocity      := fUsedVel, 
+                      Acceleration  := fUsedAcc, 
+                      Deceleration  := fUsedDec, 
+                      Jerk          := fUsedJrk, 
+                      BufferMode    := BufferMode);
+
+      nState                        := 30;
+    END_IF
+END_CASE
+CASE nState OF
+  30:
+    fbMoveAbsolute1(Axis            := _AxisRef);
+    fbMoveAbsolute2(Axis            := _AxisRef);
+
+    IF fbMoveAbsolute2.Busy OR
+       fbMoveAbsolute2.Done
+    THEN
+      nState                        := 40;
+    ELSE
+      IF fbMoveAbsolute2.Error
+      THEN
+        stMsg.eType                 := E_MessageType.eMessageError;
+        stMsg.eDevice               := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
+        stMsg.eSubdevice            :=  e_SubDevice.fbMoveAbsolute2;
+        stMsg.iErrorNumber          := fbMoveAbsolute2.ErrorID;
+        f_MessageSet(stMsg);
+        MsgAdd(stMsg);
+
+        res.ErrorID                 := fbMoveAbsolute2.ErrorID;
+
+        nState                      := 99;
+      END_IF
+    END_IF
+END_CASE
+CASE nState OF
+  40:
+    fbMoveAbsolute1(Axis            := _AxisRef);
+    fbMoveAbsolute2(Axis            := _AxisRef);
+
+    res.Active                      := TRUE;
+
+    IF fbMoveAbsolute2.Error
+    THEN
+      stMsg.eType                   := E_MessageType.eMessageError;
+      stMsg.eDevice                 := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
+      stMsg.eSubdevice              :=  e_SubDevice.fbMoveAbsolute2;
+      stMsg.iErrorNumber            := fbMoveAbsolute2.ErrorID;
+      f_MessageSet(stMsg);
+      MsgAdd(stMsg);
+
+      res.ErrorID                   := fbMoveAbsolute2.ErrorID;
+
+      nState                        := 99;
+
+    ELSIF (Position <> fUsedPos)
+    THEN
+      fUsedPos                      := Position;
+
+      fbMoveAbsolute1(Axis          := _AxisRef, 
+                      Execute       := FALSE,
+                      Position      := fUsedPos, 
+                      Velocity      := fUsedVel, 
+                      Acceleration  := fUsedAcc, 
+                      Deceleration  := fUsedDec, 
+                      Jerk          := fUsedJrk, 
+                      BufferMode    := BufferMode);
+
+      fbMoveAbsolute1(Axis          := _AxisRef, 
+                      Execute       := TRUE, 
+                      Velocity      := fUsedVel, 
+                      Acceleration  := fUsedAcc, 
+                      Deceleration  := fUsedDec, 
+                      Jerk          := fUsedJrk, 
+                      BufferMode    := BufferMode);
+
+      nState                        := 10;
+    END_IF
+END_CASE
+CASE nState OF
+  99:
+    res.Busy                        := FALSE;
+    res.Error                       := TRUE;
+END_CASE
+
+IF NOT Enable
+THEN
+  memset(ADR(res),0,SIZEOF(res));
+
+  fbMoveAbsolute1(Axis          := _AxisRef, 
+                  Execute       := FALSE);
+
+  fbMoveAbsolute2(Axis          := _AxisRef, 
+                  Execute       := FALSE);
+ 
+  nState                        := 0;
+END_IF
+
+MoveAbsolute := res;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="MoveEndless" Id="{ba7f5fb3-4c9b-415c-a07c-8cdd7dc2229a}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD MoveEndless : ST_McOutputs
+VAR_INPUT
+  Execute       : BOOL;
+  Position      : LREAL;
+  Velocity      : LREAL;
+  Acceleration  : LREAL;
+  Deceleration  : LREAL;
+  Jerk          : LREAL;
+  BufferMode    : Tc2_MC2.MC_BufferMode;
+END_VAR
+VAR_INST
+  diState       : DINT;
+  rtrigErr      : Tc2_Standard.R_TRIG;
+  res           : Tc2_MC2.ST_McOutputs;
+  nAcc, nDec    : LREAL;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[
+IF NOT Execute
+THEN
+  memset(ADR(res), 0, SIZEOF(res));
+  diState := 0;
+END_IF
+
+CASE diState OF
+
+  0:
+    nAcc := SEL((Acceleration < 1.0), Acceleration,stDefaultAcceleration.fValue);
+    nDec := SEL((Deceleration < 1.0), Deceleration,stDefaultDeceleration.fValue);
+
+    IF (Position > 0)
+    THEN
+      fbMoveEndless.Position := Position + SQRT(nAcc)/(_rCycleTime*10_000);
+    ELSE
+      fbMoveEndless.Position := Position - SQRT(nAcc)/(_rCycleTime*10_000);
+    END_IF
+
+    fbMoveEndless(
+      Axis            := _AxisRef, 
+      Execute         := FALSE, 
+      Velocity        := Velocity,
+      EndVelocity     := Velocity, 
+      Acceleration    := nAcc, 
+      Deceleration    := nDec, 
+      Jerk            := Jerk, 
+      BufferMode      := BufferMode, 
+      Options:= );
+
+    IF NOT (Velocity > 0)
+    THEN
+      res.ErrorID     := 333;
+      diState         := 99;
+
+    ELSIF Execute
+    THEN
+      res.Busy        := TRUE;
+      diState         := 10;
+    END_IF
+END_CASE
+
+CASE diState OF
+  10:
+    fbMoveEndless(
+      Axis          := _AxisRef, 
+      Execute       := TRUE);
+
+
+    IF fbMoveEndless.Error
+    THEN
+      res.ErrorID   := fbMoveEndless.ErrorID;
+
+      // write list entry
+      stMsg.eType           := E_MessageType.eMessageError;
+      stMsg.eDevice         := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
+      stMsg.eSubdevice      := e_SubDevice.fbMoveEndless;
+      stMsg.iErrorNumber    := fbMoveEndless.ErrorID;
+      f_MessageSet(stMsg);
+      MsgAdd(stMsg);
+
+      fbMoveEndless(
+        Axis        := _AxisRef, 
+        Execute     := FALSE);
+
+      diState       := 99;
+
+    ELSIF fbMoveEndless.InEndVelocity
+    THEN
+      fbMoveEndless(
+        Axis        := _AxisRef, 
+        Execute     := FALSE);
+
+      diState       := 20;
+    END_IF
+END_CASE
+
+CASE diState OF
+  20:
+    res.Error       := FALSE;
+    res.Busy        := FALSE;
+    res.Done        := TRUE;
+
+  99:
+    res.Error       := TRUE;
+    res.Busy        := FALSE;
+    res.Done        := FALSE;
+
+END_CASE
+
+MoveEndless := res;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="MovePtP" Id="{353318df-f882-4d11-8f5d-8efcc698783d}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD MovePtP : ST_McOutputs
+VAR_INPUT
+  (* HAUD 2022 03 23 *)
+  (* trigger *)
+  {attribute '''NORMAL__COMMENT' := ' trigger movement '}
+  Execute : BOOL;
+  (* Absolute target position to be used for positioning *)
+  {attribute '''NORMAL__COMMENT' := ' Absolute target position to be used for positioning '}
+  Position  : LREAL;
+  (* Maximum travel velocity. If not specified, DefaultVelocity will be used *)
+  {attribute '''NORMAL__COMMENT' := ' Maximum travel velocity. If not specified, DefaultVelocity will be used '}
+  Velocity  : LREAL;
+  (* Acceleration. If not specified, DefaultAcceleration will be used *)
+  {attribute '''NORMAL__COMMENT' := ' Acceleration. If not specified, DefaultAcceleration will be used '}
+  Acceleration  : LREAL;
+  (* Deceleration. If not specified, DefaultDeceleration will be used *)
+  {attribute '''NORMAL__COMMENT' := ' Deceleration. If not specified, DefaultDeceleration will be used '}
+  Deceleration  : LREAL;
+  (* Jerk. If not specified, DefaultJerk will be used *)
+  {attribute '''NORMAL__COMMENT' := ' Jerk. If not specified, DefaultJerk will be used '}
+  Jerk  : LREAL;
+END_VAR
+VAR_INST
+
+  _nState   : DINT;
+  _res      : ST_McOutputs;
+  _stMsg    : ST_Message;
+  _fbMove   : Tc2_MC2.MC_MoveAbsolute;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[
+CASE _nState OF
+  0:
+    IF Execute
+    THEN
+      memset(ADR(_res), 0, SIZEOF(_res));
+
+      _res.Busy                 := TRUE;
+
+      _fbMove(Axis              := _AxisRef, 
+              Execute           := FALSE, 
+              Position          := Position, 
+              Velocity          := Velocity, 
+              Acceleration      := Acceleration, 
+              Deceleration      := Deceleration, 
+              Jerk              := Jerk, 
+              BufferMode        := Tc2_MC2.MC_BufferMode.MC_Aborting);
+
+      _nState                   := 10;
+    END_IF
+END_CASE
+CASE _nState OF
+  10:
+    _fbMove(Axis                := _AxisRef, 
+            Execute             := TRUE, 
+            Position            := Position, 
+            Velocity            := Velocity, 
+            Acceleration        := Acceleration, 
+            Deceleration        := Deceleration, 
+            Jerk                := Jerk, 
+            BufferMode          := Tc2_MC2.MC_BufferMode.MC_Aborting);
+
+    IF _fbMove.Busy
+    THEN
+      _nState                   := 20;
+    END_IF
+END_CASE
+CASE _nState OF
+  20:
+    _fbMove(Axis                := _AxisRef);
+
+    IF NOT _fbMove.Error AND 
+       NOT _AxisRef.Status.Error
+    THEN
+      IF _fbMove.Done
+      THEN
+        _nState                 := 30;
+      END_IF
+    ELSE
+      _stMsg.eType              := E_MessageType.eMessageError;
+      _stMsg.eDevice            := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice         :=  e_SubDevice.fbMovePtP;
+      _stMsg.iErrorNumber       := _fbMove.ErrorID;
+
+      f_MessageSet(_stMsg);
+      MsgAdd(_stMsg);
+
+     _res.ErrorID               := _fbMove.ErrorID;
+
+      _fbMove(Axis              := _AxisRef, 
+             Execute            := FALSE);
+
+      _nState                   := 99;
+    END_IF
+END_CASE
+CASE _nState OF
+  30:
+    _res.Busy                   := FALSE;
+    _res.Done                   := TRUE;
+
+  99:
+    _res.Busy                   := FALSE;
+    _res.Error                  := TRUE;
+END_CASE
+
+IF NOT Execute
+THEN
+  memset(ADR(_res), 0, SIZEOF(_res));
+  _nState                       := 0;
+END_IF
+
+MovePtP := _res;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="MoveVelocity" Id="{8d5d7750-a5de-4772-8657-5220629ef88b}" FolderPath="methods\">
+      <Declaration><![CDATA[{attribute '''NORMAL__COMMENT' := ' MoveVelocity starts a continuous movement with specified velocity and direction. The movement can be stopped through an other travel command. Refer to MC_MoveVelocity Function Block
+  in the Tc2_MC2 library; In Velocity will be indicated by the return value member Done. To instances of MC_MoveVelocity are used to trigger new parameter during movement '}
+(* MoveVelocity starts a continuous movement with specified velocity and direction. The movement can be stopped through an other travel command. Refer to MC_MoveVelocity Function Block
+  in the Tc2_MC2 library; In Velocity will be indicated by the return value member Done. To instances of MC_MoveVelocity are used to trigger new parameter during movement *)
+METHOD MoveVelocity : Tc2_MC2.ST_McOutputs
+VAR_INPUT
+  Enable   : BOOL;
+  (* Maximum travel velocity. If not specified, DefaultVelocity will be used *)
+  {attribute '''NORMAL__COMMENT' := ' Maximum travel velocity. If not specified, DefaultVelocity will be used '}
+  Velocity  : LREAL;
+  (* Acceleration. If not specified, DefaultAcceleration will be used *)
+  {attribute '''NORMAL__COMMENT' := ' Acceleration. If not specified, DefaultAcceleration will be used '}
+  Acceleration  : LREAL;
+  (* Deceleration. If not specified, DefaultDeceleration will be used *)
+  {attribute '''NORMAL__COMMENT' := ' Deceleration. If not specified, DefaultDeceleration will be used '}
+  Deceleration  : LREAL;
+  (* Jerk. If not specified, DefaultJerk will be used *)
+  {attribute '''NORMAL__COMMENT' := ' Jerk. If not specified, DefaultJerk will be used '}
+  Jerk  : LREAL;
+  (* direction of travel: MC_Positive_Direction, MC_Shortest_Way, MC_Negative_Direction, MC_Current_Direction *)
+  {attribute '''NORMAL__COMMENT' := ' direction of travel: MC_Positive_Direction, MC_Shortest_Way, MC_Negative_Direction, MC_Current_Direction '}
+  Direction : Tc2_MC2.MC_Direction := MC_Positive_Direction;
+  (* The BufferMode is analyzed, if the axis is already executing another command. The running command can be aborted,
+                    or the new command becomes active after the running command. The BufferMode also determines the transition condition from the current to the next command.
+                    If the command is applied to a coupled slave axis used, the only available buffer mode is Aborting. *)
+  {attribute '''NORMAL__COMMENT' := ' The BufferMode is analyzed, if the axis is already executing another command. The running command can be aborted,
+                    or the new command becomes active after the running command. The BufferMode also determines the transition condition from the current to the next command.
+                    If the command is applied to a coupled slave axis used, the only available buffer mode is Aborting. '}
+  BufferMode  : Tc2_MC2.MC_BufferMode;
+END_VAR
+VAR_INST
+  res       : Tc2_MC2.ST_McOutputs;
+  nState    : DINT;
+  fUsedPos,
+  fUsedVel,
+  fUsedAcc,
+  fUsedDec,
+  fUsedJrk    : LREAL;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// Select Default values of dynamic parameter if 0 is specified
+fUsedAcc := SEL((Acceleration = 0), Acceleration,   stDefaultAcceleration.fValue);
+fUsedDec := SEL((Deceleration = 0), Deceleration,   stDefaultDeceleration.fValue);
+fUsedJrk := SEL((Jerk = 0),         Jerk,           stDefaultJerk.fValue);
+
+CASE nState OF
+  0:
+    IF Enable
+    THEN
+      memset(ADR(res),0,SIZEOF(res));
+
+      res.Busy                      := TRUE;
+
+      fUsedVel                      := SEL((Velocity < 0.01),Velocity, fDefaultVelocity);
+
+      fbMoveVelocity1(Axis          := _AxisRef, 
+                      Execute       := FALSE, 
+                      Velocity      := fUsedVel, 
+                      Acceleration  := fUsedAcc, 
+                      Deceleration  := fUsedDec, 
+                      Jerk          := fUsedJrk, 
+                      Direction     := Direction, 
+                      BufferMode    := BufferMode);
+
+      fbMoveVelocity2(Axis          := _AxisRef, 
+                      Execute       := FALSE, 
+                      Acceleration  := fUsedAcc, 
+                      Deceleration  := fUsedDec, 
+                      Jerk          := fUsedJrk, 
+                      Direction     := Direction, 
+                      BufferMode    := BufferMode);
+
+      nState                        := 10;
+    END_IF
+END_CASE
+CASE nState OF
+  10:
+    fbMoveVelocity1(Axis            := _AxisRef, 
+                    Execute         := TRUE, 
+                    Velocity        := fUsedVel, 
+                    Acceleration    := fUsedAcc, 
+                    Deceleration    := fUsedDec, 
+                    Jerk            := fUsedJrk, 
+                    Direction       := Direction, 
+                    BufferMode      := BufferMode);
+
+    IF fbMoveVelocity1.Error
+    THEN
+      stMsg.eType                   := E_MessageType.eMessageError;
+      stMsg.eDevice                 := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
+      stMsg.eSubdevice              := e_SubDevice.fbMoveVelocity1;
+      stMsg.iErrorNumber            := fbMoveVelocity1.ErrorID;
+
+      f_MessageSet(stMsg);
+      MsgAdd(stMsg);
+
+      res.ErrorID                   := fbMoveVelocity1.ErrorID;
+
+      nState                        := 99;
+
+    ELSIF fbMoveVelocity1.InVelocity
+    THEN
+      res.Active                    := TRUE;
+      nState                        := 20;
+    END_IF
+END_CASE
+CASE nState OF
+  20:
+    fbMoveVelocity1(Axis            := _AxisRef);
+    fbMoveVelocity2(Axis            := _AxisRef);
+
+    res.Done                        := fbMoveVelocity1.InVelocity;
+
+    IF fbMoveVelocity1.Error
+    THEN
+      stMsg.eType                   := E_MessageType.eMessageError;
+      stMsg.eDevice                 := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
+      stMsg.eSubdevice              := e_SubDevice.fbMoveVelocity1;
+      stMsg.iErrorNumber            := fbMoveVelocity1.ErrorID;
+
+      f_MessageSet(stMsg);
+      MsgAdd(stMsg);
+
+      res.ErrorID                   := fbMoveVelocity1.ErrorID;
+
+      nState                        := 99;
+
+
+    ELSIF (Velocity <> fUsedVel)
+    THEN
+
+      fUsedVel                      := SEL((Velocity < 0.01),Velocity, fDefaultVelocity);
+
+      fbMoveVelocity2(Axis          := _AxisRef, 
+                      Execute       := TRUE, 
+                      Velocity      := fUsedVel, 
+                      Acceleration  := fUsedAcc, 
+                      Deceleration  := fUsedDec, 
+                      Jerk          := fUsedJrk, 
+                      Direction     := Direction, 
+                      BufferMode    := BufferMode);
+
+      nState                        := 30;
+    END_IF
+END_CASE
+CASE nState OF
+  30:
+    fbMoveVelocity1(Axis            := _AxisRef);
+    fbMoveVelocity2(Axis            := _AxisRef);
+
+    res.Done                        := fbMoveVelocity2.InVelocity;
+
+    IF fbMoveVelocity2.Error
+    THEN
+      stMsg.eType                   := E_MessageType.eMessageError;
+      stMsg.eDevice                 := e_Device.Axis + UDINT_TO_DINT(_AxisRef.NcToPlc.AxisId);
+      stMsg.eSubdevice              := e_SubDevice.fbMoveVelocity2;
+      stMsg.iErrorNumber            := fbMoveVelocity2.ErrorID;
+
+      f_MessageSet(stMsg);
+      MsgAdd(stMsg);
+
+      res.ErrorID                   := fbMoveVelocity2.ErrorID;
+
+      nState                        := 99;
+
+    ELSIF fbMoveVelocity2.InVelocity
+    THEN
+      nState                        := 40;
+    END_IF
+END_CASE
+CASE nState OF
+  40:
+    fbMoveVelocity1(Axis            := _AxisRef);
+    fbMoveVelocity2(Axis            := _AxisRef);
+
+    res.Done                        := fbMoveVelocity2.InVelocity;
+
+    IF fbMoveVelocity2.Error
+    THEN
+      stMsg.eType                   := E_MessageType.eMessageError;
+      stMsg.eDevice                 := e_Device.Axis + UDINT_TO_DINT(_AxisRef.NcToPlc.AxisId);
+      stMsg.eSubdevice              := e_SubDevice.fbMoveVelocity2;
+      stMsg.iErrorNumber            := fbMoveVelocity2.ErrorID;
+
+      f_MessageSet(stMsg);
+      MsgAdd(stMsg);
+
+      res.ErrorID                   := fbMoveVelocity2.ErrorID;
+
+      nState                        := 99;
+
+    ELSIF (Velocity <> fUsedVel)
+    THEN
+      nState                        := 10;
+    END_IF
+END_CASE
+
+CASE nState OF
+  99:
+    res.Busy                        := FALSE;
+    res.Done                        := FALSE;
+    res.Error                       := TRUE;
+END_CASE
+
+
+IF NOT Enable
+THEN
+  memset(ADR(res),0,SIZEOF(res));
+  fbMoveVelocity1(Axis              := _AxisRef, 
+                  Execute           := FALSE);
+
+  fbMoveVelocity2(Axis              := _AxisRef, 
+                  Execute           := FALSE);
+ 
+  nState                            := 0;
+END_IF
+
+MoveVelocity := res;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="MsgAdd" Id="{e5cf2a72-aebe-43a9-b5a5-68664c31d288}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD MsgAdd : BOOL
+VAR_INPUT
+  stMsg : ST_Message;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[
+atMsg[itMsg] := stMsg;
+itMsg := itMsg + 1;
+itMsg := SEL((itMsg > MAX_MSG_INTERN),itMsg,1);
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="NcAxisId" Id="{29dcbfec-8414-4b3f-8ee3-a1400fc06b6c}" FolderPath="properties\">
+      <Declaration><![CDATA[(* Read only; Axis ID of the linked NC Axis *)
+PROPERTY NcAxisId : UDINT
+]]></Declaration>
+      <Get Name="Get" Id="{ddbb67a0-7520-4ab0-8e68-dda8f93833a0}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[NcAxisId := _AxisRef.NcToPlc.AxisId;
+]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="NcAxisName" Id="{13f3c6bd-d7ab-43e3-93f4-cae547fea55e}" FolderPath="properties\">
+      <Declaration><![CDATA[(* Read only; Axis ID of the linked NC Axis *)
+PROPERTY NcAxisName : String(31)]]></Declaration>
+      <Get Name="Get" Id="{bd3469a7-2003-4158-baa3-7ac1dd9c5808}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[ NcAxisName := stAxisName; 
+]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="ParamCheck" Id="{ef94e218-50ae-40d4-bfd1-55a052d2313a}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD ParamCheck : BOOL;
+VAR_INST
+  bTmp      : Bool;
+  res       : Tc2_MC2.ST_McOutputs;
+  nState    : DINT;
+  stParaNr  : Tc2_MC2.MC_AxisParameter;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[
+CASE nState 
+OF
+  0:
+    ReadParameter(FALSE, stParaNr);
+    bTmp              := FALSE;
+    nState            := 1;
+END_CASE
+CASE nState 
+OF
+  1:
+    IF NOT stDefaultAcceleration.bValid 
+    THEN
+      stParaNr        := AxisAcc;
+      nState          := 10;
+
+    ELSIF NOT stDefaultDeceleration.bValid 
+    THEN
+      stParaNr        := AxisDec;
+      nState          := 10;
+
+    ELSIF NOT stDefaultJerk.bValid 
+    THEN
+      stParaNr        := AxisJerk;
+      nState          := 10;
+
+    ELSIF NOT stHomingSearchVelo.bValid 
+    THEN
+      stParaNr        := AxisCalibrationVelocityForward;
+      nState          := 10;
+
+    ELSIF NOT stHomingVelo.bValid 
+    THEN
+      stParaNr        := AxisCalibrationVelocityBackward;
+      nState          := 10;
+
+    ELSIF NOT stMaxAcceleration.bValid 
+    THEN
+      stParaNr        := AxisMaximumAcceleration;
+      nState          := 10;
+
+    ELSIF NOT stMaxDeceleration.bValid 
+    THEN
+      stParaNr        := AxisMaximumDeceleration;
+      nState          := 10;
+
+    ELSIF NOT stMaxVelocity.bValid 
+    THEN
+      stParaNr        := AxisVeloMax;
+      nState          := 10;
+
+    ELSIF NOT stSwPosLimitNegative.bValid 
+    THEN
+      stParaNr        := AxisMinSoftPosLimit;
+      nState          := 10;
+
+    ELSIF NOT stSwPosLimitNegativeActive.bValid 
+    THEN
+      stParaNr        := AxisEnMinSoftPosLimit;
+      nState          := 10;
+
+    ELSIF NOT stSwPosLimitPositive.bValid 
+    THEN
+      stParaNr        := AxisMaxSoftPosLimit;
+      nState          := 10;
+
+    ELSIF NOT stSwPosLimitPositiveActive.bValid 
+    THEN
+      stParaNr        := AxisEnMaxSoftPosLimit;
+      nState          := 10;
+
+    ELSIF NOT stTargetPositionWindow.bValid 
+    THEN
+      stParaNr        := AxisTargetPositionWindow;
+      nState          := 10;
+
+    ELSE
+      fbGetCurTaskIndex();
+      _rCycleTime     := UDINT_TO_LREAL(_TaskInfo[fbGetCurTaskIndex.index].CycleTime)/10000.0;
+
+      bTmp            := TRUE; // done
+    END_IF
+END_CASE
+CASE nState 
+OF
+  10:
+    bTmp              := FALSE;
+    res               := ReadParameter(FALSE, stParaNr);
+    nState            := 20;
+END_CASE
+CASE nState 
+OF
+  20:
+    res               := ReadParameter(TRUE, stParaNr);
+    IF res.Done
+    THEN
+      nState          := 30;
+    END_IF
+
+END_CASE
+CASE nState 
+OF
+  30:
+    nState                                := 0;
+    CASE stParaNr 
+    OF
+      AxisEnMinSoftPosLimit: 
+        stSwPosLimitNegativeActive.bValue := LREAL_TO_BOOL(fbReadParameter.Value);
+        stSwPosLimitNegativeActive.bValid := TRUE;
+    
+      AxisEnMaxSoftPosLimit: 
+        stSwPosLimitPositiveActive.bValue := LREAL_TO_BOOL(fbReadParameter.Value);
+        stSwPosLimitPositiveActive.bValid := TRUE;
+    
+      AxisAcc: 
+        stDefaultAcceleration.fValue      := fReadParamValue;
+        stDefaultAcceleration.bValid      := TRUE;
+
+      AxisDec: 
+        stDefaultDeceleration.fValue      := fReadParamValue;
+        stDefaultDeceleration.bValid      := TRUE;
+
+      AxisJerk: 
+        stDefaultJerk.fValue              := fReadParamValue;
+        stDefaultJerk.bValid              := TRUE;
+
+      AxisMaximumAcceleration : 
+        stMaxAcceleration.fValue          := fReadParamValue;
+        stMaxAcceleration.bValid          := TRUE;
+
+      AxisMaximumDeceleration: 
+        stMaxDeceleration.fValue          := fReadParamValue;
+        stMaxDeceleration.bValid          := TRUE;
+
+      AxisVeloMax: 
+        stMaxVelocity.fValue              := fReadParamValue;
+        fDefaultVelocity                  := stMaxVelocity.fValue * 0.1;
+        stMaxVelocity.bValid              := TRUE;
+
+      AxisMinSoftPosLimit: 
+        stSwPosLimitNegative.fValue       := fReadParamValue;
+        stSwPosLimitNegative.bValid       := TRUE;
+
+      AxisMaxSoftPosLimit: 
+        stSwPosLimitPositive.fValue       := fReadParamValue;
+        stSwPosLimitPositive.bValid       := TRUE;
+
+      AxisCalibrationVelocityForward: 
+        stHomingSearchVelo.fValue         := fReadParamValue;
+        stHomingSearchVelo.bValid         := TRUE;
+
+      AxisCalibrationVelocityBackward: 
+        stHomingVelo.fValue               := fReadParamValue;
+        stHomingVelo.bValid               := TRUE;
+
+      AxisTargetPositionWindow:
+        stTargetPositionWindow.fValue     := fReadParamValue;
+        stTargetPositionWindow.bValid     := TRUE;
+
+    END_CASE
+
+END_CASE
+
+ParamCheck := bTmp;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="pAxisRef" Id="{1e101332-87d2-4443-b41b-6e929bbe157d}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY pAxisRef : POINTER TO AXIS_REF]]></Declaration>
+      <Get Name="Get" Id="{0675455d-c756-4f3d-8e8f-69f6f2c51460}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[pAxisRef := ADR(_AxisRef);
+]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="Position" Id="{8f2517e4-306c-0795-3cd4-5e1ea578a39d}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY Position : LREAL]]></Declaration>
+      <Get Name="Get" Id="{be09fa45-2db8-0f3d-2a38-786db5d57bf2}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Position := _AxisRef.NcToPlc.ActPos;
+]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="ReadParameter" Id="{2414485b-73c4-4da1-b255-6ed0cafa59a7}" FolderPath="methods\">
+      <Declaration><![CDATA[{attribute '''NORMAL__COMMENT' := ' Will try to read a parameter from the NC axis; If the value is read, the Value is available at the ReadParamValue property.
+  Refer to MC_ReadParameter Function Block in the Tc2_MC2 library; READMODE_ONCE is used as ReadMode '}
+(* Will try to read a parameter from the NC axis; If the value is read, the Value is available at the ReadParamValue property.
+  Refer to MC_ReadParameter Function Block in the Tc2_MC2 library; READMODE_ONCE is used as ReadMode *)
+METHOD ReadParameter : Tc2_MC2.ST_McOutputs
+VAR_INPUT
+  Execute           : BOOL;
+  (* Number of the parameter to be read. Refer to the MC_AxisParameter type defined at Tc2_MC2 library *)
+  {attribute '''NORMAL__COMMENT' := ' Number of the parameter to be read. Refer to the MC_AxisParameter type defined at Tc2_MC2 library '}
+  ParameterNumber   : Tc2_MC2.MC_AxisParameter;
+END_VAR
+VAR_INST
+  res               : Tc2_MC2.ST_McOutputs;
+  nState            : DINT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[
+CASE nState OF
+  0:
+    IF Execute
+    THEN
+      memset(ADR(res),0,SIZEOF(res));
+      res.Busy                          := TRUE;
+
+      fbReadParameter.ParameterNumber   := ParameterNumber;
+      fbReadParameter.Enable            := FALSE;
+
+      nState                            := 10;
+    END_IF
+END_CASE
+CASE nState OF
+  10:
+    fbReadParameter.Enable              := TRUE;
+
+    IF fbReadParameter.Valid
+    THEN
+      fbReadParameter.Enable            := FALSE;
+      nState                            := 20;
+    ELSE
+      IF fbReadParameter.Error
+      THEN
+        res.ErrorID                     := fbWriteParameter.ErrorID;
+
+        stMsg.eType                     := E_MessageType.eMessageError;
+        stMsg.eDevice                   := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
+        stMsg.eSubdevice                := e_SubDevice.fbReadParameter;
+        stMsg.iErrorNumber              := fbReadParameter.ErrorID;
+
+        f_MessageSet(stMsg);
+        MsgAdd(stMsg);
+
+        fbReadParameter.Enable          := FALSE;
+        nState                          := 99;
+      END_IF
+    END_IF
+END_CASE
+CASE nState OF
+  20:
+    res.Busy                            := FALSE;
+    res.Done                            := TRUE;
+
+  99:
+    res.Busy                            := FALSE;
+    res.Error                           := TRUE;
+END_CASE
+
+fbReadParameter(Axis                    := _AxisRef, 
+                ParameterNumber         := ParameterNumber, 
+                ReadMode                := Tc2_MC2.READMODE_ONCE, 
+                Value                   => fReadParamValue);
+
+IF NOT Execute
+THEN
+  memset(ADR(res),0,SIZEOF(res));
+  nState                                := 0;
+END_IF
+
+ReadParameter := res;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="ReadParamValue" Id="{57249f54-ae09-4268-b339-1e1a2fbb98d7}" FolderPath="properties\">
+      <Declaration><![CDATA[(* Read only; Returns the value from the last successful read by ReadParameter methode *)
+PROPERTY ReadParamValue : LREAL
+]]></Declaration>
+      <Get Name="Get" Id="{e616130c-a1ba-46d0-af2c-a16f848d39bb}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[ReadParamValue := fReadParamValue;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="SpeedOverride" Id="{ab2a3169-58e2-4c53-a019-cccb4190dbbb}" FolderPath="properties\">
+      <Declaration><![CDATA[(* Speed override factor in percent [%] to all movements. Refer to MC_Power Function Block in the Tc2_MC2 library *)
+PROPERTY SpeedOverride : LREAL
+]]></Declaration>
+      <Get Name="Get" Id="{411da415-4122-4f39-8c8e-cc835ab789fe}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[SpeedOverride := fbPower.Override;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{0e8fe4bc-c212-40eb-910f-f78aec5ae1d7}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[fbPower.Override := SpeedOverride;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="StartUpDone" Id="{02f60c93-218c-0628-11c2-8cde74ee40a2}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY StartUpDone : BOOL]]></Declaration>
+      <Get Name="Get" Id="{a0256eb7-0766-0f3c-03dc-b2487940a625}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[StartUpDone := _bStartUp;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="StartUpError" Id="{04f49008-7e72-0af1-22ba-2e6773c88aab}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY StartUpError : Bool]]></Declaration>
+      <Get Name="Get" Id="{91cec30f-0f47-0642-04b2-2f939d97849d}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[StartUpError := _bStartUpError;
+]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="Status" Id="{3c08c566-da07-4c42-8e7f-275382098ed1}" FolderPath="properties\">
+      <Declaration><![CDATA[(* Read only; Initiates read the actual Axis status; returns the Status of the last performed read *) 
+PROPERTY Status : Tc2_MC2.ST_AxisStatus
+]]></Declaration>
+      <Get Name="Get" Id="{2d61d818-b356-46c6-ba2e-57b37e560f2c}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Status := _AxisRef.Status;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="Stop" Id="{0462f011-cf5b-0d6f-3812-519f9ad1ea86}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD Stop : Tc2_MC2.ST_McOutputs
+VAR_INPUT
+  Execute   : BOOL;
+END_VAR
+VAR_INST
+  res       : Tc2_MC2.ST_McOutputs;
+  nState    : DINT;
+  fUsedDec,
+  fUsedJerk : LREAL;
+  itmp      : DINT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[CASE nState OF
+  0:
+    IF Execute
+    THEN
+      memset(ADR(res),0,SIZEOF(res));
+      memset(ADR(itmp),0,SIZEOF(itmp));
+      res.Busy                := TRUE;
+
+      fUsedDec                := stDefaultDeceleration.fValue;
+      fUsedJerk               := stDefaultJerk.fValue;
+
+      fbStop(Axis             := _AxisRef,  
+             Execute          := FALSE, 
+             Deceleration     := fUsedDec, 
+             Jerk             := fUsedJerk);
+
+      fbReset(Axis            := _AxisRef, 
+              Execute         := FALSE);
+
+      nState := 10;
+    END_IF
+END_CASE
+CASE nState OF
+  10:
+    fbStop(Axis               := _AxisRef, 
+           Execute            := TRUE);
+
+    IF fbStop.Done
+    THEN
+      fbStop(Axis             := _AxisRef, 
+             Execute          := FALSE);
+
+      nState := 20;
+
+    ELSE
+      IF fbStop.Error
+      THEN
+        res.ErrorID           := fbStop.ErrorID;
+
+        stMsg.eType           := E_MessageType.eMessageError;
+        stMsg.eDevice         := e_Device.Axis + UDINT_TO_DINT(_AxisRef.NcToPlc.AxisId);
+        stMsg.eSubdevice      := e_SubDevice.fbStop;
+        stMsg.iErrorNumber    := fbStop.ErrorID;
+        f_MessageSet(stMsg);
+        MsgAdd(stMsg);
+
+        fbReset(Axis          := _AxisRef, 
+                Execute       := TRUE);
+
+        nState := 98;
+
+      ELSIF NOT _AxisRef.Status.Stopping
+      THEN
+        itmp := itmp +1;
+        // todo: faststop?
+      END_IF
+    END_IF
+END_CASE
+CASE nState OF
+  20:
+    res.Busy := FALSE;
+    res.Done := TRUE;
+
+  98:
+    fbStop(Axis               := _AxisRef, 
+           Execute            := FALSE);
+
+    fbReset(Axis              := _AxisRef, 
+            Execute           := FALSE);
+    nState := 99;
+
+END_CASE
+CASE nState OF
+  99:
+    res.Busy                  := FALSE;
+    res.Error                 := TRUE;
+END_CASE
+
+IF NOT Execute
+THEN
+  memset(ADR(res),0,SIZEOF(res));
+  nState                      := 0;
+END_IF
+
+Stop := res;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="Version" Id="{04990ecf-5aff-49a5-afdf-5c05f8d23899}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY Version : STRING
+(* ToDo:
+- Testen
+*)]]></Declaration>
+      <Get Name="Get" Id="{1651a307-72d1-42b3-bd57-e6fc3643a1bb}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Version := '1.0';
+(*
+  0.1   09.2016 MR  Erste Version des Achsbausteins als OOP Wrapper der MC Bausteine; Die Funktionen können meißt (Außnahme: Jog) durch einen einmaliger Methodenaufruf angestossen werden;
+            der weitere Aufruf erfolgt dann automatisch über den zyklischen Aufruf der FB Instanz und die interne Methode CyclicCallOnBusy. Die FB Instanz muss immer zyklisch 
+            aufgerufen werden.
+            
+  1.0
+  2022 06 30
+  HAUD
+  - 
+  - cyclic method calls required
+  - motion methods contain VAR_INST (fixed procedure, no race conditions)
+  - Motion Parameter as properties (input from stCtrl by AxisController)
+  - cyclic ca
+
+*)]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="WriteParameter" Id="{57185495-fc7a-40ba-941a-d2e67329274a}" FolderPath="methods\">
+      <Declaration><![CDATA[{attribute '''NORMAL__COMMENT' := ' Will try to write a parameter from the NC axis; Refer to MC_WriteParameter Function Block in the Tc2_MC2 library '}
+(* Will try to write a parameter from the NC axis; Refer to MC_WriteParameter Function Block in the Tc2_MC2 library *)
+METHOD WriteParameter : Tc2_MC2.ST_McOutputs
+VAR_INPUT
+  Execute   : BOOL;
+  (* Number of the parameter to be written. Refer to the MC_AxisParameter type defined at Tc2_MC2 library *)
+  {attribute '''NORMAL__COMMENT' := ' Number of the parameter to be written. Refer to the MC_AxisParameter type defined at Tc2_MC2 library '}
+  ParameterNumber : Tc2_MC2.MC_AxisParameter;
+  (* defines the value to be written to the parameter *)
+  {attribute '''NORMAL__COMMENT' := ' defines the value to be written to the parameter '}
+  Value : LREAL;
+END_VAR
+VAR_INST
+  res       : Tc2_MC2.ST_McOutputs;
+  nState    : DINT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[
+CASE nState OF
+  0:
+    IF Execute
+    THEN
+      memset(ADR(res),0,SIZEOF(res));
+
+      res.Busy                                := TRUE;
+
+      fbWriteParameter.ParameterNumber        := ParameterNumber;
+
+      fbWriteParameter(Axis                   := _AxisRef, 
+                       Execute                := FALSE);
+ 
+      nState                                  := 10;
+    END_IF
+END_CASE
+CASE nState OF
+  10:
+    fbWriteParameter.Execute                  := TRUE;
+
+    IF fbWriteParameter.Done
+    THEN
+      nState                                  := 20;
+
+      CASE fbWriteParameter.ParameterNumber 
+      OF
+        AxisEnMinSoftPosLimit: 
+          stSwPosLimitNegativeActive.bValue   := TO_BOOL(Value);
+
+        AxisEnMaxSoftPosLimit: 
+          stSwPosLimitPositiveActive.bValue   := TO_BOOL(Value);
+
+        AxisAcc: 
+          stDefaultAcceleration.fValue        := Value;
+
+        AxisDec: 
+          stDefaultDeceleration.fValue        := Value;
+
+        AxisJerk: 
+          stDefaultJerk.fValue                := Value;
+
+        AxisMaximumAcceleration : 
+          stMaxAcceleration.fValue            := Value;
+
+        AxisMaximumDeceleration: 
+          stMaxDeceleration.fValue            := Value;
+
+        AxisVeloMax: 
+          stMaxVelocity.fValue                := Value;
+
+        AxisMinSoftPosLimit: 
+          stSwPosLimitNegative.fValue         := Value;
+
+        AxisMaxSoftPosLimit: 
+          stSwPosLimitPositive.fValue         := Value;
+
+        AxisCalibrationVelocityForward: 
+          stHomingSearchVelo.fValue           := Value;
+
+        AxisCalibrationVelocityBackward: 
+          stHomingVelo.fValue                 := Value;
+
+        AxisTargetPositionWindow:
+          stTargetPositionWindow.fValue       := Value;
+      END_CASE
+    ELSE
+      IF fbWriteParameter.Error
+      THEN
+        res.Busy                              := FALSE;
+        res.Error                             := TRUE;
+        res.ErrorID                           := fbWriteParameter.ErrorID;
+
+        stMsg.eType                           := E_MessageType.eMessageError;
+        stMsg.eDevice                         := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
+        stMsg.eSubdevice                      := e_SubDevice.fbWriteParameter;
+        stMsg.iErrorNumber                    := fbWriteParameter.ErrorID;
+
+        fbWriteParameter.Execute              := FALSE;
+
+        f_MessageSet(stMsg);
+        MsgAdd(stMsg);
+
+        nState                                := 99;
+      END_IF
+    END_IF
+END_CASE
+CASE nState OF
+  20:
+    res.Busy                                  := FALSE;
+    res.Done                                  := TRUE;
+
+  99:
+    res.Busy                                  := FALSE;
+    res.Error                                 := TRUE;
+
+END_CASE
+
+
+IF NOT Execute
+THEN
+  memset(ADR(res),0,SIZEOF(res));
+
+  fbWriteParameter.Execute                    := FALSE;
+  nState                                      := 0;
+END_IF
+
+
+fbWriteParameter(Axis                         := _AxisRef, 
+                 ParameterNumber              := ParameterNumber, 
+                 Value                        := Value, 
+                 Done                         => WriteParameter.Done, 
+                 Busy                         => WriteParameter.Busy, 
+                 Error                        => WriteParameter.Error, 
+                 ErrorID                      => WriteParameter.ErrorID);
+
+
+WriteParameter := res;]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="FB_McPtpAxis">
+      <LineId Id="897" Count="113" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_McPtpAxis.CalibrationCam.Set">
+      <LineId Id="3" Count="1" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_McPtpAxis.Clear">
+      <LineId Id="6" Count="2" />
+      <LineId Id="17" Count="1" />
+      <LineId Id="9" Count="1" />
+      <LineId Id="16" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_McPtpAxis.Enable.Get">
+      <LineId Id="3" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_McPtpAxis.Enable.Set">
+      <LineId Id="3" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_McPtpAxis.EncoderType.Get">
+      <LineId Id="2" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_McPtpAxis.ErrorReset">
+      <LineId Id="257" Count="67" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_McPtpAxis.FeedEnable_Negative.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_McPtpAxis.FeedEnable_Negative.Set">
+      <LineId Id="3" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_McPtpAxis.FeedEnable_Positive.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_McPtpAxis.FeedEnable_Positive.Set">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_McPtpAxis.Halt">
+      <LineId Id="1101" Count="168" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_McPtpAxis.Home">
+      <LineId Id="255" Count="1" />
+      <LineId Id="320" Count="0" />
+      <LineId Id="257" Count="0" />
+      <LineId Id="321" Count="0" />
+      <LineId Id="391" Count="0" />
+      <LineId Id="389" Count="1" />
+      <LineId Id="258" Count="5" />
+      <LineId Id="254" Count="0" />
+      <LineId Id="195" Count="5" />
+      <LineId Id="322" Count="0" />
+      <LineId Id="272" Count="0" />
+      <LineId Id="274" Count="4" />
+      <LineId Id="271" Count="0" />
+      <LineId Id="323" Count="0" />
+      <LineId Id="210" Count="5" />
+      <LineId Id="324" Count="1" />
+      <LineId Id="216" Count="1" />
+      <LineId Id="342" Count="1" />
+      <LineId Id="340" Count="0" />
+      <LineId Id="220" Count="0" />
+      <LineId Id="341" Count="0" />
+      <LineId Id="221" Count="2" />
+      <LineId Id="226" Count="0" />
+      <LineId Id="337" Count="0" />
+      <LineId Id="227" Count="3" />
+      <LineId Id="338" Count="0" />
+      <LineId Id="232" Count="1" />
+      <LineId Id="345" Count="2" />
+      <LineId Id="339" Count="0" />
+      <LineId Id="234" Count="5" />
+      <LineId Id="330" Count="2" />
+      <LineId Id="329" Count="0" />
+      <LineId Id="327" Count="1" />
+      <LineId Id="240" Count="0" />
+      <LineId Id="334" Count="2" />
+      <LineId Id="247" Count="6" />
+      <LineId Id="193" Count="1" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_McPtpAxis.Jog">
+      <LineId Id="3" Count="0" />
+      <LineId Id="266" Count="1" />
+      <LineId Id="262" Count="2" />
+      <LineId Id="24" Count="2" />
+      <LineId Id="268" Count="7" />
+      <LineId Id="355" Count="0" />
+      <LineId Id="281" Count="1" />
+      <LineId Id="356" Count="0" />
+      <LineId Id="276" Count="0" />
+      <LineId Id="27" Count="18" />
+      <LineId Id="283" Count="0" />
+      <LineId Id="120" Count="0" />
+      <LineId Id="192" Count="0" />
+      <LineId Id="121" Count="2" />
+      <LineId Id="357" Count="0" />
+      <LineId Id="124" Count="0" />
+      <LineId Id="118" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_McPtpAxis.LocalParameterReload">
+      <LineId Id="3" Count="2" />
+      <LineId Id="21" Count="0" />
+      <LineId Id="6" Count="1" />
+      <LineId Id="22" Count="0" />
+      <LineId Id="8" Count="0" />
+      <LineId Id="23" Count="0" />
+      <LineId Id="9" Count="1" />
+      <LineId Id="24" Count="0" />
+      <LineId Id="11" Count="0" />
+      <LineId Id="25" Count="0" />
+      <LineId Id="12" Count="1" />
+      <LineId Id="26" Count="0" />
+      <LineId Id="14" Count="0" />
+      <LineId Id="27" Count="0" />
+      <LineId Id="15" Count="0" />
+      <LineId Id="28" Count="0" />
+      <LineId Id="16" Count="0" />
+      <LineId Id="20" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_McPtpAxis.MoveAbsolute">
+      <LineId Id="312" Count="4" />
+      <LineId Id="322" Count="0" />
+      <LineId Id="626" Count="0" />
+      <LineId Id="323" Count="2" />
+      <LineId Id="625" Count="0" />
+      <LineId Id="326" Count="1" />
+      <LineId Id="333" Count="0" />
+      <LineId Id="336" Count="1" />
+      <LineId Id="340" Count="1" />
+      <LineId Id="387" Count="0" />
+      <LineId Id="627" Count="0" />
+      <LineId Id="390" Count="0" />
+      <LineId Id="392" Count="0" />
+      <LineId Id="436" Count="0" />
+      <LineId Id="394" Count="4" />
+      <LineId Id="628" Count="0" />
+      <LineId Id="407" Count="0" />
+      <LineId Id="409" Count="0" />
+      <LineId Id="411" Count="4" />
+      <LineId Id="629" Count="0" />
+      <LineId Id="339" Count="0" />
+      <LineId Id="338" Count="0" />
+      <LineId Id="332" Count="0" />
+      <LineId Id="383" Count="0" />
+      <LineId Id="385" Count="0" />
+      <LineId Id="419" Count="0" />
+      <LineId Id="421" Count="5" />
+      <LineId Id="630" Count="0" />
+      <LineId Id="427" Count="0" />
+      <LineId Id="429" Count="5" />
+      <LineId Id="631" Count="0" />
+      <LineId Id="435" Count="0" />
+      <LineId Id="574" Count="0" />
+      <LineId Id="437" Count="2" />
+      <LineId Id="441" Count="1" />
+      <LineId Id="447" Count="3" />
+      <LineId Id="452" Count="1" />
+      <LineId Id="713" Count="0" />
+      <LineId Id="712" Count="0" />
+      <LineId Id="635" Count="0" />
+      <LineId Id="454" Count="0" />
+      <LineId Id="443" Count="0" />
+      <LineId Id="440" Count="0" />
+      <LineId Id="384" Count="0" />
+      <LineId Id="455" Count="0" />
+      <LineId Id="457" Count="0" />
+      <LineId Id="578" Count="1" />
+      <LineId Id="647" Count="0" />
+      <LineId Id="473" Count="0" />
+      <LineId Id="636" Count="0" />
+      <LineId Id="702" Count="7" />
+      <LineId Id="715" Count="0" />
+      <LineId Id="714" Count="0" />
+      <LineId Id="710" Count="1" />
+      <LineId Id="701" Count="0" />
+      <LineId Id="458" Count="1" />
+      <LineId Id="470" Count="0" />
+      <LineId Id="637" Count="0" />
+      <LineId Id="461" Count="0" />
+      <LineId Id="463" Count="0" />
+      <LineId Id="469" Count="0" />
+      <LineId Id="464" Count="3" />
+      <LineId Id="541" Count="0" />
+      <LineId Id="638" Count="0" />
+      <LineId Id="471" Count="1" />
+      <LineId Id="456" Count="0" />
+      <LineId Id="474" Count="0" />
+      <LineId Id="492" Count="0" />
+      <LineId Id="575" Count="1" />
+      <LineId Id="639" Count="0" />
+      <LineId Id="552" Count="0" />
+      <LineId Id="580" Count="1" />
+      <LineId Id="554" Count="3" />
+      <LineId Id="560" Count="5" />
+      <LineId Id="716" Count="1" />
+      <LineId Id="640" Count="0" />
+      <LineId Id="566" Count="2" />
+      <LineId Id="586" Count="0" />
+      <LineId Id="571" Count="0" />
+      <LineId Id="551" Count="0" />
+      <LineId Id="572" Count="1" />
+      <LineId Id="641" Count="0" />
+      <LineId Id="477" Count="0" />
+      <LineId Id="690" Count="0" />
+      <LineId Id="689" Count="0" />
+      <LineId Id="691" Count="0" />
+      <LineId Id="693" Count="5" />
+      <LineId Id="719" Count="0" />
+      <LineId Id="718" Count="0" />
+      <LineId Id="699" Count="1" />
+      <LineId Id="642" Count="0" />
+      <LineId Id="478" Count="2" />
+      <LineId Id="643" Count="0" />
+      <LineId Id="481" Count="0" />
+      <LineId Id="483" Count="6" />
+      <LineId Id="644" Count="0" />
+      <LineId Id="543" Count="0" />
+      <LineId Id="545" Count="5" />
+      <LineId Id="645" Count="0" />
+      <LineId Id="490" Count="1" />
+      <LineId Id="475" Count="0" />
+      <LineId Id="495" Count="1" />
+      <LineId Id="633" Count="1" />
+      <LineId Id="342" Count="0" />
+      <LineId Id="521" Count="3" />
+      <LineId Id="650" Count="0" />
+      <LineId Id="525" Count="1" />
+      <LineId Id="648" Count="0" />
+      <LineId Id="527" Count="1" />
+      <LineId Id="649" Count="0" />
+      <LineId Id="529" Count="2" />
+      <LineId Id="519" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_McPtpAxis.MoveEndless">
+      <LineId Id="295" Count="1" />
+      <LineId Id="357" Count="0" />
+      <LineId Id="440" Count="0" />
+      <LineId Id="358" Count="1" />
+      <LineId Id="297" Count="1" />
+      <LineId Id="303" Count="1" />
+      <LineId Id="443" Count="2" />
+      <LineId Id="474" Count="5" />
+      <LineId Id="410" Count="0" />
+      <LineId Id="309" Count="2" />
+      <LineId Id="313" Count="6" />
+      <LineId Id="400" Count="2" />
+      <LineId Id="511" Count="0" />
+      <LineId Id="403" Count="0" />
+      <LineId Id="399" Count="0" />
+      <LineId Id="349" Count="1" />
+      <LineId Id="439" Count="0" />
+      <LineId Id="351" Count="2" />
+      <LineId Id="356" Count="0" />
+      <LineId Id="355" Count="0" />
+      <LineId Id="305" Count="0" />
+      <LineId Id="320" Count="2" />
+      <LineId Id="441" Count="0" />
+      <LineId Id="428" Count="0" />
+      <LineId Id="341" Count="1" />
+      <LineId Id="458" Count="0" />
+      <LineId Id="495" Count="0" />
+      <LineId Id="430" Count="6" />
+      <LineId Id="429" Count="0" />
+      <LineId Id="415" Count="3" />
+      <LineId Id="343" Count="0" />
+      <LineId Id="457" Count="0" />
+      <LineId Id="450" Count="6" />
+      <LineId Id="340" Count="0" />
+      <LineId Id="421" Count="2" />
+      <LineId Id="301" Count="0" />
+      <LineId Id="448" Count="0" />
+      <LineId Id="411" Count="2" />
+      <LineId Id="345" Count="0" />
+      <LineId Id="446" Count="0" />
+      <LineId Id="420" Count="0" />
+      <LineId Id="447" Count="0" />
+      <LineId Id="302" Count="0" />
+      <LineId Id="300" Count="0" />
+      <LineId Id="438" Count="0" />
+      <LineId Id="437" Count="0" />
+      <LineId Id="49" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_McPtpAxis.MovePtP">
+      <LineId Id="30" Count="0" />
+      <LineId Id="42" Count="0" />
+      <LineId Id="47" Count="0" />
+      <LineId Id="50" Count="2" />
+      <LineId Id="268" Count="0" />
+      <LineId Id="90" Count="0" />
+      <LineId Id="267" Count="0" />
+      <LineId Id="58" Count="0" />
+      <LineId Id="60" Count="6" />
+      <LineId Id="269" Count="0" />
+      <LineId Id="53" Count="1" />
+      <LineId Id="95" Count="0" />
+      <LineId Id="73" Count="0" />
+      <LineId Id="48" Count="0" />
+      <LineId Id="74" Count="0" />
+      <LineId Id="76" Count="5" />
+      <LineId Id="89" Count="0" />
+      <LineId Id="270" Count="0" />
+      <LineId Id="91" Count="1" />
+      <LineId Id="45" Count="0" />
+      <LineId Id="93" Count="0" />
+      <LineId Id="96" Count="2" />
+      <LineId Id="100" Count="0" />
+      <LineId Id="271" Count="0" />
+      <LineId Id="119" Count="0" />
+      <LineId Id="168" Count="0" />
+      <LineId Id="121" Count="0" />
+      <LineId Id="101" Count="1" />
+      <LineId Id="109" Count="1" />
+      <LineId Id="122" Count="0" />
+      <LineId Id="125" Count="3" />
+      <LineId Id="281" Count="0" />
+      <LineId Id="130" Count="0" />
+      <LineId Id="175" Count="0" />
+      <LineId Id="312" Count="1" />
+      <LineId Id="282" Count="0" />
+      <LineId Id="276" Count="1" />
+      <LineId Id="275" Count="0" />
+      <LineId Id="136" Count="0" />
+      <LineId Id="123" Count="0" />
+      <LineId Id="44" Count="0" />
+      <LineId Id="112" Count="1" />
+      <LineId Id="273" Count="1" />
+      <LineId Id="272" Count="0" />
+      <LineId Id="137" Count="0" />
+      <LineId Id="279" Count="1" />
+      <LineId Id="43" Count="0" />
+      <LineId Id="49" Count="0" />
+      <LineId Id="37" Count="0" />
+      <LineId Id="39" Count="0" />
+      <LineId Id="205" Count="0" />
+      <LineId Id="40" Count="1" />
+      <LineId Id="138" Count="0" />
+      <LineId Id="31" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_McPtpAxis.MoveVelocity">
+      <LineId Id="274" Count="0" />
+      <LineId Id="276" Count="4" />
+      <LineId Id="283" Count="0" />
+      <LineId Id="285" Count="2" />
+      <LineId Id="550" Count="0" />
+      <LineId Id="288" Count="0" />
+      <LineId Id="551" Count="0" />
+      <LineId Id="316" Count="0" />
+      <LineId Id="552" Count="0" />
+      <LineId Id="289" Count="0" />
+      <LineId Id="291" Count="6" />
+      <LineId Id="553" Count="0" />
+      <LineId Id="307" Count="0" />
+      <LineId Id="309" Count="0" />
+      <LineId Id="311" Count="4" />
+      <LineId Id="554" Count="0" />
+      <LineId Id="282" Count="0" />
+      <LineId Id="298" Count="0" />
+      <LineId Id="281" Count="0" />
+      <LineId Id="299" Count="0" />
+      <LineId Id="301" Count="0" />
+      <LineId Id="317" Count="0" />
+      <LineId Id="319" Count="6" />
+      <LineId Id="497" Count="0" />
+      <LineId Id="342" Count="1" />
+      <LineId Id="346" Count="3" />
+      <LineId Id="555" Count="0" />
+      <LineId Id="350" Count="1" />
+      <LineId Id="611" Count="1" />
+      <LineId Id="556" Count="0" />
+      <LineId Id="352" Count="0" />
+      <LineId Id="604" Count="1" />
+      <LineId Id="607" Count="3" />
+      <LineId Id="24" Count="0" />
+      <LineId Id="303" Count="0" />
+      <LineId Id="355" Count="0" />
+      <LineId Id="358" Count="0" />
+      <LineId Id="357" Count="0" />
+      <LineId Id="503" Count="0" />
+      <LineId Id="359" Count="0" />
+      <LineId Id="613" Count="0" />
+      <LineId Id="615" Count="12" />
+      <LineId Id="614" Count="0" />
+      <LineId Id="502" Count="0" />
+      <LineId Id="360" Count="0" />
+      <LineId Id="363" Count="0" />
+      <LineId Id="558" Count="0" />
+      <LineId Id="364" Count="0" />
+      <LineId Id="557" Count="0" />
+      <LineId Id="366" Count="0" />
+      <LineId Id="368" Count="6" />
+      <LineId Id="559" Count="0" />
+      <LineId Id="375" Count="1" />
+      <LineId Id="354" Count="0" />
+      <LineId Id="377" Count="0" />
+      <LineId Id="379" Count="0" />
+      <LineId Id="381" Count="1" />
+      <LineId Id="505" Count="0" />
+      <LineId Id="383" Count="0" />
+      <LineId Id="506" Count="0" />
+      <LineId Id="391" Count="1" />
+      <LineId Id="396" Count="3" />
+      <LineId Id="560" Count="0" />
+      <LineId Id="400" Count="1" />
+      <LineId Id="635" Count="0" />
+      <LineId Id="561" Count="0" />
+      <LineId Id="636" Count="0" />
+      <LineId Id="402" Count="0" />
+      <LineId Id="634" Count="0" />
+      <LineId Id="629" Count="0" />
+      <LineId Id="631" Count="2" />
+      <LineId Id="378" Count="0" />
+      <LineId Id="404" Count="3" />
+      <LineId Id="511" Count="0" />
+      <LineId Id="408" Count="0" />
+      <LineId Id="637" Count="0" />
+      <LineId Id="639" Count="12" />
+      <LineId Id="510" Count="0" />
+      <LineId Id="409" Count="1" />
+      <LineId Id="421" Count="1" />
+      <LineId Id="304" Count="0" />
+      <LineId Id="434" Count="2" />
+      <LineId Id="498" Count="2" />
+      <LineId Id="433" Count="0" />
+      <LineId Id="448" Count="0" />
+      <LineId Id="504" Count="0" />
+      <LineId Id="449" Count="4" />
+      <LineId Id="562" Count="0" />
+      <LineId Id="454" Count="1" />
+      <LineId Id="563" Count="0" />
+      <LineId Id="456" Count="2" />
+      <LineId Id="447" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_McPtpAxis.MsgAdd">
+      <LineId Id="8" Count="0" />
+      <LineId Id="7" Count="0" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="11" Count="0" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_McPtpAxis.NcAxisId.Get">
+      <LineId Id="3" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_McPtpAxis.NcAxisName.Get">
+      <LineId Id="27" Count="0" />
+      <LineId Id="29" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_McPtpAxis.ParamCheck">
+      <LineId Id="72" Count="1" />
+      <LineId Id="78" Count="0" />
+      <LineId Id="77" Count="0" />
+      <LineId Id="237" Count="0" />
+      <LineId Id="244" Count="0" />
+      <LineId Id="238" Count="0" />
+      <LineId Id="243" Count="0" />
+      <LineId Id="241" Count="1" />
+      <LineId Id="239" Count="0" />
+      <LineId Id="79" Count="0" />
+      <LineId Id="106" Count="0" />
+      <LineId Id="133" Count="0" />
+      <LineId Id="119" Count="0" />
+      <LineId Id="271" Count="0" />
+      <LineId Id="81" Count="0" />
+      <LineId Id="107" Count="0" />
+      <LineId Id="135" Count="0" />
+      <LineId Id="120" Count="0" />
+      <LineId Id="272" Count="0" />
+      <LineId Id="83" Count="0" />
+      <LineId Id="108" Count="0" />
+      <LineId Id="138" Count="0" />
+      <LineId Id="121" Count="0" />
+      <LineId Id="273" Count="0" />
+      <LineId Id="85" Count="0" />
+      <LineId Id="109" Count="0" />
+      <LineId Id="141" Count="0" />
+      <LineId Id="122" Count="0" />
+      <LineId Id="274" Count="0" />
+      <LineId Id="87" Count="0" />
+      <LineId Id="110" Count="0" />
+      <LineId Id="144" Count="0" />
+      <LineId Id="123" Count="0" />
+      <LineId Id="275" Count="0" />
+      <LineId Id="89" Count="0" />
+      <LineId Id="111" Count="0" />
+      <LineId Id="147" Count="0" />
+      <LineId Id="124" Count="0" />
+      <LineId Id="276" Count="0" />
+      <LineId Id="91" Count="0" />
+      <LineId Id="112" Count="0" />
+      <LineId Id="150" Count="0" />
+      <LineId Id="125" Count="0" />
+      <LineId Id="277" Count="0" />
+      <LineId Id="93" Count="0" />
+      <LineId Id="113" Count="0" />
+      <LineId Id="153" Count="0" />
+      <LineId Id="126" Count="0" />
+      <LineId Id="278" Count="0" />
+      <LineId Id="95" Count="0" />
+      <LineId Id="114" Count="0" />
+      <LineId Id="154" Count="0" />
+      <LineId Id="127" Count="0" />
+      <LineId Id="279" Count="0" />
+      <LineId Id="97" Count="0" />
+      <LineId Id="115" Count="0" />
+      <LineId Id="155" Count="0" />
+      <LineId Id="128" Count="0" />
+      <LineId Id="280" Count="0" />
+      <LineId Id="99" Count="0" />
+      <LineId Id="116" Count="0" />
+      <LineId Id="156" Count="0" />
+      <LineId Id="129" Count="0" />
+      <LineId Id="281" Count="0" />
+      <LineId Id="101" Count="0" />
+      <LineId Id="117" Count="0" />
+      <LineId Id="157" Count="0" />
+      <LineId Id="130" Count="0" />
+      <LineId Id="282" Count="0" />
+      <LineId Id="103" Count="0" />
+      <LineId Id="118" Count="0" />
+      <LineId Id="158" Count="0" />
+      <LineId Id="131" Count="0" />
+      <LineId Id="283" Count="0" />
+      <LineId Id="234" Count="0" />
+      <LineId Id="262" Count="1" />
+      <LineId Id="261" Count="0" />
+      <LineId Id="235" Count="0" />
+      <LineId Id="105" Count="0" />
+      <LineId Id="74" Count="0" />
+      <LineId Id="160" Count="2" />
+      <LineId Id="231" Count="0" />
+      <LineId Id="163" Count="1" />
+      <LineId Id="159" Count="0" />
+      <LineId Id="165" Count="3" />
+      <LineId Id="223" Count="1" />
+      <LineId Id="169" Count="0" />
+      <LineId Id="225" Count="4" />
+      <LineId Id="174" Count="0" />
+      <LineId Id="295" Count="0" />
+      <LineId Id="177" Count="0" />
+      <LineId Id="222" Count="0" />
+      <LineId Id="179" Count="10" />
+      <LineId Id="284" Count="0" />
+      <LineId Id="190" Count="2" />
+      <LineId Id="285" Count="0" />
+      <LineId Id="193" Count="2" />
+      <LineId Id="286" Count="0" />
+      <LineId Id="196" Count="2" />
+      <LineId Id="287" Count="0" />
+      <LineId Id="199" Count="2" />
+      <LineId Id="288" Count="0" />
+      <LineId Id="202" Count="1" />
+      <LineId Id="260" Count="0" />
+      <LineId Id="204" Count="0" />
+      <LineId Id="289" Count="0" />
+      <LineId Id="205" Count="2" />
+      <LineId Id="290" Count="0" />
+      <LineId Id="208" Count="2" />
+      <LineId Id="291" Count="0" />
+      <LineId Id="211" Count="2" />
+      <LineId Id="292" Count="0" />
+      <LineId Id="214" Count="2" />
+      <LineId Id="293" Count="0" />
+      <LineId Id="218" Count="2" />
+      <LineId Id="294" Count="0" />
+      <LineId Id="221" Count="0" />
+      <LineId Id="236" Count="0" />
+      <LineId Id="170" Count="0" />
+      <LineId Id="252" Count="0" />
+      <LineId Id="75" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_McPtpAxis.pAxisRef.Get">
+      <LineId Id="2" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_McPtpAxis.Position.Get">
+      <LineId Id="3" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_McPtpAxis.ReadParameter">
+      <LineId Id="302" Count="1" />
+      <LineId Id="310" Count="0" />
+      <LineId Id="312" Count="3" />
+      <LineId Id="431" Count="0" />
+      <LineId Id="322" Count="0" />
+      <LineId Id="311" Count="0" />
+      <LineId Id="432" Count="0" />
+      <LineId Id="316" Count="1" />
+      <LineId Id="309" Count="0" />
+      <LineId Id="299" Count="0" />
+      <LineId Id="318" Count="0" />
+      <LineId Id="320" Count="0" />
+      <LineId Id="433" Count="0" />
+      <LineId Id="321" Count="0" />
+      <LineId Id="323" Count="0" />
+      <LineId Id="444" Count="0" />
+      <LineId Id="324" Count="1" />
+      <LineId Id="327" Count="0" />
+      <LineId Id="330" Count="0" />
+      <LineId Id="415" Count="0" />
+      <LineId Id="412" Count="0" />
+      <LineId Id="333" Count="3" />
+      <LineId Id="441" Count="0" />
+      <LineId Id="338" Count="1" />
+      <LineId Id="440" Count="0" />
+      <LineId Id="439" Count="0" />
+      <LineId Id="340" Count="0" />
+      <LineId Id="331" Count="0" />
+      <LineId Id="326" Count="0" />
+      <LineId Id="319" Count="0" />
+      <LineId Id="342" Count="1" />
+      <LineId Id="442" Count="1" />
+      <LineId Id="435" Count="0" />
+      <LineId Id="344" Count="0" />
+      <LineId Id="437" Count="1" />
+      <LineId Id="300" Count="0" />
+      <LineId Id="434" Count="0" />
+      <LineId Id="194" Count="0" />
+      <LineId Id="197" Count="1" />
+      <LineId Id="203" Count="0" />
+      <LineId Id="351" Count="0" />
+      <LineId Id="353" Count="6" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_McPtpAxis.ReadParamValue.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_McPtpAxis.SpeedOverride.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_McPtpAxis.SpeedOverride.Set">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_McPtpAxis.StartUpDone.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_McPtpAxis.Status.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_McPtpAxis.Stop">
+      <LineId Id="192" Count="4" />
+      <LineId Id="286" Count="0" />
+      <LineId Id="197" Count="0" />
+      <LineId Id="267" Count="2" />
+      <LineId Id="266" Count="0" />
+      <LineId Id="204" Count="0" />
+      <LineId Id="280" Count="0" />
+      <LineId Id="205" Count="1" />
+      <LineId Id="316" Count="2" />
+      <LineId Id="315" Count="0" />
+      <LineId Id="207" Count="5" />
+      <LineId Id="285" Count="0" />
+      <LineId Id="297" Count="0" />
+      <LineId Id="213" Count="1" />
+      <LineId Id="294" Count="1" />
+      <LineId Id="293" Count="0" />
+      <LineId Id="217" Count="0" />
+      <LineId Id="296" Count="0" />
+      <LineId Id="218" Count="2" />
+      <LineId Id="223" Count="0" />
+      <LineId Id="282" Count="0" />
+      <LineId Id="224" Count="5" />
+      <LineId Id="283" Count="0" />
+      <LineId Id="264" Count="0" />
+      <LineId Id="284" Count="0" />
+      <LineId Id="312" Count="0" />
+      <LineId Id="230" Count="0" />
+      <LineId Id="311" Count="0" />
+      <LineId Id="308" Count="2" />
+      <LineId Id="314" Count="0" />
+      <LineId Id="231" Count="4" />
+      <LineId Id="288" Count="1" />
+      <LineId Id="298" Count="1" />
+      <LineId Id="301" Count="1" />
+      <LineId Id="305" Count="0" />
+      <LineId Id="303" Count="1" />
+      <LineId Id="300" Count="0" />
+      <LineId Id="287" Count="0" />
+      <LineId Id="306" Count="1" />
+      <LineId Id="236" Count="0" />
+      <LineId Id="291" Count="1" />
+      <LineId Id="238" Count="8" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_McPtpAxis.Version.Get">
+      <LineId Id="3" Count="5" />
+      <LineId Id="11" Count="0" />
+      <LineId Id="13" Count="1" />
+      <LineId Id="19" Count="0" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="15" Count="2" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_McPtpAxis.WriteParameter">
+      <LineId Id="266" Count="5" />
+      <LineId Id="422" Count="0" />
+      <LineId Id="272" Count="0" />
+      <LineId Id="421" Count="0" />
+      <LineId Id="273" Count="0" />
+      <LineId Id="420" Count="0" />
+      <LineId Id="403" Count="0" />
+      <LineId Id="423" Count="1" />
+      <LineId Id="275" Count="5" />
+      <LineId Id="425" Count="0" />
+      <LineId Id="281" Count="1" />
+      <LineId Id="285" Count="0" />
+      <LineId Id="448" Count="0" />
+      <LineId Id="362" Count="0" />
+      <LineId Id="391" Count="0" />
+      <LineId Id="364" Count="1" />
+      <LineId Id="449" Count="0" />
+      <LineId Id="366" Count="1" />
+      <LineId Id="450" Count="0" />
+      <LineId Id="368" Count="1" />
+      <LineId Id="451" Count="0" />
+      <LineId Id="370" Count="1" />
+      <LineId Id="452" Count="0" />
+      <LineId Id="372" Count="1" />
+      <LineId Id="453" Count="0" />
+      <LineId Id="374" Count="1" />
+      <LineId Id="454" Count="0" />
+      <LineId Id="376" Count="1" />
+      <LineId Id="455" Count="0" />
+      <LineId Id="378" Count="1" />
+      <LineId Id="456" Count="0" />
+      <LineId Id="380" Count="1" />
+      <LineId Id="457" Count="0" />
+      <LineId Id="382" Count="1" />
+      <LineId Id="458" Count="0" />
+      <LineId Id="384" Count="1" />
+      <LineId Id="459" Count="0" />
+      <LineId Id="386" Count="1" />
+      <LineId Id="460" Count="0" />
+      <LineId Id="388" Count="2" />
+      <LineId Id="334" Count="2" />
+      <LineId Id="398" Count="3" />
+      <LineId Id="337" Count="3" />
+      <LineId Id="433" Count="1" />
+      <LineId Id="432" Count="0" />
+      <LineId Id="341" Count="1" />
+      <LineId Id="461" Count="0" />
+      <LineId Id="343" Count="5" />
+      <LineId Id="427" Count="1" />
+      <LineId Id="426" Count="0" />
+      <LineId Id="349" Count="0" />
+      <LineId Id="430" Count="1" />
+      <LineId Id="429" Count="0" />
+      <LineId Id="356" Count="0" />
+      <LineId Id="264" Count="0" />
+      <LineId Id="188" Count="0" />
+      <LineId Id="392" Count="2" />
+      <LineId Id="447" Count="0" />
+      <LineId Id="446" Count="0" />
+      <LineId Id="395" Count="1" />
+      <LineId Id="462" Count="0" />
+      <LineId Id="435" Count="0" />
+      <LineId Id="437" Count="0" />
+      <LineId Id="440" Count="5" />
+      <LineId Id="436" Count="0" />
+      <LineId Id="397" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

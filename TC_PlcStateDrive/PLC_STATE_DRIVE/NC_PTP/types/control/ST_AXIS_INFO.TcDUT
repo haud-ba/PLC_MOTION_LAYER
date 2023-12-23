@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <DUT Name="ST_AXIS_INFO" Id="{d905bf4f-290d-085d-17a5-01c56d7a672e}">
+    <Declaration><![CDATA[{attribute 'pack_mode' := '2'}
+TYPE ST_AXIS_INFO :
+STRUCT
+  bEnabled    : BIT; // Enabled: check if ControlLoop is closed and active
+  bReferenced : BIT; // Axis homing bit
+  bReady      : BIT; // enabled & NOT bError & no Axis Function requested
+  bBusy       : BIT; // axis function requested or active
+  bError      : BIT;
+  bTimeout    : BIT; // for move cmds or switching drive on timeout
+  bInTarget   : BIT; // ActPos = SetPos --> position check is done with configured window in NC
+  bStandstill : BIT; // No Error and NOT moving
+ 
+  nErrorId            : UDINT;
+
+  rActPos             : LREAL;
+  rActVelo            : LREAL;
+  rPosDiff            : LREAL;
+
+  dwCoupleState       : DWORD;   // cyclic information about axis couple state
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

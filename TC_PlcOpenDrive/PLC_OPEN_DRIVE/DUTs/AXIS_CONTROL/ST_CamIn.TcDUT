@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.9">
+  <DUT Name="ST_CamIn" Id="{2b971b2a-47c2-0041-1fe7-c20145cca688}">
+    <Declaration><![CDATA[TYPE ST_CamIn :
+STRUCT
+  MasterOffset      : REAL; 
+  SlaveOffset       : REAL; 
+  MasterScaling     : REAL;
+  SlaveScaling      : REAL;
+
+{IF defined (CAM)}
+  {info 'CAMMING active'}
+  StartMode         : Tc2_MC2_Camming.MC_StartMode;
+  CamTableID        : Tc2_MC2_Camming.MC_CAM_ID;
+{ELSE}
+  StartMode         : INT;
+  CamTableID        : UDINT;
+{END_IF}
+
+END_STRUCT
+END_TYPE
+
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

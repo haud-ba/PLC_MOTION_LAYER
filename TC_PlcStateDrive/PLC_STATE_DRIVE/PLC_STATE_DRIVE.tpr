@@ -1,0 +1,21 @@
+<TcModuleRefactorInfos RefactorCnt="1">
+  <TcModuleRefactorInfo RefactorCnt="1" DateTime="2023-12-22T09:00:36">
+    <Renames>
+      <RenameTypeItem>
+        <Type>FB_McAxis</Type>
+        <From>_udiErrorId</From>
+        <To>_nErrorId</To>
+      </RenameTypeItem>
+      <RenameTypeItem>
+        <Type>FB_McAxis</Type>
+        <From>_uiEncoderType</From>
+        <To>_nEncoderType</To>
+      </RenameTypeItem>
+      <RenameTypeItem>
+        <Type>ST_AXIS_INFO</Type>
+        <From>uiErrorId</From>
+        <To>nErrorId</To>
+      </RenameTypeItem>
+    </Renames>
+  </TcModuleRefactorInfo>
+</TcModuleRefactorInfos>

@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4023.8">
+  <DUT Name="ST_WriteParamParams" Id="{132eae3d-a306-4fe0-8820-0a87608f5d38}">
+    <Declaration><![CDATA[TYPE ST_WriteParamParams :
+STRUCT
+  ParameterNumber : Tc2_MC2.MC_AxisParameter;
+  Value           : LREAL;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

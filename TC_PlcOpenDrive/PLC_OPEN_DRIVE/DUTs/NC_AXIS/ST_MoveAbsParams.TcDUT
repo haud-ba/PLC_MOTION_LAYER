@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4023.8">
+  <DUT Name="ST_MoveAbsParams" Id="{d4ccb746-6043-4d82-8805-87b65d561d20}">
+    <Declaration><![CDATA[TYPE ST_MoveAbsParams :
+STRUCT
+	Position		: LREAL;
+	Velocity		: LREAL;
+	Acceleration	: LREAL;
+	Deceleration	: LREAL;
+	Jerk			: LREAL;
+	BufferMode		: Tc2_MC2.MC_BufferMode;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

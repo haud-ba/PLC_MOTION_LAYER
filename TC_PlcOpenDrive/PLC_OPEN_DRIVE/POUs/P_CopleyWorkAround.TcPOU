@@ -1,0 +1,67 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.9">
+  <POU Name="P_CopleyWorkAround" Id="{e2d7e300-f7b7-4d9b-8f54-701a1ae712fd}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM P_CopleyWorkAround
+VAR
+  bTmp              : BOOL;
+  fbTimer           : TON;
+  tWait             : TIME := T#6S;
+  nIndex, nIdx      : DINT;
+  nAxisCount        : DINT := 3;
+
+  aNetId    AT%I*   : AMSNETID;
+  nAdr      AT%I*   : ARRAY[1..MAX_AXIS] OF WORD;
+  fbEcSetSlaveState : ARRAY[1..MAX_AXIS] OF FB_EcSetSlaveState;
+
+END_VAR
+VAR CONSTANT
+  MAX_AXIS  : DINT := 10;
+END_VAR
+
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[nAxisCount := SEL((nAxisCount>MAX_AXIS),nAxisCount,MAX_AXIS);
+nAxisCount := SEL((nAxisCount<1),nAxisCount,1);
+
+nIndex := GETCURTASKINDEXEX();
+IF _TaskInfo[nIndex].FirstCycle
+THEN
+  fbTimer.IN := TRUE;
+ELSE
+  bTmp := TRUE;
+  FOR nIdx := 1 TO nAxisCount
+  DO
+    IF (fbEcSetSlaveState[nIdx].currState.deviceState <> EC_DEVICE_STATE_OP)
+    THEN
+      bTmp := FALSE;
+    END_IF
+  END_FOR
+  fbTimer.IN := NOT bTmp;
+END_IF
+fbTimer(PT:= tWait);
+
+FOR nIdx := 1 TO nAxisCount
+DO
+  fbEcSetSlaveState[nIdx](sNetId:= F_CreateAmsNetId(aNetId), nSlaveAddr:= nAdr[nIdx], bExecute:= fbTimer.Q, reqState:= EC_DEVICE_STATE_OP);
+END_FOR
+]]></ST>
+    </Implementation>
+    <LineIds Name="P_CopleyWorkAround">
+      <LineId Id="88" Count="2" />
+      <LineId Id="16" Count="0" />
+      <LineId Id="36" Count="0" />
+      <LineId Id="68" Count="0" />
+      <LineId Id="37" Count="0" />
+      <LineId Id="39" Count="0" />
+      <LineId Id="72" Count="0" />
+      <LineId Id="74" Count="6" />
+      <LineId Id="44" Count="0" />
+      <LineId Id="38" Count="0" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="81" Count="2" />
+      <LineId Id="21" Count="0" />
+      <LineId Id="84" Count="0" />
+      <LineId Id="20" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

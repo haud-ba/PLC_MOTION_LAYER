@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="ST_Out" Id="{3cf09d07-8e9c-42ec-84da-d2269b54a420}">
+    <Declaration><![CDATA[{attribute 'pack_mode' := '2'}
+TYPE ST_Out :
+STRUCT
+
+  bEnabled    : BIT; // Enabled: check if ControlLoop is closed and active
+  bReferenced : BIT; // Axis homing bit
+  bReady      : BIT; // enabled & NOT bError & no Axis Function requested
+  bBusy       : BIT; // axis function requested or active
+  bError      : BIT;
+  bTimeout    : BIT; // for move cmds or switching drive on timeout
+  bInTarget   : BIT; // ActPos = SetPos --> position check is done with configured window in NC
+  bStandstill : BIT; // No Error and NOT moving
+
+  byAxisFuncPara      : BYTE; // mirror for additional parameter for Axis Function; e.g. used for AxisIndex on GearIn
+  uiAxisFunctionState : e_AxisFunction; // mirror the requested axis function; 
+                                        // +  100 = function busy; 
+                                        // + 1000 = function done; 
+                                        // + 9000 = function error
+  uiErrorId           : UDINT;
+
+  rActPos             : LREAL;
+  rActVelo            : LREAL;
+  rPosDiff            : LREAL;
+
+  // HAUD
+  // 2023 04 05
+  dwCoupleState       : DWORD;   // cyclic information about axis couple state
+
+  {attribute 'hide'}
+  w1 : ARRAY[1..4] OF WORD;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

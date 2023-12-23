@@ -1,0 +1,66 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.9">
+  <POU Name="f_MessageSet" Id="{8eeea270-a0d8-4f12-86b6-de12ddb529a1}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION f_MessageSet : BOOL
+VAR_INPUT
+  stMessage   : ST_Message;
+END_VAR
+VAR
+  uiIndex   : INT;
+  uiFound   : INT;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[stMessage.tTime := GVL_AXIS_CTRL.gsLocalTime;
+(*
+IF stMessage.eType <> e_MessageType.eMessageEmpty
+THEN
+  FOR uiIndex := 1 TO GVL_AXIS_CTRL.gciMaxMessage
+  DO
+    IF (GVL_AXIS_CTRL.gatMessages[uiIndex].eType = stMessage.eType) AND
+       (GVL_AXIS_CTRL.gatMessages[uiIndex].eDevice = stMessage.eDevice) AND
+       (GVL_AXIS_CTRL.gatMessages[uiIndex].eSubdevice = stMessage.eSubdevice) AND
+       (GVL_AXIS_CTRL.gatMessages[uiINdex].iErrorNumber = stMessage.iErrorNumber)
+    THEN
+      uiFound := uiIndex;
+      EXIT;
+    END_IF
+  END_FOR
+END_IF
+*)
+
+// info messages are always written (logging active)
+IF (uiIndex <> 0)
+THEN
+  IF (GVL_AXIS_CTRL.gatMessages[uiIndex].eType = E_MessageType.eMessageInfo)
+  THEN
+    uiFound := 0;
+  END_IF
+END_IF
+IF (uiFound = 0)
+THEN
+  FOR uiIndex := 1 TO GVL_AXIS_CTRL.gciMaxMessage
+  DO
+    IF (GVL_AXIS_CTRL.gatMessages[uiIndex].eType = e_MessageType.eMessageEmpty)
+    THEN
+      GVL_AXIS_CTRL.gatMessages[uiIndex] := stMessage;
+      GVL_AXIS_CTRL.giMsgIndex := uiIndex;
+      EXIT;
+    END_IF
+  END_FOR
+END_IF
+
+
+
+]]></ST>
+    </Implementation>
+    <LineIds Name="f_MessageSet">
+      <LineId Id="104" Count="0" />
+      <LineId Id="151" Count="0" />
+      <LineId Id="105" Count="14" />
+      <LineId Id="152" Count="0" />
+      <LineId Id="120" Count="22" />
+      <LineId Id="7" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

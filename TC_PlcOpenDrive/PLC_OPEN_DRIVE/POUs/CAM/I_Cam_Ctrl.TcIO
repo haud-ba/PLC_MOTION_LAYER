@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <Itf Name="I_Cam_Ctrl" Id="{d121444c-d264-002c-3692-487f8a771313}">
+    <Declaration><![CDATA[INTERFACE I_Cam_Ctrl
+]]></Declaration>
+  </Itf>
+</TcPlcObject>

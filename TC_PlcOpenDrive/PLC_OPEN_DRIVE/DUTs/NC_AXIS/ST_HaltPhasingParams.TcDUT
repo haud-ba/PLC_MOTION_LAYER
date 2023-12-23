@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4023.8">
+  <DUT Name="ST_HaltPhasingParams" Id="{1226d758-8657-41d6-94aa-075a926de6b1}">
+    <Declaration><![CDATA[TYPE ST_HaltPhasingParams :
+STRUCT
+  Deceleration  : LREAL;
+  Jerk          : LREAL;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="e_AxisFunction" Id="{469d7423-6ab3-4449-9f5a-03e5c5dcaec9}">
+    <Declaration><![CDATA[{attribute 'to_string'}
+TYPE e_AxisFunction :
+(
+  AXIS_DISABLE,
+  AXIS_IDLE := 1,
+  AXIS_ENABLE := 10,
+  AXIS_HOME,
+  AXIS_MOVE_POS,
+  AXIS_MOVE_VELO,
+  AXIS_RESET,
+  AXIS_HALT,
+  AXIS_STOP,
+
+  // TODO: test
+  AXIS_MOVE_BUFFER := 20,
+  AXIS_MOVE_BUFFER_VELO,
+  AXIS_WRITE_BUFFER_MODE,
+
+
+  AXIS_PARAMETER   := 30, // axis function for reading and writing parameter
+
+
+  AXIS_GEAR_IN    := 50,
+  AXIS_GEAR_OUT,
+  AXIS_GEAR_IN_MULTIMASTER,
+
+  AXIS_CAM_IN   := 60,
+  AXIS_CAM_OUT,
+
+  AXIS_SS1_STOP   :=  99,
+  AXIS_BUSY       := 100,
+  AXIS_DONE       := 1000,
+
+  ERROR           := 9000
+)UINT;
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

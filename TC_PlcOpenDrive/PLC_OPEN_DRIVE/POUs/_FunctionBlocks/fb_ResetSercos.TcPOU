@@ -1,0 +1,118 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.4">
+  <POU Name="fb_ResetSercos" Id="{856d70c9-1021-4167-8bb7-de6508ec018e}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK fb_ResetSercos
+VAR_INPUT
+	bExecute  : BOOL;
+	eDevice		: e_Device;
+	p_AxisRef	: POINTER TO Tc2_MC2.AXIS_REF;
+END_VAR
+VAR_OUTPUT
+	stMcOutput : ST_McOutputs;
+END_VAR
+VAR
+	diStep			: DINT;
+	tonDelay		: ton;
+	_stMessage	: ST_Message;
+	fbResetSercos		: FB_SoEReset;
+	iRepeat			: INT;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF NOT bExecute
+THEN
+	stMcOutput.Active := FALSE;
+	stMcOutput.Done := FALSE;
+	diStep := 0;
+END_IF
+
+IF bExecute AND diStep = 0
+THEN
+	diStep := 10;
+END_IF
+
+IF p_AxisRef = 0
+THEN
+	RETURN;
+END_IF
+
+CASE diStep OF
+
+	0:
+		iRepeat := 0;
+		tonDelay(IN:= FALSE);
+		fbResetSercos(
+			NetId:= , 
+			Execute:= FALSE, 
+			Timeout:= , 
+			Axis:= p_AxisRef^, 
+			Busy=> , 
+			Error=> , 
+			AdsErrId=> , 
+			SercosErrId=> );
+
+	10:
+		stMcOutput.Active := TRUE;
+		tonDelay(PT:= T#1500MS, IN:= TRUE);
+		fbResetSercos(
+			NetId:= , 
+			Execute:= TRUE, 
+			Timeout:= , 
+			Axis:= p_AxisRef^, 
+			Busy=> , 
+			Error=> , 
+			AdsErrId=> , 
+			SercosErrId=> );
+
+		IF NOT fbResetSercos.Busy
+		THEN
+			diStep := 20;
+		END_IF
+
+		IF tonDelay.Q AND p_AxisRef^.NcToPlc.StateDWord.28
+		THEN
+			iRepeat := iRepeat + 1;
+			tonDelay(IN:= FALSE);
+			fbResetSercos(
+				NetId:= , 
+				Execute:= FALSE, 
+				Timeout:= , 
+				Axis:= p_AxisRef^, 
+				Busy=> , 
+				Error=> , 
+				AdsErrId=> , 
+				SercosErrId=> );
+		END_IF
+ 
+
+	20:
+		stMcOutput.Done := TRUE;
+
+		IF NOT bExecute
+		THEN
+			fbResetSercos(Execute:= FALSE, Axis:= p_AxisRef^);
+			memset(ADR(stMcOutput), 0, SIZEOF(stMcOutput));
+			diStep :=0;
+		END_IF
+END_CASE
+
+stMcOutput.Busy 		:= fbResetSercos.Busy;
+stMcOutput.Error 		:= fbResetSercos.Error;
+stMcOutput.ErrorID 	:= fbResetSercos.SercosErrId;
+
+// push error
+IF fbResetSercos.Execute AND fbResetSercos.Error THEN
+	_stMessage.eDevice := eDevice;
+	_stMessage.eSubdevice := e_SubDevice.fbResetSercos;
+	_stMessage.iErrorNumber := fbResetSercos.SercosErrId;
+	_stMessage.tTime := GVL_AXIS_CTRL.gsLocalTime;
+
+	f_MessageSet(_stMessage);
+END_IF
+]]></ST>
+    </Implementation>
+    <LineIds Name="fb_ResetSercos">
+      <LineId Id="243" Count="89" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

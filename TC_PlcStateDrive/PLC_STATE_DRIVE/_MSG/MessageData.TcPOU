@@ -1,0 +1,571 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="MessageData" Id="{cbf579ba-877c-0512-0a45-14c3e31a789c}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM MessageData
+VAR_INPUT
+	bPowerFail		: BOOL;
+	bWriteFile		: BOOL;
+	bReset				: BOOL;
+	pList					: POINTER TO ARRAY[1..PLC_CONSTANT.MAX_MESSAGE] OF ST_Message;
+	pLocalTime		: POINTER TO DT; 
+END_VAR
+VAR_OUTPUT
+	bBusy					: BOOL;
+  bDone         : BOOL;
+	VisuList		  : ARRAY[1..PLC_CONSTANT.MAX_MESSAGE] OF ST_Message;
+END_VAR
+VAR
+	nState 				: DINT;
+
+	rtrigReset		: Tc2_Standard.R_TRIG;
+	aWriteList		: ARRAY[1..PLC_CONSTANT.MAX_MESSAGE] OF ST_Message;
+	sWriteData		: STRING(32767);
+	sNewLine			: STRING := '$N';
+	sTab					: STRING := '$T';
+	iCount, 
+	iStart, 
+	iEnd					: INT;
+
+	fbCreateDir		: Tc2_System.FB_CreateDir;
+	sTmp          : STRING(256);
+	sFilename			: STRING(256);
+	sFolderDate		: STRING;
+	bFileCreated	: BOOL;
+
+	fbFileOpen		  : Tc2_System.FB_FileOpen;
+	fbFileWrite		  : Tc2_System.FB_FileWrite;
+	fbFileClose		  : Tc2_System.FB_FileClose;
+
+  ivis          : INT;
+
+  bBusyWrite,
+  bErrorWrite   : BOOL;
+  nErrorWrite   : UDINT;
+  nStateWrite   : UINT;
+END_VAR
+VAR CONSTANT
+	MSG_WRITE_COUNT	: INT := 100;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[(* pointer check *)
+IF NOT (pList <> 0) OR
+	 NOT (pLocalTime <> 0)
+THEN
+	RETURN;
+END_IF
+
+IF (FolderDate(pLocalTime) <> sFolderDate)
+THEN
+	bFileCreated := FALSE;
+END_IF
+
+
+rtrigReset(CLK:= bReset);
+IF rtrigReset.Q
+THEN
+	bReset := FALSE;
+	nState := 0;
+END_IF
+
+
+CASE nState OF
+	0:
+		bBusy := bDone := FALSE;
+    IF bWriteFile
+    THEN
+      nState := 5;
+		ELSIF (GVL_MSG.MessageIndex >= MSG_WRITE_COUNT) OR
+			     bPowerFail
+		THEN
+      IF GVL_MSG.EnableLogging
+      THEN
+        nState := 5;
+      END_IF
+		END_IF
+END_CASE
+CASE nState OF
+  5:
+			memcpy(ADR(aWriteList), pList, SIZEOF(aWriteList));
+			memset(pList, 0, SIZEOF(aWriteList));
+			bBusy   := TRUE;
+			iStart 	:= 1;
+			iEnd 		:= SEL((GVL_MSG.MessageIndex > PLC_CONSTANT.MAX_MESSAGE),GVL_MSG.MessageIndex,PLC_CONSTANT.MAX_MESSAGE);
+			GVL_MSG.MessageIndex := 1;
+
+      WriteData(FALSE);
+
+			IF NOT bFileCreated
+			THEN
+				nState := 10;
+			ELSE
+				nState := 200;
+			END_IF
+END_CASE
+CASE nState OF
+	10:
+		fbCreateDir.sPathName := left(PLC_CONSTANT.LOG_DIR,len(PLC_CONSTANT.LOG_DIR)-1);
+    fbCreateDir(bExecute	:= FALSE);
+		nState := 20;
+
+	20:
+		(* create root folder *)
+    fbCreateDir(bExecute	:= TRUE);
+		IF fbCreateDir.bBusy
+		THEN
+			nState := 30;
+		END_IF
+
+	30:
+    fbCreateDir(bExecute	:= TRUE);
+		IF NOT fbCreateDir.bBusy
+		THEN
+			sFolderDate := FolderDate(pLocalTime);
+			fbCreateDir.sPathName := concat(PLC_CONSTANT.LOG_DIR, sFolderDate);
+      fbCreateDir(bExecute	:= FALSE);
+			nState := 40;
+		END_IF
+
+	40:
+		(* create active folder *)
+    fbCreateDir(bExecute	:= TRUE);
+		IF fbCreateDir.bBusy
+		THEN
+			nState := 50;
+		END_IF
+
+	50:
+    fbCreateDir(bExecute	:= TRUE);
+		IF NOT fbCreateDir.bBusy
+		THEN
+      fbCreateDir(bExecute	:= FALSE);
+			// build complete file path
+			sTmp := concat(concat(PLC_CONSTANT.LOG_FILE, sFolderDate),'.txt');
+			sTmp := concat('\', sTmp);
+			sFilename := concat(fbCreateDir.sPathName, sTmp);
+			bFileCreated := TRUE;
+			nState := 200;
+		END_IF
+
+END_CASE
+CASE nState OF
+	200:
+		memset(ADR(sWriteData),0,SIZEOF(sWriteData));
+		iCount := iStart;
+		nState := 220;
+
+	220:
+		IF aWriteList[iCount].eType > 0
+		THEN
+			sTmp := TO_STRING(aWriteList[iCount].eType);
+			sTmp := Tc2_Standard.CONCAT(sTmp, sTab);
+			sTmp := Tc2_Standard.CONCAT(sTmp, aWriteList[iCount].tTime);
+			sTmp := Tc2_Standard.CONCAT(sTmp, sTab);
+			sTmp := Tc2_Standard.CONCAT(sTmp, Device_To_String(aWriteList[iCount].eDevice));
+			sTmp := Tc2_Standard.CONCAT(sTmp, sTab);
+			sTmp := Tc2_Standard.CONCAT(sTmp, TO_STRING(aWriteList[iCount].eSubdevice));
+			sTmp := Tc2_Standard.CONCAT(sTmp, sTab);
+			sTmp := Tc2_Standard.CONCAT(sTmp, TO_STRING(aWriteList[iCount].iErrorNumber));
+			sTmp := Tc2_Standard.CONCAT(sTmp, sTab);
+			sTmp := Tc2_Standard.CONCAT(sTmp, aWriteList[iCount].sText);
+			sTmp := Tc2_Standard.CONCAT(sTmp, sNewLine);
+			Builder(ADR(sTmp), ADR(sWriteData), StringLen(ADR(sTmp)));
+		END_IF
+		iCount := iCount + 1;
+		nState := 225;
+
+	225:
+		IF iCount > iEnd
+		THEN
+			IF (StringLen(ADR(sWriteData)) > 0)
+			THEN
+				nState := 230;
+			ELSE
+				nState := 250;
+			END_IF
+		ELSE
+			nState := 220;
+		END_IF
+
+
+	230:
+		IF WriteData(TRUE)
+		THEN
+			nState := 240;
+		END_IF
+
+	240:
+    WriteData(FALSE);
+		nState := 250;
+
+
+	250:
+    bDone := TRUE;
+		IF NOT bWriteFile
+		THEN
+			nState := 0;
+		END_IF
+END_CASE
+
+
+memset(ADR(VisuList),0,SIZEOF(VisuList));
+
+// copy list for visu
+FOR ivis := 1 TO GVL_MSG.MessageIndex
+DO
+  VisuList[ivis] := pList^[ivis];
+END_FOR
+
+]]></ST>
+    </Implementation>
+    <Method Name="Builder" Id="{e7f6a64d-5362-0a59-3bd9-ff631826ba13}">
+      <Declaration><![CDATA[METHOD Builder : BOOL // string concat for length > 255
+VAR_INPUT
+  pInString   : POINTER TO STRING;
+  pOutString  : POINTER TO STRING(32767);
+  Length      : UINT;
+END_VAR
+VAR
+  Counter     : DINT;
+  pInWork     : POINTER TO BYTE;
+  pOutWork    : POINTER TO BYTE;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[pOutWork := pOutString;
+pInWork := pInString;
+Counter := 0;
+
+(*check termination*)
+WHILE (pOutWork^ <> 0) AND
+      (Counter < 32767)
+DO
+  Counter := Counter + 1;
+  pOutWork := pOutWork + 1;
+END_WHILE
+
+(* append only if data fits into output *)
+IF (Counter + Length < 32767)
+THEN
+
+  (* append data *)
+  FOR Counter := 1 TO Length
+  DO
+    pOutWork^ := pInWork^;
+    pOutWork := pOutWork + 1;
+    pInWork := pInWork + 1;
+  END_FOR
+
+  (* terminate *)
+  pOutWork := pOutWork + 1;
+  pOutWork^ := 0;
+END_IF
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Device_to_String" Id="{a4fca8d1-7396-0a84-395c-ec256a43027b}">
+      <Declaration><![CDATA[METHOD Device_to_String : string
+VAR_INPUT
+  eMsgDevice    : e_Device;
+END_VAR
+VAR
+  // first NC Axis, all other Axis are incremented
+  nmodAxis            : DINT := 1000;
+
+  // first NCI channel control instance
+  nmodNciChannelCtrl  : DINT := 2000;
+
+  // NCI channel
+  nmodNciChannel      : DINT := 3000;
+
+  // message function blocks
+  nmodData            : DINT := 10000;
+
+  sId                 : STRING := '_ID_';
+  nId                 : DINT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[
+IF (eMsgDevice <= nmodAxis)
+THEN
+  // general case with no added indices
+  Device_to_String := TO_STRING(eMsgDevice);
+ELSE
+
+  IF (eMsgDevice > nModData)
+  THEN
+    nId := eMsgDevice MOD nmodData;
+    sId := concat(sId, TO_STRING(nId));
+ 
+    Device_to_String := concat(TO_STRING(e_device.Data), sId);
+
+  ELSIF (eMsgDevice > nmodNciChannel)
+  THEN
+    nId := eMsgDevice MOD nmodNciChannel;
+    sId := concat(sId, TO_STRING(nId));
+ 
+    Device_to_String := concat(TO_STRING(e_device.NciChannel), sId);
+
+  ELSIF (eMsgDevice > nmodNciChannelCtrl)
+  THEN
+    nId := eMsgDevice MOD nmodNciChannelCtrl;
+    sId := concat(sId, TO_STRING(nId));
+ 
+    Device_to_String := concat(TO_STRING(e_device.NciChannelCtrl), sId);
+
+  ELSIF (eMsgDevice > nmodAxis)
+  THEN
+    nId := eMsgDevice MOD nmodAxis;
+    sId := concat(sId, TO_STRING(nId));
+ 
+    Device_to_String := concat(TO_STRING(e_device.Axis), sId);
+  ELSE
+    Device_to_String := TO_STRING(eMsgDevice);
+  END_IF
+END_IF
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="FolderDate" Id="{769271c2-f3d0-0e78-1191-f90d8d6bf2eb}">
+      <Declaration><![CDATA[METHOD FolderDate : STRING
+VAR_INPUT
+	pLocalTime		: POINTER TO DT;
+END_VAR
+VAR
+	sTmp					: STRING;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT (pLocalTime <> 0)
+THEN
+	FolderDate := 'NULL';
+	RETURN;
+END_IF
+
+sTmp := DT_TO_STRING(pLocalTime^);
+
+// cut off #dt literal
+sTmp := right(sTmp, len(sTmp)-3);
+
+sTmp := replace(sTmp, '_', 1, 5);
+sTmp := replace(sTmp, '_', 1, 8);
+
+sTmp := left(sTmp,10);	// year_month_day
+
+FolderDate := sTmp;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="StringLen" Id="{4b37d558-187c-07d9-2288-9af673b19b4e}">
+      <Declaration><![CDATA[METHOD StringLen : UINT // 	string length for len > 255
+VAR_INPUT
+  pInString		: POINTER TO STRING(32767);
+END_VAR
+VAR
+	Counter			: UINT;
+	pInWork			: POINTER TO BYTE;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[pInWork := pInString;
+Counter := 0;
+
+WHILE (pInWork^ <> 0) AND
+			(Counter < 32767)
+DO
+	Counter := Counter + 1;
+	pInWork := pInWork + 1;
+END_WHILE
+
+StringLen := Counter;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="WriteData" Id="{fc730c43-20dd-03f0-168b-c4b918814d9f}">
+      <Declaration><![CDATA[METHOD WriteData  : BOOL
+VAR_INPUT
+  bExecute        : BOOL;
+END_VAR
+VAR
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[
+IF NOT bExecute
+THEN
+  bBusyWrite                := FALSE;
+	nStateWrite               := 0;
+END_IF
+
+CASE nStateWrite OF
+
+	0:
+		fbFileOpen.bExecute		  := FALSE;
+		fbFileWrite.bExecute	  := FALSE;
+		fbFileClose.bExecute	  := FALSE;
+
+		IF bExecute
+		THEN
+			bBusyWrite            := TRUE;
+			nStateWrite           := 10;
+		END_IF
+
+	10:
+		fbFileOpen.bExecute     := TRUE;
+		IF fbFileOpen.bBusy
+		THEN
+			nStateWrite           := 20;
+		END_IF
+
+	20:
+		IF NOT fbFileOpen.bBusy
+		THEN
+			fbFileOpen.bExecute   := FALSE;
+			fbFileWrite.bExecute  := TRUE;
+			nStateWrite           := 30;
+		END_IF
+
+	30:
+		IF fbFileWrite.bBusy
+		THEN
+			nStateWrite           := 40;
+		END_IF
+
+	40:
+		IF NOT fbFileWrite.bBusy
+		THEN
+			fbFileWrite.bExecute  := FALSE;
+			fbFileClose.bExecute  := TRUE;
+			nStateWrite           := 50;
+		END_IF
+
+	50:
+		IF fbFileClose.bBusy
+		THEN
+			nStateWrite           := 60;
+		END_IF
+
+	60:
+		IF NOT fbFileClose.bBusy
+		THEN
+			fbFileClose.bExecute  := FALSE;
+			nStateWrite 		      := 100;
+		END_IF
+	
+	100:
+    WriteData               := TRUE;
+END_CASE
+
+
+fbFileOpen(
+	sNetId:= , 
+	sPathName:= sFileName, 
+	nMode:= FOPEN_MODEAPPEND, 
+	ePath:= PATH_GENERIC, 
+	bExecute:= , 
+	tTimeout:= T#10S, 
+	bBusy=> , 
+	bError=> , 
+	nErrId=> , 
+	hFile=> );
+
+fbFileWrite(
+	sNetId:= , 
+	hFile:= fbFileOpen.hFile, 
+	pWriteBuff:= ADR(sWriteData), 
+	cbWriteLen:= StringLen(ADR(sWriteData)), 
+	bExecute:= , 
+	tTimeout:= T#10S, 
+	bBusy=> , 
+	bError=> , 
+	nErrId=> nErrorWrite, 
+	cbWrite=> );
+
+fbFileClose(
+	sNetId:= , 
+	hFile:= fbFileOpen.hFile, 
+	bExecute:= , 
+	tTimeout:= T#10S, 
+	bBusy=> , 
+	bError=> , 
+	nErrId=> );
+
+bErrorWrite := fbFileOpen.bError OR fbFileWrite.bError;
+]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="MessageData">
+      <LineId Id="2900" Count="25" />
+      <LineId Id="2928" Count="0" />
+      <LineId Id="2930" Count="16" />
+      <LineId Id="3092" Count="0" />
+      <LineId Id="2947" Count="0" />
+      <LineId Id="3144" Count="0" />
+      <LineId Id="2949" Count="9" />
+      <LineId Id="2960" Count="0" />
+      <LineId Id="3141" Count="0" />
+      <LineId Id="2961" Count="2" />
+      <LineId Id="3140" Count="0" />
+      <LineId Id="2965" Count="5" />
+      <LineId Id="3142" Count="0" />
+      <LineId Id="2971" Count="16" />
+      <LineId Id="3143" Count="0" />
+      <LineId Id="2988" Count="52" />
+      <LineId Id="3042" Count="5" />
+      <LineId Id="3093" Count="0" />
+      <LineId Id="3051" Count="3" />
+      <LineId Id="3086" Count="0" />
+      <LineId Id="3055" Count="5" />
+      <LineId Id="3068" Count="0" />
+      <LineId Id="3077" Count="7" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="MessageData.Builder">
+      <LineId Id="16" Count="27" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="MessageData.Device_to_String">
+      <LineId Id="24" Count="2" />
+      <LineId Id="30" Count="0" />
+      <LineId Id="27" Count="1" />
+      <LineId Id="34" Count="0" />
+      <LineId Id="32" Count="0" />
+      <LineId Id="35" Count="1" />
+      <LineId Id="39" Count="1" />
+      <LineId Id="38" Count="0" />
+      <LineId Id="42" Count="0" />
+      <LineId Id="41" Count="0" />
+      <LineId Id="43" Count="0" />
+      <LineId Id="46" Count="3" />
+      <LineId Id="44" Count="0" />
+      <LineId Id="50" Count="5" />
+      <LineId Id="45" Count="0" />
+      <LineId Id="56" Count="7" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="31" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="MessageData.FolderDate">
+      <LineId Id="10" Count="12" />
+      <LineId Id="25" Count="1" />
+      <LineId Id="28" Count="1" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="MessageData.StringLen">
+      <LineId Id="12" Count="9" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="MessageData.WriteData">
+      <LineId Id="11" Count="2" />
+      <LineId Id="124" Count="0" />
+      <LineId Id="14" Count="8" />
+      <LineId Id="123" Count="0" />
+      <LineId Id="25" Count="1" />
+      <LineId Id="28" Count="42" />
+      <LineId Id="72" Count="3" />
+      <LineId Id="122" Count="0" />
+      <LineId Id="78" Count="36" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

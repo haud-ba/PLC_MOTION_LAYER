@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.9">
+  <DUT Name="ST_R_Parameter" Id="{5924d26c-6f67-0c87-2920-c6282731e13e}">
+    <Declaration><![CDATA[{attribute 'pack_mode' := '2'}
+TYPE ST_R_Parameter :
+STRUCT
+{IF defined (AXIS_MAP)}
+  {info 'NCI channel mapping for test'}
+  _nStart        AT %I* : DINT;
+  _nCount        AT %I* : DINT;
+  _rRParamsWrite AT %I* : ARRAY[0..GVL_NCI.cRParamCount] OF LREAL;
+  _rRParamsRead  AT %Q* : ARRAY[0..GVL_NCI.cRParamCount] OF LREAL;
+{ELSE}
+  _nStart               : DINT := 901;
+  _nCount               : DINT :=   4;
+  _rRParamsWrite        : ARRAY[0..GVL_NCI.cRParamCount] OF LREAL := [11.11, 22.22, 33.33, 456.22];
+  _rRParamsRead         : ARRAY[0..GVL_NCI.cRParamCount] OF LREAL;
+{END_IF}
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

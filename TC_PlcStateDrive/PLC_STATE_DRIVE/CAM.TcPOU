@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="CAM" Id="{9788bdef-fe43-088d-22e7-ce2c54a5a9f7}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM CAM
+VAR
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF NOT PLC_CONSTANT.CAM_ACTIVE THEN RETURN; END_IF
+]]></ST>
+    </Implementation>
+    <LineIds Name="CAM">
+      <LineId Id="5" Count="1" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

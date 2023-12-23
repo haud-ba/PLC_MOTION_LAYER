@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4023.8">
+  <DUT Name="ST_HaltParams" Id="{c876b19c-d492-4f44-88ea-2718afa0fa30}">
+    <Declaration><![CDATA[TYPE ST_HaltParams :
+STRUCT
+  Deceleration  : LREAL;
+  Jerk          : LREAL;
+  BufferMode    : Tc2_MC2.MC_BufferMode;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

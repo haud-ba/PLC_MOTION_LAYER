@@ -1,0 +1,111 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="MAIN" Id="{b9c2507d-2926-4719-8f82-549e0347748a}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM MAIN
+VAR
+  nAxis                     : UINT;
+
+
+  bWriteLog                 : BOOL;
+  rtrigWriteFile            : Tc2_Standard.R_TRIG;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[// Local time; used for timestamps
+GVL_MSG.fbLocalTime(sLocalTime=> GVL_MSG.sLocalTime, dtLocalTime=> GVL_MSG.dtLocalTime);
+
+//-----------------------------------------------------------------------------------------------------------------
+// /assign dataflow
+//-----------------------------------------------------------------------------------------------------------------
+FOR nAxis := 1 TO PLC_CONSTANT.MAX_AXIS
+DO
+  GVL_AXIS.Control[nAxis].AxisIndex               := nAxis;
+
+  GVL_AXIS.Control[nAxis].AxisCtrl                := ADR(GVL_AXIS.Ctrl);          // data structure for extern control to write into
+  GVL_AXIS.Control[nAxis].AxisState               := ADR(GVL_AXIS.State);         // data structure for extern control to read from
+  GVL_AXIS.Control[nAxis].AxisRef                 := ADR(GVL_AXIS.AxisRef);       // cyclic NC mapping
+
+  GVL_AXIS.Control[nAxis].AxisInfo                := ADR(GVL_AXIS.Info);          // act values and bits from axis
+  GVL_AXIS.Control[nAxis].AxisData                := ADR(GVL_AXIS.Data);          // position and dynamic constraints for movement
+  GVL_AXIS.Control[nAxis].AxisGearInParameter     := ADR(GVL_AXIS.GearInParameter);
+  GVL_AXIS.Control[nAxis].AxisNcParameter         := ADR(GVL_AXIS.NcParameter);
+  GVL_AXIS.Control[nAxis].MultiMasterGearIn       := ADR(GVL_AXIS.GearMultiMasterParameter);
+  GVL_AXIS.Control[nAxis].HomingParameter         := ADR(GVL_AXIS.HomeParameter);
+  GVL_AXIS.Control[nAxis].MotionOptions           := ADR(GVL_AXIS.MotionOptions);
+END_FOR
+//-----------------------------------------------------------------------------------------------------------------
+// assign dataflow/
+//-----------------------------------------------------------------------------------------------------------------
+
+
+//-----------------------------------------------------------------------------------------------------------------
+// /cyclic
+//-----------------------------------------------------------------------------------------------------------------
+FOR nAxis := 1 TO PLC_CONSTANT.MAX_AXIS
+DO
+  GVL_AXIS.Control[nAxis]();
+END_FOR
+//-----------------------------------------------------------------------------------------------------------------
+// cyclic/
+//-----------------------------------------------------------------------------------------------------------------
+
+
+//-----------------------------------------------------------------------------------------------------------------
+// /logging
+//-----------------------------------------------------------------------------------------------------------------
+rtrigWriteFile(CLK:= bWriteLog);
+IF rtrigWriteFile.Q
+THEN
+  MessageData.bWriteFile := TRUE;
+END_IF
+
+//-----------------------------------------------------------------------------------------------------------------
+// write message list to file
+//-----------------------------------------------------------------------------------------------------------------
+MessageData(pList			        := ADR(GVL_MSG.Messages),
+			      pLocalTime        := ADR(GVL_MSG.dtLocalTime), 
+			      bBusy=> );
+
+// clear write trigger
+IF MessageData.bWriteFile AND
+   MessageData.bDone
+THEN
+  bWriteLog                   := FALSE;
+  MessageData.bWriteFile      := FALSE;
+END_IF
+//-----------------------------------------------------------------------------------------------------------------
+// logging/
+//-----------------------------------------------------------------------------------------------------------------
+
+
+]]></ST>
+    </Implementation>
+    <LineIds Name="MAIN">
+      <LineId Id="34" Count="1" />
+      <LineId Id="31" Count="0" />
+      <LineId Id="77" Count="2" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="36" Count="0" />
+      <LineId Id="102" Count="1" />
+      <LineId Id="6" Count="0" />
+      <LineId Id="95" Count="0" />
+      <LineId Id="97" Count="0" />
+      <LineId Id="110" Count="0" />
+      <LineId Id="100" Count="0" />
+      <LineId Id="99" Count="0" />
+      <LineId Id="101" Count="0" />
+      <LineId Id="104" Count="3" />
+      <LineId Id="7" Count="0" />
+      <LineId Id="80" Count="14" />
+      <LineId Id="63" Count="0" />
+      <LineId Id="73" Count="0" />
+      <LineId Id="65" Count="7" />
+      <LineId Id="38" Count="0" />
+      <LineId Id="40" Count="13" />
+      <LineId Id="74" Count="2" />
+      <LineId Id="39" Count="0" />
+      <LineId Id="37" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

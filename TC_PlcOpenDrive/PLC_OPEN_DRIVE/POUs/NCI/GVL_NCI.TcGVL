@@ -1,0 +1,67 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.9">
+  <GVL Name="GVL_NCI" Id="{d5ac2177-99d3-0b67-1c75-c60143fba2fa}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL CONSTANT
+  cPathSteps            : UINT    := 5;  //Path-Steps[0]:Velo, [1]:X, [2]:Y, [3]:Z
+  cMcAxisCount          : UINT    := 8;
+  cAuxAxisCount         : UINT    := 8;
+  cRParamCount          : UINT    := 10;
+
+  cNciSpec              : STRING  := 'NCI_Spec_Ch_';
+
+  cMaxNciCh             : INT     :=  1;
+
+{IF defined (NCI)}
+  {info 'NCI channel active'}
+  cNci                  : BOOL := TRUE;
+{ELSE}
+  {info 'NCI channel NOT active'}
+  cNci                  : BOOL := FALSE;
+{END_IF}
+
+
+{IF defined (WIN)}
+  {info 'WIN folders'}
+  cNciDir              : STRING   := 'C:\TwinCAT\Mc\Nci\';
+{ELSE}
+  {info 'BSD folders'}
+  cNciDir              : STRING   := '/usr/local/etc/TwinCAT/Mc/Nci/';
+{END_IF}
+END_VAR
+VAR_GLOBAL
+
+{IF defined (AXIS_MAP)}
+  {info 'NCI channel mapping for test'}
+  gstAxisIndex      AT %I*    : ARRAY[1..cMaxNciCh] OF ST_Index_Group;  // index of gstAxisCtontrl[]
+  gstAxisConfig     AT %I*    : ARRAY[1..cMaxNciCh] OF ST_3D_Group;     // NC Axis Id to build NCI group
+
+  gstChannelCtrl    AT %I*    : ARRAY[1..cMaxNciCh] OF ST_CTRL_NCI;
+  gstChannelState   AT %Q*    : ARRAY[1..cMaxNciCh] OF ST_STATE_NCI;
+
+  gsProgName        AT %I*    : ARRAY[1..cMaxNciCh] OF STRING(255);
+  gsProgNameActive  AT %Q*    : ARRAY[1..cMaxNciCh] OF STRING(255);
+{ELSE}
+
+  // ADS R/W data:
+  gstAxisIndex                : ARRAY[1..cMaxNciCh] OF ST_Index_Group;  // index of gstAxisCtontrl[]
+  gstAxisConfig               : ARRAY[1..cMaxNciCh] OF ST_3D_Group;     // NC Axis Id to build NCI group
+
+  gstChannelCtrl              : ARRAY[1..cMaxNciCh] OF ST_CTRL_NCI;
+  gstChannelState             : ARRAY[1..cMaxNciCh] OF ST_STATE_NCI;
+
+  gsProgName                  : ARRAY[1..cMaxNciCh] OF STRING(255):= ['/usr/local/etc/TwinCAT/Mc/Nci/Test_GST.nc'];
+  gsProgNameActive            : ARRAY[1..cMaxNciCh] OF STRING(255);
+{END_IF}
+
+  gstRParameter               : ARRAY[1..cMaxNciCh] OF ST_R_Parameter;
+
+{IF defined (NCI)}
+  gfbNciCtrl            : ARRAY[1..cMaxNciCh] OF FB_Ctrl_NciChannel;
+{ELSE}
+  gfbNciCtrl            : ARRAY[1..cMaxNciCh] OF I_Nci_Ctrl;
+{END_IF}
+END_VAR
+]]></Declaration>
+  </GVL>
+</TcPlcObject>
