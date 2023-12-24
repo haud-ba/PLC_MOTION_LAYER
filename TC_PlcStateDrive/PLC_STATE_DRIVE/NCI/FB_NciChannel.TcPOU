@@ -4,16 +4,22 @@
     <Declaration><![CDATA[FUNCTION_BLOCK FB_NciChannel IMPLEMENTS I_NciChannel
 VAR
   stMsg                 : ST_Message;
-  ChannelDevice         : e_Device;
+  ChannelDevice         : e_Device := e_Device.NciChannel;
+
+  _eCheck               : E_CHECK_STATE;
+
 
 //NCI-Channel reference
   _refNciChannelRef     : POINTER TO ST_NciChannel_Ref;
 
+//Configured Group Axes
+  _stCfgAxes            : Tc2_NCI.NCI_EXT3DGROUP;
+
 //MCS-Axes
-  _ipMcsAxis            : ARRAY[1..MAX_NCI_CH] OF I_McAxis;
+  _ipMcsAxis            : ARRAY[1..MAX_MC_AXIS]  OF I_McAxis;
 
 //Aux-Axes
-  _ipAuxAxis            : ARRAY[1..MAX_NCI_CH] OF I_McAxis;
+  _ipAuxAxis            : ARRAY[1..MAX_AUX_AXIS] OF I_McAxis;
 
 
   _iMcCount,
@@ -32,8 +38,6 @@ VAR
 //NCI-Group
   fbBuildGroup          : Tc2_NCI.CfgBuildExt3DGroup;
   fbClearGroup          : Tc2_NCI.CfgReconfigGroup;
-
-  _stCfgAxes            : Tc2_NCI.NCI_EXT3DGROUP;   //Configured Group Axes
 
   _fOverride            : LREAL := 100;
 
@@ -68,82 +72,7 @@ END_VAR
     <Implementation>
       <ST><![CDATA[
 
-IF NOT (_refNciChannelRef^.NcToPlc.ChnId <> 0)
-THEN
-  RETURN;
-END_IF
 
-ChannelDevice := e_Device.NciChannel + (_refNciChannelRef.NcToPlc.ChnId);
-
-_iMcCount   := 0;
-_iAuxCount  := 0;
-
-FOR _mdx := 1 TO GVL_NCI.cMcAxisCount
-DO
-  IF (_ipMcsAxis[_mdx] <> 0)
-  THEN
-    _iMcCount := _iMcCount + 1;
-  END_IF
-END_FOR
-
-FOR _adx := 1 TO GVL_NCI.cAuxAxisCount
-DO
-  IF (_ipAuxAxis[_adx] <> 0)
-  THEN
-    _iAuxCount := _iAuxCount + 1;
-  END_IF
-END_FOR
-
-IF (_iAuxCount <> _iAuxCountConfigured) OR
-   (_iMcCount  <> _iMcCountConfigured) 
-THEN
-  // get first occurance of error
-  IF NOT _bMcAxisMismatch
-  THEN
-    stMsg.eType             := E_MessageType.eMessageError;
-    stMsg.eDevice           := ChannelDevice;
-    stMsg.eSubdevice        := e_Subdevice.General;
-    stMsg.iErrorNumber      := E_NCI_CHANNEL_ERROR.e_AxisConfigurationMismatch_McAxis;
-    stMsg.sText             := 'MC Axis count mismatch';
-    f_MessageSet(stMsg);
-  END_IF
-
-  // get first ocurrance of error
-  IF NOT _bAuxAxisMismatch
-  THEN
-    stMsg.eType             := E_MessageType.eMessageError;
-    stMsg.eDevice           := ChannelDevice;
-    stMsg.eSubdevice        := e_Subdevice.General;
-    stMsg.iErrorNumber      := E_NCI_CHANNEL_ERROR.e_AxisConfigurationMismatch_AuxAxis;
-    stMsg.sText             := 'Aux Axis count mismatch';
-    f_MessageSet(stMsg);
-  END_IF
-ELSE
-  // get change of error
-  IF _bMcAxisMismatch
-  THEN
-    stMsg.eType             := E_MessageType.eMessageInfo;
-    stMsg.eDevice           := ChannelDevice;
-    stMsg.eSubdevice        := e_Subdevice.General;
-    stMsg.iErrorNumber      := E_NCI_CHANNEL_ERROR.e_AxisConfigurationMismatch_McAxis;
-    stMsg.sText             := 'MC Axis count match';
-    f_MessageSet(stMsg);
-  END_IF
-
-  // get change of error
-  IF _bAuxAxisMismatch
-  THEN
-    stMsg.eType             := E_MessageType.eMessageInfo;
-    stMsg.eDevice           := ChannelDevice;
-    stMsg.eSubdevice        := e_Subdevice.General;
-    stMsg.iErrorNumber      := E_NCI_CHANNEL_ERROR.e_AxisConfigurationMismatch_AuxAxis;
-    stMsg.sText             := 'Aux Axis count match';
-    f_MessageSet(stMsg);
-  END_IF
-END_IF
-
-_bMcAxisMismatch  := (_iMcCount  <> _iMcCountConfigured);
-_bAuxAxisMismatch := (_iAuxCount <> _iAuxCountConfigured);
 
 
 ]]></ST>
@@ -321,11 +250,47 @@ PROPERTY CfgAxes : Tc2_NCI.NCI_EXT3DGROUP
     </Property>
     <Method Name="Check" Id="{d9ef509f-396a-0fec-3bd3-8c28926cfe17}" FolderPath="private\">
       <Declaration><![CDATA[METHOD PRIVATE Check : BOOL
-VAR_INPUT
+VAR
+  _idx      : uint;
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[]]></ST>
+        <ST><![CDATA[IF NOT (_refNciChannelRef^.NcToPlc.ChnId <> 0)
+THEN
+  _eCheck                       := E_CHECK_STATE.NCI_CHANNEL_REF_POINTER_INVALID;
+  RETURN;
+END_IF
+
+IF (_stCfgAxes.nXAxisId <> 0)
+THEN
+  IF NOT (_ipMcsAxis[1] <> 0)
+  THEN
+    _eCheck                       := E_CHECK_STATE.NCI_MCS_AXIS_POINTER_INVALID;
+    RETURN;
+  END_IF
+END_IF
+
+IF (_stCfgAxes.nYAxisId <> 0)
+THEN
+  IF NOT (_ipMcsAxis[2] <> 0)
+  THEN
+    _eCheck                       := E_CHECK_STATE.NCI_MCS_AXIS_POINTER_INVALID;
+    RETURN;
+  END_IF
+END_IF
+
+IF (_stCfgAxes.nZAxisId <> 0)
+THEN
+  IF NOT (_ipMcsAxis[3] <> 0)
+  THEN
+    _eCheck                       := E_CHECK_STATE.NCI_MCS_AXIS_POINTER_INVALID;
+    RETURN;
+  END_IF
+END_IF
+
+
+
+]]></ST>
       </Implementation>
     </Method>
     <Method Name="ClearGroup" Id="{ba742d26-d2d1-0439-2b05-0521cf1c693b}" FolderPath="methods\">
@@ -476,7 +441,79 @@ VAR_INPUT
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[]]></ST>
+        <ST><![CDATA[
+ChannelDevice := e_Device.NciChannel + (_refNciChannelRef^.NcToPlc.ChnId);
+
+_iMcCount   := 0;
+_iAuxCount  := 0;
+
+FOR _mdx := 1 TO GVL_NCI.cMcAxisCount
+DO
+  IF (_ipMcsAxis[_mdx] <> 0)
+  THEN
+    _iMcCount := _iMcCount + 1;
+  END_IF
+END_FOR
+
+FOR _adx := 1 TO GVL_NCI.cAuxAxisCount
+DO
+  IF (_ipAuxAxis[_adx] <> 0)
+  THEN
+    _iAuxCount := _iAuxCount + 1;
+  END_IF
+END_FOR
+
+IF (_iAuxCount <> _iAuxCountConfigured) OR
+   (_iMcCount  <> _iMcCountConfigured) 
+THEN
+  // get first occurance of error
+  IF NOT _bMcAxisMismatch
+  THEN
+    stMsg.eType             := E_MessageType.eMessageError;
+    stMsg.eDevice           := ChannelDevice;
+    stMsg.eSubdevice        := e_Subdevice.General;
+    stMsg.iErrorNumber      := E_NCI_CHANNEL_ERROR.e_AxisConfigurationMismatch_McAxis;
+    stMsg.sText             := 'MC Axis count mismatch';
+    f_MessageSet(stMsg);
+  END_IF
+
+  // get first ocurrance of error
+  IF NOT _bAuxAxisMismatch
+  THEN
+    stMsg.eType             := E_MessageType.eMessageError;
+    stMsg.eDevice           := ChannelDevice;
+    stMsg.eSubdevice        := e_Subdevice.General;
+    stMsg.iErrorNumber      := E_NCI_CHANNEL_ERROR.e_AxisConfigurationMismatch_AuxAxis;
+    stMsg.sText             := 'Aux Axis count mismatch';
+    f_MessageSet(stMsg);
+  END_IF
+ELSE
+  // get change of error
+  IF _bMcAxisMismatch
+  THEN
+    stMsg.eType             := E_MessageType.eMessageInfo;
+    stMsg.eDevice           := ChannelDevice;
+    stMsg.eSubdevice        := e_Subdevice.General;
+    stMsg.iErrorNumber      := E_NCI_CHANNEL_ERROR.e_AxisConfigurationMismatch_McAxis;
+    stMsg.sText             := 'MC Axis count match';
+    f_MessageSet(stMsg);
+  END_IF
+
+  // get change of error
+  IF _bAuxAxisMismatch
+  THEN
+    stMsg.eType             := E_MessageType.eMessageInfo;
+    stMsg.eDevice           := ChannelDevice;
+    stMsg.eSubdevice        := e_Subdevice.General;
+    stMsg.iErrorNumber      := E_NCI_CHANNEL_ERROR.e_AxisConfigurationMismatch_AuxAxis;
+    stMsg.sText             := 'Aux Axis count match';
+    f_MessageSet(stMsg);
+  END_IF
+END_IF
+
+_bMcAxisMismatch  := (_iMcCount  <> _iMcCountConfigured);
+_bAuxAxisMismatch := (_iAuxCount <> _iAuxCountConfigured);
+]]></ST>
       </Implementation>
     </Method>
     <Method Name="DelDTG" Id="{73ec7dec-8315-051f-346e-db31461f2a17}" FolderPath="methods\">
@@ -1493,8 +1530,9 @@ WriteRParams:= hr;
       </XmlArchive>
     </ObjectProperties>
     <LineIds Name="FB_NciChannel">
-      <LineId Id="151" Count="1" />
-      <LineId Id="3" Count="77" />
+      <LineId Id="3" Count="1" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="81" Count="1" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.BuildGroup">
@@ -1502,7 +1540,7 @@ WriteRParams:= hr;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.BuilDGroup_">
-      <LineId Id="674" Count="45" />
+      <LineId Id="3" Count="45" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.CfgAxes.Set">
@@ -1510,7 +1548,17 @@ WriteRParams:= hr;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.Check">
-      <LineId Id="5" Count="0" />
+      <LineId Id="7" Count="1" />
+      <LineId Id="11" Count="0" />
+      <LineId Id="9" Count="1" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="31" Count="1" />
+      <LineId Id="17" Count="4" />
+      <LineId Id="16" Count="0" />
+      <LineId Id="33" Count="17" />
+      <LineId Id="29" Count="1" />
+      <LineId Id="6" Count="0" />
+      <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.ClearGroup">
       <LineId Id="3" Count="58" />
@@ -1521,7 +1569,8 @@ WriteRParams:= hr;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.Cycle">
-      <LineId Id="5" Count="0" />
+      <LineId Id="6" Count="71" />
+      <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.DelDTG">
       <LineId Id="3" Count="58" />

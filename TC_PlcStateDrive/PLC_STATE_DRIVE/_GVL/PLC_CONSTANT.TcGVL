@@ -48,8 +48,8 @@ VAR_GLOBAL CONSTANT
 
 
   MAX_PATH_STEPS        : UINT    := 5;
-  MAX_MC_AXIS           : UINT    := 8;
-  MAX_AUX_AXIS          : UINT    := 8;
+  MAX_MC_AXIS           : UINT    := 3;
+  MAX_AUX_AXIS          : UINT    := 2;
   MAX_R_PARA            : UINT    := 10;
 
   CONFIG_NAME           : STRING  := 'NCI_Spec_Ch_';
