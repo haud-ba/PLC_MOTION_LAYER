@@ -16,7 +16,7 @@ VAR_GLOBAL
   gstRParameter               : ARRAY[1..MAX_NCI_CH] OF ST_R_Parameter;
 
 {IF defined (NCI)}
-  gfbNciCtrl                  : ARRAY[1..MAX_NCI_CH] OF FB_Ctrl_NciChannel;
+  gfbNciCtrl                  : ARRAY[1..MAX_NCI_CH] OF FB_NciChannelCtrl;
 {ELSE}
   gfbNciCtrl                  : ARRAY[1..MAX_NCI_CH] OF I_Nci_Ctrl;
 {END_IF}

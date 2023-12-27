@@ -63,7 +63,7 @@
     <Compile Include="NCI.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="NCI\FB_Ctrl_NciChannel.TcPOU">
+    <Compile Include="NCI\FB_NciChannelCtrl.TcPOU">
       <SubType>Code</SubType>
       <CompilerDefines>NCI</CompilerDefines>
     </Compile>
@@ -121,7 +121,7 @@
       <SubType>Code</SubType>
       <CompilerDefines>NCI</CompilerDefines>
     </Compile>
-    <Compile Include="NC_PTP\FB_AxisControl.TcPOU">
+    <Compile Include="NC_PTP\FB_McAxisCtrl.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="NC_PTP\FB_McAxis.TcPOU">
@@ -323,8 +323,8 @@
     <Folder Include="NC_PTP\types" />
   </ItemGroup>
   <ItemGroup>
-    <SubObject Include="FB_AxisControl.MoveBufferVelo" />
-    <SubObject Include="FB_AxisControl.Template">
+    <SubObject Include="FB_McAxisCtrl.MoveBufferVelo" />
+    <SubObject Include="FB_McAxisCtrl.Template">
       <ExcludeFromBuild>true</ExcludeFromBuild>
     </SubObject>
     <SubObject Include="FB_McAxis.Disable" />
@@ -335,9 +335,8 @@
       <ExcludeFromBuild>true</ExcludeFromBuild>
     </SubObject>
     <SubObject Include="FB_McAxis.WriteParameterPersistent" />
-    <SubObject Include="FB_NciChannel.BuilDGroup_">
-      <ExcludeFromBuild>true</ExcludeFromBuild>
-    </SubObject>
+    <SubObject Include="FB_NciChannel.ClearGroup" />
+    <SubObject Include="FB_NciChannel.ConfirmHSK" />
   </ItemGroup>
   <ItemGroup>
     <None Include="PLC_STATE_DRIVE.tmc">

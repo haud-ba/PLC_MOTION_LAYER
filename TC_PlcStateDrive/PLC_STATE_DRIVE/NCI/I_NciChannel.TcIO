@@ -52,7 +52,7 @@ VAR_INPUT
 END_VAR
 ]]></Declaration>
     </Method>
-    <Method Name="DelDTG" Id="{70588d51-249e-08d5-0452-0a91762645b7}" FolderPath="methods\">
+    <Method Name="DeleteDistanceToGo" Id="{70588d51-249e-08d5-0452-0a91762645b7}" FolderPath="methods\">
       <Declaration><![CDATA[(*
 ===============================================================
 Implementation of Tc2_NCI.ItpDelDtgEx
@@ -65,7 +65,7 @@ Implementation of Tc2_NCI.ItpDelDtgEx
   Das Restweglöschen bewirkt immer einen impliziten Dekodierstop, d.h. es erfolgt am Satzende immer ein Genauhalt.
 ===============================================================
 *)
-METHOD DelDTG : HRESULT
+METHOD DeleteDistanceToGo : HRESULT
 VAR_INPUT
   Execute: BOOL;
 END_VAR

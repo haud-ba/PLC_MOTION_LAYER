@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
-  <POU Name="FB_AxisControl" Id="{999335a0-5af6-0c1d-15bd-a65b83fb504c}" SpecialFunc="None">
-    <Declaration><![CDATA[FUNCTION_BLOCK FB_AxisControl EXTENDS FB_McAxis
+  <POU Name="FB_McAxisCtrl" Id="{999335a0-5af6-0c1d-15bd-a65b83fb504c}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_McAxisCtrl EXTENDS FB_McAxis
 VAR
   _eCheck                   : E_CHECK_STATE;  // pointer check
 
@@ -2007,31 +2007,31 @@ END_VAR
         </Implementation>
       </Set>
     </Property>
-    <LineIds Name="FB_AxisControl">
+    <LineIds Name="FB_McAxisCtrl">
       <LineId Id="1444" Count="146" />
       <LineId Id="17" Count="0" />
     </LineIds>
-    <LineIds Name="FB_AxisControl.AxisCtrl.Set">
+    <LineIds Name="FB_McAxisCtrl.AxisCtrl.Set">
       <LineId Id="2" Count="0" />
       <LineId Id="5" Count="0" />
     </LineIds>
-    <LineIds Name="FB_AxisControl.AxisData.Set">
+    <LineIds Name="FB_McAxisCtrl.AxisData.Set">
       <LineId Id="2" Count="0" />
       <LineId Id="5" Count="0" />
     </LineIds>
-    <LineIds Name="FB_AxisControl.AxisDisable">
+    <LineIds Name="FB_McAxisCtrl.AxisDisable">
       <LineId Id="708" Count="36" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_AxisControl.AxisEnable">
+    <LineIds Name="FB_McAxisCtrl.AxisEnable">
       <LineId Id="708" Count="36" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_AxisControl.AxisGearInParameter.Set">
+    <LineIds Name="FB_McAxisCtrl.AxisGearInParameter.Set">
       <LineId Id="2" Count="0" />
       <LineId Id="5" Count="0" />
     </LineIds>
-    <LineIds Name="FB_AxisControl.AxisHalt">
+    <LineIds Name="FB_McAxisCtrl.AxisHalt">
       <LineId Id="744" Count="16" />
       <LineId Id="793" Count="0" />
       <LineId Id="791" Count="0" />
@@ -2046,7 +2046,7 @@ END_VAR
       <LineId Id="787" Count="2" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_AxisControl.AxisHome">
+    <LineIds Name="FB_McAxisCtrl.AxisHome">
       <LineId Id="674" Count="10" />
       <LineId Id="743" Count="0" />
       <LineId Id="738" Count="1" />
@@ -2078,14 +2078,14 @@ END_VAR
       <LineId Id="717" Count="2" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_AxisControl.AxisIndex.Set">
+    <LineIds Name="FB_McAxisCtrl.AxisIndex.Set">
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_AxisControl.AxisInfo.Set">
+    <LineIds Name="FB_McAxisCtrl.AxisInfo.Set">
       <LineId Id="2" Count="0" />
       <LineId Id="5" Count="0" />
     </LineIds>
-    <LineIds Name="FB_AxisControl.AxisInit">
+    <LineIds Name="FB_McAxisCtrl.AxisInit">
       <LineId Id="17" Count="8" />
       <LineId Id="71" Count="0" />
       <LineId Id="26" Count="2" />
@@ -2152,7 +2152,7 @@ END_VAR
       <LineId Id="60" Count="2" />
       <LineId Id="5" Count="0" />
     </LineIds>
-    <LineIds Name="FB_AxisControl.AxisReset">
+    <LineIds Name="FB_McAxisCtrl.AxisReset">
       <LineId Id="744" Count="16" />
       <LineId Id="791" Count="0" />
       <LineId Id="761" Count="1" />
@@ -2167,11 +2167,11 @@ END_VAR
       <LineId Id="786" Count="3" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_AxisControl.AxisState.Set">
+    <LineIds Name="FB_McAxisCtrl.AxisState.Set">
       <LineId Id="2" Count="0" />
       <LineId Id="5" Count="0" />
     </LineIds>
-    <LineIds Name="FB_AxisControl.AxisStop">
+    <LineIds Name="FB_McAxisCtrl.AxisStop">
       <LineId Id="744" Count="17" />
       <LineId Id="791" Count="2" />
       <LineId Id="795" Count="0" />
@@ -2183,7 +2183,7 @@ END_VAR
       <LineId Id="787" Count="2" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_AxisControl.Check">
+    <LineIds Name="FB_McAxisCtrl.Check">
       <LineId Id="88" Count="0" />
       <LineId Id="87" Count="0" />
       <LineId Id="89" Count="1" />
@@ -2215,7 +2215,7 @@ END_VAR
       <LineId Id="9" Count="1" />
       <LineId Id="5" Count="0" />
     </LineIds>
-    <LineIds Name="FB_AxisControl.Cmd">
+    <LineIds Name="FB_McAxisCtrl.Cmd">
       <LineId Id="12" Count="0" />
       <LineId Id="11" Count="0" />
       <LineId Id="13" Count="0" />
@@ -2290,15 +2290,15 @@ END_VAR
       <LineId Id="20" Count="0" />
       <LineId Id="5" Count="0" />
     </LineIds>
-    <LineIds Name="FB_AxisControl.GetCalibrationCam">
+    <LineIds Name="FB_McAxisCtrl.GetCalibrationCam">
       <LineId Id="36" Count="19" />
       <LineId Id="5" Count="0" />
     </LineIds>
-    <LineIds Name="FB_AxisControl.HomingParameter.Set">
+    <LineIds Name="FB_McAxisCtrl.HomingParameter.Set">
       <LineId Id="2" Count="0" />
       <LineId Id="5" Count="0" />
     </LineIds>
-    <LineIds Name="FB_AxisControl.Idle">
+    <LineIds Name="FB_McAxisCtrl.Idle">
       <LineId Id="674" Count="16" />
       <LineId Id="720" Count="1" />
       <LineId Id="725" Count="0" />
@@ -2329,7 +2329,7 @@ END_VAR
       <LineId Id="711" Count="8" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_AxisControl.LogControl">
+    <LineIds Name="FB_McAxisCtrl.LogControl">
       <LineId Id="7" Count="0" />
       <LineId Id="9" Count="3" />
       <LineId Id="25" Count="2" />
@@ -2338,7 +2338,7 @@ END_VAR
       <LineId Id="15" Count="1" />
       <LineId Id="5" Count="0" />
     </LineIds>
-    <LineIds Name="FB_AxisControl.LogResult">
+    <LineIds Name="FB_McAxisCtrl.LogResult">
       <LineId Id="7" Count="0" />
       <LineId Id="9" Count="3" />
       <LineId Id="22" Count="0" />
@@ -2352,11 +2352,11 @@ END_VAR
       <LineId Id="15" Count="1" />
       <LineId Id="5" Count="0" />
     </LineIds>
-    <LineIds Name="FB_AxisControl.MotionOptions.Set">
+    <LineIds Name="FB_McAxisCtrl.MotionOptions.Set">
       <LineId Id="2" Count="0" />
       <LineId Id="5" Count="0" />
     </LineIds>
-    <LineIds Name="FB_AxisControl.MoveBufferPos">
+    <LineIds Name="FB_McAxisCtrl.MoveBufferPos">
       <LineId Id="744" Count="17" />
       <LineId Id="802" Count="0" />
       <LineId Id="792" Count="6" />
@@ -2369,7 +2369,7 @@ END_VAR
       <LineId Id="788" Count="1" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_AxisControl.MoveBufferVelo">
+    <LineIds Name="FB_McAxisCtrl.MoveBufferVelo">
       <LineId Id="744" Count="17" />
       <LineId Id="802" Count="0" />
       <LineId Id="792" Count="1" />
@@ -2384,11 +2384,11 @@ END_VAR
       <LineId Id="788" Count="1" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_AxisControl.MovePosition">
+    <LineIds Name="FB_McAxisCtrl.MovePosition">
       <LineId Id="924" Count="61" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_AxisControl.MoveVelocity">
+    <LineIds Name="FB_McAxisCtrl.MoveVelocity">
       <LineId Id="744" Count="16" />
       <LineId Id="825" Count="0" />
       <LineId Id="793" Count="6" />
@@ -2402,15 +2402,15 @@ END_VAR
       <LineId Id="787" Count="2" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_AxisControl.MultiMasterGearIn.Set">
+    <LineIds Name="FB_McAxisCtrl.MultiMasterGearIn.Set">
       <LineId Id="2" Count="0" />
       <LineId Id="5" Count="0" />
     </LineIds>
-    <LineIds Name="FB_AxisControl.NcParameterValue.Get">
+    <LineIds Name="FB_McAxisCtrl.NcParameterValue.Get">
       <LineId Id="2" Count="0" />
       <LineId Id="5" Count="0" />
     </LineIds>
-    <LineIds Name="FB_AxisControl.ParameterRead">
+    <LineIds Name="FB_McAxisCtrl.ParameterRead">
       <LineId Id="744" Count="8" />
       <LineId Id="754" Count="7" />
       <LineId Id="793" Count="2" />
@@ -2428,7 +2428,7 @@ END_VAR
       <LineId Id="786" Count="3" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_AxisControl.ParameterWrite">
+    <LineIds Name="FB_McAxisCtrl.ParameterWrite">
       <LineId Id="744" Count="8" />
       <LineId Id="754" Count="7" />
       <LineId Id="793" Count="1" />
@@ -2446,7 +2446,7 @@ END_VAR
       <LineId Id="786" Count="3" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_AxisControl.ParameterWritePersistent">
+    <LineIds Name="FB_McAxisCtrl.ParameterWritePersistent">
       <LineId Id="744" Count="8" />
       <LineId Id="754" Count="7" />
       <LineId Id="793" Count="1" />
@@ -2464,11 +2464,11 @@ END_VAR
       <LineId Id="786" Count="3" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_AxisControl.ReadNcParameter.Set">
+    <LineIds Name="FB_McAxisCtrl.ReadNcParameter.Set">
       <LineId Id="2" Count="0" />
       <LineId Id="5" Count="0" />
     </LineIds>
-    <LineIds Name="FB_AxisControl.ResetSoE">
+    <LineIds Name="FB_McAxisCtrl.ResetSoE">
       <LineId Id="17" Count="8" />
       <LineId Id="165" Count="0" />
       <LineId Id="26" Count="0" />
@@ -2518,17 +2518,17 @@ END_VAR
       <LineId Id="70" Count="2" />
       <LineId Id="5" Count="0" />
     </LineIds>
-    <LineIds Name="FB_AxisControl.TargetWindow.Get">
+    <LineIds Name="FB_McAxisCtrl.TargetWindow.Get">
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_AxisControl.TargetWindow.Set">
+    <LineIds Name="FB_McAxisCtrl.TargetWindow.Set">
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_AxisControl.Template">
+    <LineIds Name="FB_McAxisCtrl.Template">
       <LineId Id="674" Count="45" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_AxisControl.WriteNcParameter.Set">
+    <LineIds Name="FB_McAxisCtrl.WriteNcParameter.Set">
       <LineId Id="2" Count="0" />
       <LineId Id="5" Count="0" />
     </LineIds>

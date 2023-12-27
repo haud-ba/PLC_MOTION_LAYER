@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
-  <POU Name="FB_Ctrl_NciChannel" Id="{08de930f-89ec-0b64-0188-963be0624f4a}" SpecialFunc="None">
+  <POU Name="FB_NciChannelCtrl" Id="{08de930f-89ec-0b64-0188-963be0624f4a}" SpecialFunc="None">
     <Declaration><![CDATA[(*
 -------------------------------------------------------------------------------
 	NCI Channel Control
@@ -18,7 +18,7 @@
 // of your equipment and backup of your data, and THE PROVIDER will not be liable for any damages you may suffer 
 // in connection with using, modifying, or distributing this SOFTWARE.
 
-FUNCTION_BLOCK FB_Ctrl_NciChannel IMPLEMENTS I_Nci_Ctrl
+FUNCTION_BLOCK FB_NciChannelCtrl IMPLEMENTS I_Nci_Ctrl
 VAR
   _eCmd                 : E_NCI_CTRL;
 
@@ -1167,152 +1167,152 @@ END_VAR
         </TypeList>
       </XmlArchive>
     </ObjectProperties>
-    <LineIds Name="FB_Ctrl_NciChannel">
+    <LineIds Name="FB_NciChannelCtrl">
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_Ctrl_NciChannel.Channel_BuildGroup">
+    <LineIds Name="FB_NciChannelCtrl.Channel_BuildGroup">
       <LineId Id="2" Count="41" />
       <LineId Id="1" Count="0" />
     </LineIds>
-    <LineIds Name="FB_Ctrl_NciChannel.Channel_ClearGroup">
+    <LineIds Name="FB_NciChannelCtrl.Channel_ClearGroup">
       <LineId Id="2" Count="43" />
       <LineId Id="1" Count="0" />
     </LineIds>
-    <LineIds Name="FB_Ctrl_NciChannel.Channel_Confirm">
+    <LineIds Name="FB_NciChannelCtrl.Channel_Confirm">
       <LineId Id="2" Count="40" />
       <LineId Id="1" Count="0" />
     </LineIds>
-    <LineIds Name="FB_Ctrl_NciChannel.Channel_LoadProg">
+    <LineIds Name="FB_NciChannelCtrl.Channel_LoadProg">
       <LineId Id="2" Count="48" />
       <LineId Id="1" Count="0" />
     </LineIds>
-    <LineIds Name="FB_Ctrl_NciChannel.Channel_R_Read">
+    <LineIds Name="FB_NciChannelCtrl.Channel_R_Read">
       <LineId Id="2" Count="51" />
       <LineId Id="1" Count="0" />
     </LineIds>
-    <LineIds Name="FB_Ctrl_NciChannel.Channel_R_Write">
+    <LineIds Name="FB_NciChannelCtrl.Channel_R_Write">
       <LineId Id="2" Count="51" />
       <LineId Id="1" Count="0" />
     </LineIds>
-    <LineIds Name="FB_Ctrl_NciChannel.Channel_Reset">
+    <LineIds Name="FB_NciChannelCtrl.Channel_Reset">
       <LineId Id="2" Count="38" />
       <LineId Id="1" Count="0" />
     </LineIds>
-    <LineIds Name="FB_Ctrl_NciChannel.Channel_Restart">
+    <LineIds Name="FB_NciChannelCtrl.Channel_Restart">
       <LineId Id="2" Count="38" />
       <LineId Id="1" Count="0" />
     </LineIds>
-    <LineIds Name="FB_Ctrl_NciChannel.Channel_Start">
+    <LineIds Name="FB_NciChannelCtrl.Channel_Start">
       <LineId Id="2" Count="38" />
       <LineId Id="1" Count="0" />
     </LineIds>
-    <LineIds Name="FB_Ctrl_NciChannel.Channel_Stop">
+    <LineIds Name="FB_NciChannelCtrl.Channel_Stop">
       <LineId Id="2" Count="38" />
       <LineId Id="1" Count="0" />
     </LineIds>
-    <LineIds Name="FB_Ctrl_NciChannel.ChnId.Get">
+    <LineIds Name="FB_NciChannelCtrl.ChnId.Get">
       <LineId Id="3" Count="0" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_Ctrl_NciChannel.Cycle">
+    <LineIds Name="FB_NciChannelCtrl.Cycle">
       <LineId Id="3" Count="141" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_Ctrl_NciChannel.eCmd.Get">
+    <LineIds Name="FB_NciChannelCtrl.eCmd.Get">
       <LineId Id="3" Count="0" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_Ctrl_NciChannel.eCmd.Set">
+    <LineIds Name="FB_NciChannelCtrl.eCmd.Set">
       <LineId Id="3" Count="0" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_Ctrl_NciChannel.eState.Get">
+    <LineIds Name="FB_NciChannelCtrl.eState.Get">
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_Ctrl_NciChannel.eState.Set">
+    <LineIds Name="FB_NciChannelCtrl.eState.Set">
       <LineId Id="3" Count="0" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_Ctrl_NciChannel.GroupAxisConfig.Get">
+    <LineIds Name="FB_NciChannelCtrl.GroupAxisConfig.Get">
       <LineId Id="3" Count="2" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_Ctrl_NciChannel.GroupAxisConfig.Set">
+    <LineIds Name="FB_NciChannelCtrl.GroupAxisConfig.Set">
       <LineId Id="3" Count="4" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_Ctrl_NciChannel.I_AuxAxis.Get">
+    <LineIds Name="FB_NciChannelCtrl.I_AuxAxis.Get">
       <LineId Id="3" Count="0" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_Ctrl_NciChannel.I_AuxAxis.Set">
+    <LineIds Name="FB_NciChannelCtrl.I_AuxAxis.Set">
       <LineId Id="3" Count="9" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_Ctrl_NciChannel.I_McAxis.Get">
+    <LineIds Name="FB_NciChannelCtrl.I_McAxis.Get">
       <LineId Id="3" Count="1" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_Ctrl_NciChannel.I_McAxis.Set">
+    <LineIds Name="FB_NciChannelCtrl.I_McAxis.Set">
       <LineId Id="3" Count="9" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_Ctrl_NciChannel.I_NcChannel.Get">
+    <LineIds Name="FB_NciChannelCtrl.I_NcChannel.Get">
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_Ctrl_NciChannel.Init">
+    <LineIds Name="FB_NciChannelCtrl.Init">
       <LineId Id="3" Count="105" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_Ctrl_NciChannel.M_FuncReq.Get">
+    <LineIds Name="FB_NciChannelCtrl.M_FuncReq.Get">
       <LineId Id="3" Count="0" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_Ctrl_NciChannel.NcProg.Get">
+    <LineIds Name="FB_NciChannelCtrl.NcProg.Get">
       <LineId Id="3" Count="0" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_Ctrl_NciChannel.NcProg.Set">
+    <LineIds Name="FB_NciChannelCtrl.NcProg.Set">
       <LineId Id="3" Count="0" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_Ctrl_NciChannel.R_Param_Read.Get">
+    <LineIds Name="FB_NciChannelCtrl.R_Param_Read.Get">
       <LineId Id="3" Count="0" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_Ctrl_NciChannel.R_Param_Read.Set">
+    <LineIds Name="FB_NciChannelCtrl.R_Param_Read.Set">
       <LineId Id="3" Count="0" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_Ctrl_NciChannel.R_Param_Write.Get">
+    <LineIds Name="FB_NciChannelCtrl.R_Param_Write.Get">
       <LineId Id="3" Count="0" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_Ctrl_NciChannel.R_Param_Write.Set">
+    <LineIds Name="FB_NciChannelCtrl.R_Param_Write.Set">
       <LineId Id="3" Count="0" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_Ctrl_NciChannel.R_ParamCount.Get">
+    <LineIds Name="FB_NciChannelCtrl.R_ParamCount.Get">
       <LineId Id="3" Count="0" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_Ctrl_NciChannel.R_ParamCount.Set">
+    <LineIds Name="FB_NciChannelCtrl.R_ParamCount.Set">
       <LineId Id="3" Count="0" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_Ctrl_NciChannel.R_ParamIndex.Get">
+    <LineIds Name="FB_NciChannelCtrl.R_ParamIndex.Get">
       <LineId Id="3" Count="0" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_Ctrl_NciChannel.R_ParamIndex.Set">
+    <LineIds Name="FB_NciChannelCtrl.R_ParamIndex.Set">
       <LineId Id="3" Count="0" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_Ctrl_NciChannel.sCmd.Get">
+    <LineIds Name="FB_NciChannelCtrl.sCmd.Get">
       <LineId Id="3" Count="0" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_Ctrl_NciChannel.sCmd.Set">
+    <LineIds Name="FB_NciChannelCtrl.sCmd.Set">
       <LineId Id="3" Count="0" />
       <LineId Id="2" Count="0" />
     </LineIds>

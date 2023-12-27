@@ -6,7 +6,7 @@ VAR_GLOBAL
 
   AxisRef                     : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF Tc2_MC2.AXIS_REF;
 
-  Control                     : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF FB_AxisControl;  // cyclic interface for accepting and executing orders
+  Control                     : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF FB_McAxisCtrl;  // cyclic interface for accepting and executing orders
   Ctrl                        : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_AXIS_CTRL;    // command structure to write into
   State                       : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_AXIS_STATE;   // state structure to read from
   Info                        : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_AXIS_INFO;    // axis state and position data to read from

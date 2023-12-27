@@ -16,5 +16,30 @@
       <From>ST_Ctrl_NciMFuncCycle</From>
       <To>ST_NCI_CTRL_M_FUNC</To>
     </RenamedType>
+    <RenamedType>
+      <Type guid="8c2293d3-2335-4f54-844e-5312237b23aa">FB_AXISCONTROL</Type>
+      <From>FB_AxisControl</From>
+      <To>FB_McAxisCtrl</To>
+    </RenamedType>
+    <RenamedType>
+      <Type guid="1d6f357c-f02f-482d-907b-637240e23cac">FB_CTRL_NCICHANNEL</Type>
+      <From>FB_Ctrl_NciChannel</From>
+      <To>FB_NciChannelCtrl</To>
+    </RenamedType>
+    <RenamedType>
+      <Type guid="f1232fab-8b33-443f-a77b-9cc38769add2">CLEARGROUP_1</Type>
+      <From>ClearGroup_1</From>
+      <To>ConfirmHSK</To>
+    </RenamedType>
+    <RenamedType>
+      <Type guid="665ddb9f-fad6-4656-a59d-2e78e69f59f1">DELDTG</Type>
+      <From>DelDTG</From>
+      <To>DeleteDistanceToGo</To>
+    </RenamedType>
+    <RenamedType>
+      <Type guid="65e92b22-5d5d-4b9c-95a1-ffd8d6a63651">DELDTG</Type>
+      <From>DelDTG</From>
+      <To>DeleteDistanceToGo</To>
+    </RenamedType>
   </Renames>
 </Refactors>

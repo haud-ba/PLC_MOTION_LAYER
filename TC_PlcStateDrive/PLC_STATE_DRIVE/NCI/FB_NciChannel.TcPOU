@@ -22,27 +22,11 @@ VAR
   _ipAuxAxis            : ARRAY[1..MAX_AUX_AXIS] OF I_McAxis;
 
 
-  _iMcCount,
-  _iMcCountConfigured   : DINT;
-  _bMcAxisMismatch      : BOOL;
-
-  _iAuxCount,
-  _iAuxCountConfigured  : DINT;
-  _bAuxAxisMismatch     : BOOL;
-
-  _bErrorCyclicChecks   : BOOL;
-
-//NCI-Error
-  _ErrorCode            : UDINT;
-  
 //NCI-Group
-  fbBuildGroup          : Tc2_NCI.CfgBuildExt3DGroup;
-  fbClearGroup          : Tc2_NCI.CfgReconfigGroup;
+  _fbBuildGroup         : Tc2_NCI.CfgBuildExt3DGroup;
+  _fbClearGroup         : Tc2_NCI.CfgReconfigGroup;
 
   _fOverride            : LREAL := 100;
-
-  _Build, 
-  _Move                 : BOOL;
 
   _mdx,
   _adx                  : UINT;
@@ -53,15 +37,15 @@ VAR
   _sProg                : STRING(255);
 
 //Interpreter
-  fbReset               : Tc2_NCI.ItpResetEx2;
-  fbStartStop           : Tc2_NCI.ItpStartStopEx;
-  fbEStop               : Tc2_NCI.ItpEStopEx;
-  fbStepOnAfterEStop    : Tc2_NCI.ItpStepOnAfterEStopEx;
+  _fbReset              : Tc2_NCI.ItpResetEx2;
+  _fbStartStop          : Tc2_NCI.ItpStartStopEx;
+  _fbEStop              : Tc2_NCI.ItpEStopEx;
+  _fbStepOnAfterEStop   : Tc2_NCI.ItpStepOnAfterEStopEx;
 
-  fbItpConfirmHsk       : Tc2_NCI.ItpConfirmHsk;
-  fbItpReadRParams      : Tc2_NCI.ItpReadRParamsEx;
-  fbItpWriteRParams     : Tc2_NCI.ItpWriteRParamsEx;
-  fbItpDelDtg           : Tc2_NCI.ItpDelDtgEx;
+  _fbItpConfirmHsk      : Tc2_NCI.ItpConfirmHsk;
+  _fbItpReadRParams     : Tc2_NCI.ItpReadRParamsEx;
+  _fbItpWriteRParams    : Tc2_NCI.ItpWriteRParamsEx;
+  _fbItpDelDtg          : Tc2_NCI.ItpDelDtgEx;
 
   
 //ADS-Communication
@@ -80,96 +64,8 @@ END_VAR
     <Folder Name="methods" Id="{31d0ae4f-7268-087b-0095-8a7f06f6a71d}" />
     <Folder Name="private" Id="{a1dced49-12ae-0dd4-11f4-bd3aff7b080b}" />
     <Folder Name="properties" Id="{f152d130-2071-0c7a-003b-853121063191}" />
-    <Method Name="BuildGroup" Id="{20be8ee2-0cf2-0940-1552-2c4ec8a9b537}" FolderPath="methods\">
-      <Declaration><![CDATA[(*
-===============================================================
-Implementation of Tc2_NCI.CfgBuildExt3DGroup
-
-  Builds complete NCI-Group with all configured axes
-===============================================================
-*)
-METHOD BuildGroup : HRESULT
-VAR_INPUT
-  Execute        : BOOL;
-END_VAR
-VAR_INST
-  istate          : DINT;
-  stMsg           : ST_Message;
-  hr              : HRESULT;
-END_VAR]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[
-
-IF NOT Execute
-THEN
-  istate := 0;
-END_IF
-
-
-CASE istate OF
-  0:
-    hr:= S_FALSE;
-    fbBuildGroup( bExecute  := FALSE, 
-                  nGroupId  := ItpGetGroupId(sNciToPlc:=_refNciChannelRef.NcToPlc) , 
-                  nXAxisId  := _stCfgAxes.nXAxisId,
-                  nYAxisId  := _stCfgAxes.nYAxisId, 
-                  nZAxisId  := _stCfgAxes.nZAxisId, 
-                  nQ1AxisId := _stCfgAxes.nQ1AxisId,
-                  nQ2AxisId := _stCfgAxes.nQ2AxisId, 
-                  nQ3AxisId := _stCfgAxes.nQ3AxisId, 
-                  nQ4AxisId := _stCfgAxes.nQ4AxisId, 
-                  nQ5AxisId := _stCfgAxes.nQ5AxisId);
-
-    IF Execute
-    THEN
-      istate                := 10;
-    END_IF
-END_CASE
-CASE istate OF
-  10:
-    fbBuildGroup( bExecute  := TRUE, 
-                  nGroupId  := ItpGetGroupId(sNciToPlc:=_refNciChannelRef.NcToPlc));
-
-    IF fbBuildGroup.bBusy 
-    THEN
-      hr:= S_FALSE;
-    
-    ELSIF fbBuildGroup.bErr 
-    THEN
-      istate                := 99;
-
-      stMsg.eType           := E_MessageType.eMessageError;
-      stMsg.eDevice         := ChannelDevice;
-      stMsg.eSubdevice      := e_Subdevice.fbBuildGroup;
-      stMsg.iErrorNumber    := fbBuildGroup.nErrId;
-      stMsg.sText           := concat('BuildGroup Error: ', TO_STRING(fbBuildGroup.nErrId));
-      f_MessageSet(stMsg);
-
-      hr:= TO_DINT(fbBuildGroup.nErrId);
-
-    ELSE
-      istate                := 100;
-
-      stMsg.eType           := E_MessageType.eMessageInfo;
-      stMsg.eDevice         := ChannelDevice;
-      stMsg.eSubdevice      := e_Subdevice.fbBuildGroup;
-      stMsg.iErrorNumber    := fbBuildGroup.nErrId;
-      stMsg.sText           := concat('BuildGroup Done: ', TO_STRING(fbBuildGroup.nErrId));
-      f_MessageSet(stMsg);
-    END_IF
-END_CASE
-CASE istate OF
-  100:
-    hr:= S_OK;
-END_CASE
-
-//Return Result
-BuildGroup:= hr;
-]]></ST>
-      </Implementation>
-    </Method>
-    <Method Name="BuilDGroup_" Id="{f0f69d76-b6ca-0cfe-225e-863dbd551f02}" FolderPath="methods\">
-      <Declaration><![CDATA[METHOD BuilDGroup_ : E_PROGRESS
+    <Method Name="BuilDGroup" Id="{f0f69d76-b6ca-0cfe-225e-863dbd551f02}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD BuilDGroup : E_PROGRESS
 VAR_INPUT
   Execute           : BOOL;
 END_VAR
@@ -178,12 +74,10 @@ VAR_INST
   _rValue           : LREAL;
   _udiErr           : UDINT;
   _stMsg            : ST_Message;
-
-
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN _eState := E_PROGRESS.ERROR; END_IF
+        <ST><![CDATA[IF NOT Check() THEN _eState := E_PROGRESS.ERROR; RETURN; END_IF
 IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
 
 CASE _eState
@@ -191,6 +85,18 @@ OF
   E_PROGRESS.INIT:
     IF Execute 
     THEN
+      _fbBuildGroup( 
+                bExecute            := FALSE, 
+                nGroupId            := ItpGetGroupId(sNciToPlc:=_refNciChannelRef^.NcToPlc) , 
+                nXAxisId            := _stCfgAxes.nXAxisId,
+                nYAxisId            := _stCfgAxes.nYAxisId, 
+                nZAxisId            := _stCfgAxes.nZAxisId, 
+                nQ1AxisId           := _stCfgAxes.nQ1AxisId,
+                nQ2AxisId           := _stCfgAxes.nQ2AxisId, 
+                nQ3AxisId           := _stCfgAxes.nQ3AxisId, 
+                nQ4AxisId           := _stCfgAxes.nQ4AxisId, 
+                nQ5AxisId           := _stCfgAxes.nQ5AxisId);
+
       memset(ADR(_stMsg),0,SIZEOF(_stMsg));
       _udiErr                       := 0;
       _rValue                       := 0;
@@ -201,11 +107,68 @@ CASE _eState
 OF
   E_PROGRESS.BUSY:
     _eState                         := E_PROGRESS.STARTUP;
+    _fbBuildGroup( 
+                bExecute            := TRUE, 
+                nGroupId            := ItpGetGroupId(sNciToPlc:=_refNciChannelRef^.NcToPlc),
+                  nErrId            => _udiErr);
+
+    IF _fbBuildGroup.bErr 
+    THEN
+      _eState                       := E_PROGRESS.ERROR;
+
+      _stMsg.eType                  := E_MessageType.eMessageError;
+      _stMsg.eDevice                := ChannelDevice;
+      _stMsg.eSubdevice             := e_Subdevice.fbBuildGroup;
+      _stMsg.iErrorNumber           := _fbBuildGroup.nErrId;
+      _stMsg.sText                  := concat('BuildGroup Error: ', TO_STRING(_fbBuildGroup.nErrId));
+      f_MessageSet(stMsg);
+
+    ELSE
+      IF _fbBuildGroup.bBusy
+      THEN
+        _eState                     := E_PROGRESS.STARTUP;
+
+        _stMsg.eType                := E_MessageType.eMessageInfo;
+        _stMsg.eDevice              := ChannelDevice;
+        _stMsg.eSubdevice           := e_Subdevice.fbBuildGroup;
+        _stMsg.iErrorNumber         := _fbBuildGroup.nErrId;
+        _stMsg.sText                := concat('BuildGroup Done: ', TO_STRING(_fbBuildGroup.nErrId));
+        f_MessageSet(stMsg);
+      END_IF
+    END_IF
 END_CASE
 CASE _eState
 OF
   E_PROGRESS.STARTUP:
-    _eState                         := E_PROGRESS.PREPARE;
+    _fbBuildGroup( 
+                bExecute            := TRUE, 
+                nGroupId            := ItpGetGroupId(sNciToPlc:=_refNciChannelRef^.NcToPlc),
+                  nErrId            => _udiErr);
+
+    IF _fbBuildGroup.bErr 
+    THEN
+      _eState                       := E_PROGRESS.ERROR;
+
+      _stMsg.eType                  := E_MessageType.eMessageError;
+      _stMsg.eDevice                := ChannelDevice;
+      _stMsg.eSubdevice             := e_Subdevice.fbBuildGroup;
+      _stMsg.iErrorNumber           := _fbBuildGroup.nErrId;
+      _stMsg.sText                  := concat('BuildGroup Error: ', TO_STRING(_fbBuildGroup.nErrId));
+      f_MessageSet(stMsg);
+
+    ELSE
+      IF NOT _fbBuildGroup.bBusy
+      THEN
+        _eState                     := E_PROGRESS.PREPARE;
+
+        _stMsg.eType                := E_MessageType.eMessageInfo;
+        _stMsg.eDevice              := ChannelDevice;
+        _stMsg.eSubdevice           := e_Subdevice.fbBuildGroup;
+        _stMsg.iErrorNumber         := _fbBuildGroup.nErrId;
+        _stMsg.sText                := concat('BuildGroup Done: ', TO_STRING(_fbBuildGroup.nErrId));
+        f_MessageSet(stMsg);
+      END_IF
+    END_IF
 END_CASE
 CASE _eState
 OF
@@ -227,8 +190,17 @@ OF
   E_PROGRESS.WORKING:
     _eState                         := E_PROGRESS.DONE;
 END_CASE
+CASE _eState
+OF
+  E_PROGRESS.ERROR,
+  E_PROGRESS.DONE:
+    _fbBuildGroup( 
+                bExecute            := FALSE, 
+                nGroupId            := ItpGetGroupId(sNciToPlc:=_refNciChannelRef^.NcToPlc));
+END_CASE
 
-BuilDGroup_                         := _eState;
+
+BuilDGroup                          := _eState;
 ]]></ST>
       </Implementation>
     </Method>
@@ -293,145 +265,228 @@ END_IF
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="ClearGroup" Id="{ba742d26-d2d1-0439-2b05-0521cf1c693b}" FolderPath="methods\">
-      <Declaration><![CDATA[(*
-===============================================================
-Implementation of Tc2_NCI.CfgReconfigGroup
-
-  remove all axes from NCI-Group
-===============================================================
-*)
-METHOD ClearGroup : HRESULT
+    <Method Name="ClearGroup" Id="{f465f16a-d60c-0b5e-301a-cfe8bdec1663}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD ClearGroup : E_PROGRESS
 VAR_INPUT
-  Execute   : BOOL;
+  Execute           : BOOL;
 END_VAR
 VAR_INST
-  istate    : DINT;
-  stMsg     : ST_Message;
-  hr        : HRESULT;
+  _eState           : E_PROGRESS;
+  _rValue           : LREAL;
+  _udiErr           : UDINT;
+  _stMsg            : ST_Message;
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[
-IF NOT Execute
-THEN
-  istate := 0;
-END_IF
+        <ST><![CDATA[IF NOT Check() THEN _eState := E_PROGRESS.ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
 
-
-CASE istate OF
-  0:
-    hr:= S_FALSE;
-    fbClearGroup( bExecute:= FALSE, 
-                  nGroupId:= ItpGetGroupId(sNciToPlc:= _refNciChannelRef.NcToPlc));
-
-    IF Execute
+CASE _eState
+OF
+  E_PROGRESS.INIT:
+    IF Execute 
     THEN
-      istate                := 10;
+      _fbClearGroup( 
+                  bExecute          := FALSE, 
+                  nGroupId          := ItpGetGroupId(sNciToPlc:= _refNciChannelRef^.NcToPlc));
+
+      memset(ADR(_stMsg),0,SIZEOF(_stMsg));
+      _udiErr                       := 0;
+      _rValue                       := 0;
+      _eState                       := E_PROGRESS.BUSY;
     END_IF
 END_CASE
-CASE istate OF
-  10:
-    fbClearGroup( bExecute:= TRUE, 
-                  nGroupId:= ItpGetGroupId(sNciToPlc:= _refNciChannelRef.NcToPlc));
+CASE _eState
+OF
+  E_PROGRESS.BUSY:
+    _eState                         := E_PROGRESS.STARTUP;
+    _fbClearGroup( 
+                  bExecute          := TRUE, 
+                  nGroupId          := ItpGetGroupId(sNciToPlc:= _refNciChannelRef^.NcToPlc),
+                  nErrId            => _udiErr);
 
-    IF fbClearGroup.bBusy 
+    IF _fbClearGroup.bErr 
     THEN
-      hr:= S_FALSE;
-    
-    ELSIF fbClearGroup.bErr 
-    THEN
-      istate                := 99;
+      _eState                       := E_PROGRESS.ERROR;
 
-      stMsg.eType           := E_MessageType.eMessageError;
-      stMsg.eDevice         := ChannelDevice;
-      stMsg.eSubdevice      := e_Subdevice.fbClearGroup;
-      stMsg.iErrorNumber    := fbClearGroup.nErrId;
-      stMsg.sText           := concat('BuildGroup Error: ', TO_STRING(fbClearGroup.nErrId));
+      _stMsg.eType                  := E_MessageType.eMessageError;
+      _stMsg.eDevice                := ChannelDevice;
+      _stMsg.eSubdevice             := e_Subdevice.fbClearGroup;
+      _stMsg.iErrorNumber           := _fbClearGroup.nErrId;
+      _stMsg.sText                  := concat('BuildGroup Error: ', TO_STRING(_fbClearGroup.nErrId));
       f_MessageSet(stMsg);
-
-      hr:= TO_DINT(fbClearGroup.nErrId);
 
     ELSE
-      istate                := 100;
-
-      stMsg.eType           := E_MessageType.eMessageInfo;
-      stMsg.eDevice         := ChannelDevice;
-      stMsg.eSubdevice      := e_Subdevice.fbClearGroup;
-      stMsg.iErrorNumber    := fbClearGroup.nErrId;
-      stMsg.sText           := concat('ClearGroup Done: ', TO_STRING(fbClearGroup.nErrId));
-      f_MessageSet(stMsg);
-
+      IF _fbClearGroup.bBusy
+      THEN
+        _eState                     := E_PROGRESS.STARTUP;
+        _stMsg.eType                := E_MessageType.eMessageInfo;
+        _stMsg.eDevice              := ChannelDevice;
+        _stMsg.eSubdevice           := e_Subdevice.fbClearGroup;
+        _stMsg.iErrorNumber         := _fbClearGroup.nErrId;
+        _stMsg.sText                := concat('BuildGroup Busy: ', TO_STRING(_fbClearGroup.nErrId));
+        f_MessageSet(stMsg);
+      END_IF
     END_IF
 END_CASE
-CASE istate OF
-  100:
-    hr := S_OK;
+CASE _eState
+OF
+  E_PROGRESS.STARTUP:
+    _fbClearGroup( 
+                  bExecute          := TRUE, 
+                  nGroupId          := ItpGetGroupId(sNciToPlc:= _refNciChannelRef^.NcToPlc),
+                  nErrId            => _udiErr);
+
+    IF _fbClearGroup.bErr 
+    THEN
+      _eState                       := E_PROGRESS.ERROR;
+
+      _stMsg.eType                  := E_MessageType.eMessageError;
+      _stMsg.eDevice                := ChannelDevice;
+      _stMsg.eSubdevice             := e_Subdevice.fbClearGroup;
+      _stMsg.iErrorNumber           := _fbClearGroup.nErrId;
+      _stMsg.sText                  := concat('BuildGroup Error: ', TO_STRING(_fbClearGroup.nErrId));
+      f_MessageSet(stMsg);
+
+    ELSE
+      IF NOT _fbClearGroup.bBusy
+      THEN
+        _eState                     := E_PROGRESS.PREPARE;
+
+        _stMsg.eType                := E_MessageType.eMessageInfo;
+        _stMsg.eDevice              := ChannelDevice;
+        _stMsg.eSubdevice           := e_Subdevice.fbClearGroup;
+        _stMsg.iErrorNumber         := _fbClearGroup.nErrId;
+        _stMsg.sText                := concat('BuildGroup Done: ', TO_STRING(_fbClearGroup.nErrId));
+        f_MessageSet(stMsg);
+      END_IF
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PREPARE:
+    _eState                         := E_PROGRESS.READY;
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.READY:
+    _eState                         := E_PROGRESS.WAITING;
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.WAITING:
+    _eState                         := E_PROGRESS.WORKING;
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.WORKING:
+    _eState                         := E_PROGRESS.DONE;
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.ERROR,
+  E_PROGRESS.DONE:
+    _fbClearGroup( 
+                  bExecute          := FALSE, 
+                  nGroupId          := ItpGetGroupId(sNciToPlc:= _refNciChannelRef^.NcToPlc));
 END_CASE
 
-//Return Result
-ClearGroup:= hr;
+
+ClearGroup                          := _eState;
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="ConfirmHSK" Id="{2d1176c9-403d-0a4a-2439-6d113f0b9fc1}" FolderPath="methods\">
-      <Declaration><![CDATA[(*
-===============================================================
-Implementation of Tc2_NCI.ItpConfirmHsk
-
-  acknowledge M-Function
-===============================================================
-*)
-METHOD ConfirmHSK : HRESULT
+    <Method Name="ConfirmHSK" Id="{e49289d8-f2f0-0776-3688-698a27e9de34}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD ConfirmHSK : E_PROGRESS
 VAR_INPUT
-  Execute   : BOOL;
+  Execute           : BOOL;
 END_VAR
 VAR_INST
-  hr        : HRESULT;
-  istate    : DINT;
-  stMsg     : ST_Message;
-END_VAR]]></Declaration>
+  _eState           : E_PROGRESS;
+  _rValue           : LREAL;
+  _udiErr           : UDINT;
+  _stMsg            : ST_Message;
+END_VAR
+]]></Declaration>
       <Implementation>
-        <ST><![CDATA[
-IF NOT Execute
-THEN
-  istate              := 0;
-END_IF
+        <ST><![CDATA[IF NOT Check() THEN _eState := E_PROGRESS.ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
 
+CASE _eState
+OF
+  E_PROGRESS.INIT:
+    _refNciChannelRef^.PlcToNc.MFuncGranted   := 0;
 
-CASE istate OF
-  0:
-    hr                                        := S_FALSE;
-    _refNciChannelRef.PlcToNc.MFuncGranted    := 0;
-
-    IF Execute
+    IF Execute 
     THEN
-      IF (_refNciChannelRef.PlcToNc.ChnAxesOvr > 0) AND NOT
-         (_refNciChannelRef.NcToPlc.ChnState.8)
+      memset(ADR(_stMsg),0,SIZEOF(_stMsg));
+      _udiErr                                 := 0;
+      _rValue                                 := 0;
+      _eState                                 := E_PROGRESS.BUSY;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.BUSY:
+    IF (_refNciChannelRef^.PlcToNc.ChnAxesOvr > 0) AND NOT
+       (_refNciChannelRef^.NcToPlc.ChnState.8)
+    THEN
+      IF (_refNciChannelRef^.NcToPlc.HskMFuncReq = 1)
       THEN
-        IF (_refNciChannelRef.NcToPlc.HskMFuncReq = 1)
-        THEN
-          istate                              := 10;
-        END_IF
+        _eState                               := E_PROGRESS.STARTUP;
+
+        _stMsg.eType                          := E_MessageType.eMessageInfo;
+        _stMsg.eDevice                        := ChannelDevice;
+        _stMsg.eSubdevice                     := e_Subdevice.fbConfirmHskItp;
+        _stMsg.iErrorNumber                   := _refNciChannelRef^.NcToPlc.HskMFuncNo;
+        _stMsg.sText                          := concat('M Func check: ', 
+                                                 TO_STRING(_refNciChannelRef^.NcToPlc.HskMFuncNo));
+        f_MessageSet(stMsg);
       END_IF
     END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.STARTUP:
+    _refNciChannelRef^.PlcToNc.MFuncGranted   := 1;
 
-  10:
-    _refNciChannelRef.PlcToNc.MFuncGranted    := 1;
-
-    IF (_refNciChannelRef.NcToPlc.HskMFuncReq = 0)
+    IF (_refNciChannelRef^.NcToPlc.HskMFuncReq = 0)
     THEN
-      istate                                  := 100;
-      _refNciChannelRef.PlcToNc.MFuncGranted  := 0;
+      _eState                                 := E_PROGRESS.PREPARE;
+      _refNciChannelRef^.PlcToNc.MFuncGranted := 0;
+
+      _stMsg.eType                            := E_MessageType.eMessageInfo;
+      _stMsg.eDevice                          := ChannelDevice;
+      _stMsg.eSubdevice                       := e_Subdevice.fbConfirmHskItp;
+      _stMsg.iErrorNumber                     := _refNciChannelRef^.NcToPlc.HskMFuncNo;
+      _stMsg.sText                            := concat('M Func gone: ', 
+                                               TO_STRING(_refNciChannelRef^.NcToPlc.HskMFuncNo));
+      f_MessageSet(stMsg);
     END_IF
 END_CASE
-CASE istate OF
-  100:
-    hr                                        := S_OK;
+CASE _eState
+OF
+  E_PROGRESS.PREPARE:
+    _eState                         := E_PROGRESS.READY;
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.READY:
+    _eState                         := E_PROGRESS.WAITING;
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.WAITING:
+    _eState                         := E_PROGRESS.WORKING;
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.WORKING:
+    _eState                         := E_PROGRESS.DONE;
 END_CASE
 
-//Return Result
-ConfirmHSK:= hr;
+
+ConfirmHSK                          := _eState;
 ]]></ST>
       </Implementation>
     </Method>
@@ -441,78 +496,10 @@ VAR_INPUT
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[
+        <ST><![CDATA[IF NOT Check() THEN Cycle   := E_PROGRESS.ERROR; RETURN; END_IF
+
 ChannelDevice := e_Device.NciChannel + (_refNciChannelRef^.NcToPlc.ChnId);
 
-_iMcCount   := 0;
-_iAuxCount  := 0;
-
-FOR _mdx := 1 TO GVL_NCI.cMcAxisCount
-DO
-  IF (_ipMcsAxis[_mdx] <> 0)
-  THEN
-    _iMcCount := _iMcCount + 1;
-  END_IF
-END_FOR
-
-FOR _adx := 1 TO GVL_NCI.cAuxAxisCount
-DO
-  IF (_ipAuxAxis[_adx] <> 0)
-  THEN
-    _iAuxCount := _iAuxCount + 1;
-  END_IF
-END_FOR
-
-IF (_iAuxCount <> _iAuxCountConfigured) OR
-   (_iMcCount  <> _iMcCountConfigured) 
-THEN
-  // get first occurance of error
-  IF NOT _bMcAxisMismatch
-  THEN
-    stMsg.eType             := E_MessageType.eMessageError;
-    stMsg.eDevice           := ChannelDevice;
-    stMsg.eSubdevice        := e_Subdevice.General;
-    stMsg.iErrorNumber      := E_NCI_CHANNEL_ERROR.e_AxisConfigurationMismatch_McAxis;
-    stMsg.sText             := 'MC Axis count mismatch';
-    f_MessageSet(stMsg);
-  END_IF
-
-  // get first ocurrance of error
-  IF NOT _bAuxAxisMismatch
-  THEN
-    stMsg.eType             := E_MessageType.eMessageError;
-    stMsg.eDevice           := ChannelDevice;
-    stMsg.eSubdevice        := e_Subdevice.General;
-    stMsg.iErrorNumber      := E_NCI_CHANNEL_ERROR.e_AxisConfigurationMismatch_AuxAxis;
-    stMsg.sText             := 'Aux Axis count mismatch';
-    f_MessageSet(stMsg);
-  END_IF
-ELSE
-  // get change of error
-  IF _bMcAxisMismatch
-  THEN
-    stMsg.eType             := E_MessageType.eMessageInfo;
-    stMsg.eDevice           := ChannelDevice;
-    stMsg.eSubdevice        := e_Subdevice.General;
-    stMsg.iErrorNumber      := E_NCI_CHANNEL_ERROR.e_AxisConfigurationMismatch_McAxis;
-    stMsg.sText             := 'MC Axis count match';
-    f_MessageSet(stMsg);
-  END_IF
-
-  // get change of error
-  IF _bAuxAxisMismatch
-  THEN
-    stMsg.eType             := E_MessageType.eMessageInfo;
-    stMsg.eDevice           := ChannelDevice;
-    stMsg.eSubdevice        := e_Subdevice.General;
-    stMsg.iErrorNumber      := E_NCI_CHANNEL_ERROR.e_AxisConfigurationMismatch_AuxAxis;
-    stMsg.sText             := 'Aux Axis count match';
-    f_MessageSet(stMsg);
-  END_IF
-END_IF
-
-_bMcAxisMismatch  := (_iMcCount  <> _iMcCountConfigured);
-_bAuxAxisMismatch := (_iAuxCount <> _iAuxCountConfigured);
 ]]></ST>
       </Implementation>
     </Method>
@@ -1530,17 +1517,43 @@ WriteRParams:= hr;
       </XmlArchive>
     </ObjectProperties>
     <LineIds Name="FB_NciChannel">
-      <LineId Id="3" Count="1" />
-      <LineId Id="9" Count="0" />
-      <LineId Id="81" Count="1" />
+      <LineId Id="3" Count="4" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_NciChannel.BuildGroup">
-      <LineId Id="3" Count="66" />
-      <LineId Id="2" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_NciChannel.BuilDGroup_">
-      <LineId Id="3" Count="45" />
+    <LineIds Name="FB_NciChannel.BuilDGroup">
+      <LineId Id="3" Count="7" />
+      <LineId Id="64" Count="0" />
+      <LineId Id="74" Count="0" />
+      <LineId Id="65" Count="8" />
+      <LineId Id="61" Count="0" />
+      <LineId Id="11" Count="9" />
+      <LineId Id="76" Count="0" />
+      <LineId Id="78" Count="0" />
+      <LineId Id="77" Count="0" />
+      <LineId Id="172" Count="0" />
+      <LineId Id="106" Count="0" />
+      <LineId Id="83" Count="9" />
+      <LineId Id="95" Count="1" />
+      <LineId Id="107" Count="0" />
+      <LineId Id="109" Count="1" />
+      <LineId Id="174" Count="0" />
+      <LineId Id="152" Count="5" />
+      <LineId Id="111" Count="0" />
+      <LineId Id="105" Count="0" />
+      <LineId Id="21" Count="3" />
+      <LineId Id="113" Count="2" />
+      <LineId Id="173" Count="0" />
+      <LineId Id="116" Count="15" />
+      <LineId Id="143" Count="0" />
+      <LineId Id="145" Count="5" />
+      <LineId Id="132" Count="0" />
+      <LineId Id="142" Count="0" />
+      <LineId Id="26" Count="20" />
+      <LineId Id="163" Count="2" />
+      <LineId Id="168" Count="3" />
+      <LineId Id="167" Count="0" />
+      <LineId Id="162" Count="0" />
+      <LineId Id="47" Count="1" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.CfgAxes.Set">
@@ -1548,28 +1561,66 @@ WriteRParams:= hr;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.Check">
-      <LineId Id="7" Count="1" />
-      <LineId Id="11" Count="0" />
-      <LineId Id="9" Count="1" />
-      <LineId Id="13" Count="0" />
-      <LineId Id="31" Count="1" />
-      <LineId Id="17" Count="4" />
-      <LineId Id="16" Count="0" />
-      <LineId Id="33" Count="17" />
-      <LineId Id="29" Count="1" />
-      <LineId Id="6" Count="0" />
+      <LineId Id="3" Count="4" />
+      <LineId Id="42" Count="0" />
+      <LineId Id="9" Count="28" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.ClearGroup">
-      <LineId Id="3" Count="58" />
+      <LineId Id="3" Count="7" />
+      <LineId Id="172" Count="0" />
+      <LineId Id="174" Count="0" />
+      <LineId Id="173" Count="0" />
+      <LineId Id="61" Count="0" />
+      <LineId Id="11" Count="9" />
+      <LineId Id="175" Count="2" />
+      <LineId Id="208" Count="0" />
+      <LineId Id="106" Count="0" />
+      <LineId Id="83" Count="9" />
+      <LineId Id="95" Count="1" />
+      <LineId Id="107" Count="0" />
+      <LineId Id="109" Count="1" />
+      <LineId Id="152" Count="5" />
+      <LineId Id="111" Count="0" />
+      <LineId Id="105" Count="0" />
+      <LineId Id="21" Count="3" />
+      <LineId Id="178" Count="2" />
+      <LineId Id="209" Count="0" />
+      <LineId Id="181" Count="15" />
+      <LineId Id="210" Count="0" />
+      <LineId Id="197" Count="7" />
+      <LineId Id="26" Count="20" />
+      <LineId Id="163" Count="2" />
+      <LineId Id="168" Count="0" />
+      <LineId Id="205" Count="2" />
+      <LineId Id="167" Count="0" />
+      <LineId Id="162" Count="0" />
+      <LineId Id="47" Count="1" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.ConfirmHSK">
-      <LineId Id="3" Count="39" />
+      <LineId Id="3" Count="5" />
+      <LineId Id="210" Count="1" />
+      <LineId Id="9" Count="10" />
+      <LineId Id="213" Count="5" />
+      <LineId Id="240" Count="5" />
+      <LineId Id="247" Count="0" />
+      <LineId Id="246" Count="0" />
+      <LineId Id="219" Count="1" />
+      <LineId Id="21" Count="3" />
+      <LineId Id="222" Count="5" />
+      <LineId Id="256" Count="0" />
+      <LineId Id="249" Count="6" />
+      <LineId Id="228" Count="0" />
+      <LineId Id="26" Count="20" />
+      <LineId Id="162" Count="0" />
+      <LineId Id="47" Count="1" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.Cycle">
-      <LineId Id="6" Count="71" />
+      <LineId Id="78" Count="0" />
+      <LineId Id="3" Count="1" />
+      <LineId Id="79" Count="0" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.DelDTG">
