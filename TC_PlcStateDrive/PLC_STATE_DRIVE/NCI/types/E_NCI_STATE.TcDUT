@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
-  <DUT Name="E_NCI_CTRL" Id="{f051ff48-7b1f-09cf-0f32-71c7d01b2b94}">
+  <DUT Name="E_NCI_STATE" Id="{2b055dfa-b4d9-043d-259a-9033afd60d84}">
     <Declaration><![CDATA[{attribute 'qualified_only'}
-{attribute 'strict'}
+//{attribute 'strict'}
 {attribute 'to_string'}
-TYPE E_NCI_CTRL :
+TYPE E_NCI_STATE :
 (
   NO_NCI            := -10,
   NO_AXIS_GROUP     := -2,

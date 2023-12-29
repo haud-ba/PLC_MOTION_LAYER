@@ -6,7 +6,8 @@
 	NCI Channel Control
 
   2020/05/20  HAUD  0.1     kinematic and NCI separation
-  2022/10/22  HAUD  0.2     PLC_OPEN_DRIVE adoption
+  2022/10/22  HAUD  0.2     PLC_OPEN_DRIVE adaption
+  2023/12/29  HAUD  0.3     PLC_STATE_DRIVE adaption
 -------------------------------------------------------------------------------
 *)
 
@@ -18,80 +19,39 @@
 // of your equipment and backup of your data, and THE PROVIDER will not be liable for any damages you may suffer 
 // in connection with using, modifying, or distributing this SOFTWARE.
 
-FUNCTION_BLOCK FB_NciChannelCtrl IMPLEMENTS I_Nci_Ctrl
+FUNCTION_BLOCK FB_NciChannelCtrl EXTENDS FB_NciChannel IMPLEMENTS I_Nci_Ctrl
 VAR
-  _eCmd                 : E_NCI_CTRL;
-
-  _sState                : STRING;
-  _nErrorId              : UDINT;
-  _bError                : BOOL;
-
-  _fPathVelo             : LREAL;
-  _nBlockNo              : UDINT;
-  _sProgLine             : STRING(100); 
-  _nMFunc                : INT;
-  _eState                : E_NCI_CTRL;
-  _uiStateItp            : UINT;
-
-
-
-  _stMsg                 : ST_Message;
-  _ChannelDevice         : e_Device := e_Device.NciChannelCtrl;
-
-  _eCmdState,
-  _eCmdExec,
-  _eCmdExecOld,
-  _eCmdOld,
-  _eCmdActive            : E_NCI_CTRL;
-
-  _sCmd,
-  _sCmdOld,
-  _sCmdExec              : STRING(256);
-
-  _nState,
-  _nStateSS1             : DINT;
-
-{IF defined (WIN)}
-  _sProg                : STRING(255) := 'C:\TwinCAT\Mc\Nci\Test_GST.nc';
-{ELSE}
-  _sProg                : STRING(255) := '/usr/local/etc/TwinCAT/Mc/Nci/Test_GST.nc';
-{END_IF}
-
-  _stMFuncCyclic        : ST_NCI_CTRL_M_FUNC;
-
   _nChnId               : UINT;
+
+  _eCmd,
+  _eCmdOld              : E_NCI_CTRL;
+
+  _eState               : E_NCI_STATE;
+
+  // control and state struct from outside world
+  _Ctrl                 : POINTER TO ST_CTRL_NCI;
+  _State                : POINTER TO ST_STATE_NCI;
+
+  // M function to fetch
+  _MFuncCyclic          : POINTER TO ST_NCI_M_FUNC;
+
   // R[] Params used in G-Code
   // R[0..899]    local namespace of Channel
   // R[900..999]  global namespace of NC
-  _iri,
-  _irc,
+  _R_ParameterRead      : POINTER TO ST_R_Parameter;
+  _R_ParameterWrite     : POINTER TO ST_R_Parameter;
+
+  _fPathVelo            : LREAL;
+  _nBlockNo             : UDINT;
+  _sProgLine            : STRING(100); 
+  _nMFunc               : INT;
+  _nStateItp            : UINT;
+
   _iRParamIndex,
   _iRParamCount         : DINT;
 
   _rRParamsRead,
-  _rRParamsWrite        : ARRAY [0..GVL_NCI.cRParamCount] OF LREAL;
-
-//MCS-Axes
-  _ipMcsAxis            : ARRAY[1..GVL_NCI.cMcAxisCount] OF I_McAxis;
-  _iMcCount,
-  _iMcCountConfigured   : DINT;
-  _bMcAxisMismatch      : BOOL;
-
-//Aux-Axes
-  _ipAuxAxis            : ARRAY[1..GVL_NCI.cAuxAxisCount] OF I_McAxis;
-  _iAuxCount,
-  _iAuxCountConfigured  : DINT;
-  _bAuxAxisMismatch     : BOOL;
-
-
-  _bErrorCyclicChecks   : BOOL;
-
-  _mdx,
-  _adx                  : UINT;
-  _hr                   : HRESULT;
-
-  _fbNciChannel         : FB_NciChannel;
-  _ipNciChannel         : I_NciChannel;
+  _rRParamsWrite        : ARRAY[0..MAX_R_PARA]  OF LREAL;
 
 END_VAR
 ]]></Declaration>
@@ -587,6 +547,117 @@ CASE _nState OF
 END_CASE]]></ST>
       </Implementation>
     </Action>
+    <Method Name="Check" Id="{e5e6ebbd-f80c-073c-29c0-ccb34bd47eb2}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD Check : BOOL
+VAR_INST
+ 
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT SUPER^.Check() THEN RETURN; END_IF
+
+IF NOT (_Ctrl <> 0)
+THEN
+  _eCheck                     := E_CHECK_STATE.NCI_CTRL_POINTER_INVALID;
+  RETURN;
+END_IF
+
+IF NOT (_State <> 0)
+THEN
+  _eCheck                     := E_CHECK_STATE.NCI_STATE_POINTER_INVALID;
+  RETURN;
+END_IF
+
+IF NOT (_R_ParameterRead <> 0)
+THEN
+  _eCheck                     := E_CHECK_STATE.NCI_R_PARAMETER_READ_POINTER_INVALID;
+  RETURN;
+END_IF
+
+IF NOT (_R_ParameterWrite <> 0)
+THEN
+  _eCheck                     := E_CHECK_STATE.NCI_R_PARAMETER_WRITE_POINTER_INVALID;
+  RETURN;
+END_IF
+
+IF NOT (_MFuncCyclic <> 0)
+THEN
+  _eCheck                     := E_CHECK_STATE.NCI_M_FUNC_POINTER_INVALID;
+  RETURN;
+END_IF
+
+_eCheck                       := E_CHECK_STATE.CHECK_DONE;
+Check                         := TRUE;
+
+
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Chn_BuildGroup" Id="{105aa46f-22c9-0eeb-0410-920d223d85dc}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD Chn_BuildGroup : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+END_VAR
+VAR_INST
+  _eState           : E_PROGRESS;
+  _rValue           : LREAL;
+  _udiErr           : UDINT;
+  _stMsg            : ST_Message;
+
+
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT Check() THEN Chn_BuildGroup := E_PROGRESS.ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+
+CASE _eState
+OF
+  E_PROGRESS.INIT:
+    IF Execute 
+    THEN
+      memset(ADR(_stMsg),0,SIZEOF(_stMsg));
+      _udiErr                       := 0;
+      _rValue                       := 0;
+      _eState                       := E_PROGRESS.BUSY;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.BUSY:
+    _eState                         := E_PROGRESS.STARTUP;
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.STARTUP:
+    _eState                       := E_PROGRESS.PREPARE;
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PREPARE:
+    _eState                         := E_PROGRESS.READY;
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.READY:
+    _eState                         := E_PROGRESS.WAITING;
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.WAITING:
+    _eState                         := E_PROGRESS.WORKING;
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.WORKING:
+    _eState                         := E_PROGRESS.DONE;
+END_CASE
+
+Template_1 := _eState;
+]]></ST>
+      </Implementation>
+    </Method>
     <Property Name="ChnId" Id="{b4fc453f-6a7a-04a9-081a-3b969f557243}" FolderPath="properties\">
       <Declaration><![CDATA[PROPERTY ChnId : udint]]></Declaration>
       <Get Name="Get" Id="{e0b113b9-9605-07d3-2a83-391ba3c31228}">
@@ -600,36 +671,25 @@ END_VAR
       </Get>
     </Property>
     <Method Name="Cycle" Id="{372cd73d-5fcd-0bb1-188a-ff874b868db7}" FolderPath="methods\">
-      <Declaration><![CDATA[METHOD Cycle
-VAR_INPUT
-END_VAR
+      <Declaration><![CDATA[METHOD Cycle : E_PROGRESS
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[// call NCI
-_fbNciChannel();
-_ipNciChannel := _fbNciChannel;
-
-
-// cyclic plausibility checks
-IF Init() <> S_OK 
-THEN
-  eState  := E_NCI_CTRL.NO_INIT;
-  RETURN;
-END_IF
+        <ST><![CDATA[IF NOT Check() THEN Cycle := E_PROGRESS.ERROR; RETURN; END_IF
 
 
 // cyclic data for M func from NCI interface
-_stMFuncCyclic.FastMFuncMask  := _ipNciChannel.pNciChannelRef^.NcToPlc.FastMFuncMask;
-_stMFuncCyclic.HskMFuncNo     := _ipNciChannel.pNciChannelRef^.NcToPlc.HskMFuncNo;
-_stMFuncCyclic.HskMFuncReq    := _ipNciChannel.pNciChannelRef^.NcToPlc.HskMFuncReq;
-_stMFuncCyclic.HFuncValue     := _ipNciChannel.pNciChannelRef^.NcToPlc.HFuncValue;
+_stMFuncCyclic.FastMFuncMask  := _NciChannelRef^.NcToPlc.FastMFuncMask;
+_stMFuncCyclic.HskMFuncNo     := _NciChannelRef^.NcToPlc.HskMFuncNo;
+_stMFuncCyclic.HskMFuncReq    := _NciChannelRef^.NcToPlc.HskMFuncReq;
+_stMFuncCyclic.HFuncValue     := _NciChannelRef^.NcToPlc.HFuncValue;
 
 // M-Func to catch
-IF _ipNciChannel.HSK 
+IF HSK 
 THEN
-  _nMFunc := _ipNciChannel.MFunc;
+  _nMFunc := MFunc;
 END_IF
 
+_eCmd                         := _Ctrl^.eCmd;
 
 // cmd change
 IF (_eCmd <> _eCmdOld) OR
@@ -791,259 +851,17 @@ END_VAR
         </Implementation>
       </Set>
     </Property>
-    <Property Name="GroupAxisConfig" Id="{bc25b515-3120-02cc-2e4f-44411f89f512}" FolderPath="properties\">
-      <Declaration><![CDATA[PROPERTY GroupAxisConfig : ST_3D_Group]]></Declaration>
-      <Get Name="Get" Id="{5190a6b9-59b7-087a-1fe4-95cdb342149f}">
+    <Property Name="ItfChannel" Id="{9649047d-6a01-03f4-2290-fc77c4980149}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY ItfChannel : I_NciChannel]]></Declaration>
+      <Get Name="Get" Id="{dba2e612-8feb-0761-0d03-93a353fa309a}">
         <Declaration><![CDATA[VAR
-  st3DGroup       : ST_3D_Group;
-  stNciExt3dGroup : NCI_EXT3DGROUP;
 END_VAR
 ]]></Declaration>
         <Implementation>
-          <ST><![CDATA[stNciExt3dGroup := _fbNciChannel.ItpAxes;
-memcpy(ADR(st3DGroup), ADR(stNciExt3dGroup), SIZEOF(st3DGroup));
-GroupAxisConfig := st3DGroup;
+          <ST><![CDATA[ItfChannel := SUPER^;
 ]]></ST>
         </Implementation>
       </Get>
-      <Set Name="Set" Id="{12036f52-d6f1-063c-1cfe-fdc01a29724f}">
-        <Declaration><![CDATA[VAR
-  st3DGroup       : ST_3D_Group;
-  stNciExt3dGroup : NCI_EXT3DGROUP;
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[st3DGroup := GroupAxisConfig;
-memcpy(ADR(stNciExt3dGroup), ADR(st3DGroup), SIZEOF(stNciExt3dGroup));
-
-_fbNciChannel.CfgAxes := stNciExt3dGroup;
-
-]]></ST>
-        </Implementation>
-      </Set>
-    </Property>
-    <Property Name="I_AuxAxis" Id="{b82b701d-7c88-002e-3d68-8a54a1f1381a}" FolderPath="properties\">
-      <Declaration><![CDATA[PROPERTY I_AuxAxis : array[1..GVL_NCI.cAuxAxisCount] of I_McAxis]]></Declaration>
-      <Get Name="Get" Id="{478d79c0-fd41-04f6-3ad9-afe3f3fd0fd9}">
-        <Declaration><![CDATA[VAR
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[I_AuxAxis := THIS^._ipAuxAxis;
-]]></ST>
-        </Implementation>
-      </Get>
-      <Set Name="Set" Id="{0e42dd19-ab13-0b53-3511-d4780541632e}">
-        <Declaration><![CDATA[VAR
-  idx : DINT;
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[THIS^._ipAuxAxis := I_AuxAxis;
-
-_iAuxCountConfigured := 0;
-FOR idx := 1 TO GVL_NCI.cAuxAxisCount
-DO
-  IF (_ipAuxAxis[idx] <> 0)
-  THEN
-    _iAuxCountConfigured := _iAuxCountConfigured + 1;
-  END_IF
-END_FOR
-]]></ST>
-        </Implementation>
-      </Set>
-    </Property>
-    <Property Name="I_McAxis" Id="{0c93d8dd-2c40-0ec8-23cc-99238abc8d1d}" FolderPath="properties\">
-      <Declaration><![CDATA[PROPERTY I_McAxis : array[1..GVL_NCI.cMcAxisCount] of I_McAxis]]></Declaration>
-      <Get Name="Get" Id="{8b4809d1-f53f-0c0a-0140-dacbe2f6e0f1}">
-        <Declaration><![CDATA[VAR
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[I_McAxis := THIS^._ipMcsAxis;
-
-]]></ST>
-        </Implementation>
-      </Get>
-      <Set Name="Set" Id="{850b03d4-c032-06c2-23b5-b87bac145d26}">
-        <Declaration><![CDATA[VAR
-  idx : DINT;
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[_ipMcsAxis := I_McAxis;
-
-_iMcCountConfigured := 0;
-FOR idx := 1 TO GVL_NCI.cMcAxisCount
-DO
-  IF (_ipMcsAxis[idx] <> 0)
-  THEN
-    _iMcCountConfigured := _iMcCountConfigured + 1;
-  END_IF
-END_FOR
-]]></ST>
-        </Implementation>
-      </Set>
-    </Property>
-    <Property Name="I_NcChannel" Id="{22dcada6-8c79-0a1f-20d6-c91e1ad35eeb}" FolderPath="properties\">
-      <Declaration><![CDATA[PROPERTY I_NcChannel : I_NciChannel]]></Declaration>
-      <Get Name="Get" Id="{bea2cc95-baad-064f-06ec-640ee1aad343}">
-        <Declaration><![CDATA[VAR
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[I_NcChannel := _fbNciChannel;]]></ST>
-        </Implementation>
-      </Get>
-    </Property>
-    <Method Name="Init" Id="{af039363-83ae-0df5-1e7c-9cec0c417a6a}" FolderPath="methods\">
-      <Declaration><![CDATA[METHOD PRIVATE Init : HRESULT
-VAR_INST
-  hr    : HRESULT   := S_FALSE;
-END_VAR
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[IF hr <> S_OK 
-THEN
-
-  _nChnId := _fbNciChannel.pNciChannelRef^.NcToPlc.ChnId;
-  IF (_nChnId = 0)
-  THEN
-    _sState    := 'CannelId = 0';
-    Init      := hr := -1;
-    RETURN;
-  ELSE
-    _sState    := concat('CannelId = ', TO_STRING(_nChnId));
-  END_IF
-  
-  _iMcCount   := 0;
-  _iAuxCount  := 0;
-  
-  FOR _mdx := 1 TO GVL_NCI.cMcAxisCount
-  DO
-    IF (_ipMcsAxis[_mdx] <> 0)
-    THEN
-      _iMcCount := _iMcCount + 1;
-    END_IF
-  END_FOR
-  
-  FOR _adx := 1 TO GVL_NCI.cAuxAxisCount
-  DO
-    IF (_ipAuxAxis[_adx] <> 0)
-    THEN
-      _iAuxCount := _iAuxCount + 1;
-    END_IF
-  END_FOR
-  
-  IF (_iAuxCount <> _iAuxCountConfigured) OR
-     (_iMcCount  <> _iMcCountConfigured) 
-  THEN
-    _sState                    := 'Axis count mismatch';
-
-    // get first occurance of error
-    IF NOT _bMcAxisMismatch
-    THEN
-      _stMsg.eType             := E_MessageType.eMessageError;
-      _stMsg.eDevice           := _ChannelDevice;
-      _stMsg.eSubdevice        := e_Subdevice.General;
-      _stMsg.iErrorNumber      := E_NCI_CHANNEL_ERROR.e_AxisConfigurationMismatch_McAxis;
-      _stMsg.sText             := 'MC Axis count mismatch';
-      f_MessageSet(_stMsg);
-    END_IF
-  
-    // get first ocurrance of error
-    IF NOT _bAuxAxisMismatch
-    THEN
-      _stMsg.eType             := E_MessageType.eMessageError;
-      _stMsg.eDevice           := _ChannelDevice;
-      _stMsg.eSubdevice        := e_Subdevice.General;
-      _stMsg.iErrorNumber      := E_NCI_CHANNEL_ERROR.e_AxisConfigurationMismatch_AuxAxis;
-      _stMsg.sText             := 'Aux Axis count mismatch';
-      f_MessageSet(_stMsg);
-    END_IF
-  ELSE
-    // get change of error
-    IF _bMcAxisMismatch
-    THEN
-      _stMsg.eType             := E_MessageType.eMessageInfo;
-      _stMsg.eDevice           := _ChannelDevice;
-      _stMsg.eSubdevice        := e_Subdevice.General;
-      _stMsg.iErrorNumber      := E_NCI_CHANNEL_ERROR.e_AxisConfigurationMismatch_McAxis;
-      _stMsg.sText             := 'MC Axis count match';
-      f_MessageSet(_stMsg);
-    END_IF
-  
-    // get change of error
-    IF _bAuxAxisMismatch
-    THEN
-      _stMsg.eType             := E_MessageType.eMessageInfo;
-      _stMsg.eDevice           := _ChannelDevice;
-      _stMsg.eSubdevice        := e_Subdevice.General;
-      _stMsg.iErrorNumber      := E_NCI_CHANNEL_ERROR.e_AxisConfigurationMismatch_AuxAxis;
-      _stMsg.sText             := 'Aux Axis count match';
-      f_MessageSet(_stMsg);
-    END_IF
-  END_IF
-  
-  _bMcAxisMismatch  := (_iMcCount  <> _iMcCountConfigured);
-  _bAuxAxisMismatch := (_iAuxCount <> _iAuxCountConfigured);
-  
-  IF (_bMcAxisMismatch) OR
-     (_bAuxAxisMismatch)
-  THEN
-    _nErrorId    := SEL(_bMcAxisMismatch, _nErrorId, (_nErrorId OR 2#0001));
-    _nErrorId    := SEL(_bAuxAxisMismatch,_nErrorId, (_nErrorId OR 2#001));
-    _bError      := TRUE;
-    RETURN;
-  END_IF 
-
-
-  _bError                  := FALSE;
-  hr                       := S_OK;
-  _eCmdState               := E_NCI_CTRL.INIT;
-  // initial assignement, 
-  // if required; change on calling BuildGroup
-  _fbNciChannel.I_AuxAxis := I_AuxAxis;
-  _fbNciChannel.I_McAxis  := I_McAxis;
-END_IF
-
-//Return Value
-Init := hr;
-]]></ST>
-      </Implementation>
-    </Method>
-    <Property Name="M_FuncReq" Id="{23775d9b-7f7c-0592-3be9-888d1a3a9c00}" FolderPath="properties\">
-      <Declaration><![CDATA[PROPERTY M_FuncReq : word]]></Declaration>
-      <Get Name="Get" Id="{8865e760-c60a-08d5-19cc-583b1adfd46c}">
-        <Declaration><![CDATA[VAR
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[M_FuncReq := _fbNciChannel.pNciChannelRef^.NcToPlc.HskMFuncReq;
-]]></ST>
-        </Implementation>
-      </Get>
-    </Property>
-    <Property Name="NcProg" Id="{6499fde1-ed06-092e-2fc6-32ffa80c60fa}" FolderPath="properties\">
-      <Declaration><![CDATA[PROPERTY NcProg : string(255)]]></Declaration>
-      <Get Name="Get" Id="{90b7459a-6e90-0853-2b7b-49f83b1c595f}">
-        <Declaration><![CDATA[VAR
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[NcProg := _sProg;
-]]></ST>
-        </Implementation>
-      </Get>
-      <Set Name="Set" Id="{d8f9fec6-b10c-0e0d-25be-5b003bea1e6a}">
-        <Declaration><![CDATA[VAR
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[_sProg := NcProg;
-]]></ST>
-        </Implementation>
-      </Set>
     </Property>
     <Property Name="R_Param_Read" Id="{31b9c523-238b-0043-3441-afce2546cdca}" FolderPath="properties\">
       <Declaration><![CDATA[PROPERTY R_Param_Read : ARRAY [0..GVL_NCI.cRParamCount] OF lreal]]></Declaration>
@@ -1150,6 +968,70 @@ END_VAR
         </Implementation>
       </Set>
     </Property>
+    <Method Name="Template" Id="{e9779cbd-b047-0927-1afc-2a205c1c1e40}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD Template : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+END_VAR
+VAR_INST
+  _eState           : E_PROGRESS;
+  _rValue           : LREAL;
+  _udiErr           : UDINT;
+  _stMsg            : ST_Message;
+
+
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT Check() THEN _eState := E_PROGRESS.ERROR; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+
+CASE _eState
+OF
+  E_PROGRESS.INIT:
+    IF Execute 
+    THEN
+      memset(ADR(_stMsg),0,SIZEOF(_stMsg));
+      _udiErr                       := 0;
+      _rValue                       := 0;
+      _eState                       := E_PROGRESS.BUSY;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.BUSY:
+    _eState                         := E_PROGRESS.STARTUP;
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.STARTUP:
+    _eState                       := E_PROGRESS.PREPARE;
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PREPARE:
+    _eState                         := E_PROGRESS.READY;
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.READY:
+    _eState                         := E_PROGRESS.WAITING;
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.WAITING:
+    _eState                         := E_PROGRESS.WORKING;
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.WORKING:
+    _eState                         := E_PROGRESS.DONE;
+END_CASE
+
+Template_1 := _eState;
+]]></ST>
+      </Implementation>
+    </Method>
     <ObjectProperties>
       <XmlArchive>
         <Data>
@@ -1210,12 +1092,44 @@ END_VAR
       <LineId Id="2" Count="38" />
       <LineId Id="1" Count="0" />
     </LineIds>
+    <LineIds Name="FB_NciChannelCtrl.Check">
+      <LineId Id="6" Count="0" />
+      <LineId Id="14" Count="2" />
+      <LineId Id="19" Count="0" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="17" Count="0" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="20" Count="4" />
+      <LineId Id="26" Count="5" />
+      <LineId Id="25" Count="0" />
+      <LineId Id="32" Count="4" />
+      <LineId Id="42" Count="5" />
+      <LineId Id="37" Count="0" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="38" Count="1" />
+      <LineId Id="11" Count="0" />
+      <LineId Id="7" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannelCtrl.Chn_BuildGroup">
+      <LineId Id="574" Count="17" />
+      <LineId Id="598" Count="3" />
+      <LineId Id="661" Count="0" />
+      <LineId Id="635" Count="10" />
+      <LineId Id="675" Count="4" />
+      <LineId Id="646" Count="4" />
+      <LineId Id="656" Count="1" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
     <LineIds Name="FB_NciChannelCtrl.ChnId.Get">
       <LineId Id="3" Count="0" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.Cycle">
-      <LineId Id="3" Count="141" />
+      <LineId Id="7" Count="0" />
+      <LineId Id="14" Count="12" />
+      <LineId Id="148" Count="0" />
+      <LineId Id="27" Count="117" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.eCmd.Get">
@@ -1233,48 +1147,9 @@ END_VAR
       <LineId Id="3" Count="0" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_NciChannelCtrl.GroupAxisConfig.Get">
-      <LineId Id="3" Count="2" />
+    <LineIds Name="FB_NciChannelCtrl.ItfChannel.Get">
       <LineId Id="2" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_NciChannelCtrl.GroupAxisConfig.Set">
-      <LineId Id="3" Count="4" />
-      <LineId Id="2" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_NciChannelCtrl.I_AuxAxis.Get">
-      <LineId Id="3" Count="0" />
-      <LineId Id="2" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_NciChannelCtrl.I_AuxAxis.Set">
-      <LineId Id="3" Count="9" />
-      <LineId Id="2" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_NciChannelCtrl.I_McAxis.Get">
-      <LineId Id="3" Count="1" />
-      <LineId Id="2" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_NciChannelCtrl.I_McAxis.Set">
-      <LineId Id="3" Count="9" />
-      <LineId Id="2" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_NciChannelCtrl.I_NcChannel.Get">
-      <LineId Id="2" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_NciChannelCtrl.Init">
-      <LineId Id="3" Count="105" />
-      <LineId Id="2" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_NciChannelCtrl.M_FuncReq.Get">
-      <LineId Id="3" Count="0" />
-      <LineId Id="2" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_NciChannelCtrl.NcProg.Get">
-      <LineId Id="3" Count="0" />
-      <LineId Id="2" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_NciChannelCtrl.NcProg.Set">
-      <LineId Id="3" Count="0" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.R_Param_Read.Get">
       <LineId Id="3" Count="0" />
@@ -1314,6 +1189,16 @@ END_VAR
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.sCmd.Set">
       <LineId Id="3" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannelCtrl.Template">
+      <LineId Id="574" Count="17" />
+      <LineId Id="598" Count="3" />
+      <LineId Id="661" Count="0" />
+      <LineId Id="635" Count="10" />
+      <LineId Id="675" Count="4" />
+      <LineId Id="646" Count="4" />
+      <LineId Id="656" Count="1" />
       <LineId Id="2" Count="0" />
     </LineIds>
   </POU>

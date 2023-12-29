@@ -6,8 +6,7 @@ TYPE ST_R_Parameter :
 STRUCT
   _nStart               : DINT := 901;
   _nCount               : DINT :=   4;
-  _rRParamsWrite        : ARRAY[0..MAX_R_PARA] OF LREAL := [11.11, 22.22, 33.33, 456.22];
-  _rRParamsRead         : ARRAY[0..MAX_R_PARA] OF LREAL;
+  _rValue               : ARRAY[0..MAX_R_PARA] OF LREAL;
 END_STRUCT
 END_TYPE
 ]]></Declaration>

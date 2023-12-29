@@ -197,7 +197,9 @@ _Info^[_nAxisIndex].dwCoupleState   := _AxisRef^.NcToPlc.CoupleState;
 //-----------------------------------------------------------------------------
 ]]></ST>
     </Implementation>
-    <Folder Name="private" Id="{72055c1e-ae08-0707-1b82-aa6a286c994c}" />
+    <Folder Name="methods" Id="{c0eb5de4-89eb-00eb-3204-efd0e884debd}">
+      <Folder Name="private" Id="{72055c1e-ae08-0707-1b82-aa6a286c994c}" />
+    </Folder>
     <Folder Name="properties" Id="{ec33a634-95a7-05e3-1cf2-1ebdb2bd51b4}" />
     <Property Name="AxisCtrl" Id="{6f4cd776-1490-073c-2411-2e9fa9e9a6b2}" FolderPath="properties\">
       <Declaration><![CDATA[PROPERTY AxisCtrl : pointer to ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF st_axis_ctrl]]></Declaration>
@@ -223,7 +225,7 @@ END_VAR
         </Implementation>
       </Set>
     </Property>
-    <Method Name="AxisDisable" Id="{5b07de5c-833d-0c24-00ad-ad559c3149a3}">
+    <Method Name="AxisDisable" Id="{5b07de5c-833d-0c24-00ad-ad559c3149a3}" FolderPath="methods\">
       <Declaration><![CDATA[METHOD AxisDisable : E_PROGRESS
 VAR_INPUT
   Execute           : BOOL;
@@ -279,7 +281,7 @@ AxisDisable := _eState;
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="AxisEnable" Id="{bdedff7a-4ac5-01d7-2a4e-56553b33f7f1}">
+    <Method Name="AxisEnable" Id="{bdedff7a-4ac5-01d7-2a4e-56553b33f7f1}" FolderPath="methods\">
       <Declaration><![CDATA[METHOD AxisEnable : E_PROGRESS
 VAR_INPUT
   Execute           : BOOL;
@@ -347,7 +349,7 @@ END_VAR
         </Implementation>
       </Set>
     </Property>
-    <Method Name="AxisHalt" Id="{9b3aecb2-f7be-0371-1558-f6e3e61aa21b}">
+    <Method Name="AxisHalt" Id="{9b3aecb2-f7be-0371-1558-f6e3e61aa21b}" FolderPath="methods\">
       <Declaration><![CDATA[METHOD AxisHalt : E_PROGRESS
 VAR_INPUT
   Execute           : BOOL;
@@ -417,7 +419,7 @@ AxisHalt := _eState;
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="AxisHome" Id="{4affed04-b463-0d9f-01c5-e55d9c21fdc1}">
+    <Method Name="AxisHome" Id="{4affed04-b463-0d9f-01c5-e55d9c21fdc1}" FolderPath="methods\">
       <Declaration><![CDATA[METHOD AxisHome : E_PROGRESS
 VAR_INPUT
   Execute           : BOOL;
@@ -551,7 +553,7 @@ END_VAR
         </Implementation>
       </Set>
     </Property>
-    <Method Name="AxisInit" Id="{cfb847c0-d387-0e90-3f6c-326032cd73b0}" FolderPath="private\">
+    <Method Name="AxisInit" Id="{cfb847c0-d387-0e90-3f6c-326032cd73b0}" FolderPath="methods\private\">
       <Declaration><![CDATA[METHOD PRIVATE AxisInit : E_PROGRESS
 VAR_INPUT
   Execute           : BOOL;
@@ -723,7 +725,7 @@ AxisInit := _eState;
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="AxisReset" Id="{983134b4-72eb-0c42-3ead-aaa67397970d}">
+    <Method Name="AxisReset" Id="{983134b4-72eb-0c42-3ead-aaa67397970d}" FolderPath="methods\">
       <Declaration><![CDATA[METHOD AxisReset : E_PROGRESS
 VAR_INPUT
   Execute           : BOOL;
@@ -795,7 +797,7 @@ END_VAR
         </Implementation>
       </Set>
     </Property>
-    <Method Name="AxisStop" Id="{4a327d1b-00a7-09b1-2b27-f1512672b30e}">
+    <Method Name="AxisStop" Id="{4a327d1b-00a7-09b1-2b27-f1512672b30e}" FolderPath="methods\">
       <Declaration><![CDATA[METHOD AxisStop : E_PROGRESS
 VAR_INPUT
   Execute           : BOOL;
@@ -865,7 +867,7 @@ AxisStop := _eState;
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="Check" Id="{f8c19456-13e2-0915-179c-dd36c10cb739}" FolderPath="private\">
+    <Method Name="Check" Id="{f8c19456-13e2-0915-179c-dd36c10cb739}" FolderPath="methods\private\">
       <Declaration><![CDATA[METHOD PRIVATE Check : BOOL
 ]]></Declaration>
       <Implementation>
@@ -979,7 +981,7 @@ Check                     := TRUE;
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="Cmd" Id="{1389b619-e85f-0feb-358b-830cf714b972}" FolderPath="private\">
+    <Method Name="Cmd" Id="{1389b619-e85f-0feb-358b-830cf714b972}" FolderPath="methods\private\">
       <Declaration><![CDATA[METHOD Cmd : E_AXIS_STATE
 VAR_INPUT
   eCmd      : E_AXIS_CTRL;
@@ -1084,7 +1086,7 @@ Cmd                         := _estate;
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="GetCalibrationCam" Id="{cce8967b-3b33-0d3c-2e17-bfaefcd5c5f7}" FolderPath="private\">
+    <Method Name="GetCalibrationCam" Id="{cce8967b-3b33-0d3c-2e17-bfaefcd5c5f7}" FolderPath="methods\private\">
       <Declaration><![CDATA[METHOD PRIVATE GetCalibrationCam : BOOL
 VAR_INST
   _bCal     : Bool;
@@ -1126,7 +1128,7 @@ END_VAR
         </Implementation>
       </Set>
     </Property>
-    <Method Name="Idle" Id="{91e094ba-3637-045f-257e-8b0236a82b6e}">
+    <Method Name="Idle" Id="{91e094ba-3637-045f-257e-8b0236a82b6e}" FolderPath="methods\">
       <Declaration><![CDATA[METHOD Idle : E_PROGRESS
 VAR_INPUT
   Execute           : BOOL;
@@ -1214,7 +1216,7 @@ Idle := _eState;
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="LogControl" Id="{d80366c5-11f3-0a8a-297c-4979ebf61c8a}" FolderPath="private\">
+    <Method Name="LogControl" Id="{d80366c5-11f3-0a8a-297c-4979ebf61c8a}" FolderPath="methods\private\">
       <Declaration><![CDATA[METHOD PRIVATE LogControl
 VAR_INST
   _sResult,
@@ -1239,7 +1241,7 @@ END_VAR
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="LogResult" Id="{6a095a86-ad22-09b9-1058-5124e0b4c567}" FolderPath="private\">
+    <Method Name="LogResult" Id="{6a095a86-ad22-09b9-1058-5124e0b4c567}" FolderPath="methods\private\">
       <Declaration><![CDATA[METHOD PRIVATE LogResult
 VAR_INST
   _sResult,
@@ -1280,7 +1282,7 @@ END_VAR
         </Implementation>
       </Set>
     </Property>
-    <Method Name="MoveBufferPos" Id="{8bea1fe6-78db-0d06-2903-94e698371421}">
+    <Method Name="MoveBufferPos" Id="{8bea1fe6-78db-0d06-2903-94e698371421}" FolderPath="methods\">
       <Declaration><![CDATA[METHOD MoveBufferPos : E_PROGRESS
 VAR_INPUT
   Enable            : BOOL;
@@ -1347,7 +1349,7 @@ MoveBufferPos := _eState;
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="MoveBufferVelo" Id="{374fe133-fb4a-0fd3-3a5b-fe68bfd11804}">
+    <Method Name="MoveBufferVelo" Id="{374fe133-fb4a-0fd3-3a5b-fe68bfd11804}" FolderPath="methods\">
       <Declaration><![CDATA[METHOD MoveBufferVelo : E_PROGRESS
 VAR_INPUT
   Enable            : BOOL;
@@ -1412,7 +1414,7 @@ MoveBufferVelo := _eState;
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="MovePosition" Id="{27760da5-88ba-02a4-20e2-a43d8fea6b68}">
+    <Method Name="MovePosition" Id="{27760da5-88ba-02a4-20e2-a43d8fea6b68}" FolderPath="methods\">
       <Declaration><![CDATA[METHOD MovePosition : E_PROGRESS
 VAR_INPUT
   Execute           : BOOL;
@@ -1494,7 +1496,7 @@ MovePosition := _eState;
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="MoveVelocity" Id="{636baf69-d370-0962-3889-6678baa38f82}">
+    <Method Name="MoveVelocity" Id="{636baf69-d370-0962-3889-6678baa38f82}" FolderPath="methods\">
       <Declaration><![CDATA[METHOD MoveVelocity : E_PROGRESS
 VAR_INPUT
   Execute           : BOOL;
@@ -1598,7 +1600,7 @@ END_VAR
         </Implementation>
       </Get>
     </Property>
-    <Method Name="ParameterRead" Id="{e888c5ae-12ad-0616-229c-9fc3342dcc87}">
+    <Method Name="ParameterRead" Id="{e888c5ae-12ad-0616-229c-9fc3342dcc87}" FolderPath="methods\">
       <Declaration><![CDATA[METHOD ParameterRead : E_PROGRESS
 VAR_INPUT
   Execute           : BOOL;
@@ -1662,7 +1664,7 @@ ParameterRead := _eState;
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="ParameterWrite" Id="{77ad02f2-e55b-0375-1054-18aeccc4f797}">
+    <Method Name="ParameterWrite" Id="{77ad02f2-e55b-0375-1054-18aeccc4f797}" FolderPath="methods\">
       <Declaration><![CDATA[METHOD ParameterWrite : E_PROGRESS
 VAR_INPUT
   Execute           : BOOL;
@@ -1727,7 +1729,7 @@ ParameterWrite                    := _eState;
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="ParameterWritePersistent" Id="{bfd2219d-61cd-01fc-2d61-aa05055375fb}">
+    <Method Name="ParameterWritePersistent" Id="{bfd2219d-61cd-01fc-2d61-aa05055375fb}" FolderPath="methods\">
       <Declaration><![CDATA[METHOD ParameterWritePersistent : E_PROGRESS
 VAR_INPUT
   Execute           : BOOL;
@@ -1804,7 +1806,7 @@ END_VAR
         </Implementation>
       </Set>
     </Property>
-    <Method Name="ResetSoE" Id="{4d30f9e6-607e-0983-163c-f478b48c7089}" FolderPath="private\">
+    <Method Name="ResetSoE" Id="{4d30f9e6-607e-0983-163c-f478b48c7089}" FolderPath="methods\private\">
       <Declaration><![CDATA[METHOD PRIVATE ResetSoE : E_PROGRESS
 VAR_INPUT
   Execute           : BOOL;

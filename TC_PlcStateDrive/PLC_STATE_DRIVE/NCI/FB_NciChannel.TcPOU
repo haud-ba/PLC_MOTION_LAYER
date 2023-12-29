@@ -9,10 +9,10 @@ VAR
   _eCheck               : E_CHECK_STATE;
 
 //NCI-Channel reference
-  _refNciChannelRef     : POINTER TO ST_NciChannel_Ref;
+  _NciChannelRef        : POINTER TO ST_NciChannel_Ref;
 
 //Configured Group Axes
-  _stCfgAxes            : Tc2_NCI.NCI_EXT3DGROUP;
+  _stCfgAxes            : POINTER TO Tc2_NCI.NCI_EXT3DGROUP;
 
 //MCS-Axes
   _ipMcsAxis            : ARRAY[1..MAX_MC_AXIS]  OF I_McAxis;
@@ -31,9 +31,13 @@ VAR
   _adx                  : UINT;
   
 //NCI-Program
-  _fbLoadProg           : Tc2_NCI.ItpLoadProgEx;
+{IF defined (WIN)}
+  _sProg                : STRING(255) := 'C:\TwinCAT\Mc\Nci\Test_GST.nc';
+{ELSE}
+  _sProg                : STRING(255) := '/usr/local/etc/TwinCAT/Mc/Nci/Test_GST.nc';
+{END_IF}
 
-  _sProg                : STRING(255);
+  _fbLoadProg           : Tc2_NCI.ItpLoadProgEx;
 
 //Interpreter
   _fbReset              : Tc2_NCI.ItpResetEx2;
@@ -61,7 +65,6 @@ END_VAR
 ]]></ST>
     </Implementation>
     <Folder Name="methods" Id="{31d0ae4f-7268-087b-0095-8a7f06f6a71d}" />
-    <Folder Name="private" Id="{a1dced49-12ae-0dd4-11f4-bd3aff7b080b}" />
     <Folder Name="properties" Id="{f152d130-2071-0c7a-003b-853121063191}" />
     <Method Name="BuilDGroup" Id="{f0f69d76-b6ca-0cfe-225e-863dbd551f02}" FolderPath="methods\">
       <Declaration><![CDATA[METHOD BuilDGroup : E_PROGRESS
@@ -86,15 +89,15 @@ OF
     THEN
       _fbBuildGroup( 
                 bExecute            := FALSE, 
-                nGroupId            := ItpGetGroupId(sNciToPlc:=_refNciChannelRef^.NcToPlc) , 
-                nXAxisId            := _stCfgAxes.nXAxisId,
-                nYAxisId            := _stCfgAxes.nYAxisId, 
-                nZAxisId            := _stCfgAxes.nZAxisId, 
-                nQ1AxisId           := _stCfgAxes.nQ1AxisId,
-                nQ2AxisId           := _stCfgAxes.nQ2AxisId, 
-                nQ3AxisId           := _stCfgAxes.nQ3AxisId, 
-                nQ4AxisId           := _stCfgAxes.nQ4AxisId, 
-                nQ5AxisId           := _stCfgAxes.nQ5AxisId);
+                nGroupId            := ItpGetGroupId(sNciToPlc:=_NciChannelRef^.NcToPlc) , 
+                nXAxisId            := _stCfgAxes^.nXAxisId,
+                nYAxisId            := _stCfgAxes^.nYAxisId, 
+                nZAxisId            := _stCfgAxes^.nZAxisId, 
+                nQ1AxisId           := _stCfgAxes^.nQ1AxisId,
+                nQ2AxisId           := _stCfgAxes^.nQ2AxisId, 
+                nQ3AxisId           := _stCfgAxes^.nQ3AxisId, 
+                nQ4AxisId           := _stCfgAxes^.nQ4AxisId, 
+                nQ5AxisId           := _stCfgAxes^.nQ5AxisId);
 
       memset(ADR(_stMsg),0,SIZEOF(_stMsg));
       _udiErr                       := 0;
@@ -108,7 +111,7 @@ OF
     _eState                         := E_PROGRESS.STARTUP;
     _fbBuildGroup( 
                 bExecute            := TRUE, 
-                nGroupId            := ItpGetGroupId(sNciToPlc:=_refNciChannelRef^.NcToPlc),
+                nGroupId            := ItpGetGroupId(sNciToPlc:=_NciChannelRef^.NcToPlc),
                   nErrId            => _udiErr);
 
     IF _fbBuildGroup.bErr 
@@ -141,7 +144,7 @@ OF
   E_PROGRESS.STARTUP:
     _fbBuildGroup( 
                 bExecute            := TRUE, 
-                nGroupId            := ItpGetGroupId(sNciToPlc:=_refNciChannelRef^.NcToPlc),
+                nGroupId            := ItpGetGroupId(sNciToPlc:=_NciChannelRef^.NcToPlc),
                   nErrId            => _udiErr);
 
     IF _fbBuildGroup.bErr 
@@ -195,7 +198,7 @@ OF
   E_PROGRESS.DONE:
     _fbBuildGroup( 
                 bExecute            := FALSE, 
-                nGroupId            := ItpGetGroupId(sNciToPlc:=_refNciChannelRef^.NcToPlc));
+                nGroupId            := ItpGetGroupId(sNciToPlc:=_NciChannelRef^.NcToPlc));
 END_CASE
 
 
@@ -219,20 +222,47 @@ PROPERTY CfgAxes : Tc2_NCI.NCI_EXT3DGROUP
         </Implementation>
       </Set>
     </Property>
-    <Method Name="Check" Id="{d9ef509f-396a-0fec-3bd3-8c28926cfe17}" FolderPath="private\">
-      <Declaration><![CDATA[METHOD PRIVATE Check : BOOL
+    <Property Name="ChannelRef" Id="{51cc1892-6c57-0aa9-0a70-f37926d9876f}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY ChannelRef : POINTER TO ST_NciChannel_Ref]]></Declaration>
+      <Set Name="Set" Id="{31d4a2b3-dfb1-0fac-18f8-115df6cc863a}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_NciChannelRef := ChannelRef;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Method Name="Check" Id="{d9ef509f-396a-0fec-3bd3-8c28926cfe17}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD Check : BOOL
 VAR
   _idx      : uint;
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT (_refNciChannelRef^.NcToPlc.ChnId <> 0)
+        <ST><![CDATA[
+
+IF NOT (_NciChannelRef <> 0)
 THEN
   _eCheck                         := E_CHECK_STATE.NCI_CHANNEL_REF_POINTER_INVALID;
   RETURN;
 END_IF
 
-IF (_stCfgAxes.nXAxisId <> 0)
+IF NOT (_NciChannelRef^.NcToPlc.ChnId <> 0)
+THEN
+  _eCheck                         := E_CHECK_STATE.NCI_CHANNEL_REF_POINTER_INVALID;
+  RETURN;
+END_IF
+
+IF (_stCfgAxes <> 0)
+THEN
+  _eCheck                         := E_CHECK_STATE.NCI_AXIS_CONFIG_POINTER_INVALID;
+  RETURN;
+END_IF
+
+
+IF (_stCfgAxes^.nXAxisId <> 0)
 THEN
   IF NOT (_ipMcsAxis[1] <> 0)
   THEN
@@ -241,7 +271,7 @@ THEN
   END_IF
 END_IF
 
-IF (_stCfgAxes.nYAxisId <> 0)
+IF (_stCfgAxes^.nYAxisId <> 0)
 THEN
   IF NOT (_ipMcsAxis[2] <> 0)
   THEN
@@ -250,7 +280,7 @@ THEN
   END_IF
 END_IF
 
-IF (_stCfgAxes.nZAxisId <> 0)
+IF (_stCfgAxes^.nZAxisId <> 0)
 THEN
   IF NOT (_ipMcsAxis[3] <> 0)
   THEN
@@ -287,7 +317,7 @@ OF
     THEN
       _fbClearGroup( 
                   bExecute          := FALSE, 
-                  nGroupId          := ItpGetGroupId(sNciToPlc:= _refNciChannelRef^.NcToPlc));
+                  nGroupId          := ItpGetGroupId(sNciToPlc:= _NciChannelRef^.NcToPlc));
 
       memset(ADR(_stMsg),0,SIZEOF(_stMsg));
       _udiErr                       := 0;
@@ -301,7 +331,7 @@ OF
     _eState                         := E_PROGRESS.STARTUP;
     _fbClearGroup( 
                   bExecute          := TRUE, 
-                  nGroupId          := ItpGetGroupId(sNciToPlc:= _refNciChannelRef^.NcToPlc),
+                  nGroupId          := ItpGetGroupId(sNciToPlc:= _NciChannelRef^.NcToPlc),
                   nErrId            => _udiErr);
 
     IF _fbClearGroup.bErr 
@@ -333,7 +363,7 @@ OF
   E_PROGRESS.STARTUP:
     _fbClearGroup( 
                   bExecute          := TRUE, 
-                  nGroupId          := ItpGetGroupId(sNciToPlc:= _refNciChannelRef^.NcToPlc),
+                  nGroupId          := ItpGetGroupId(sNciToPlc:= _NciChannelRef^.NcToPlc),
                   nErrId            => _udiErr);
 
     IF _fbClearGroup.bErr 
@@ -387,7 +417,7 @@ OF
   E_PROGRESS.DONE:
     _fbClearGroup( 
                   bExecute          := FALSE, 
-                  nGroupId          := ItpGetGroupId(sNciToPlc:= _refNciChannelRef^.NcToPlc));
+                  nGroupId          := ItpGetGroupId(sNciToPlc:= _NciChannelRef^.NcToPlc));
 END_CASE
 
 
@@ -414,7 +444,7 @@ IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
 CASE _eState
 OF
   E_PROGRESS.INIT:
-    _refNciChannelRef^.PlcToNc.MFuncGranted   := 0;
+    _NciChannelRef^.PlcToNc.MFuncGranted   := 0;
 
     IF Execute 
     THEN
@@ -427,19 +457,19 @@ END_CASE
 CASE _eState
 OF
   E_PROGRESS.BUSY:
-    IF (_refNciChannelRef^.PlcToNc.ChnAxesOvr > 0) AND NOT
-       (_refNciChannelRef^.NcToPlc.ChnState.8)
+    IF (_NciChannelRef^.PlcToNc.ChnAxesOvr > 0) AND NOT
+       (_NciChannelRef^.NcToPlc.ChnState.8)
     THEN
-      IF (_refNciChannelRef^.NcToPlc.HskMFuncReq = 1)
+      IF (_NciChannelRef^.NcToPlc.HskMFuncReq = 1)
       THEN
         _eState                               := E_PROGRESS.STARTUP;
 
         _stMsg.eType                          := E_MessageType.eMessageInfo;
         _stMsg.eDevice                        := ChannelDevice;
         _stMsg.eSubdevice                     := e_Subdevice.fbConfirmHskItp;
-        _stMsg.iErrorNumber                   := _refNciChannelRef^.NcToPlc.HskMFuncNo;
+        _stMsg.iErrorNumber                   := _NciChannelRef^.NcToPlc.HskMFuncNo;
         _stMsg.sText                          := concat('M Func check: ', 
-                                                 TO_STRING(_refNciChannelRef^.NcToPlc.HskMFuncNo));
+                                                 TO_STRING(_NciChannelRef^.NcToPlc.HskMFuncNo));
         f_MessageSet(_stMsg);
       END_IF
     END_IF
@@ -447,19 +477,19 @@ END_CASE
 CASE _eState
 OF
   E_PROGRESS.STARTUP:
-    _refNciChannelRef^.PlcToNc.MFuncGranted   := 1;
+    _NciChannelRef^.PlcToNc.MFuncGranted   := 1;
 
-    IF (_refNciChannelRef^.NcToPlc.HskMFuncReq = 0)
+    IF (_NciChannelRef^.NcToPlc.HskMFuncReq = 0)
     THEN
       _eState                                 := E_PROGRESS.PREPARE;
-      _refNciChannelRef^.PlcToNc.MFuncGranted := 0;
+      _NciChannelRef^.PlcToNc.MFuncGranted := 0;
 
       _stMsg.eType                            := E_MessageType.eMessageInfo;
       _stMsg.eDevice                          := ChannelDevice;
       _stMsg.eSubdevice                       := e_Subdevice.fbConfirmHskItp;
-      _stMsg.iErrorNumber                     := _refNciChannelRef^.NcToPlc.HskMFuncNo;
+      _stMsg.iErrorNumber                     := _NciChannelRef^.NcToPlc.HskMFuncNo;
       _stMsg.sText                            := concat('M Func gone: ', 
-                                               TO_STRING(_refNciChannelRef^.NcToPlc.HskMFuncNo));
+                                               TO_STRING(_NciChannelRef^.NcToPlc.HskMFuncNo));
       f_MessageSet(_stMsg);
     END_IF
 END_CASE
@@ -489,19 +519,6 @@ ConfirmHSK                          := _eState;
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="Cycle" Id="{e4a16d35-4363-0d03-3b5a-05c413856ef9}" FolderPath="methods\">
-      <Declaration><![CDATA[METHOD Cycle : e_progress
-VAR_INPUT
-END_VAR
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN Cycle   := E_PROGRESS.ERROR; RETURN; END_IF
-
-ChannelDevice := e_Device.NciChannel + (_refNciChannelRef^.NcToPlc.ChnId);
-
-]]></ST>
-      </Implementation>
-    </Method>
     <Method Name="DeleteDistanceToGo" Id="{73ec7dec-8315-051f-346e-db31461f2a17}" FolderPath="methods\">
       <Declaration><![CDATA[METHOD DeleteDistanceToGo : E_PROGRESS
 VAR_INPUT
@@ -522,7 +539,7 @@ CASE _eState
 OF
   E_PROGRESS.INIT:
     _fbItpDelDtg(
-                sNciToPlc   := _refNciChannelRef^.NcToPlc, 
+                sNciToPlc   := _NciChannelRef^.NcToPlc, 
                 bExecute    := FALSE);
 
     IF Execute 
@@ -537,7 +554,7 @@ CASE _eState
 OF
   E_PROGRESS.BUSY:
     _fbItpDelDtg(
-                sNciToPlc   := _refNciChannelRef^.NcToPlc, 
+                sNciToPlc   := _NciChannelRef^.NcToPlc, 
                 bExecute    := TRUE,
                 nErrId      => _udiErr);
 
@@ -570,7 +587,7 @@ CASE _eState
 OF
   E_PROGRESS.STARTUP:
     _fbItpDelDtg(
-                sNciToPlc   := _refNciChannelRef^.NcToPlc, 
+                sNciToPlc   := _NciChannelRef^.NcToPlc, 
                 bExecute    := TRUE,
                 nErrId      => _udiErr);
 
@@ -624,7 +641,7 @@ OF
   E_PROGRESS.ERROR,
   E_PROGRESS.DONE:
     _fbItpDelDtg(
-                sNciToPlc   := _refNciChannelRef^.NcToPlc, 
+                sNciToPlc   := _NciChannelRef^.NcToPlc, 
                 bExecute    := FALSE);
 END_CASE
 
@@ -658,13 +675,13 @@ END_VAR]]></Declaration>
         <ST><![CDATA[IF NOT Check() THEN RETURN; END_IF
 
 //NciChannel
-IF _refNciChannelRef^.NcToPlc.ErrorCode <> 0 
+IF _NciChannelRef^.NcToPlc.ErrorCode <> 0 
 THEN
   _stMsg.eType         := E_MessageType.eMessageError;
   _stMsg.eDevice       := ChannelDevice;
   _stMsg.eSubdevice    := e_Subdevice.Get_Error;
-  _stMsg.iErrorNumber  := _refNciChannelRef^.NcToPlc.ErrorCode;
-  _stMsg.sText         := concat('NCI-Error: ', TO_STRING(_refNciChannelRef^.NcToPlc.ErrorCode));
+  _stMsg.iErrorNumber  := _NciChannelRef^.NcToPlc.ErrorCode;
+  _stMsg.sText         := concat('NCI-Error: ', TO_STRING(_NciChannelRef^.NcToPlc.ErrorCode));
   f_MessageSet(_stMsg);
 
   Error_Get           := TRUE;
@@ -693,7 +710,7 @@ CASE _eState
 OF
   E_PROGRESS.INIT:
     _fbEStop(
-            sNciToPlc               := _refNciChannelRef^.NcToPlc, 
+            sNciToPlc               := _NciChannelRef^.NcToPlc, 
             bExecute                := FALSE);
 
     IF Execute 
@@ -708,7 +725,7 @@ CASE _eState
 OF
   E_PROGRESS.BUSY:
     _fbEStop(
-            sNciToPlc               := _refNciChannelRef^.NcToPlc, 
+            sNciToPlc               := _NciChannelRef^.NcToPlc, 
             bExecute                := TRUE,
                 nErrId              => _udiErr);
 
@@ -741,7 +758,7 @@ CASE _eState
 OF
   E_PROGRESS.STARTUP:
     _fbEStop(
-            sNciToPlc               := _refNciChannelRef^.NcToPlc, 
+            sNciToPlc               := _NciChannelRef^.NcToPlc, 
             bExecute                := TRUE,
                 nErrId              => _udiErr);
 
@@ -795,7 +812,7 @@ OF
   E_PROGRESS.ERROR,
   E_PROGRESS.DONE:
     _fbEStop(
-            sNciToPlc               := _refNciChannelRef^.NcToPlc, 
+            sNciToPlc               := _NciChannelRef^.NcToPlc, 
             bExecute                := FALSE);
 END_CASE
 
@@ -811,7 +828,7 @@ END_VAR
 ]]></Declaration>
       <Implementation>
         <ST><![CDATA[IF NOT Check() THEN RETURN; END_IF
-GetChannelOverride := TO_REAL(_refNciChannelRef^.PlcToNc.ChnAxesOvr)/10_000.0;
+GetChannelOverride := TO_REAL(_NciChannelRef^.PlcToNc.ChnAxesOvr)/10_000.0;
 ]]></ST>
       </Implementation>
     </Method>
@@ -822,7 +839,7 @@ END_VAR
 ]]></Declaration>
       <Implementation>
         <ST><![CDATA[IF NOT Check() THEN RETURN; END_IF
-GetItpState := _refNciChannelRef^.NcToPlc.ItpState;
+GetItpState := _NciChannelRef^.NcToPlc.ItpState;
 ]]></ST>
       </Implementation>
     </Method>
@@ -839,7 +856,7 @@ END_VAR
 ]]></Declaration>
         <Implementation>
           <ST><![CDATA[
-HSK :=  TO_BOOL(_refNciChannelRef^.NcToPlc.HskMFuncReq);
+HSK :=  TO_BOOL(_NciChannelRef^.NcToPlc.HskMFuncReq);
 
 ]]></ST>
         </Implementation>
@@ -888,14 +905,14 @@ END_VAR
 ]]></Declaration>
         <Implementation>
           <ST><![CDATA[
-stItpAxes.nXAxisId  := _refNciChannelRef^.NcToPlc.AcsAxisIDs[0];
-stItpAxes.nYAxisId  := _refNciChannelRef^.NcToPlc.AcsAxisIDs[1];
-stItpAxes.nZAxisId  := _refNciChannelRef^.NcToPlc.AcsAxisIDs[2];
-stItpAxes.nQ1AxisId := _refNciChannelRef^.NcToPlc.AcsAxisIDs[3];
-stItpAxes.nQ2AxisId := _refNciChannelRef^.NcToPlc.AcsAxisIDs[4];
-stItpAxes.nQ3AxisId := _refNciChannelRef^.NcToPlc.AcsAxisIDs[5];
-stItpAxes.nQ4AxisId := _refNciChannelRef^.NcToPlc.AcsAxisIDs[6];
-stItpAxes.nQ5AxisId := _refNciChannelRef^.NcToPlc.AcsAxisIDs[7];
+stItpAxes.nXAxisId  := _NciChannelRef^.NcToPlc.AcsAxisIDs[0];
+stItpAxes.nYAxisId  := _NciChannelRef^.NcToPlc.AcsAxisIDs[1];
+stItpAxes.nZAxisId  := _NciChannelRef^.NcToPlc.AcsAxisIDs[2];
+stItpAxes.nQ1AxisId := _NciChannelRef^.NcToPlc.AcsAxisIDs[3];
+stItpAxes.nQ2AxisId := _NciChannelRef^.NcToPlc.AcsAxisIDs[4];
+stItpAxes.nQ3AxisId := _NciChannelRef^.NcToPlc.AcsAxisIDs[5];
+stItpAxes.nQ4AxisId := _NciChannelRef^.NcToPlc.AcsAxisIDs[6];
+stItpAxes.nQ5AxisId := _NciChannelRef^.NcToPlc.AcsAxisIDs[7];
 
 ItpAxes := stItpAxes;
 ]]></ST>
@@ -924,7 +941,7 @@ OF
     _fbReset(
             bExecute                := FALSE, 
             tTimeOut                := T#1S, 
-            sNciToPlc               := _refNciChannelRef^.NcToPlc);
+            sNciToPlc               := _NciChannelRef^.NcToPlc);
 
     IF Execute 
     THEN
@@ -940,7 +957,7 @@ OF
     _fbReset(
             bExecute                := TRUE, 
             tTimeOut                := T#1S, 
-            sNciToPlc               := _refNciChannelRef^.NcToPlc,
+            sNciToPlc               := _NciChannelRef^.NcToPlc,
                nErrId               => _udiErr);
 
     IF _fbReset.bErr 
@@ -974,7 +991,7 @@ OF
     _fbReset(
             bExecute                := TRUE, 
             tTimeOut                := T#1S, 
-            sNciToPlc               := _refNciChannelRef^.NcToPlc,
+            sNciToPlc               := _NciChannelRef^.NcToPlc,
                nErrId               => _udiErr);
 
     IF _fbReset.bErr 
@@ -1029,7 +1046,7 @@ OF
     _fbReset(
             bExecute                := FALSE, 
             tTimeOut                := T#1S, 
-            sNciToPlc               := _refNciChannelRef^.NcToPlc);
+            sNciToPlc               := _NciChannelRef^.NcToPlc);
 END_CASE
 
 
@@ -1058,7 +1075,7 @@ CASE _eState
 OF
   E_PROGRESS.INIT:
     _fbLoadProg(
-               sNciToPlc            := _refNciChannelRef^.NcToPlc, 
+               sNciToPlc            := _NciChannelRef^.NcToPlc, 
                bExecute             := FALSE, 
                sPrg                 := _sProg, 
                nLength              := TO_UDINT(LEN(_sProg)));
@@ -1075,7 +1092,7 @@ CASE _eState
 OF
   E_PROGRESS.BUSY:
     _fbLoadProg(
-               sNciToPlc            := _refNciChannelRef^.NcToPlc, 
+               sNciToPlc            := _NciChannelRef^.NcToPlc, 
                bExecute             := TRUE, 
                sPrg                 := _sProg, 
                nLength              := TO_UDINT(LEN(_sProg)),
@@ -1110,7 +1127,7 @@ CASE _eState
 OF
   E_PROGRESS.STARTUP:
     _fbLoadProg(
-               sNciToPlc            := _refNciChannelRef^.NcToPlc, 
+               sNciToPlc            := _NciChannelRef^.NcToPlc, 
                bExecute             := TRUE, 
                sPrg                 := _sProg, 
                nLength              := TO_UDINT(LEN(_sProg)),
@@ -1166,7 +1183,7 @@ OF
   E_PROGRESS.ERROR,
   E_PROGRESS.DONE:
     _fbLoadProg(
-               sNciToPlc            := _refNciChannelRef^.NcToPlc, 
+               sNciToPlc            := _NciChannelRef^.NcToPlc, 
                bExecute             := FALSE, 
                sPrg                 := _sProg, 
                nLength              := TO_UDINT(LEN(_sProg)));
@@ -1176,6 +1193,18 @@ LoadProg                            := _eState;
 ]]></ST>
       </Implementation>
     </Method>
+    <Property Name="M_FuncReq" Id="{23775d9b-7f7c-0592-3be9-888d1a3a9c00}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY M_FuncReq : word]]></Declaration>
+      <Get Name="Get" Id="{8865e760-c60a-08d5-19cc-583b1adfd46c}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[M_FuncReq := _NciChannelRef^.NcToPlc.HskMFuncReq;
+]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
     <Property Name="MFunc" Id="{eef8001b-c1c5-07ab-1a61-aed038458c5a}" FolderPath="properties\">
       <Declaration><![CDATA[(*
 ===============================================================
@@ -1189,7 +1218,7 @@ END_VAR
 ]]></Declaration>
         <Implementation>
           <ST><![CDATA[
-MFunc := TO_INT(_refNciChannelRef^.NcToPlc.HskMFuncNo);
+MFunc := TO_INT(_NciChannelRef^.NcToPlc.HskMFuncNo);
 ]]></ST>
         </Implementation>
       </Get>
@@ -1202,7 +1231,7 @@ MFunc := TO_INT(_refNciChannelRef^.NcToPlc.HskMFuncNo);
 END_VAR
 ]]></Declaration>
         <Implementation>
-          <ST><![CDATA[Override := Tc2_NCI.ItpGetOverridePercent(_refNciChannelRef^.PlcToNc);
+          <ST><![CDATA[Override := Tc2_NCI.ItpGetOverridePercent(_NciChannelRef^.PlcToNc);
 ]]></ST>
         </Implementation>
       </Get>
@@ -1211,7 +1240,7 @@ END_VAR
 END_VAR
 ]]></Declaration>
         <Implementation>
-          <ST><![CDATA[Tc2_NCI.ItpSetOverridePercent(Override, _refNciChannelRef^.PlcToNc);
+          <ST><![CDATA[Tc2_NCI.ItpSetOverridePercent(Override, _NciChannelRef^.PlcToNc);
 ]]></ST>
         </Implementation>
       </Set>
@@ -1229,19 +1258,7 @@ END_VAR
 ]]></Declaration>
         <Implementation>
           <ST><![CDATA[
-PathVelo := _refNciChannelRef^.NcToPlc.PathVelo;
-]]></ST>
-        </Implementation>
-      </Get>
-    </Property>
-    <Property Name="pNciChannelRef" Id="{764b1865-4bb9-0d04-31f4-9b6c197c4c91}" FolderPath="properties\">
-      <Declaration><![CDATA[PROPERTY pNciChannelRef : POINTER TO ST_NciChannel_Ref
-]]></Declaration>
-      <Get Name="Get" Id="{cea00c93-3b66-0eaa-001e-ff0e2ac7d34a}">
-        <Declaration><![CDATA[]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[pNciChannelRef := ADR(_refNciChannelRef);
-
+PathVelo := _NciChannelRef^.NcToPlc.PathVelo;
 ]]></ST>
         </Implementation>
       </Get>
@@ -1297,7 +1314,7 @@ OF
   E_PROGRESS.INIT:
     _fbReadLine(
                PORT                 := 500, 
-               IDXGRP               := 16#2300 + _refNciChannelRef^.NcToPlc.ChnId, // + ChannelID
+               IDXGRP               := 16#2300 + _NciChannelRef^.NcToPlc.ChnId, // + ChannelID
                IDXOFFS              := 16#2000_0001,
                LEN                  := SIZEOF(_ReadString),
                DESTADDR             := ADR(_ReadString), 
@@ -1317,7 +1334,7 @@ OF
   E_PROGRESS.BUSY:
     _fbReadLine(
                PORT                 := 500, 
-               IDXGRP               := 16#2300 + _refNciChannelRef^.NcToPlc.ChnId, // + ChannelID
+               IDXGRP               := 16#2300 + _NciChannelRef^.NcToPlc.ChnId, // + ChannelID
                IDXOFFS              := 16#2000_0001,
                LEN                  := SIZEOF(_ReadString),
                DESTADDR             := ADR(_ReadString), 
@@ -1353,7 +1370,7 @@ OF
   E_PROGRESS.STARTUP:
     _fbReadLine(
                PORT                 := 500, 
-               IDXGRP               := 16#2300 + _refNciChannelRef^.NcToPlc.ChnId, // + ChannelID
+               IDXGRP               := 16#2300 + _NciChannelRef^.NcToPlc.ChnId, // + ChannelID
                IDXOFFS              := 16#2000_0001,
                LEN                  := SIZEOF(_ReadString),
                DESTADDR             := ADR(_ReadString), 
@@ -1412,7 +1429,7 @@ OF
   E_PROGRESS.DONE:
     _fbReadLine(
                PORT                 := 500, 
-               IDXGRP               := 16#2300 + _refNciChannelRef^.NcToPlc.ChnId, // + ChannelID
+               IDXGRP               := 16#2300 + _NciChannelRef^.NcToPlc.ChnId, // + ChannelID
                IDXOFFS              := 16#2000_0001,
                LEN                  := SIZEOF(_ReadString),
                DESTADDR             := ADR(_ReadString), 
@@ -1447,7 +1464,7 @@ CASE _eState
 OF
   E_PROGRESS.INIT:
     _fbItpReadRParams(
-                  sNciToPlc         := _refNciChannelRef^.NcToPlc, 
+                  sNciToPlc         := _NciChannelRef^.NcToPlc, 
                   bExecute          := FALSE, 
                   pAddr             := Addr, 
                   nIndex            := Index, 
@@ -1465,7 +1482,7 @@ CASE _eState
 OF
   E_PROGRESS.BUSY:
     _fbItpReadRParams(
-                  sNciToPlc         := _refNciChannelRef^.NcToPlc, 
+                  sNciToPlc         := _NciChannelRef^.NcToPlc, 
                   bExecute          := TRUE, 
                   pAddr             := Addr, 
                   nIndex            := Index, 
@@ -1501,7 +1518,7 @@ CASE _eState
 OF
   E_PROGRESS.STARTUP:
     _fbItpReadRParams(
-                  sNciToPlc         := _refNciChannelRef^.NcToPlc, 
+                  sNciToPlc         := _NciChannelRef^.NcToPlc, 
                   bExecute          := TRUE, 
                   pAddr             := Addr, 
                   nIndex            := Index, 
@@ -1558,7 +1575,7 @@ OF
   E_PROGRESS.ERROR,
   E_PROGRESS.DONE:
     _fbItpReadRParams(
-                  sNciToPlc         := _refNciChannelRef^.NcToPlc, 
+                  sNciToPlc         := _NciChannelRef^.NcToPlc, 
                   bExecute          := FALSE, 
                   pAddr             := Addr, 
                   nIndex            := Index, 
@@ -1594,7 +1611,7 @@ OF
     _fbStartStop(
                 bStart              := FALSE, 
                 bStop               := FALSE, 
-                sNciToPlc           := _refNciChannelRef^.NcToPlc);
+                sNciToPlc           := _NciChannelRef^.NcToPlc);
 
     IF Execute 
     THEN
@@ -1610,7 +1627,7 @@ OF
     _fbStartStop(
                 bStart              := Start, 
                 bStop               := Stop, 
-                sNciToPlc           := _refNciChannelRef^.NcToPlc,
+                sNciToPlc           := _NciChannelRef^.NcToPlc,
                 nErrId              => _udiErr);
 
     IF _fbStartStop.bErr 
@@ -1644,7 +1661,7 @@ OF
     _fbStartStop(
                 bStart              := Start, 
                 bStop               := Stop, 
-                sNciToPlc           := _refNciChannelRef^.NcToPlc,
+                sNciToPlc           := _NciChannelRef^.NcToPlc,
                 nErrId              => _udiErr);
 
     IF _fbStartStop.bErr 
@@ -1699,7 +1716,7 @@ OF
     _fbStartStop(
                 bStart              := FALSE, 
                 bStop               := FALSE, 
-                sNciToPlc           := _refNciChannelRef^.NcToPlc);
+                sNciToPlc           := _NciChannelRef^.NcToPlc);
 END_CASE
 
 
@@ -1728,7 +1745,7 @@ OF
   E_PROGRESS.INIT:
     _fbStepOnAfterEStop(
                     bExecute        := FALSE, 
-                    sNciToPlc       := _refNciChannelRef^.NcToPlc);
+                    sNciToPlc       := _NciChannelRef^.NcToPlc);
 
     IF Execute 
     THEN
@@ -1743,7 +1760,7 @@ OF
   E_PROGRESS.BUSY:
     _fbStepOnAfterEStop(
                     bExecute        := TRUE, 
-                    sNciToPlc       := _refNciChannelRef^.NcToPlc,
+                    sNciToPlc       := _NciChannelRef^.NcToPlc,
                     nErrId          => _udiErr);
 
     IF _fbStepOnAfterEStop.bErr 
@@ -1776,7 +1793,7 @@ OF
   E_PROGRESS.STARTUP:
     _fbStepOnAfterEStop(
                     bExecute        := TRUE, 
-                    sNciToPlc       := _refNciChannelRef^.NcToPlc,
+                    sNciToPlc       := _NciChannelRef^.NcToPlc,
                     nErrId          => _udiErr);
 
     IF _fbStepOnAfterEStop.bErr 
@@ -1830,7 +1847,7 @@ OF
   E_PROGRESS.DONE:
     _fbStepOnAfterEStop(
                     bExecute        := FALSE, 
-                    sNciToPlc       := _refNciChannelRef^.NcToPlc);
+                    sNciToPlc       := _NciChannelRef^.NcToPlc);
 END_CASE
 
 
@@ -1865,7 +1882,7 @@ OF
                     pAddr           := Addr, 
                     nIndex          := Index, 
                     nCount          := Count, 
-                    sNciToPlc       := _refNciChannelRef^.NcToPlc);
+                    sNciToPlc       := _NciChannelRef^.NcToPlc);
 
     IF Execute 
     THEN
@@ -1883,7 +1900,7 @@ OF
                     pAddr           := Addr, 
                     nIndex          := Index, 
                     nCount          := Count, 
-                    sNciToPlc       := _refNciChannelRef^.NcToPlc,
+                    sNciToPlc       := _NciChannelRef^.NcToPlc,
                     nErrId          => _udiErr);
 
     IF _fbItpWriteRParams.bErr 
@@ -1919,7 +1936,7 @@ OF
                     pAddr           := Addr, 
                     nIndex          := Index, 
                     nCount          := Count, 
-                    sNciToPlc       := _refNciChannelRef^.NcToPlc,
+                    sNciToPlc       := _NciChannelRef^.NcToPlc,
                     nErrId          => _udiErr);
 
     IF _fbItpWriteRParams.bErr 
@@ -1976,7 +1993,7 @@ OF
                     pAddr           := Addr, 
                     nIndex          := Index, 
                     nCount          := Count, 
-                    sNciToPlc       := _refNciChannelRef^.NcToPlc);
+                    sNciToPlc       := _NciChannelRef^.NcToPlc);
 END_CASE
 
 
@@ -2013,8 +2030,21 @@ WriteRParams                        := _eState;
       <LineId Id="3" Count="0" />
       <LineId Id="2" Count="0" />
     </LineIds>
+    <LineIds Name="FB_NciChannel.ChannelRef.Set">
+      <LineId Id="2" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
     <LineIds Name="FB_NciChannel.Check">
-      <LineId Id="3" Count="34" />
+      <LineId Id="50" Count="0" />
+      <LineId Id="43" Count="5" />
+      <LineId Id="42" Count="0" />
+      <LineId Id="3" Count="4" />
+      <LineId Id="51" Count="0" />
+      <LineId Id="53" Count="1" />
+      <LineId Id="57" Count="1" />
+      <LineId Id="60" Count="0" />
+      <LineId Id="52" Count="0" />
+      <LineId Id="8" Count="29" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.ClearGroup">
@@ -2025,32 +2055,8 @@ WriteRParams                        := _eState;
       <LineId Id="3" Count="77" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_NciChannel.Cycle">
-      <LineId Id="3" Count="3" />
-      <LineId Id="2" Count="0" />
-    </LineIds>
     <LineIds Name="FB_NciChannel.DeleteDistanceToGo">
-      <LineId Id="74" Count="5" />
-      <LineId Id="161" Count="0" />
-      <LineId Id="163" Count="0" />
-      <LineId Id="162" Count="0" />
-      <LineId Id="81" Count="11" />
-      <LineId Id="165" Count="3" />
-      <LineId Id="164" Count="0" />
-      <LineId Id="169" Count="14" />
-      <LineId Id="192" Count="0" />
-      <LineId Id="184" Count="7" />
-      <LineId Id="109" Count="3" />
-      <LineId Id="222" Count="2" />
-      <LineId Id="197" Count="0" />
-      <LineId Id="225" Count="0" />
-      <LineId Id="198" Count="23" />
-      <LineId Id="128" Count="20" />
-      <LineId Id="226" Count="2" />
-      <LineId Id="231" Count="0" />
-      <LineId Id="233" Count="2" />
-      <LineId Id="230" Count="0" />
-      <LineId Id="149" Count="2" />
+      <LineId Id="3" Count="114" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.Error.Get">
@@ -2058,41 +2064,19 @@ WriteRParams                        := _eState;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.Error_Get">
-      <LineId Id="24" Count="0" />
-      <LineId Id="3" Count="0" />
-      <LineId Id="6" Count="8" />
-      <LineId Id="25" Count="0" />
-      <LineId Id="15" Count="0" />
-      <LineId Id="17" Count="1" />
+      <LineId Id="3" Count="14" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.EStop">
-      <LineId Id="86" Count="5" />
-      <LineId Id="193" Count="0" />
-      <LineId Id="198" Count="0" />
-      <LineId Id="194" Count="0" />
-      <LineId Id="95" Count="11" />
-      <LineId Id="195" Count="0" />
-      <LineId Id="197" Count="0" />
-      <LineId Id="196" Count="0" />
-      <LineId Id="110" Count="29" />
-      <LineId Id="199" Count="3" />
-      <LineId Id="144" Count="45" />
-      <LineId Id="203" Count="1" />
-      <LineId Id="206" Count="1" />
-      <LineId Id="209" Count="2" />
-      <LineId Id="205" Count="0" />
-      <LineId Id="190" Count="2" />
+      <LineId Id="3" Count="114" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.GetChannelOverride">
-      <LineId Id="7" Count="0" />
-      <LineId Id="3" Count="0" />
+      <LineId Id="3" Count="1" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.GetItpState">
-      <LineId Id="7" Count="0" />
-      <LineId Id="3" Count="0" />
+      <LineId Id="3" Count="1" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.HSK.Get">
@@ -2112,33 +2096,15 @@ WriteRParams                        := _eState;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.ItpReset">
-      <LineId Id="84" Count="5" />
-      <LineId Id="200" Count="0" />
-      <LineId Id="203" Count="0" />
-      <LineId Id="201" Count="1" />
-      <LineId Id="93" Count="11" />
-      <LineId Id="204" Count="4" />
-      <LineId Id="109" Count="28" />
-      <LineId Id="209" Count="4" />
-      <LineId Id="142" Count="49" />
-      <LineId Id="214" Count="3" />
-      <LineId Id="195" Count="3" />
-      <LineId Id="218" Count="0" />
+      <LineId Id="3" Count="119" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.LoadProg">
-      <LineId Id="89" Count="5" />
-      <LineId Id="209" Count="0" />
-      <LineId Id="213" Count="0" />
-      <LineId Id="210" Count="2" />
-      <LineId Id="99" Count="11" />
-      <LineId Id="214" Count="5" />
-      <LineId Id="116" Count="28" />
-      <LineId Id="220" Count="5" />
-      <LineId Id="150" Count="49" />
-      <LineId Id="226" Count="4" />
-      <LineId Id="204" Count="1" />
-      <LineId Id="207" Count="0" />
+      <LineId Id="3" Count="121" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannel.M_FuncReq.Get">
+      <LineId Id="3" Count="0" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.MFunc.Get">
@@ -2157,10 +2123,6 @@ WriteRParams                        := _eState;
       <LineId Id="3" Count="1" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_NciChannel.pNciChannelRef.Get">
-      <LineId Id="3" Count="1" />
-      <LineId Id="2" Count="0" />
-    </LineIds>
     <LineIds Name="FB_NciChannel.Prog.Get">
       <LineId Id="3" Count="0" />
       <LineId Id="2" Count="0" />
@@ -2170,89 +2132,23 @@ WriteRParams                        := _eState;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.ReadLine">
-      <LineId Id="98" Count="5" />
-      <LineId Id="229" Count="0" />
-      <LineId Id="276" Count="0" />
-      <LineId Id="230" Count="4" />
-      <LineId Id="109" Count="2" />
-      <LineId Id="235" Count="0" />
-      <LineId Id="112" Count="8" />
-      <LineId Id="236" Count="0" />
-      <LineId Id="275" Count="0" />
-      <LineId Id="237" Count="4" />
-      <LineId Id="127" Count="28" />
-      <LineId Id="242" Count="0" />
-      <LineId Id="274" Count="0" />
-      <LineId Id="243" Count="19" />
-      <LineId Id="277" Count="1" />
-      <LineId Id="263" Count="9" />
-      <LineId Id="187" Count="24" />
-      <LineId Id="223" Count="0" />
-      <LineId Id="273" Count="0" />
-      <LineId Id="224" Count="4" />
-      <LineId Id="218" Count="0" />
-      <LineId Id="279" Count="0" />
-      <LineId Id="219" Count="1" />
+      <LineId Id="3" Count="131" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.ReadRParams">
-      <LineId Id="95" Count="5" />
-      <LineId Id="218" Count="5" />
-      <LineId Id="104" Count="11" />
-      <LineId Id="224" Count="6" />
-      <LineId Id="120" Count="0" />
-      <LineId Id="238" Count="23" />
-      <LineId Id="145" Count="3" />
-      <LineId Id="231" Count="6" />
-      <LineId Id="153" Count="49" />
-      <LineId Id="212" Count="5" />
-      <LineId Id="206" Count="3" />
+      <LineId Id="3" Count="126" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.StartStop">
-      <LineId Id="77" Count="5" />
-      <LineId Id="204" Count="3" />
-      <LineId Id="88" Count="11" />
-      <LineId Id="216" Count="4" />
-      <LineId Id="106" Count="28" />
-      <LineId Id="212" Count="3" />
-      <LineId Id="140" Count="50" />
-      <LineId Id="200" Count="0" />
-      <LineId Id="203" Count="0" />
-      <LineId Id="201" Count="1" />
-      <LineId Id="196" Count="1" />
-      <LineId Id="221" Count="0" />
-      <LineId Id="198" Count="0" />
+      <LineId Id="3" Count="118" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.StepOnAfterEStop">
-      <LineId Id="86" Count="5" />
-      <LineId Id="211" Count="2" />
-      <LineId Id="96" Count="11" />
-      <LineId Id="214" Count="3" />
-      <LineId Id="113" Count="28" />
-      <LineId Id="218" Count="3" />
-      <LineId Id="147" Count="0" />
-      <LineId Id="222" Count="23" />
-      <LineId Id="172" Count="24" />
-      <LineId Id="205" Count="0" />
-      <LineId Id="207" Count="0" />
-      <LineId Id="206" Count="0" />
-      <LineId Id="201" Count="3" />
+      <LineId Id="3" Count="114" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.WriteRParams">
-      <LineId Id="97" Count="5" />
-      <LineId Id="219" Count="5" />
-      <LineId Id="106" Count="11" />
-      <LineId Id="225" Count="6" />
-      <LineId Id="122" Count="28" />
-      <LineId Id="232" Count="31" />
-      <LineId Id="180" Count="24" />
-      <LineId Id="213" Count="0" />
-      <LineId Id="218" Count="0" />
-      <LineId Id="214" Count="3" />
-      <LineId Id="208" Count="3" />
+      <LineId Id="3" Count="126" />
       <LineId Id="2" Count="0" />
     </LineIds>
   </POU>

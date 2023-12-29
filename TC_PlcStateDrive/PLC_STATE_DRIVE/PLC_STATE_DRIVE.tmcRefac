@@ -12,11 +12,6 @@
       <To>E_NCI_CHANNEL_ERROR</To>
     </RenamedType>
     <RenamedType>
-      <Type guid="915e7627-13bb-4596-b876-ae3c9e2869bb">ST_CTRL_NCIMFUNCCYCLE</Type>
-      <From>ST_Ctrl_NciMFuncCycle</From>
-      <To>ST_NCI_CTRL_M_FUNC</To>
-    </RenamedType>
-    <RenamedType>
       <Type guid="8c2293d3-2335-4f54-844e-5312237b23aa">FB_AXISCONTROL</Type>
       <From>FB_AxisControl</From>
       <To>FB_McAxisCtrl</To>
@@ -41,5 +36,15 @@
       <From>DelDTG</From>
       <To>DeleteDistanceToGo</To>
     </RenamedType>
+    <RenamedType>
+      <Type guid="915e7627-13bb-4596-b876-ae3c9e2869bb">ST_NCI_CTRL_M_FUNC</Type>
+      <From>ST_Ctrl_NciMFuncCycle</From>
+      <To>ST_NCI_M_FUNC</To>
+    </RenamedType>
+    <RenamedSymbol>
+      <Type guid="5a78808d-29bc-4f15-bc6f-e7ca6f1bbc5d">FB_NciChannel</Type>
+      <From>_refNciChannelRef</From>
+      <To>_NciChannelRef</To>
+    </RenamedSymbol>
   </Renames>
 </Refactors>

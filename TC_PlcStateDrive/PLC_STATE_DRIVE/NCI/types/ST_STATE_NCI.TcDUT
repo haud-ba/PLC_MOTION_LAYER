@@ -4,7 +4,7 @@
     <Declaration><![CDATA[{attribute 'pack_mode' := '2'}
 TYPE ST_STATE_NCI :
 STRUCT
-  eState        : E_NCI_CTRL; // eCmd with offsets for busy and done
+  eState        : E_NCI_STATE; // eCmd with offsets E_PROGRESS
 
   bMFuncReq     : BIT;  // M function request is active from channel
 

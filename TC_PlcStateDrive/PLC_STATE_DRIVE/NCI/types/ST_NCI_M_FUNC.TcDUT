@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
-  <DUT Name="ST_NCI_CTRL_M_FUNC" Id="{84efd054-6a78-06df-2985-5b753ea81a5d}">
+  <DUT Name="ST_NCI_M_FUNC" Id="{84efd054-6a78-06df-2985-5b753ea81a5d}">
     <Declaration><![CDATA[{attribute 'pack_mode' := '2'}
-TYPE ST_NCI_CTRL_M_FUNC :
+TYPE ST_NCI_M_FUNC :
 STRUCT
   FastMFuncMask   : ARRAY [1..5] OF DWORD;
   HskMFuncNo      : UINT;
