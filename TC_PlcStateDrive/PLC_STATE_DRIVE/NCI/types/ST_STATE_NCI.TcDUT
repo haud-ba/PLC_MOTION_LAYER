@@ -32,7 +32,7 @@ STRUCT
                             17 = Flush buffers
                           *) 
 
-  rAxisOverride : REAL; // active override in cyclic NCI interface
+  rAxisOverride : LREAL; // active override in cyclic NCI interface
 
 END_STRUCT
 END_TYPE

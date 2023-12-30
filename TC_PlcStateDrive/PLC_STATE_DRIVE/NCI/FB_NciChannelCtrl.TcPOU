@@ -28,6 +28,8 @@ VAR
 
   _eState               : E_NCI_STATE;
 
+  _eResult              : E_PROGRESS;
+
   // control and state struct from outside world
   _Ctrl                 : POINTER TO ST_CTRL_NCI;
   _State                : POINTER TO ST_STATE_NCI;
@@ -56,10 +58,85 @@ VAR
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[]]></ST>
+      <ST><![CDATA[IF NOT Check() THEN _eResult := E_PROGRESS.INVALID; RETURN; END_IF
+
+
+// cyclic data for M func from NCI interface
+_MFuncCyclic^.FastMFuncMask   := _NciChannelRef^.NcToPlc.FastMFuncMask;
+_MFuncCyclic^.HskMFuncNo      := _NciChannelRef^.NcToPlc.HskMFuncNo;
+_MFuncCyclic^.HskMFuncReq     := _NciChannelRef^.NcToPlc.HskMFuncReq;
+_MFuncCyclic^.HFuncValue      := _NciChannelRef^.NcToPlc.HFuncValue;
+
+// M-Func to catch
+IF HSK 
+THEN
+  _nMFunc := MFunc;
+END_IF
+
+
+_eCmd                         := _Ctrl^.eCmd;
+
+// cmd change
+IF (_eCmd <> _eCmdOld)
+THEN
+  _eState                     := Cmd(_eCmd);
+  _eCmdOld                    := _eCmd;
+  _eResult                    := E_PROGRESS.BUSY;
+END_IF
+
+CASE _eState
+OF
+  E_NCI_STATE.NULL:
+  E_NCI_STATE.INIT:
+  E_NCI_STATE.IDLE:
+  E_NCI_STATE.RESET:
+  E_NCI_STATE.LOAD_PROG:
+  E_NCI_STATE.FEED_TABLE:
+  E_NCI_STATE.BUILD_GROUP:
+  E_NCI_STATE.CLEAR_GROUP:
+
+  E_NCI_STATE.START:
+  E_NCI_STATE.STOP:
+  E_NCI_STATE.STO_STOP:
+  E_NCI_STATE.RESTART_STEP_ON:
+
+  E_NCI_STATE.M_FUNC_QUIT:
+
+  E_NCI_STATE.READ_R_PARA:
+  E_NCI_STATE.WRITE_R_PARA:
+
+ELSE
+  _eResult                    := E_PROGRESS.INVALID;
+END_CASE
+
+
+CASE _eResult
+OF
+  E_PROGRESS.INVALID:
+    _State^.eState            := E_PROGRESS.ERROR;
+
+  E_PROGRESS.ERROR:
+    _State^.eState            := _eState + E_PROGRESS.ERROR;
+
+  E_PROGRESS.DONE:
+    _State^.eState            := _eState + E_PROGRESS.DONE;
+
+ELSE
+    _State^.eState            := _eState + _eResult;
+END_CASE
+
+_State^.rAxisOverride         := _NciChannelRef^.PlcToNc.ChnAxesOvr;
+_State^.bMFuncReq             := TO_BOOL(_NciChannelRef^.NcToPlc.HskMFuncReq);
+_State^.nMFunc                := _NciChannelRef^.NcToPlc.HskMFuncNo;
+
+_State^.nItpState             := GetItpState();
+
+]]></ST>
     </Implementation>
     <Folder Name="Actions" Id="{39434ede-33a9-0fb1-0bf2-635e1271e9b6}" />
-    <Folder Name="methods" Id="{ba370446-9d57-0cc3-1566-665e50cb472c}" />
+    <Folder Name="methods" Id="{ba370446-9d57-0cc3-1566-665e50cb472c}">
+      <Folder Name="private" Id="{6c8eff13-b321-0e72-2088-796b2427b120}" />
+    </Folder>
     <Folder Name="properties" Id="{0bad9cd3-48af-0c30-025a-aeccaaa1800d}" />
     <Action Name="Channel_BuildGroup" Id="{909c4c10-f2bf-0926-130c-e76bcade6acb}" FolderPath="Actions\">
       <Implementation>
@@ -554,7 +631,8 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT SUPER^.Check() THEN RETURN; END_IF
+        <ST><![CDATA[
+IF NOT SUPER^.Check() THEN RETURN; END_IF
 
 IF NOT (_Ctrl <> 0)
 THEN
@@ -658,6 +736,18 @@ Template_1 := _eState;
 ]]></ST>
       </Implementation>
     </Method>
+    <Property Name="ChnCtrl" Id="{8ba6e329-872d-00e7-0614-e9246ddef2fe}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY ChnCtrl : pointer to ST_CTRL_NCI]]></Declaration>
+      <Set Name="Set" Id="{9bcb6298-736a-03aa-34f9-c23240802100}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_Ctrl := ChnCtrl;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
     <Property Name="ChnId" Id="{b4fc453f-6a7a-04a9-081a-3b969f557243}" FolderPath="properties\">
       <Declaration><![CDATA[PROPERTY ChnId : udint]]></Declaration>
       <Get Name="Get" Id="{e0b113b9-9605-07d3-2a83-391ba3c31228}">
@@ -670,187 +760,94 @@ END_VAR
         </Implementation>
       </Get>
     </Property>
-    <Method Name="Cycle" Id="{372cd73d-5fcd-0bb1-188a-ff874b868db7}" FolderPath="methods\">
-      <Declaration><![CDATA[METHOD Cycle : E_PROGRESS
+    <Property Name="ChnState" Id="{96be0409-6b12-073c-317f-f6f3dd8307a9}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY ChnState : pointer to ST_STATE_NCI]]></Declaration>
+      <Set Name="Set" Id="{7d2cf0ac-e5f6-0e29-29b8-528a35ff2472}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_State := ChnState;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Method Name="Cmd" Id="{d6479c6f-6d9b-03ad-2b7b-afdf9625f728}" FolderPath="methods\private\">
+      <Declaration><![CDATA[METHOD Cmd  : E_NCI_STATE
+VAR_INPUT
+  eCmd      : E_NCI_CTRL;
+END_VAR
+VAR_INST
+  _estate   : E_NCI_STATE;
+  _stMsg    : ST_Message;
+  _sState   : STRING;
+END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN Cycle := E_PROGRESS.ERROR; RETURN; END_IF
-
-
-// cyclic data for M func from NCI interface
-_stMFuncCyclic.FastMFuncMask  := _NciChannelRef^.NcToPlc.FastMFuncMask;
-_stMFuncCyclic.HskMFuncNo     := _NciChannelRef^.NcToPlc.HskMFuncNo;
-_stMFuncCyclic.HskMFuncReq    := _NciChannelRef^.NcToPlc.HskMFuncReq;
-_stMFuncCyclic.HFuncValue     := _NciChannelRef^.NcToPlc.HFuncValue;
-
-// M-Func to catch
-IF HSK 
-THEN
-  _nMFunc := MFunc;
-END_IF
-
-_eCmd                         := _Ctrl^.eCmd;
-
-// cmd change
-IF (_eCmd <> _eCmdOld) OR
-   (_eCmd = 0)
-THEN
-  _eCmdState                  := _eCmd;
-  _nState      := _nStateSS1  := 0;
-  _nMFunc                     := 0;
-  _stMsg.sText                := '';
-  _sState                     := '';
-END_IF
-
-
-CASE _eCmdState OF
-
+        <ST><![CDATA[
+CASE eCmd
+OF
   E_NCI_CTRL.INIT:
-    _eCmdActive                := _eCmdState + E_NCI_CTRL.CMD_DONE;
-    _eCmdExec                  := E_NCI_CTRL.CMD_DONE;
-    _nState                    := 0;
+    _eState           := E_NCI_STATE.INIT;
 
   E_NCI_CTRL.IDLE:
-    _eCmdActive                := _eCmdState + E_NCI_CTRL.CMD_BUSY;
-    _eCmdExec                  := E_NCI_CTRL.CMD_BUSY;
-
-    _uiStateItp                := _ipNciChannel.GetItpState();
-
-    IF (_uiStateItp = TO_UINT(E_NCI_INTERPRETER_STATE.NCI_INTERPRETER_IDLE)) OR
-       (_uiStateItp = TO_UINT(E_NCI_INTERPRETER_STATE.NCI_INTERPRETER_READY))
-    THEN
-      _eCmdActive              := _eCmdState + E_NCI_CTRL.CMD_DONE;
-      _eCmdExec                := E_NCI_CTRL.CMD_DONE;
-      _nState                  := 0;
-    END_IF
-
+    _eState           := E_NCI_STATE.IDLE;
 
   E_NCI_CTRL.RESET:
-    // reset for error
-    // after reset nc file has to be loaded again
-    Channel_Reset();
+    _eState           := E_NCI_STATE.RESET;
 
   E_NCI_CTRL.LOAD_PROG:
-    // set property NcProg before use
-    // load nc file
-    // syntax check on load done by NCI
-    // error case: syntax check failed
-    Channel_LoadProg();
+    _eState           := E_NCI_STATE.LOAD_PROG;
+
+  E_NCI_CTRL.FEED_TABLE:
+    _eState           := E_NCI_STATE.FEED_TABLE;
 
   E_NCI_CTRL.BUILD_GROUP:
-    // set property GroupAxisConfig before use
-    Channel_BuildGroup();
+    _eState           := E_NCI_STATE.BUILD_GROUP;
 
   E_NCI_CTRL.CLEAR_GROUP:
-    Channel_ClearGroup();
+    _eState           := E_NCI_STATE.CLEAR_GROUP;
 
   E_NCI_CTRL.START:
-    // starts nc file execution
-    Channel_Start();
+    _eState           := E_NCI_STATE.START;
 
-  E_NCI_CTRL.STOP,
+  E_NCI_CTRL.STOP:
+    _eState           := E_NCI_STATE.STOP;
+
   E_NCI_CTRL.STO_STOP:
-    Channel_Stop();
+    _eState           := E_NCI_STATE.STO_STOP;
 
   E_NCI_CTRL.RESTART_STEP_ON:
-    // sart from last nc block
-    Channel_Restart();
+    _eState           := E_NCI_STATE.RESTART_STEP_ON;
 
   E_NCI_CTRL.M_FUNC_QUIT:
-    Channel_Confirm();
+    _eState           := E_NCI_STATE.M_FUNC_QUIT;
 
   E_NCI_CTRL.READ_R_PARA:
-    Channel_R_Read();
+    _eState           := E_NCI_STATE.READ_R_PARA;
 
   E_NCI_CTRL.WRITE_R_PARA:
-    Channel_R_Write();
+    _eState           := E_NCI_STATE.WRITE_R_PARA;
 
-  ELSE
-    _eState                  := E_NCI_CTRL.NO_INIT;
-    _sState                  := concat(TO_STRING(_eCmdState), ' NOT valid eCmd');
-    RETURN;
+ELSE
+    _eState           := E_NCI_STATE.NULL;
 END_CASE
 
-_eState                      := _eCmdActive;
-_sState                      := TO_STRING(_eCmdState);
-_sCmd                        := TO_STRING(eCmd);
-_sCmdExec                    := TO_STRING(_eCmdExec);
+_sState               := TO_STRING(_eState);
 
+_stMsg.eType          := E_MessageType.eMessageInfo;
+_stMsg.eDevice        := E_Device.NciChannelCtrl + TO_DINT(ChnId);
+_stMsg.eSubdevice     := e_Subdevice.Ctrl_Nci_Cmd;
+_stMsg.iErrorNumber   := _nChnId;
 
-IF (_eCmdOld <> eCmd)
-THEN
-  _sCmdOld                   := TO_STRING(_eCmdOld);
-  _stMsg.eType               := E_MessageType.eMessageInfo;
-  _stMsg.eDevice             := E_Device.NciChannelCtrl + TO_DINT(ChnId);
-  _stMsg.eSubdevice          := e_Subdevice.Ctrl_Nci_Cmd;
-  _stMsg.iErrorNumber        := _nChnId;
+_stMsg.sText          := 'Change to E_NCI_STATE.';
+_stMsg.sText          := Tc2_Standard.CONCAT(_stMsg.sText, _sState);
+f_MessageSet(_stMsg);
 
-  _stMsg.sText               := 'change ';
-  _stMsg.sText               := Tc2_Standard.CONCAT(_stMsg.sText, _sCmdOld);
-  _stMsg.sText               := Tc2_Standard.CONCAT(_stMsg.sText, ' to ');
-  _stMsg.sText               := Tc2_Standard.CONCAT(_stMsg.sText, sCmd);
-  f_MessageSet(_stMsg);
-END_IF
-
-IF (_eCmdExecOld <> _eCmdExec)
-THEN
-  _stMsg.eType               := E_MessageType.eMessageInfo;
-  _stMsg.eDevice             := E_Device.NciChannelCtrl + TO_DINT(ChnId);
-  _stMsg.eSubdevice          := e_Subdevice.Ctrl_Nci_Cmd;
-  _stMsg.iErrorNumber        := _nChnId;
-
-  _stMsg.sText               := Tc2_Standard.CONCAT(sCmd, ' function: ');
-  _stMsg.sText               := Tc2_Standard.CONCAT(_stMsg.sText, TO_STRING(_eCmdExec));
-  f_MessageSet(_stMsg);
-END_IF
-
-_eCmdOld                     := eCmd;
-_eCmdExecOld                 := _eCmdExec;
-
+Cmd                   := _eState;
 ]]></ST>
       </Implementation>
     </Method>
-    <Property Name="eCmd" Id="{452faa8a-91ad-0a00-27a5-10c08e19ae70}" FolderPath="properties\">
-      <Declaration><![CDATA[PROPERTY eCmd : E_NCI_CTRL]]></Declaration>
-      <Get Name="Get" Id="{990f316d-1b51-0f45-27ac-9c43f492dd72}">
-        <Declaration><![CDATA[VAR
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[eCmd := _eCmd;
-]]></ST>
-        </Implementation>
-      </Get>
-      <Set Name="Set" Id="{55d99e98-e05d-018a-1eda-39aaa9804fb0}">
-        <Declaration><![CDATA[VAR
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[_eCmd := eCmd;
-]]></ST>
-        </Implementation>
-      </Set>
-    </Property>
-    <Property Name="eState" Id="{8d7adff6-d1a4-0628-38e1-e301415f51ed}" FolderPath="properties\">
-      <Declaration><![CDATA[PROPERTY eState : E_NCI_CTRL]]></Declaration>
-      <Get Name="Get" Id="{7ce56b4c-4d01-0308-35d3-a03cee60e0b1}">
-        <Declaration><![CDATA[VAR
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[eState := _eState;]]></ST>
-        </Implementation>
-      </Get>
-      <Set Name="Set" Id="{4982b1a8-e6db-0aa5-1d6a-403822327625}">
-        <Declaration><![CDATA[VAR
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[_eState := eState;
-]]></ST>
-        </Implementation>
-      </Set>
-    </Property>
     <Property Name="ItfChannel" Id="{9649047d-6a01-03f4-2290-fc77c4980149}" FolderPath="properties\">
       <Declaration><![CDATA[PROPERTY ItfChannel : I_NciChannel]]></Declaration>
       <Get Name="Get" Id="{dba2e612-8feb-0761-0d03-93a353fa309a}">
@@ -862,111 +859,6 @@ END_VAR
 ]]></ST>
         </Implementation>
       </Get>
-    </Property>
-    <Property Name="R_Param_Read" Id="{31b9c523-238b-0043-3441-afce2546cdca}" FolderPath="properties\">
-      <Declaration><![CDATA[PROPERTY R_Param_Read : ARRAY [0..GVL_NCI.cRParamCount] OF lreal]]></Declaration>
-      <Get Name="Get" Id="{22bae2a2-6fa8-0707-2884-51d14cbb61c0}">
-        <Declaration><![CDATA[VAR
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[R_Param_Read := _rRParamsRead;
-]]></ST>
-        </Implementation>
-      </Get>
-      <Set Name="Set" Id="{35d9d1c8-cd6c-0d43-0e06-5ab6ad65497c}">
-        <Declaration><![CDATA[VAR
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[_rRParamsRead := R_Param_Read;
-]]></ST>
-        </Implementation>
-      </Set>
-    </Property>
-    <Property Name="R_Param_Write" Id="{219db0bb-895e-0701-2cc0-826ff23c4848}" FolderPath="properties\">
-      <Declaration><![CDATA[PROPERTY R_Param_Write : ARRAY [0..GVL_NCI.cRParamCount] OF lreal]]></Declaration>
-      <Get Name="Get" Id="{74a4e56c-22ca-03ef-2e6e-948f4c063086}">
-        <Declaration><![CDATA[VAR
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[R_Param_Write := _rRParamsWrite;
-]]></ST>
-        </Implementation>
-      </Get>
-      <Set Name="Set" Id="{a013445e-8da8-01e3-3bee-8d2e49de0f35}">
-        <Declaration><![CDATA[VAR
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[_rRParamsWrite := R_Param_Write;
-]]></ST>
-        </Implementation>
-      </Set>
-    </Property>
-    <Property Name="R_ParamCount" Id="{8a3c52ab-dac7-092b-0292-66d69e6a687a}" FolderPath="properties\">
-      <Declaration><![CDATA[PROPERTY R_ParamCount : DINT]]></Declaration>
-      <Get Name="Get" Id="{b6d3976f-e8b6-0161-2763-6beffca696db}">
-        <Declaration><![CDATA[VAR
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[R_ParamCount := _iRParamCount;
-]]></ST>
-        </Implementation>
-      </Get>
-      <Set Name="Set" Id="{9d3422f1-b79d-0717-1f66-838ed6115990}">
-        <Declaration><![CDATA[VAR
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[_iRParamCount := R_ParamCount;
-]]></ST>
-        </Implementation>
-      </Set>
-    </Property>
-    <Property Name="R_ParamIndex" Id="{530b9e5f-dfb6-052c-26a0-17d9f9486d64}" FolderPath="properties\">
-      <Declaration><![CDATA[PROPERTY R_ParamIndex : DINT]]></Declaration>
-      <Get Name="Get" Id="{e00ab9c4-7197-0e85-2616-4be68719d5fa}">
-        <Declaration><![CDATA[VAR
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[R_ParamIndex := _iRParamIndex;
-]]></ST>
-        </Implementation>
-      </Get>
-      <Set Name="Set" Id="{cec9fde3-5653-0b7f-32a0-776e8758fe31}">
-        <Declaration><![CDATA[VAR
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[_iRParamIndex := R_ParamIndex;
-]]></ST>
-        </Implementation>
-      </Set>
-    </Property>
-    <Property Name="sCmd" Id="{a129b11f-a0c3-0392-231d-28430a2acdb8}" FolderPath="properties\">
-      <Declaration><![CDATA[PROPERTY sCmd : string]]></Declaration>
-      <Get Name="Get" Id="{f147bc31-3f4f-00e8-0689-c138c2223fe4}">
-        <Declaration><![CDATA[VAR
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[sCmd := _sCmd;
-]]></ST>
-        </Implementation>
-      </Get>
-      <Set Name="Set" Id="{32a59a0c-e5e8-0195-2476-4636a4e74328}">
-        <Declaration><![CDATA[VAR
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[_sCmd := sCmd;
-]]></ST>
-        </Implementation>
-      </Set>
     </Property>
     <Method Name="Template" Id="{e9779cbd-b047-0927-1afc-2a205c1c1e40}" FolderPath="methods\">
       <Declaration><![CDATA[METHOD Template : E_PROGRESS
@@ -1050,6 +942,40 @@ Template_1 := _eState;
       </XmlArchive>
     </ObjectProperties>
     <LineIds Name="FB_NciChannelCtrl">
+      <LineId Id="56" Count="14" />
+      <LineId Id="196" Count="0" />
+      <LineId Id="71" Count="0" />
+      <LineId Id="191" Count="0" />
+      <LineId Id="73" Count="1" />
+      <LineId Id="76" Count="0" />
+      <LineId Id="193" Count="0" />
+      <LineId Id="198" Count="0" />
+      <LineId Id="195" Count="0" />
+      <LineId Id="82" Count="0" />
+      <LineId Id="200" Count="0" />
+      <LineId Id="199" Count="0" />
+      <LineId Id="201" Count="0" />
+      <LineId Id="204" Count="18" />
+      <LineId Id="203" Count="0" />
+      <LineId Id="223" Count="0" />
+      <LineId Id="202" Count="0" />
+      <LineId Id="224" Count="3" />
+      <LineId Id="229" Count="1" />
+      <LineId Id="232" Count="0" />
+      <LineId Id="231" Count="0" />
+      <LineId Id="233" Count="0" />
+      <LineId Id="235" Count="0" />
+      <LineId Id="234" Count="0" />
+      <LineId Id="236" Count="0" />
+      <LineId Id="238" Count="0" />
+      <LineId Id="237" Count="0" />
+      <LineId Id="239" Count="0" />
+      <LineId Id="228" Count="0" />
+      <LineId Id="83" Count="0" />
+      <LineId Id="240" Count="2" />
+      <LineId Id="244" Count="0" />
+      <LineId Id="243" Count="0" />
+      <LineId Id="245" Count="0" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.Channel_BuildGroup">
@@ -1093,112 +1019,76 @@ Template_1 := _eState;
       <LineId Id="1" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.Check">
-      <LineId Id="6" Count="0" />
-      <LineId Id="14" Count="2" />
-      <LineId Id="19" Count="0" />
-      <LineId Id="18" Count="0" />
-      <LineId Id="17" Count="0" />
-      <LineId Id="13" Count="0" />
-      <LineId Id="20" Count="4" />
-      <LineId Id="26" Count="5" />
-      <LineId Id="25" Count="0" />
-      <LineId Id="32" Count="4" />
-      <LineId Id="42" Count="5" />
-      <LineId Id="37" Count="0" />
-      <LineId Id="12" Count="0" />
-      <LineId Id="38" Count="1" />
-      <LineId Id="11" Count="0" />
-      <LineId Id="7" Count="0" />
-      <LineId Id="5" Count="0" />
+      <LineId Id="44" Count="0" />
+      <LineId Id="3" Count="36" />
+      <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.Chn_BuildGroup">
-      <LineId Id="574" Count="17" />
-      <LineId Id="598" Count="3" />
-      <LineId Id="661" Count="0" />
-      <LineId Id="635" Count="10" />
-      <LineId Id="675" Count="4" />
-      <LineId Id="646" Count="4" />
-      <LineId Id="656" Count="1" />
+      <LineId Id="3" Count="45" />
       <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannelCtrl.ChnCtrl.Set">
+      <LineId Id="2" Count="0" />
+      <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.ChnId.Get">
       <LineId Id="3" Count="0" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_NciChannelCtrl.Cycle">
-      <LineId Id="7" Count="0" />
-      <LineId Id="14" Count="12" />
-      <LineId Id="148" Count="0" />
-      <LineId Id="27" Count="117" />
-      <LineId Id="2" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_NciChannelCtrl.eCmd.Get">
-      <LineId Id="3" Count="0" />
-      <LineId Id="2" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_NciChannelCtrl.eCmd.Set">
-      <LineId Id="3" Count="0" />
-      <LineId Id="2" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_NciChannelCtrl.eState.Get">
-      <LineId Id="2" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_NciChannelCtrl.eState.Set">
-      <LineId Id="3" Count="0" />
-      <LineId Id="2" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_NciChannelCtrl.ItfChannel.Get">
+    <LineIds Name="FB_NciChannelCtrl.ChnState.Set">
       <LineId Id="2" Count="0" />
       <LineId Id="5" Count="0" />
     </LineIds>
-    <LineIds Name="FB_NciChannelCtrl.R_Param_Read.Get">
-      <LineId Id="3" Count="0" />
-      <LineId Id="2" Count="0" />
+    <LineIds Name="FB_NciChannelCtrl.Cmd">
+      <LineId Id="12" Count="2" />
+      <LineId Id="19" Count="0" />
+      <LineId Id="40" Count="0" />
+      <LineId Id="42" Count="0" />
+      <LineId Id="20" Count="0" />
+      <LineId Id="41" Count="0" />
+      <LineId Id="43" Count="0" />
+      <LineId Id="21" Count="0" />
+      <LineId Id="44" Count="1" />
+      <LineId Id="22" Count="0" />
+      <LineId Id="46" Count="1" />
+      <LineId Id="23" Count="0" />
+      <LineId Id="48" Count="1" />
+      <LineId Id="24" Count="0" />
+      <LineId Id="50" Count="1" />
+      <LineId Id="25" Count="0" />
+      <LineId Id="52" Count="0" />
+      <LineId Id="26" Count="1" />
+      <LineId Id="53" Count="1" />
+      <LineId Id="28" Count="0" />
+      <LineId Id="55" Count="1" />
+      <LineId Id="29" Count="0" />
+      <LineId Id="57" Count="1" />
+      <LineId Id="30" Count="0" />
+      <LineId Id="59" Count="0" />
+      <LineId Id="31" Count="1" />
+      <LineId Id="60" Count="0" />
+      <LineId Id="33" Count="1" />
+      <LineId Id="61" Count="1" />
+      <LineId Id="35" Count="0" />
+      <LineId Id="63" Count="0" />
+      <LineId Id="36" Count="0" />
+      <LineId Id="17" Count="0" />
+      <LineId Id="37" Count="0" />
+      <LineId Id="15" Count="0" />
+      <LineId Id="79" Count="0" />
+      <LineId Id="78" Count="0" />
+      <LineId Id="64" Count="0" />
+      <LineId Id="66" Count="5" />
+      <LineId Id="74" Count="1" />
+      <LineId Id="38" Count="1" />
+      <LineId Id="5" Count="0" />
     </LineIds>
-    <LineIds Name="FB_NciChannelCtrl.R_Param_Read.Set">
-      <LineId Id="3" Count="0" />
-      <LineId Id="2" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_NciChannelCtrl.R_Param_Write.Get">
-      <LineId Id="3" Count="0" />
-      <LineId Id="2" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_NciChannelCtrl.R_Param_Write.Set">
-      <LineId Id="3" Count="0" />
-      <LineId Id="2" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_NciChannelCtrl.R_ParamCount.Get">
-      <LineId Id="3" Count="0" />
-      <LineId Id="2" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_NciChannelCtrl.R_ParamCount.Set">
-      <LineId Id="3" Count="0" />
-      <LineId Id="2" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_NciChannelCtrl.R_ParamIndex.Get">
-      <LineId Id="3" Count="0" />
-      <LineId Id="2" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_NciChannelCtrl.R_ParamIndex.Set">
-      <LineId Id="3" Count="0" />
-      <LineId Id="2" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_NciChannelCtrl.sCmd.Get">
-      <LineId Id="3" Count="0" />
-      <LineId Id="2" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_NciChannelCtrl.sCmd.Set">
+    <LineIds Name="FB_NciChannelCtrl.ItfChannel.Get">
       <LineId Id="3" Count="0" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.Template">
-      <LineId Id="574" Count="17" />
-      <LineId Id="598" Count="3" />
-      <LineId Id="661" Count="0" />
-      <LineId Id="635" Count="10" />
-      <LineId Id="675" Count="4" />
-      <LineId Id="646" Count="4" />
-      <LineId Id="656" Count="1" />
+      <LineId Id="3" Count="45" />
       <LineId Id="2" Count="0" />
     </LineIds>
   </POU>
