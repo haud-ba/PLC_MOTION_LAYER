@@ -1272,6 +1272,8 @@ OF
               Axis                := _AxisRef^, 
               Execute             := TRUE);
 
+    _AxisRef^();
+
     IF _fbReset.Error
     THEN
       _nErrorId                   := _fbReset.ErrorID;
@@ -2225,6 +2227,8 @@ WriteParameterPersistent            := _eState;
       <LineId Id="24" Count="0" />
       <LineId Id="40" Count="2" />
       <LineId Id="73" Count="2" />
+      <LineId Id="128" Count="0" />
+      <LineId Id="127" Count="0" />
       <LineId Id="72" Count="0" />
       <LineId Id="70" Count="1" />
       <LineId Id="79" Count="7" />

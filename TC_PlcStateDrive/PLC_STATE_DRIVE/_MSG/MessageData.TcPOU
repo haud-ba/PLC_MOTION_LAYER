@@ -86,6 +86,7 @@ CASE nState OF
 END_CASE
 CASE nState OF
   5:
+			memset(ADR(aWriteList),     0, SIZEOF(aWriteList));
 			memcpy(ADR(aWriteList), pList, SIZEOF(aWriteList));
 			memset(pList, 0, SIZEOF(aWriteList));
 			bBusy   := TRUE;
@@ -501,7 +502,9 @@ bErrorWrite := fbFileOpen.bError OR fbFileWrite.bError;
     <LineIds Name="MessageData">
       <LineId Id="2900" Count="25" />
       <LineId Id="2928" Count="0" />
-      <LineId Id="2930" Count="16" />
+      <LineId Id="2930" Count="10" />
+      <LineId Id="3241" Count="0" />
+      <LineId Id="2941" Count="5" />
       <LineId Id="3092" Count="0" />
       <LineId Id="2947" Count="0" />
       <LineId Id="3144" Count="0" />
