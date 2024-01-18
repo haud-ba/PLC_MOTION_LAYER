@@ -1,9 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
-  <DUT Name="ST_AXIS_INFO" Id="{d905bf4f-290d-085d-17a5-01c56d7a672e}">
+  <DUT Name="ST_Out" Id="{b9820cfd-2679-41ef-bac5-055ca4628d56}">
     <Declaration><![CDATA[{attribute 'pack_mode' := '2'}
-TYPE ST_AXIS_INFO :
+TYPE ST_Out :
 STRUCT
+
   bEnabled    : BIT; // Enabled: check if ControlLoop is closed and active
   bReferenced : BIT; // Axis homing bit
   bReady      : BIT; // enabled & NOT bError & no Axis Function requested
@@ -12,15 +13,23 @@ STRUCT
   bTimeout    : BIT; // for move cmds or switching drive on timeout
   bInTarget   : BIT; // ActPos = SetPos --> position check is done with configured window in NC
   bStandstill : BIT; // No Error and NOT moving
- 
-  nErrorId            : UDINT;
+
+  byAxisFuncPara      : BYTE; // mirror for additional parameter for Axis Function; e.g. used for AxisIndex on GearIn
+  uiAxisFunctionState : E_AXIS_STATE; // mirror the requested axis function; 
+                                        // +  100 = function busy; 
+                                        // + 1000 = function done; 
+                                        // + 9000 = function error
+  uiErrorId           : UDINT;
 
   rActPos             : LREAL;
   rActVelo            : LREAL;
   rPosDiff            : LREAL;
 
+  // HAUD
+  // 2023 04 05
   dwCoupleState       : DWORD;   // cyclic information about axis couple state
-  nNcAxisId           : UDINT;
+
+  NcAxisId            : UDINT;
 END_STRUCT
 END_TYPE
 ]]></Declaration>

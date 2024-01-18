@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <DUT Name="ST_NcParam" Id="{3914a3f6-4f6a-405d-9c31-258528c0a39a}">
+    <Declaration><![CDATA[TYPE ST_NcParam :
+STRUCT
+  bRead           : BIT;
+  bWrite          : BIT;
+  bValid          : BIT;
+
+  (* reserve for future use *)
+  // TwinCAT fills up to byte alignement, the declarations are not neccessarily required
+  // for ease of use placeholders are hidden from intelli sense
+  {attribute 'hide'}
+  b3 : BIT;
+  {attribute 'hide'}
+  b4 : BIT;
+  {attribute 'hide'}
+  b5 : BIT;
+  {attribute 'hide'}
+  b6 : BIT;
+  {attribute 'hide'}
+  b7 : BIT;
+  {attribute 'hide'}
+  by1 : BYTE;
+
+  ParameterNumber : Tc2_MC2.MC_AxisParameter;
+  rValueWrite     : REAL; // value to write
+  rValueRead      : REAL; // value from NC (Bools are cast to real)
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

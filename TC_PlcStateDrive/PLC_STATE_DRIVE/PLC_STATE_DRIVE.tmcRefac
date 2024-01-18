@@ -46,5 +46,55 @@
       <From>_refNciChannelRef</From>
       <To>_NciChannelRef</To>
     </RenamedSymbol>
+    <RenamedType>
+      <Type guid="05eb021c-5b0a-4da2-95e3-674482bdf63a">CHN_BUILDGROUP</Type>
+      <From>Chn_BuildGroup</From>
+      <To>Ctrl_BuildGroup</To>
+    </RenamedType>
+    <RenamedType>
+      <Type guid="dfb0587b-a2c4-4fa1-bfd9-d71a40460205">CHN_CLEARGROUP</Type>
+      <From>Chn_ClearGroup</From>
+      <To>Ctrl_ClearGroup</To>
+    </RenamedType>
+    <RenamedType>
+      <Type guid="bd561761-c74e-4789-a2c7-f2681245abe7">CHN_CONFIRMHSK</Type>
+      <From>Chn_ConfirmHsk</From>
+      <To>Ctrl_ConfirmHsk</To>
+    </RenamedType>
+    <RenamedSymbol>
+      <Type guid="5a78808d-29bc-4f15-bc6f-e7ca6f1bbc5d">FB_NciChannel</Type>
+      <From>_pValueRead</From>
+      <To>_pParameterRead</To>
+    </RenamedSymbol>
+    <RenamedSymbol>
+      <Type guid="5a78808d-29bc-4f15-bc6f-e7ca6f1bbc5d">FB_NciChannel</Type>
+      <From>_pValueWrite</From>
+      <To>_pParameterWrite</To>
+    </RenamedSymbol>
+    <RenamedType>
+      <Type guid="91c9caef-1092-4bfb-8196-82b47c827304">ST_CAM_PARAMETER</Type>
+      <From>ST_CAM_PARAMETER</From>
+      <To>ST_CAM_DATA</To>
+    </RenamedType>
+    <RenamedSymbol>
+      <Type guid="6dfc2c30-81d0-49af-88f3-b728ce4a9781">E_AXIS_CTRL</Type>
+      <From>AXIS_INVALID</From>
+      <To>AXIS_NULL</To>
+    </RenamedSymbol>
+    <RenamedSymbol>
+      <Type guid="0c0dc4b2-6938-421d-9e7a-811b0dda9c18">E_AXIS_STATE</Type>
+      <From>AXIS_INVALID</From>
+      <To>AXIS_NULL</To>
+    </RenamedSymbol>
+    <RenamedSymbol>
+      <Type guid="8c2293d3-2335-4f54-844e-5312237b23aa">FB_McAxisCtrl</Type>
+      <From>_eCtrlParameterNr</From>
+      <To>_eParameterNrWrite</To>
+    </RenamedSymbol>
+    <RenamedSymbol>
+      <Type guid="cb9738b7-17f1-441a-836b-a995a35f5690">GVL_AXIS_CTRL</Type>
+      <From>bCompatible</From>
+      <To>bUseLegacyInterface</To>
+    </RenamedSymbol>
   </Renames>
 </Refactors>

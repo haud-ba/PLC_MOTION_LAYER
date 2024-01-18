@@ -27,37 +27,52 @@
     <Compile Include="CAM.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="COMMUNICATION\MAPPING_in.TcPOU">
+    <Compile Include="CAM\fb_Camming.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="COMMUNICATION\MAPPING_out.TcPOU">
+    <Compile Include="CAM\types\ST_CAM_DATA.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="COMMUNICATION\types\U_AXIS_CTRL.TcDUT">
+    <Compile Include="CAM\types\ST_CAM_STATE.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="COMMUNICATION\types\U_AXIS_NC_PARAMETER_WRT.TcDUT">
+    <Compile Include="CAM\types\ST_CAM_OPTIONS.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="COMMUNICATION\types\U_AXIS_HOMING.TcDUT">
+    <Compile Include="CAM\types\ST_CAM_SCALING_DATA.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="COMMUNICATION\types\U_AXIS_MOTION_OPTIONS.TcDUT">
+    <Compile Include="MAPPING\MAPPING_in.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="COMMUNICATION\types\U_AXIS_MOVE_DATA.TcDUT">
+    <Compile Include="MAPPING\MAPPING_out.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="COMMUNICATION\types\U_AXIS_GEAR_IN.TcDUT">
+    <Compile Include="MAPPING\types\U_AXIS_CTRL.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="COMMUNICATION\types\U_AXIS_NC_PARAMETER_RD.TcDUT">
+    <Compile Include="MAPPING\types\U_AXIS_NC_PARAMETER_WRT.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="COMMUNICATION\types\U_AXIS_STATE.TcDUT">
+    <Compile Include="MAPPING\types\U_AXIS_HOMING.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="COMMUNICATION\types\U_AXIS_INFO.TcDUT">
+    <Compile Include="MAPPING\types\U_AXIS_MOTION_OPTIONS.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MAPPING\types\U_AXIS_MOVE_DATA.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MAPPING\types\U_AXIS_GEAR_IN.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MAPPING\types\U_AXIS_NC_PARAMETER_RD.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MAPPING\types\U_AXIS_STATE.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MAPPING\types\U_AXIS_INFO.TcDUT">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="NCI.TcPOU">
@@ -206,6 +221,18 @@
       <SubType>Code</SubType>
       <LinkAlways>true</LinkAlways>
     </Compile>
+    <Compile Include="_LEGACY_VERSION\GetIndexOfAxisId.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_LEGACY_VERSION\LEGACY.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_LEGACY_VERSION\ST_In.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_LEGACY_VERSION\ST_Out.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="_MSG\fb_LocalTime.TcPOU">
       <SubType>Code</SubType>
     </Compile>
@@ -235,6 +262,25 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Visualization Manager.TcVMO">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_LEGACY_VERSION\GVL_AXIS_CTRL.TcGVL">
+      <SubType>Code</SubType>
+      <LinkAlways>true</LinkAlways>
+    </Compile>
+    <Compile Include="_LEGACY_VERSION\ST_AxisController.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_LEGACY_VERSION\ST_GearIn.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_LEGACY_VERSION\ST_GearInMultiMaster.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_LEGACY_VERSION\ST_MotionOptions.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_LEGACY_VERSION\ST_NcParam.TcDUT">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
@@ -285,6 +331,11 @@
       <DefaultResolution>Tc2_MC2, * (Beckhoff Automation GmbH)</DefaultResolution>
       <Namespace>Tc2_MC2</Namespace>
     </PlaceholderReference>
+    <PlaceholderReference Include="Tc2_MC2_Camming">
+      <DefaultResolution>Tc2_MC2_Camming, * (Beckhoff Automation GmbH)</DefaultResolution>
+      <Namespace>Tc2_MC2_Camming</Namespace>
+      <Optional>true</Optional>
+    </PlaceholderReference>
     <PlaceholderReference Include="Tc2_MC2_Drive">
       <DefaultResolution>Tc2_MC2_Drive, * (Beckhoff Automation GmbH)</DefaultResolution>
       <Namespace>Tc2_MC2_Drive</Namespace>
@@ -311,12 +362,14 @@
     </PlaceholderReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="COMMUNICATION\types" />
+    <Folder Include="CAM\types" />
+    <Folder Include="MAPPING\types" />
     <Folder Include="NCI\files" />
     <Folder Include="NCI\types" />
     <Folder Include="NC_PTP\types\control" />
     <Folder Include="NC_PTP\types\axis" />
-    <Folder Include="COMMUNICATION" />
+    <Folder Include="MAPPING" />
+    <Folder Include="_LEGACY_VERSION" />
     <Folder Include="_MSG\types" />
     <Folder Include="NC_PTP" />
     <Folder Include="NCI" />

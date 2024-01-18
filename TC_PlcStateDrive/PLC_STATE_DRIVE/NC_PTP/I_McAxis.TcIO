@@ -4,15 +4,9 @@
     <Declaration><![CDATA[INTERFACE I_McAxis
 ]]></Declaration>
     <Folder Name="properties" Id="{c3aa66e4-adb2-0576-2fa7-bb2e1744bc40}" />
-    <Property Name="pAxisRef" Id="{5b5f341e-5598-0c1b-0e07-a2e86f8ec7a8}" FolderPath="properties\">
-      <Declaration><![CDATA[PROPERTY pAxisRef : pointer to AXIS_REF]]></Declaration>
+    <Property Name="AxisRef" Id="{5b5f341e-5598-0c1b-0e07-a2e86f8ec7a8}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY AxisRef : pointer to AXIS_REF]]></Declaration>
       <Get Name="Get" Id="{e308e6f3-b4af-0894-0c9f-f1d325a62694}">
-        <Declaration><![CDATA[]]></Declaration>
-      </Get>
-    </Property>
-    <Property Name="Position" Id="{e2df6833-adc0-0f9c-21b6-840f0ef6985d}" FolderPath="properties\">
-      <Declaration><![CDATA[PROPERTY Position : LREAL]]></Declaration>
-      <Get Name="Get" Id="{e5c0d95b-3527-06f9-0ef2-5f8deda57de0}">
         <Declaration><![CDATA[]]></Declaration>
       </Get>
     </Property>

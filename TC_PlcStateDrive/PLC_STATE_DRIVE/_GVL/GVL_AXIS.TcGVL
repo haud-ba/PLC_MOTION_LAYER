@@ -18,7 +18,6 @@ VAR_GLOBAL
   HomeParameter               : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_HOMING;       // homing parameter for each axis
 
   GearInParameter             : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_GEAR_IN;
-  GearMultiMasterParameter    : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_GEAR_IN;
 
   MotionOptions               : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_MOTION_OPTIONS;
 END_VAR]]></Declaration>

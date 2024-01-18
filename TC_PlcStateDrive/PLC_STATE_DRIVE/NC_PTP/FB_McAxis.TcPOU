@@ -109,18 +109,6 @@ END_VAR
         </Implementation>
       </Get>
     </Property>
-    <Property Name="AxisRef" Id="{d622fbfb-1430-047a-062d-a4dac266c76c}" FolderPath="properties\">
-      <Declaration><![CDATA[PROPERTY AxisRef : pointer to Tc2_MC2.AXIS_REF]]></Declaration>
-      <Set Name="Set" Id="{e30bf9e1-a426-000b-02a7-42821d5e2114}">
-        <Declaration><![CDATA[VAR
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[_AxisRef := AxisRef;
-]]></ST>
-        </Implementation>
-      </Set>
-    </Property>
     <Property Name="CalibrationCam" Id="{2999b136-e7f2-0ed9-32d9-2c41cd4633ce}" FolderPath="properties\">
       <Declaration><![CDATA[PROPERTY CalibrationCam : pointer to bool]]></Declaration>
       <Get Name="Get" Id="{771a5d1e-5ee2-0432-1264-29cbfd640c0b}">
@@ -152,7 +140,13 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[// call cyclic NC interface
+        <ST><![CDATA[IF NOT (_AxisRef <> 0)
+THEN
+  Cycle                           := E_PROGRESS.ERROR;
+  RETURN;
+END_IF
+
+// call cyclic NC interface
 _AxisRef^();
 
 _fbPower(
@@ -163,7 +157,7 @@ _fbPower(
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.INVALID:
     _fbGetCurTaskIndex();
     _rCycleTime                   := UDINT_TO_LREAL(_TaskInfo[_fbGetCurTaskIndex.index].CycleTime)/10000.0;
 
@@ -226,7 +220,8 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT (_AxisRef <> 0) THEN  Disable  := E_PROGRESS.ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
 
 CASE _eState
 OF
@@ -298,7 +293,8 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT (_AxisRef <> 0) THEN  Enable  := E_PROGRESS.ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
 
 CASE _eState
 OF
@@ -397,7 +393,8 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT (_AxisRef <> 0) THEN  Halt  := E_PROGRESS.ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
 
 CASE _eState
 OF
@@ -489,7 +486,8 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT (_AxisRef <> 0) THEN  Home  := E_PROGRESS.ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
 
 CASE _eState
 OF
@@ -595,7 +593,8 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Enable THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT (_AxisRef <> 0) THEN  MovePosBuffer  := E_PROGRESS.ERROR; RETURN; END_IF
+IF NOT Enable THEN _eState := E_PROGRESS.INIT; END_IF
 
 CASE _eState
 OF
@@ -759,7 +758,8 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT (_AxisRef <> 0) THEN  MoveToPos  := E_PROGRESS.ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
 
 CASE _eState
 OF
@@ -870,7 +870,8 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT (_AxisRef <> 0) THEN  MoveVelo  := E_PROGRESS.ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
 
 CASE _eState
 OF
@@ -961,7 +962,8 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Enable THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT (_AxisRef <> 0) THEN  MoveVeloBuffer  := E_PROGRESS.ERROR; RETURN; END_IF
+IF NOT Enable THEN _eState := E_PROGRESS.INIT; END_IF
 
 CASE _eState
 OF
@@ -1128,7 +1130,8 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT (_AxisRef <> 0) THEN  ReadParameter  := E_PROGRESS.ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
 
 CASE _eState
 OF
@@ -1240,7 +1243,8 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT (_AxisRef <> 0) THEN  Reset  := E_PROGRESS.ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
 
 CASE _eState
 OF
@@ -1325,7 +1329,8 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT (_AxisRef <> 0) THEN  SendToPos  := E_PROGRESS.ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
 
 CASE _eState
 OF
@@ -1433,7 +1438,8 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT (_AxisRef <> 0) THEN  StartUp  := E_PROGRESS.ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
 
 
 CASE _eState
@@ -1452,6 +1458,13 @@ OF
   E_PROGRESS.BUSY:
     IF (_AxisRef^.NcToPlc.AxisId <> 0)
     THEN
+      _stMsg.eType                  := E_MessageType.eMessageInfo;
+      _stMsg.eDevice                := e_Device.Axis + TO_DINT(_AxisRef^.NcToPlc.AxisId);
+      _stMsg.eSubdevice             := e_Subdevice.AxisControl;
+      _stMsg.iErrorNumber           := 0;
+      _stMsg.sText                  := concat('StartUp NcAxisId: ', TO_STRING(_AxisRef^.NcToPlc.AxisId));
+
+      f_MessageSet(_stMsg);
       _eState                       := E_PROGRESS.STARTUP;
     END_IF
 END_CASE
@@ -1459,14 +1472,14 @@ CASE _eState
 OF
   E_PROGRESS.STARTUP:
     _fbADSRead(
-              NETID       := '', 
-              PORT        := 501, 
-              IDXGRP      := (16#5000 + _AxisRef^.NcToPlc.AxisId), 
-              IDXOFFS     := 16#00000003, // offset for encoder type
-              LEN         := SIZEOF(_nEncoderType), 
-              DESTADDR    := ADR(_nEncoderType),
-              TMOUT       := T#200MS,
-              READ        := FALSE);
+              NETID                 := '', 
+              PORT                  := 501, 
+              IDXGRP                := (16#5000 + _AxisRef^.NcToPlc.AxisId), 
+              IDXOFFS               := 16#00000003, // offset for encoder type
+              LEN                   := SIZEOF(_nEncoderType), 
+              DESTADDR              := ADR(_nEncoderType),
+              TMOUT                 := T#200MS,
+              READ                  := FALSE);
 
     // clear required ADS information
     _sAxisName      := _sName       := 'NO NAME';
@@ -1479,14 +1492,14 @@ CASE _eState
 OF
   E_PROGRESS.PREPARE:
     _fbADSRead(
-              NETID       := '', 
-              PORT        := 501, 
-              IDXGRP      := (16#5000 + _AxisRef^.NcToPlc.AxisId), 
-              IDXOFFS     := 16#00000003, // offset for encoder type
-              LEN         := SIZEOF(_nEncoderType), 
-              DESTADDR    := ADR(_nEncoderType),
-              TMOUT       := T#200MS,
-              READ        := TRUE);
+              NETID                 := '', 
+              PORT                  := 501, 
+              IDXGRP                := (16#5000 + _AxisRef^.NcToPlc.AxisId), 
+              IDXOFFS               := 16#00000003, // offset for encoder type
+              LEN                   := SIZEOF(_nEncoderType), 
+              DESTADDR              := ADR(_nEncoderType),
+              TMOUT                 := T#200MS,
+              READ                  := TRUE);
 
     IF (_fbADSRead.ERR)
     THEN
@@ -1505,6 +1518,14 @@ OF
     THEN
       _uiEncType  := _eEncoderType  := _nEncoderType;
       _sEncoder   := _sEncoderType  := TO_STRING(_eEncoderType);
+
+      _stMsg.eType                  := E_MessageType.eMessageInfo;
+      _stMsg.eDevice                := e_Device.Axis + TO_DINT(_AxisRef^.NcToPlc.AxisId);
+      _stMsg.eSubdevice             := e_Subdevice.AxisControl;
+      _stMsg.iErrorNumber           := 0;
+      _stMsg.sText                  := concat('Encoder Type: ', _sEncoder);
+
+      f_MessageSet(_stMsg);
       _eState                       := E_PROGRESS.READY;
     END_IF
 END_CASE
@@ -1512,13 +1533,13 @@ CASE _eState
 OF
   E_PROGRESS.READY:
     _fbADSRead(
-            NETID         := '', 
-            PORT          := 501, 
-            IDXGRP        := (16#4000 + _AxisRef^.NcToPlc.AxisId), 
-            IDXOFFS       := 16#00000002, // offset for axis name
-            LEN           := SIZEOF(_sAxisName), 
-            DESTADDR      := ADR(_sAxisName),
-            READ          := FALSE);
+            NETID                   := '', 
+            PORT                    := 501, 
+            IDXGRP                  := (16#4000 + _AxisRef^.NcToPlc.AxisId), 
+            IDXOFFS                 := 16#00000002, // offset for axis name
+            LEN                     := SIZEOF(_sAxisName), 
+            DESTADDR                := ADR(_sAxisName),
+            READ                    := FALSE);
 
     _eState                         := E_PROGRESS.WAITING;
 END_CASE
@@ -1526,13 +1547,13 @@ CASE _eState
 OF
   E_PROGRESS.WAITING:
     _fbADSRead(
-            NETID         := '', 
-            PORT          := 501, 
-            IDXGRP        := (16#4000 + _AxisRef^.NcToPlc.AxisId), 
-            IDXOFFS       := 16#00000002, // offset for axis name
-            LEN           := SIZEOF(_sAxisName), 
-            DESTADDR      := ADR(_sAxisName),
-            READ          := TRUE);
+            NETID                   := '', 
+            PORT                    := 501, 
+            IDXGRP                  := (16#4000 + _AxisRef^.NcToPlc.AxisId), 
+            IDXOFFS                 := 16#00000002, // offset for axis name
+            LEN                     := SIZEOF(_sAxisName), 
+            DESTADDR                := ADR(_sAxisName),
+            READ                    := TRUE);
 
     IF (_fbADSRead.ERR)
     THEN
@@ -1550,6 +1571,14 @@ OF
     ELSIF (_sAxisName <> 'NO NAME')
     THEN
       _sName                        := _sAxisName;
+
+      _stMsg.eType                  := E_MessageType.eMessageInfo;
+      _stMsg.eDevice                := e_Device.Axis + TO_DINT(_AxisRef^.NcToPlc.AxisId);;
+      _stMsg.eSubdevice             := e_Subdevice.AxisControl;
+      _stMsg.iErrorNumber           := 0;
+      _stMsg.sText                  := concat('Axis Name: ', _sName);
+
+      f_MessageSet(_stMsg);
       _eState                       := E_PROGRESS.WORKING;
     END_IF
 END_CASE
@@ -1578,7 +1607,8 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT (_AxisRef <> 0) THEN  Stop  := E_PROGRESS.ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
 
 CASE _eState
 OF
@@ -1732,7 +1762,8 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT (_AxisRef <> 0) THEN  WriteParameter  := E_PROGRESS.ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
 
 CASE _eState
 OF
@@ -1835,7 +1866,8 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT (_AxisRef <> 0) THEN  WriteParameterPersistent  := E_PROGRESS.ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
 
 CASE _eState
 OF
@@ -1945,10 +1977,6 @@ WriteParameterPersistent            := _eState;
       <LineId Id="2" Count="0" />
       <LineId Id="5" Count="0" />
     </LineIds>
-    <LineIds Name="FB_McAxis.AxisRef.Set">
-      <LineId Id="2" Count="0" />
-      <LineId Id="5" Count="0" />
-    </LineIds>
     <LineIds Name="FB_McAxis.CalibrationCam.Get">
       <LineId Id="2" Count="0" />
       <LineId Id="5" Count="0" />
@@ -1958,15 +1986,18 @@ WriteParameterPersistent            := _eState;
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_McAxis.Cycle">
+      <LineId Id="893" Count="5" />
       <LineId Id="829" Count="56" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_McAxis.Disable">
+      <LineId Id="861" Count="0" />
       <LineId Id="790" Count="40" />
       <LineId Id="833" Count="15" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_McAxis.Enable">
+      <LineId Id="786" Count="0" />
       <LineId Id="693" Count="15" />
       <LineId Id="738" Count="0" />
       <LineId Id="709" Count="4" />
@@ -1998,6 +2029,7 @@ WriteParameterPersistent            := _eState;
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_McAxis.Halt">
+      <LineId Id="806" Count="0" />
       <LineId Id="693" Count="16" />
       <LineId Id="739" Count="5" />
       <LineId Id="710" Count="3" />
@@ -2026,6 +2058,7 @@ WriteParameterPersistent            := _eState;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_McAxis.Home">
+      <LineId Id="870" Count="0" />
       <LineId Id="693" Count="0" />
       <LineId Id="738" Count="0" />
       <LineId Id="695" Count="5" />
@@ -2065,10 +2098,12 @@ WriteParameterPersistent            := _eState;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_McAxis.MovePosBuffer">
+      <LineId Id="1182" Count="0" />
       <LineId Id="1025" Count="141" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_McAxis.MoveToPos">
+      <LineId Id="1094" Count="0" />
       <LineId Id="693" Count="16" />
       <LineId Id="780" Count="0" />
       <LineId Id="992" Count="0" />
@@ -2100,6 +2135,7 @@ WriteParameterPersistent            := _eState;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_McAxis.MoveVelo">
+      <LineId Id="967" Count="0" />
       <LineId Id="835" Count="40" />
       <LineId Id="940" Count="11" />
       <LineId Id="939" Count="0" />
@@ -2109,6 +2145,7 @@ WriteParameterPersistent            := _eState;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_McAxis.MoveVeloBuffer">
+      <LineId Id="1248" Count="0" />
       <LineId Id="1025" Count="30" />
       <LineId Id="1057" Count="8" />
       <LineId Id="1067" Count="11" />
@@ -2135,6 +2172,7 @@ WriteParameterPersistent            := _eState;
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_McAxis.ReadParameter">
+      <LineId Id="612" Count="0" />
       <LineId Id="466" Count="0" />
       <LineId Id="468" Count="2" />
       <LineId Id="472" Count="2" />
@@ -2180,6 +2218,7 @@ WriteParameterPersistent            := _eState;
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_McAxis.Reset">
+      <LineId Id="126" Count="0" />
       <LineId Id="7" Count="16" />
       <LineId Id="64" Count="1" />
       <LineId Id="63" Count="0" />
@@ -2208,6 +2247,7 @@ WriteParameterPersistent            := _eState;
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_McAxis.SendToPos">
+      <LineId Id="1094" Count="0" />
       <LineId Id="693" Count="16" />
       <LineId Id="780" Count="0" />
       <LineId Id="992" Count="0" />
@@ -2240,10 +2280,14 @@ WriteParameterPersistent            := _eState;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_McAxis.StartUp">
+      <LineId Id="204" Count="0" />
       <LineId Id="18" Count="0" />
       <LineId Id="63" Count="0" />
       <LineId Id="19" Count="14" />
       <LineId Id="64" Count="1" />
+      <LineId Id="213" Count="4" />
+      <LineId Id="228" Count="0" />
+      <LineId Id="212" Count="0" />
       <LineId Id="34" Count="0" />
       <LineId Id="66" Count="0" />
       <LineId Id="35" Count="3" />
@@ -2266,6 +2310,9 @@ WriteParameterPersistent            := _eState;
       <LineId Id="102" Count="1" />
       <LineId Id="108" Count="0" />
       <LineId Id="146" Count="0" />
+      <LineId Id="206" Count="5" />
+      <LineId Id="227" Count="0" />
+      <LineId Id="205" Count="0" />
       <LineId Id="44" Count="0" />
       <LineId Id="107" Count="0" />
       <LineId Id="45" Count="3" />
@@ -2279,11 +2326,14 @@ WriteParameterPersistent            := _eState;
       <LineId Id="188" Count="1" />
       <LineId Id="131" Count="7" />
       <LineId Id="144" Count="0" />
-      <LineId Id="139" Count="4" />
+      <LineId Id="139" Count="2" />
+      <LineId Id="219" Count="7" />
+      <LineId Id="142" Count="1" />
       <LineId Id="55" Count="7" />
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_McAxis.Stop">
+      <LineId Id="840" Count="0" />
       <LineId Id="693" Count="16" />
       <LineId Id="739" Count="4" />
       <LineId Id="710" Count="3" />
@@ -2325,6 +2375,7 @@ WriteParameterPersistent            := _eState;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_McAxis.WriteParameter">
+      <LineId Id="777" Count="0" />
       <LineId Id="575" Count="7" />
       <LineId Id="732" Count="0" />
       <LineId Id="583" Count="8" />
@@ -2366,6 +2417,7 @@ WriteParameterPersistent            := _eState;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_McAxis.WriteParameterPersistent">
+      <LineId Id="796" Count="0" />
       <LineId Id="575" Count="16" />
       <LineId Id="677" Count="3" />
       <LineId Id="676" Count="0" />

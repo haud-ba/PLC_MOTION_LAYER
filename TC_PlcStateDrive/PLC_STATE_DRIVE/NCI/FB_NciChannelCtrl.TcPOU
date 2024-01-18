@@ -34,27 +34,14 @@ VAR
   _Ctrl                 : POINTER TO ST_CTRL_NCI;
   _State                : POINTER TO ST_STATE_NCI;
 
-  // M function to fetch
-  _MFuncCyclic          : POINTER TO ST_NCI_M_FUNC;
-
-  // R[] Params used in G-Code
-  // R[0..899]    local namespace of Channel
-  // R[900..999]  global namespace of NC
-  _R_ParameterRead      : POINTER TO ST_R_Parameter;
-  _R_ParameterWrite     : POINTER TO ST_R_Parameter;
+  // M function to fetch for scope/debugging
+  _MFuncScope           : POINTER TO ST_NCI_M_FUNC;
 
   _fPathVelo            : LREAL;
   _nBlockNo             : UDINT;
   _sProgLine            : STRING(100); 
   _nMFunc               : INT;
   _nStateItp            : UINT;
-
-  _iRParamIndex,
-  _iRParamCount         : DINT;
-
-  _rRParamsRead,
-  _rRParamsWrite        : ARRAY[0..MAX_R_PARA]  OF LREAL;
-
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -62,10 +49,11 @@ END_VAR
 
 
 // cyclic data for M func from NCI interface
-_MFuncCyclic^.FastMFuncMask   := _NciChannelRef^.NcToPlc.FastMFuncMask;
-_MFuncCyclic^.HskMFuncNo      := _NciChannelRef^.NcToPlc.HskMFuncNo;
-_MFuncCyclic^.HskMFuncReq     := _NciChannelRef^.NcToPlc.HskMFuncReq;
-_MFuncCyclic^.HFuncValue      := _NciChannelRef^.NcToPlc.HFuncValue;
+_MFuncScope^.FastMFuncMask    := _NciChannelRef^.NcToPlc.FastMFuncMask;
+_MFuncScope^.HskMFuncNo       := _NciChannelRef^.NcToPlc.HskMFuncNo;
+_MFuncScope^.HskMFuncReq      := _NciChannelRef^.NcToPlc.HskMFuncReq;
+_MFuncScope^.HFuncValue       := _NciChannelRef^.NcToPlc.HFuncValue;
+_MFuncScope^.MFuncGranted     := _NciChannelRef^.PlcToNc.MFuncGranted;
 
 // M-Func to catch
 IF HSK 
@@ -87,13 +75,19 @@ END_IF
 CASE _eState
 OF
   E_NCI_STATE.NULL:
+    _eResult                  := E_PROGRESS.DONE;
+
   E_NCI_STATE.INIT:
   E_NCI_STATE.IDLE:
   E_NCI_STATE.RESET:
   E_NCI_STATE.LOAD_PROG:
   E_NCI_STATE.FEED_TABLE:
+
   E_NCI_STATE.BUILD_GROUP:
+    _eResult                  := Ctrl_BuildGroup(TRUE);
+
   E_NCI_STATE.CLEAR_GROUP:
+    _eResult                  := Ctrl_ClearGroup(TRUE);
 
   E_NCI_STATE.START:
   E_NCI_STATE.STOP:
@@ -103,6 +97,8 @@ OF
   E_NCI_STATE.M_FUNC_QUIT:
 
   E_NCI_STATE.READ_R_PARA:
+    _eResult                  := Ctrl_R_Parameter_Rd(TRUE);
+
   E_NCI_STATE.WRITE_R_PARA:
 
 ELSE
@@ -133,497 +129,10 @@ _State^.nItpState             := GetItpState();
 
 ]]></ST>
     </Implementation>
-    <Folder Name="Actions" Id="{39434ede-33a9-0fb1-0bf2-635e1271e9b6}" />
     <Folder Name="methods" Id="{ba370446-9d57-0cc3-1566-665e50cb472c}">
       <Folder Name="private" Id="{6c8eff13-b321-0e72-2088-796b2427b120}" />
     </Folder>
     <Folder Name="properties" Id="{0bad9cd3-48af-0c30-025a-aeccaaa1800d}" />
-    <Action Name="Channel_BuildGroup" Id="{909c4c10-f2bf-0926-130c-e76bcade6acb}" FolderPath="Actions\">
-      <Implementation>
-        <ST><![CDATA[CASE _nState OF
-  0:
-    _hr                       := S_FALSE;
-    _nState                   := 10;
-END_CASE
-CASE _nState OF
-  10:
-    _eCmdActive               := eCmd + E_NCI_CTRL.CMD_BUSY;
-    _eCmdExec                 := E_NCI_CTRL.CMD_BUSY;
-
-    _ipNciChannel.I_AuxAxis   := _ipAuxAxis;
-    _ipNciChannel.I_McAxis    := _ipMcsAxis;
-
-    _hr                       := _ipNciChannel.BuildGroup(FALSE);
-
-    _nState                   := 20;
-END_CASE
-CASE _nState OF
-  20:
-    _hr                       := _ipNciChannel.BuildGroup(TRUE);
-
-    IF (_hr = S_OK)
-    THEN
-      _hr                     := _ipNciChannel.BuildGroup(FALSE);
-      _nState                 := 100;
-    ELSE
-      IF (_hr > S_FALSE)
-      THEN
-        _hr                   := _ipNciChannel.BuildGroup(FALSE);
-        _nState               := 900;
-      END_IF
-    END_IF
-END_CASE
-CASE _nState OF
-  100:
-    _eCmdActive               := eCmd + E_NCI_CTRL.CMD_DONE;
-    _eCmdExec                 := E_NCI_CTRL.CMD_DONE;
-END_CASE
-CASE _nState OF
-  900:
-    _eCmdActive               := eCmd + E_NCI_CTRL.CMD_ERROR;
-    _eCmdExec                 := E_NCI_CTRL.CMD_ERROR;
-END_CASE]]></ST>
-      </Implementation>
-    </Action>
-    <Action Name="Channel_ClearGroup" Id="{47394805-b496-0bb4-3f10-28e323c20b8f}" FolderPath="Actions\">
-      <Implementation>
-        <ST><![CDATA[CASE _nState OF
-  0:
-    _ipNciChannel.pNciChannelRef^.PlcToNc.MFuncGranted := 1;
-    _hr                       := S_FALSE;
-    _nState                   := 10;
-
-  10:
-    _ipNciChannel.pNciChannelRef^.PlcToNc.MFuncGranted := 0;
-    _eCmdActive               := eCmd + E_NCI_CTRL.CMD_BUSY;
-    _eCmdExec                 := E_NCI_CTRL.CMD_BUSY;
-
-    _ipNciChannel.I_AuxAxis   := _ipAuxAxis;
-    _ipNciChannel.I_McAxis    := _ipMcsAxis;
-
-    _hr                       := _ipNciChannel.ClearGroup(FALSE);
-
-    _nState                   := 20;
-
-
-  20:
-    _ipNciChannel.pNciChannelRef^.PlcToNc.MFuncGranted := 1;
-    _hr                       := _ipNciChannel.ClearGroup(TRUE);
-
-    IF (_hr = S_OK)
-    THEN
-      _hr                     := _ipNciChannel.ClearGroup(FALSE);
-      _nState                 := 100;
-    ELSE
-      IF (_hr > S_FALSE)
-      THEN
-        _hr                   := _ipNciChannel.ClearGroup(FALSE);
-        _nState               := 900;
-      END_IF
-    END_IF
-
-  100:
-    _ipNciChannel.pNciChannelRef^.PlcToNc.MFuncGranted := 0;
-    _eCmdActive               := eCmd + E_NCI_CTRL.CMD_DONE;
-    _eCmdExec                 := E_NCI_CTRL.CMD_DONE;
-END_CASE
-CASE _nState OF
-  900:
-    _eCmdActive               := eCmd + E_NCI_CTRL.CMD_ERROR;
-    _eCmdExec                 := E_NCI_CTRL.CMD_ERROR;
-END_CASE]]></ST>
-      </Implementation>
-    </Action>
-    <Action Name="Channel_Confirm" Id="{851e0ce6-5650-0a37-26f3-daeeae6208d5}" FolderPath="Actions\">
-      <Implementation>
-        <ST><![CDATA[CASE _nState OF
-  0:
-    _hr                       := S_FALSE;
-    _nState                   := 10;
-END_CASE
-CASE _nState OF
-  10:
-    _eCmdActive               := eCmd + E_NCI_CTRL.CMD_BUSY;
-    _eCmdExec                 := E_NCI_CTRL.CMD_BUSY;
-
-    IF (_stMFuncCyclic.HskMFuncReq > 0)
-    THEN
-      _hr                     := _ipNciChannel.ConfirmHSK(FALSE);
-      _nState                 := 20;
-    END_IF
-END_CASE
-CASE _nState OF
-  20:
-    _hr                       := _ipNciChannel.ConfirmHSK(TRUE);
-
-    IF (_hr = S_OK)
-    THEN
-      _hr                     := _ipNciChannel.ConfirmHSK(FALSE);
-      _nState                 := 100;
-    ELSE
-      IF (_hr > S_FALSE)
-      THEN
-        _hr                   := _ipNciChannel.ConfirmHSK(FALSE);
-        _nState               := 900;
-      END_IF
-    END_IF
-END_CASE
-CASE _nState OF
-  100:
-    _eCmdActive               := eCmd + E_NCI_CTRL.CMD_DONE;
-    _eCmdExec                 := E_NCI_CTRL.CMD_DONE;
-END_CASE
-CASE _nState OF
-  900:
-    _eCmdActive               := eCmd + E_NCI_CTRL.CMD_ERROR;
-    _eCmdExec                 := E_NCI_CTRL.CMD_ERROR;
-END_CASE]]></ST>
-      </Implementation>
-    </Action>
-    <Action Name="Channel_LoadProg" Id="{71105c07-3b8c-0db8-3a6e-2d05dd9dc2f9}" FolderPath="Actions\">
-      <Implementation>
-        <ST><![CDATA[CASE _nState OF
-  0:
-    _ipNciChannel.pNciChannelRef^.PlcToNc.MFuncGranted := 1;
-    _hr                 := S_FALSE;
-    _nState              := 10;
-
-  10:
-    _ipNciChannel.pNciChannelRef^.PlcToNc.MFuncGranted := 0;
-    _eCmdActive          := eCmd + E_NCI_CTRL.CMD_BUSY;
-    _eCmdExec            := E_NCI_CTRL.CMD_BUSY;
-
-    IF NOT (len(NcProg) > 10)
-    THEN
-      _nState             := 900;
-    ELSE
-      _ipNciChannel.Prog  := NcProg;
-  
-      _hr                 := _ipNciChannel.LoadProg(FALSE);
-  
-      _nState             := 20;
-    END_IF
-
-  20:
-    _ipNciChannel.pNciChannelRef^.PlcToNc.MFuncGranted := 1;
-    _hr                 := _ipNciChannel.LoadProg(TRUE);
-
-    IF (_hr = S_OK)
-    THEN
-      _hr               := _ipNciChannel.LoadProg(FALSE);
-
-      _nState            := 100;
-    ELSE
-      IF (_hr > S_FALSE)
-      THEN
-        _hr             := _ipNciChannel.LoadProg(FALSE);
-
-        _nState          := 900;
-      END_IF
-    END_IF
-
-  100:
-    _ipNciChannel.pNciChannelRef^.PlcToNc.MFuncGranted := 0;
-    _eCmdActive          := eCmd + E_NCI_CTRL.CMD_DONE;
-    _eCmdExec            := E_NCI_CTRL.CMD_DONE;
-END_CASE
-CASE _nState OF
-  900:
-    _eCmdActive          := eCmd + E_NCI_CTRL.CMD_ERROR;
-    _eCmdExec            := E_NCI_CTRL.CMD_ERROR;
-END_CASE]]></ST>
-      </Implementation>
-    </Action>
-    <Action Name="Channel_R_Read" Id="{be5f8309-0c77-0607-38b2-159f5bf2d6a5}" FolderPath="Actions\">
-      <Implementation>
-        <ST><![CDATA[CASE _nState OF
-  0:
-    _hr           := S_FALSE;
-    _nState        := 10;
-END_CASE
-CASE _nState OF
-  10:
-    _eCmdActive    := eCmd + E_NCI_CTRL.CMD_BUSY;
-    _eCmdExec      := E_NCI_CTRL.CMD_BUSY;
-
-    _iri          := _iRParamIndex;
-    _irc          := _iRParamCount;
-    _hr           := _ipNciChannel.ReadRParams(FALSE,
-                                               ADR(_rRParamsRead),
-                                               _iri,
-                                               _irc);
-    _nState := 20;
-END_CASE
-CASE _nState OF
-  20:
-    _hr           := _ipNciChannel.ReadRParams(TRUE,
-                                               ADR(_rRParamsRead),
-                                               _iri,
-                                               _irc);
-
-    IF (_hr = S_OK)
-    THEN
-      _ipNciChannel.ReadRParams(FALSE,
-                                ADR(_rRParamsRead),
-                                _iri,
-                                _irc);
-      _nState      := 100;
-    ELSE
-      IF (_hr > S_FALSE)
-      THEN
-        _ipNciChannel.ReadRParams(FALSE,
-                                  ADR(_rRParamsRead),
-                                  _iri,
-                                  _irc);
-        _nState    := 900;
-      END_IF
-    END_IF
-END_CASE
-CASE _nState OF
-  100:
-    _eCmdActive    := eCmd + E_NCI_CTRL.CMD_DONE;
-    _eCmdExec      := E_NCI_CTRL.CMD_DONE;
-END_CASE
-CASE _nState OF
-  900:
-    _eCmdActive    := eCmd + E_NCI_CTRL.CMD_ERROR;
-    _eCmdExec      := E_NCI_CTRL.CMD_ERROR;
-END_CASE]]></ST>
-      </Implementation>
-    </Action>
-    <Action Name="Channel_R_Write" Id="{fb5d44a8-06cd-02ec-29d5-e6a9f015d822}" FolderPath="Actions\">
-      <Implementation>
-        <ST><![CDATA[CASE _nState OF
-  0:
-    _hr           := S_FALSE;
-    _nState        := 10;
-END_CASE
-CASE _nState OF
-  10:
-    _eCmdActive    := eCmd + E_NCI_CTRL.CMD_BUSY;
-    _eCmdExec      := E_NCI_CTRL.CMD_BUSY;
-
-    _iri          := _iRParamIndex;
-    _irc          := _iRParamCount;
-    _hr           := _ipNciChannel.WriteRParams(FALSE,
-                                                ADR(_rRParamsWrite),
-                                                _iri,
-                                                _irc);
-    _nState := 20;
-END_CASE
-CASE _nState OF
-  20:
-    _hr           := _ipNciChannel.WriteRParams(TRUE,
-                                                ADR(_rRParamsWrite),
-                                                _iri,
-                                                _irc);
-
-    IF (_hr = S_OK)
-    THEN
-      _ipNciChannel.WriteRParams(FALSE,
-                                 ADR(_rRParamsWrite),
-                                 _iri,
-                                 _irc);
-      _nState      := 100;
-    ELSE
-      IF (_hr > S_FALSE)
-      THEN
-        _ipNciChannel.WriteRParams(FALSE,
-                                   ADR(_rRParamsWrite),
-                                   _iri,
-                                   _irc);
-        _nState    := 900;
-      END_IF
-    END_IF
-END_CASE
-CASE _nState OF
-  100:
-    _eCmdActive    := eCmd + E_NCI_CTRL.CMD_DONE;
-    _eCmdExec      := E_NCI_CTRL.CMD_DONE;
-END_CASE
-CASE _nState OF
-  900:
-    _eCmdActive    := eCmd + E_NCI_CTRL.CMD_ERROR;
-    _eCmdExec      := E_NCI_CTRL.CMD_ERROR;
-END_CASE]]></ST>
-      </Implementation>
-    </Action>
-    <Action Name="Channel_Reset" Id="{50a33252-096c-02bb-3e41-95aa8baee370}" FolderPath="Actions\">
-      <Implementation>
-        <ST><![CDATA[CASE _nState OF
-  0:
-    _hr           := S_FALSE;
-    _nState        := 10;
-END_CASE
-CASE _nState OF
-  10:
-    _eCmdActive    := eCmd + E_NCI_CTRL.CMD_BUSY;
-    _eCmdExec      := E_NCI_CTRL.CMD_BUSY;
-
-    _hr           := _ipNciChannel.ItpReset(FALSE);
-
-    _nState := 20;
-END_CASE
-CASE _nState OF
-  20:
-    _hr           := _ipNciChannel.ItpReset(TRUE);
-
-    IF (_hr = S_OK)
-    THEN
-      _ipNciChannel.ItpReset(FALSE);
-      _nState      := 100;
-    ELSE
-      IF (_hr > S_FALSE)
-      THEN
-        _ipNciChannel.ItpReset(FALSE);
-        _nState    := 900;
-      END_IF
-    END_IF
-END_CASE
-CASE _nState OF
-  100:
-    _eCmdActive    := eCmd + E_NCI_CTRL.CMD_DONE;
-    _eCmdExec      := E_NCI_CTRL.CMD_DONE;
-END_CASE
-CASE _nState OF
-  900:
-    _eCmdActive    := eCmd + E_NCI_CTRL.CMD_ERROR;
-    _eCmdExec      := E_NCI_CTRL.CMD_ERROR;
-END_CASE]]></ST>
-      </Implementation>
-    </Action>
-    <Action Name="Channel_Restart" Id="{0d289702-76a4-048d-0206-c91637b8cd79}" FolderPath="Actions\">
-      <Implementation>
-        <ST><![CDATA[CASE _nState OF
-  0:
-    _hr                     := S_FALSE;
-    _nState                  := 10;
-END_CASE
-CASE _nState OF
-  10:
-    _eCmdActive              := eCmd + E_NCI_CTRL.CMD_BUSY;
-    _eCmdExec                := E_NCI_CTRL.CMD_BUSY;
-
-    _hr                     := _ipNciChannel.StepOnAfterEStop(FALSE);
-
-    _nState                  := 20;
-END_CASE
-CASE _nState OF
-  20:
-    _hr                     := _ipNciChannel.StepOnAfterEStop(TRUE);
-
-    IF (_hr = S_OK)
-    THEN
-      _hr                   := _ipNciChannel.StepOnAfterEStop(FALSE);
-      _nState                := 100;
-    ELSE
-      IF (_hr > S_FALSE)
-      THEN
-        _hr                 := _ipNciChannel.StepOnAfterEStop(FALSE);
-        _nState              := 900;
-      END_IF
-    END_IF
-END_CASE
-CASE _nState OF
-  100:
-    _eCmdActive              := eCmd + E_NCI_CTRL.CMD_DONE;
-    _eCmdExec                := E_NCI_CTRL.CMD_DONE;
-END_CASE
-CASE _nState OF
-  900:
-    _eCmdActive              := eCmd + E_NCI_CTRL.CMD_ERROR;
-    _eCmdExec                := E_NCI_CTRL.CMD_ERROR;
-END_CASE]]></ST>
-      </Implementation>
-    </Action>
-    <Action Name="Channel_Start" Id="{c59a79f3-b20e-041f-0975-135263d187e2}" FolderPath="Actions\">
-      <Implementation>
-        <ST><![CDATA[CASE _nState OF
-  0:
-    _hr                     := S_FALSE;
-    _nState                  := 10;
-END_CASE
-CASE _nState OF
-  10:
-    _eCmdActive              := eCmd + E_NCI_CTRL.CMD_BUSY;
-    _eCmdExec                := E_NCI_CTRL.CMD_BUSY;
-
-    _hr                     := _ipNciChannel.StartStop(FALSE, FALSE);
-
-    _nState                  := 20;
-END_CASE
-CASE _nState OF
-  20:
-    _hr                     := _ipNciChannel.StartStop(TRUE, FALSE);
-
-    IF (_hr = S_OK)
-    THEN
-      _hr                   := _ipNciChannel.StartStop(FALSE, FALSE);
-      _nState                := 100;
-    ELSE
-      IF (_hr > S_FALSE)
-      THEN
-        _hr                 := _ipNciChannel.StartStop(FALSE, FALSE);
-        _nState              := 900;
-      END_IF
-    END_IF
-END_CASE
-CASE _nState OF
-  100:
-    _eCmdActive              := eCmd + E_NCI_CTRL.CMD_DONE;
-    _eCmdExec                := E_NCI_CTRL.CMD_DONE;
-END_CASE
-CASE _nState OF
-  900:
-    _eCmdActive              := eCmd + E_NCI_CTRL.CMD_ERROR;
-    _eCmdExec                := E_NCI_CTRL.CMD_ERROR;
-END_CASE]]></ST>
-      </Implementation>
-    </Action>
-    <Action Name="Channel_Stop" Id="{b3249cbc-3c82-0ab7-16a7-cd8fa483ce00}" FolderPath="Actions\">
-      <Implementation>
-        <ST><![CDATA[CASE _nState OF
-  0:
-    _hr                     := S_FALSE;
-    _nState                  := 10;
-END_CASE
-CASE _nState OF
-  10:
-    _eCmdActive              := eCmd + E_NCI_CTRL.CMD_BUSY;
-    _eCmdExec                := E_NCI_CTRL.CMD_BUSY;
-
-    _hr                     := _ipNciChannel.StartStop(FALSE, FALSE);
-
-    _nState                  := 20;
-END_CASE
-CASE _nState OF
-  20:
-    _hr                     := _ipNciChannel.StartStop(FALSE, TRUE);
-
-    IF (_hr = S_OK)
-    THEN
-      _hr                   := _ipNciChannel.StartStop(FALSE, FALSE);
-      _nState                := 100;
-    ELSE
-      IF (_hr > S_FALSE)
-      THEN
-        _hr                 := _ipNciChannel.StartStop(FALSE, FALSE);
-        _nState              := 900;
-      END_IF
-    END_IF
-END_CASE
-CASE _nState OF
-  100:
-    _eCmdActive              := eCmd + E_NCI_CTRL.CMD_DONE;
-    _eCmdExec                := E_NCI_CTRL.CMD_DONE;
-END_CASE
-CASE _nState OF
-  900:
-    _eCmdActive              := eCmd + E_NCI_CTRL.CMD_ERROR;
-    _eCmdExec                := E_NCI_CTRL.CMD_ERROR;
-END_CASE]]></ST>
-      </Implementation>
-    </Action>
     <Method Name="Check" Id="{e5e6ebbd-f80c-073c-29c0-ccb34bd47eb2}" FolderPath="methods\">
       <Declaration><![CDATA[METHOD Check : BOOL
 VAR_INST
@@ -646,18 +155,6 @@ THEN
   RETURN;
 END_IF
 
-IF NOT (_R_ParameterRead <> 0)
-THEN
-  _eCheck                     := E_CHECK_STATE.NCI_R_PARAMETER_READ_POINTER_INVALID;
-  RETURN;
-END_IF
-
-IF NOT (_R_ParameterWrite <> 0)
-THEN
-  _eCheck                     := E_CHECK_STATE.NCI_R_PARAMETER_WRITE_POINTER_INVALID;
-  RETURN;
-END_IF
-
 IF NOT (_MFuncCyclic <> 0)
 THEN
   _eCheck                     := E_CHECK_STATE.NCI_M_FUNC_POINTER_INVALID;
@@ -669,70 +166,6 @@ Check                         := TRUE;
 
 
 
-]]></ST>
-      </Implementation>
-    </Method>
-    <Method Name="Chn_BuildGroup" Id="{105aa46f-22c9-0eeb-0410-920d223d85dc}" FolderPath="methods\">
-      <Declaration><![CDATA[METHOD Chn_BuildGroup : E_PROGRESS
-VAR_INPUT
-  Execute           : BOOL;
-END_VAR
-VAR_INST
-  _eState           : E_PROGRESS;
-  _rValue           : LREAL;
-  _udiErr           : UDINT;
-  _stMsg            : ST_Message;
-
-
-END_VAR
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN Chn_BuildGroup := E_PROGRESS.ERROR; RETURN; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
-
-CASE _eState
-OF
-  E_PROGRESS.INIT:
-    IF Execute 
-    THEN
-      memset(ADR(_stMsg),0,SIZEOF(_stMsg));
-      _udiErr                       := 0;
-      _rValue                       := 0;
-      _eState                       := E_PROGRESS.BUSY;
-    END_IF
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.BUSY:
-    _eState                         := E_PROGRESS.STARTUP;
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.STARTUP:
-    _eState                       := E_PROGRESS.PREPARE;
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.PREPARE:
-    _eState                         := E_PROGRESS.READY;
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.READY:
-    _eState                         := E_PROGRESS.WAITING;
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.WAITING:
-    _eState                         := E_PROGRESS.WORKING;
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.WORKING:
-    _eState                         := E_PROGRESS.DONE;
-END_CASE
-
-Template_1 := _eState;
 ]]></ST>
       </Implementation>
     </Method>
@@ -773,7 +206,7 @@ END_VAR
       </Set>
     </Property>
     <Method Name="Cmd" Id="{d6479c6f-6d9b-03ad-2b7b-afdf9625f728}" FolderPath="methods\private\">
-      <Declaration><![CDATA[METHOD Cmd  : E_NCI_STATE
+      <Declaration><![CDATA[METHOD PRIVATE Cmd  : E_NCI_STATE
 VAR_INPUT
   eCmd      : E_NCI_CTRL;
 END_VAR
@@ -794,39 +227,47 @@ OF
     _eState           := E_NCI_STATE.IDLE;
 
   E_NCI_CTRL.RESET:
-    _eState           := E_NCI_STATE.RESET;
+    Ctrl_Reset(FALSE);
+    _eState                               := E_NCI_STATE.RESET;
 
   E_NCI_CTRL.LOAD_PROG:
-    _eState           := E_NCI_STATE.LOAD_PROG;
-
-  E_NCI_CTRL.FEED_TABLE:
-    _eState           := E_NCI_STATE.FEED_TABLE;
+    Ctrl_LoadProg(FALSE);
+    _eState                               := E_NCI_STATE.LOAD_PROG;
 
   E_NCI_CTRL.BUILD_GROUP:
-    _eState           := E_NCI_STATE.BUILD_GROUP;
+    Ctrl_BuildGroup(FALSE);
+    _eState                               := E_NCI_STATE.BUILD_GROUP;
 
   E_NCI_CTRL.CLEAR_GROUP:
-    _eState           := E_NCI_STATE.CLEAR_GROUP;
+    Ctrl_ClearGroup(FALSE);
+    _eState                               := E_NCI_STATE.CLEAR_GROUP;
 
   E_NCI_CTRL.START:
+    Ctrl_Start(FALSE);
     _eState           := E_NCI_STATE.START;
 
   E_NCI_CTRL.STOP:
+    Ctrl_Stop(FALSE);
     _eState           := E_NCI_STATE.STOP;
 
   E_NCI_CTRL.STO_STOP:
+    Ctrl_Stop_STO(FALSE);
     _eState           := E_NCI_STATE.STO_STOP;
 
   E_NCI_CTRL.RESTART_STEP_ON:
+    Ctrl_Restart(FALSE);
     _eState           := E_NCI_STATE.RESTART_STEP_ON;
 
   E_NCI_CTRL.M_FUNC_QUIT:
+    Ctrl_ConfirmHsk(FALSE);
     _eState           := E_NCI_STATE.M_FUNC_QUIT;
 
   E_NCI_CTRL.READ_R_PARA:
+    Ctrl_R_Parameter_Rd(FALSE);
     _eState           := E_NCI_STATE.READ_R_PARA;
 
   E_NCI_CTRL.WRITE_R_PARA:
+    Ctrl_R_Parameter_Wrt(FALSE);
     _eState           := E_NCI_STATE.WRITE_R_PARA;
 
 ELSE
@@ -848,6 +289,668 @@ Cmd                   := _eState;
 ]]></ST>
       </Implementation>
     </Method>
+    <Method Name="Ctrl_BuildGroup" Id="{105aa46f-22c9-0eeb-0410-920d223d85dc}" FolderPath="methods\private\">
+      <Declaration><![CDATA[METHOD PRIVATE Ctrl_BuildGroup : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+END_VAR
+VAR_INST
+  _eJobResult,
+  _eState           : E_PROGRESS;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT Check() THEN Ctrl_BuildGroup := E_PROGRESS.ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+
+CASE _eState
+OF
+  E_PROGRESS.INIT:
+    IF Execute 
+    THEN
+      _eJobResult                   := BuilDGroup(FALSE);
+      _eState                       := E_PROGRESS.BUSY;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.BUSY:
+    _eJobResult                     := BuilDGroup(TRUE);
+
+    IF (_eJobResult = E_PROGRESS.ERROR)
+    THEN
+      BuilDGroup(FALSE);
+      _eState                       := E_PROGRESS.ERROR;
+
+    ELSIF (_eJobResult = E_PROGRESS.DONE)
+    THEN
+      BuilDGroup(FALSE);
+      _eState                       := E_PROGRESS.STARTUP;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.STARTUP:
+    _eState                         := E_PROGRESS.PREPARE;
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PREPARE:
+    _eState                         := E_PROGRESS.READY;
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.READY:
+    _eState                         := E_PROGRESS.WAITING;
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.WAITING:
+    _eState                         := E_PROGRESS.WORKING;
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.WORKING:
+    _eState                         := E_PROGRESS.DONE;
+END_CASE
+
+Ctrl_BuildGroup                      := _eState;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Ctrl_ClearGroup" Id="{ca01fe08-db07-0ce8-2e2a-2253e0c671e3}" FolderPath="methods\private\">
+      <Declaration><![CDATA[METHOD PRIVATE Ctrl_ClearGroup : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+END_VAR
+VAR_INST
+  _eJobResult,
+  _eState           : E_PROGRESS;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT Check() THEN Ctrl_ClearGroup := E_PROGRESS.ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+
+CASE _eState
+OF
+  E_PROGRESS.INIT:
+    IF Execute 
+    THEN
+      _eJobResult                           := ClearGroup(FALSE);
+      _eState                               := E_PROGRESS.BUSY;
+    END_IF
+
+  E_PROGRESS.BUSY:
+    _eJobResult                             := ClearGroup(TRUE);
+    IF (_eJobResult = E_PROGRESS.ERROR)
+    THEN
+      ClearGroup(FALSE);
+      _eState                               := E_PROGRESS.ERROR;
+
+    ELSIF (_eJobResult = E_PROGRESS.DONE)
+    THEN
+      ClearGroup(FALSE);
+      _eJobResult                           := ItpReset(FALSE);
+      _eState                               := E_PROGRESS.STARTUP;
+    END_IF
+
+  E_PROGRESS.STARTUP:
+    _eJobResult                             := ItpReset(TRUE);
+    IF (_eJobResult = E_PROGRESS.ERROR)
+    THEN
+      ItpReset(FALSE);
+      _eState                               := E_PROGRESS.ERROR;
+
+    ELSIF (_eJobResult = E_PROGRESS.DONE)
+    THEN
+      ItpReset(FALSE);
+      _eState                               := E_PROGRESS.PREPARE;
+    END_IF
+
+  E_PROGRESS.PREPARE:
+    IF (_NciChannelRef^.NcToPlc.HskMFuncReq = 0)
+    THEN
+      _eState                               := E_PROGRESS.DONE;
+    ELSE
+      _NciChannelRef^.PlcToNc.MFuncGranted  := 0;
+      _eState                               := E_PROGRESS.READY;
+    END_IF
+
+  E_PROGRESS.READY:
+      _NciChannelRef^.PlcToNc.MFuncGranted  := 1;
+      _eState                               := E_PROGRESS.PREPARE;
+
+  E_PROGRESS.DONE:
+    _NciChannelRef^.PlcToNc.MFuncGranted    := 0;
+END_CASE
+
+
+Ctrl_ClearGroup                             := _eState;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Ctrl_ConfirmHsk" Id="{a8e7b112-be8d-04c0-3334-0721b2c5d801}" FolderPath="methods\private\">
+      <Declaration><![CDATA[METHOD PRIVATE Ctrl_ConfirmHsk : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+END_VAR
+VAR_INST
+  _eJobResult,
+  _eState           : E_PROGRESS;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT Check() THEN Ctrl_ConfirmHsk := E_PROGRESS.ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+
+CASE _eState
+OF
+  E_PROGRESS.INIT:
+    IF Execute 
+    THEN
+      _eJobResult                         := ConfirmHSK(FALSE);
+      _eState                             := E_PROGRESS.BUSY;
+    END_IF
+END_CASE
+CASE _eState
+OF
+
+  E_PROGRESS.BUSY:
+    _eJobResult                           := ConfirmHSK(TRUE);
+
+    IF (_eJobResult = E_PROGRESS.ERROR)
+    THEN
+      ConfirmHSK(FALSE);
+      _eState                             := E_PROGRESS.ERROR;
+
+    ELSIF (_eJobResult = E_PROGRESS.DONE)
+    THEN
+      ConfirmHSK(FALSE);
+      _eState                             := E_PROGRESS.PREPARE;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PREPARE:
+    _eState                               := E_PROGRESS.DONE;
+END_CASE
+
+Ctrl_ConfirmHsk                            := _eState;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Ctrl_Idle" Id="{5b70dfc5-7edf-0dff-10a5-bda1c4969df4}" FolderPath="methods\private\">
+      <Declaration><![CDATA[METHOD PRIVATE Ctrl_Idle : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+END_VAR
+VAR_INST
+  _eJobResult,
+  _eState           : E_PROGRESS;
+
+  _nErr             : DWORD;
+  _NciAxisIds       : ARRAY[1..8] OF DWORD;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT Check() THEN Ctrl_Idle := E_PROGRESS.ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+
+CASE _eState
+OF
+  E_PROGRESS.INIT:
+    IF Execute 
+    THEN
+      _eJobResult                         := ItpReset(FALSE);
+      _eState                             := E_PROGRESS.BUSY;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.BUSY:
+    IF (_NciChannelRef^.NcToPlc.ItpState <> Tc2_NCI.NCI_INTERPRETER_IDLE)
+    THEN
+      _eState                             := E_PROGRESS.STARTUP;
+    ELSE
+      IF (_NciChannelRef^.PlcToNc.ChnAxesOvr > 0) AND NOT
+         (_NciChannelRef^.NcToPlc.ChnState.8)
+      THEN
+        _eState                           := E_PROGRESS.PREPARE;
+      END_IF
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.STARTUP:
+    _eJobResult                           := ItpReset(TRUE);
+    IF (_eJobResult = E_PROGRESS.ERROR)
+    THEN
+      ItpReset(FALSE);
+      _eState                             := E_PROGRESS.ERROR;
+
+    ELSIF (_eJobResult = E_PROGRESS.DONE)
+    THEN
+      ItpReset(FALSE);
+      _eState                             := E_PROGRESS.PREPARE;
+    END_IF
+
+  E_PROGRESS.PREPARE:
+    _NciChannelRef^.PlcToNc.MFuncGranted  := 0;
+    _eState                               := E_PROGRESS.READY;
+
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.READY:
+    _nErr                                 := ItpGetGroupAxisIds(_NciAxisIds, _NciChannelRef^.NcToPlc);
+
+    IF (_NciChannelRef^.NcToPlc.HskMFuncReq = 0)
+    THEN
+      _eState                             := E_PROGRESS.DONE;
+    ELSE
+      _eState                             := E_PROGRESS.STARTUP;
+    END_IF
+END_CASE
+
+Ctrl_Idle                                := _eState;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Ctrl_LoadProg" Id="{4250265d-7bcf-04c4-023a-1293aa92986b}" FolderPath="methods\private\">
+      <Declaration><![CDATA[METHOD PRIVATE Ctrl_LoadProg : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+END_VAR
+VAR_INST
+  _eJobResult,
+  _eState           : E_PROGRESS;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT Check() THEN Ctrl_LoadProg := E_PROGRESS.ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+
+CASE _eState
+OF
+  E_PROGRESS.INIT:
+    IF Execute 
+    THEN
+      _eJobResult                         := LoadProg(FALSE);
+      _eState                             := E_PROGRESS.BUSY;
+    END_IF
+
+  E_PROGRESS.BUSY:
+    _NciChannelRef^.PlcToNc.MFuncGranted  := 0;
+    _eJobResult                           := LoadProg(TRUE);
+
+    IF (_eJobResult = E_PROGRESS.ERROR)
+    THEN
+      LoadProg(FALSE);
+      _eState                             := E_PROGRESS.ERROR;
+
+    ELSIF (_eJobResult = E_PROGRESS.DONE)
+    THEN
+      LoadProg(FALSE);
+      _eState                             := E_PROGRESS.DONE;
+    END_IF
+END_CASE
+
+Ctrl_LoadProg                      := _eState;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Ctrl_R_Parameter_Rd" Id="{d00c0fa3-14e8-0794-157f-5018c0fdc22d}" FolderPath="methods\private\">
+      <Declaration><![CDATA[METHOD PRIVATE Ctrl_R_Parameter_Rd : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+END_VAR
+VAR_INST
+  _eJobResult,
+  _eState           : E_PROGRESS;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT Check() THEN Ctrl_R_Parameter_Rd := E_PROGRESS.ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+
+CASE _eState
+OF
+  E_PROGRESS.INIT:
+    IF Execute 
+    THEN
+      _eJobResult                         := ReadRParams(FALSE);
+      _eState                             := E_PROGRESS.BUSY;
+    END_IF
+
+  E_PROGRESS.BUSY:
+    _NciChannelRef^.PlcToNc.MFuncGranted  := 0;
+    _eJobResult                           := ReadRParams(TRUE);
+
+    IF (_eJobResult = E_PROGRESS.ERROR)
+    THEN
+      ReadRParams(FALSE);
+      _eState                             := E_PROGRESS.ERROR;
+
+    ELSIF (_eJobResult = E_PROGRESS.DONE)
+    THEN
+      ReadRParams(FALSE);
+      _eState                             := E_PROGRESS.STARTUP;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.STARTUP:
+    _NciChannelRef^.PlcToNc.MFuncGranted  := 1;
+    _eState                               := E_PROGRESS.PREPARE;
+
+  E_PROGRESS.PREPARE:
+    _NciChannelRef^.PlcToNc.MFuncGranted  := 0;
+    _eState                               := E_PROGRESS.DONE;
+END_CASE
+
+Ctrl_R_Parameter_Rd                       := _eState;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Ctrl_R_Parameter_Wrt" Id="{cb122a11-0c19-0b09-2662-cc056396c238}" FolderPath="methods\private\">
+      <Declaration><![CDATA[METHOD PRIVATE Ctrl_R_Parameter_Wrt : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+END_VAR
+VAR_INST
+  _eJobResult,
+  _eState           : E_PROGRESS;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT Check() THEN Ctrl_R_Parameter_Wrt := E_PROGRESS.ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+
+CASE _eState
+OF
+  E_PROGRESS.INIT:
+    IF Execute 
+    THEN
+      _eJobResult                         := WriteRParams(FALSE);
+      _eState                             := E_PROGRESS.BUSY;
+    END_IF
+
+  E_PROGRESS.BUSY:
+    _NciChannelRef^.PlcToNc.MFuncGranted  := 0;
+    _eJobResult                           := WriteRParams(TRUE);
+
+    IF (_eJobResult = E_PROGRESS.ERROR)
+    THEN
+      WriteRParams(FALSE);
+      _eState                             := E_PROGRESS.ERROR;
+
+    ELSIF (_eJobResult = E_PROGRESS.DONE)
+    THEN
+      WriteRParams(FALSE);
+      _eState                             := E_PROGRESS.STARTUP;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.STARTUP:
+    _NciChannelRef^.PlcToNc.MFuncGranted  := 1;
+    _eState                               := E_PROGRESS.PREPARE;
+
+  E_PROGRESS.PREPARE:
+    _NciChannelRef^.PlcToNc.MFuncGranted  := 0;
+    _eState                               := E_PROGRESS.DONE;
+END_CASE
+
+Ctrl_R_Parameter_Wrt                      := _eState;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Ctrl_Reset" Id="{f72d040b-2515-0178-0877-e84965ff0441}" FolderPath="methods\private\">
+      <Declaration><![CDATA[METHOD PRIVATE Ctrl_Reset : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+END_VAR
+VAR_INST
+  _eJobResult,
+  _eState           : E_PROGRESS;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT Check() THEN Ctrl_Reset := E_PROGRESS.ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+
+CASE _eState
+OF
+  E_PROGRESS.INIT:
+    IF Execute 
+    THEN
+      _eJobResult                         := ItpReset(FALSE);
+      _eState                             := E_PROGRESS.BUSY;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.BUSY:
+    _NciChannelRef^.PlcToNc.MFuncGranted  := 0;
+    _eJobResult                           := ItpReset(TRUE);
+
+    IF (_eJobResult = E_PROGRESS.ERROR)
+    THEN
+      ItpReset(FALSE);
+      _eState                             := E_PROGRESS.ERROR;
+
+    ELSIF (_eJobResult = E_PROGRESS.DONE)
+    THEN
+      ItpReset(FALSE);
+      _eState                             := E_PROGRESS.STARTUP;
+    END_IF
+
+  E_PROGRESS.STARTUP:
+    _NciChannelRef^.PlcToNc.MFuncGranted  := 1;
+    _eState                               := E_PROGRESS.PREPARE;
+
+  E_PROGRESS.PREPARE:
+    _NciChannelRef^.PlcToNc.MFuncGranted  := 0;
+    _eState                               := E_PROGRESS.READY;
+
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.READY:
+    IF (_NciChannelRef^.NcToPlc.HskMFuncReq = 0)
+    THEN
+      _eState                             := E_PROGRESS.DONE;
+    ELSE
+      _eState                             := E_PROGRESS.STARTUP;
+    END_IF
+END_CASE
+
+Ctrl_Reset                                := _eState;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Ctrl_Restart" Id="{78d9975e-052a-0411-0c90-46167cc1b6f5}" FolderPath="methods\private\">
+      <Declaration><![CDATA[METHOD PRIVATE Ctrl_Restart : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+END_VAR
+VAR_INST
+  _eJobResult,
+  _eState           : E_PROGRESS;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT Check() THEN Ctrl_Restart := E_PROGRESS.ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+
+CASE _eState
+OF
+  E_PROGRESS.INIT:
+    IF Execute 
+    THEN
+      _eJobResult                         := StepOnAfterEStop(FALSE);
+      _eState                             := E_PROGRESS.BUSY;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.BUSY:
+    _NciChannelRef^.PlcToNc.MFuncGranted  := 0;
+    _eJobResult                           := StepOnAfterEStop(TRUE);
+
+    IF (_eJobResult = E_PROGRESS.ERROR)
+    THEN
+      StepOnAfterEStop(FALSE);
+      _eState                             := E_PROGRESS.ERROR;
+
+    ELSIF (_eJobResult = E_PROGRESS.DONE)
+    THEN
+      StepOnAfterEStop(FALSE);
+      _eState                             := E_PROGRESS.DONE;
+    END_IF
+END_CASE
+
+
+Ctrl_Restart                              := _eState;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Ctrl_Start" Id="{92ae4b73-f2c0-0394-1658-7f93b00228b1}" FolderPath="methods\private\">
+      <Declaration><![CDATA[METHOD PRIVATE Ctrl_Start : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+END_VAR
+VAR_INST
+  _eJobResult,
+  _eState           : E_PROGRESS;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT Check() THEN Ctrl_Start := E_PROGRESS.ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+
+CASE _eState
+OF
+  E_PROGRESS.INIT:
+    IF Execute 
+    THEN
+      _eJobResult                         := StartStop(FALSE, TRUE, FALSE);
+      _eState                             := E_PROGRESS.BUSY;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.BUSY:
+    _NciChannelRef^.PlcToNc.MFuncGranted  := 0;
+    _eJobResult                           := StartStop(TRUE, TRUE, FALSE);
+
+    IF (_eJobResult = E_PROGRESS.ERROR)
+    THEN
+      StartStop(FALSE, TRUE, FALSE);
+      _eState                             := E_PROGRESS.ERROR;
+
+    ELSIF (_eJobResult = E_PROGRESS.DONE)
+    THEN
+      StartStop(FALSE, TRUE, FALSE);
+      _eState                             := E_PROGRESS.DONE;
+    END_IF
+END_CASE
+
+Ctrl_Start                                := _eState;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Ctrl_Stop" Id="{5dd36176-cbe4-0789-0fb6-8acf4669e6da}" FolderPath="methods\private\">
+      <Declaration><![CDATA[METHOD PRIVATE Ctrl_Stop : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+END_VAR
+VAR_INST
+  _eJobResult,
+  _eState           : E_PROGRESS;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT Check() THEN Ctrl_Stop := E_PROGRESS.ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+
+CASE _eState
+OF
+  E_PROGRESS.INIT:
+    IF Execute 
+    THEN
+      _eJobResult                         := StartStop(FALSE, FALSE, TRUE);
+      _eState                             := E_PROGRESS.BUSY;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.BUSY:
+    _NciChannelRef^.PlcToNc.MFuncGranted  := 0;
+    _eJobResult                           := StartStop(TRUE, FALSE, TRUE);
+
+    IF (_eJobResult = E_PROGRESS.ERROR)
+    THEN
+      StartStop(FALSE, FALSE, TRUE);
+      _eState                             := E_PROGRESS.ERROR;
+
+    ELSIF (_eJobResult = E_PROGRESS.DONE)
+    THEN
+      StartStop(FALSE, FALSE, TRUE);
+      _eState                             := E_PROGRESS.DONE;
+    END_IF
+END_CASE
+
+Ctrl_Stop                                := _eState;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Ctrl_Stop_STO" Id="{5d13c3a5-0bc5-07ff-1bea-e32c6c79ce42}" FolderPath="methods\private\">
+      <Declaration><![CDATA[METHOD PRIVATE Ctrl_Stop_STO : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+END_VAR
+VAR_INST
+  _eJobResult,
+  _eState           : E_PROGRESS;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT Check() THEN Ctrl_Stop_STO := E_PROGRESS.ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+
+CASE _eState
+OF
+  E_PROGRESS.INIT:
+    IF Execute 
+    THEN
+      _eJobResult                         := EStop(FALSE);
+      _eState                             := E_PROGRESS.BUSY;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.BUSY:
+    _NciChannelRef^.PlcToNc.MFuncGranted  := 0;
+    _eJobResult                           := EStop(TRUE);
+
+    IF (_eJobResult = E_PROGRESS.ERROR)
+    THEN
+      EStop(FALSE);
+      _eState                             := E_PROGRESS.ERROR;
+
+    ELSIF (_eJobResult = E_PROGRESS.DONE)
+    THEN
+      EStop(FALSE);
+      _eState                             := E_PROGRESS.DONE;
+    END_IF
+END_CASE
+
+Ctrl_Stop_STO                                := _eState;
+]]></ST>
+      </Implementation>
+    </Method>
     <Property Name="ItfChannel" Id="{9649047d-6a01-03f4-2290-fc77c4980149}" FolderPath="properties\">
       <Declaration><![CDATA[PROPERTY ItfChannel : I_NciChannel]]></Declaration>
       <Get Name="Get" Id="{dba2e612-8feb-0761-0d03-93a353fa309a}">
@@ -859,6 +962,18 @@ END_VAR
 ]]></ST>
         </Implementation>
       </Get>
+    </Property>
+    <Property Name="M_FunctionScope" Id="{e30ae29d-b0b4-0675-266b-fa56240a7108}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY M_FunctionScope : pointer to st_nci_m_func]]></Declaration>
+      <Set Name="Set" Id="{e879fed7-a5e8-0097-1112-ce57e91f9353}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_MFuncScope := M_FunctionScope;
+]]></ST>
+        </Implementation>
+      </Set>
     </Property>
     <Method Name="Template" Id="{e9779cbd-b047-0927-1afc-2a205c1c1e40}" FolderPath="methods\">
       <Declaration><![CDATA[METHOD Template : E_PROGRESS
@@ -942,150 +1057,210 @@ Template_1 := _eState;
       </XmlArchive>
     </ObjectProperties>
     <LineIds Name="FB_NciChannelCtrl">
-      <LineId Id="56" Count="14" />
-      <LineId Id="196" Count="0" />
-      <LineId Id="71" Count="0" />
-      <LineId Id="191" Count="0" />
-      <LineId Id="73" Count="1" />
-      <LineId Id="76" Count="0" />
-      <LineId Id="193" Count="0" />
-      <LineId Id="198" Count="0" />
-      <LineId Id="195" Count="0" />
-      <LineId Id="82" Count="0" />
-      <LineId Id="200" Count="0" />
-      <LineId Id="199" Count="0" />
-      <LineId Id="201" Count="0" />
-      <LineId Id="204" Count="18" />
-      <LineId Id="203" Count="0" />
-      <LineId Id="223" Count="0" />
-      <LineId Id="202" Count="0" />
-      <LineId Id="224" Count="3" />
-      <LineId Id="229" Count="1" />
-      <LineId Id="232" Count="0" />
-      <LineId Id="231" Count="0" />
-      <LineId Id="233" Count="0" />
-      <LineId Id="235" Count="0" />
-      <LineId Id="234" Count="0" />
-      <LineId Id="236" Count="0" />
-      <LineId Id="238" Count="0" />
-      <LineId Id="237" Count="0" />
-      <LineId Id="239" Count="0" />
-      <LineId Id="228" Count="0" />
-      <LineId Id="83" Count="0" />
-      <LineId Id="240" Count="2" />
-      <LineId Id="244" Count="0" />
-      <LineId Id="243" Count="0" />
-      <LineId Id="245" Count="0" />
+      <LineId Id="3" Count="8" />
+      <LineId Id="139" Count="0" />
+      <LineId Id="12" Count="19" />
+      <LineId Id="137" Count="1" />
+      <LineId Id="32" Count="19" />
+      <LineId Id="135" Count="1" />
+      <LineId Id="52" Count="27" />
       <LineId Id="2" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_NciChannelCtrl.Channel_BuildGroup">
-      <LineId Id="2" Count="41" />
-      <LineId Id="1" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_NciChannelCtrl.Channel_ClearGroup">
-      <LineId Id="2" Count="43" />
-      <LineId Id="1" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_NciChannelCtrl.Channel_Confirm">
-      <LineId Id="2" Count="40" />
-      <LineId Id="1" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_NciChannelCtrl.Channel_LoadProg">
-      <LineId Id="2" Count="48" />
-      <LineId Id="1" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_NciChannelCtrl.Channel_R_Read">
-      <LineId Id="2" Count="51" />
-      <LineId Id="1" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_NciChannelCtrl.Channel_R_Write">
-      <LineId Id="2" Count="51" />
-      <LineId Id="1" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_NciChannelCtrl.Channel_Reset">
-      <LineId Id="2" Count="38" />
-      <LineId Id="1" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_NciChannelCtrl.Channel_Restart">
-      <LineId Id="2" Count="38" />
-      <LineId Id="1" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_NciChannelCtrl.Channel_Start">
-      <LineId Id="2" Count="38" />
-      <LineId Id="1" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_NciChannelCtrl.Channel_Stop">
-      <LineId Id="2" Count="38" />
-      <LineId Id="1" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.Check">
-      <LineId Id="44" Count="0" />
-      <LineId Id="3" Count="36" />
-      <LineId Id="2" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_NciChannelCtrl.Chn_BuildGroup">
-      <LineId Id="3" Count="45" />
+      <LineId Id="3" Count="14" />
+      <LineId Id="30" Count="10" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.ChnCtrl.Set">
+      <LineId Id="3" Count="0" />
       <LineId Id="2" Count="0" />
-      <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.ChnId.Get">
       <LineId Id="3" Count="0" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.ChnState.Set">
+      <LineId Id="3" Count="0" />
       <LineId Id="2" Count="0" />
-      <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.Cmd">
-      <LineId Id="12" Count="2" />
-      <LineId Id="19" Count="0" />
-      <LineId Id="40" Count="0" />
-      <LineId Id="42" Count="0" />
-      <LineId Id="20" Count="0" />
-      <LineId Id="41" Count="0" />
-      <LineId Id="43" Count="0" />
-      <LineId Id="21" Count="0" />
-      <LineId Id="44" Count="1" />
-      <LineId Id="22" Count="0" />
-      <LineId Id="46" Count="1" />
-      <LineId Id="23" Count="0" />
-      <LineId Id="48" Count="1" />
-      <LineId Id="24" Count="0" />
-      <LineId Id="50" Count="1" />
-      <LineId Id="25" Count="0" />
-      <LineId Id="52" Count="0" />
-      <LineId Id="26" Count="1" />
-      <LineId Id="53" Count="1" />
-      <LineId Id="28" Count="0" />
-      <LineId Id="55" Count="1" />
-      <LineId Id="29" Count="0" />
-      <LineId Id="57" Count="1" />
-      <LineId Id="30" Count="0" />
-      <LineId Id="59" Count="0" />
-      <LineId Id="31" Count="1" />
-      <LineId Id="60" Count="0" />
-      <LineId Id="33" Count="1" />
-      <LineId Id="61" Count="1" />
-      <LineId Id="35" Count="0" />
-      <LineId Id="63" Count="0" />
-      <LineId Id="36" Count="0" />
-      <LineId Id="17" Count="0" />
-      <LineId Id="37" Count="0" />
-      <LineId Id="15" Count="0" />
-      <LineId Id="79" Count="0" />
+      <LineId Id="3" Count="9" />
+      <LineId Id="81" Count="0" />
+      <LineId Id="13" Count="3" />
+      <LineId Id="18" Count="1" />
+      <LineId Id="23" Count="5" />
+      <LineId Id="30" Count="2" />
+      <LineId Id="83" Count="0" />
+      <LineId Id="33" Count="2" />
+      <LineId Id="84" Count="0" />
+      <LineId Id="36" Count="2" />
+      <LineId Id="85" Count="0" />
+      <LineId Id="39" Count="2" />
+      <LineId Id="86" Count="0" />
+      <LineId Id="42" Count="2" />
+      <LineId Id="82" Count="0" />
+      <LineId Id="45" Count="2" />
       <LineId Id="78" Count="0" />
-      <LineId Id="64" Count="0" />
-      <LineId Id="66" Count="5" />
+      <LineId Id="48" Count="2" />
+      <LineId Id="80" Count="0" />
+      <LineId Id="51" Count="17" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannelCtrl.Ctrl_BuildGroup">
+      <LineId Id="3" Count="7" />
+      <LineId Id="14" Count="46" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannelCtrl.Ctrl_ClearGroup">
+      <LineId Id="3" Count="7" />
+      <LineId Id="14" Count="2" />
+      <LineId Id="18" Count="1" />
+      <LineId Id="59" Count="0" />
+      <LineId Id="61" Count="7" />
+      <LineId Id="83" Count="0" />
+      <LineId Id="69" Count="1" />
+      <LineId Id="23" Count="1" />
+      <LineId Id="84" Count="0" />
+      <LineId Id="87" Count="6" />
+      <LineId Id="95" Count="2" />
+      <LineId Id="85" Count="1" />
+      <LineId Id="72" Count="3" />
+      <LineId Id="81" Count="0" />
+      <LineId Id="76" Count="1" />
+      <LineId Id="79" Count="0" />
+      <LineId Id="39" Count="0" />
+      <LineId Id="80" Count="0" />
+      <LineId Id="82" Count="0" />
+      <LineId Id="78" Count="0" />
+      <LineId Id="40" Count="1" />
+      <LineId Id="43" Count="3" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannelCtrl.Ctrl_ConfirmHsk">
+      <LineId Id="3" Count="7" />
+      <LineId Id="14" Count="27" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannelCtrl.Ctrl_Idle">
+      <LineId Id="3" Count="7" />
+      <LineId Id="14" Count="2" />
+      <LineId Id="86" Count="2" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="103" Count="2" />
+      <LineId Id="107" Count="0" />
+      <LineId Id="109" Count="3" />
+      <LineId Id="115" Count="0" />
+      <LineId Id="106" Count="0" />
+      <LineId Id="116" Count="2" />
+      <LineId Id="81" Count="0" />
+      <LineId Id="21" Count="10" />
+      <LineId Id="101" Count="0" />
+      <LineId Id="39" Count="2" />
+      <LineId Id="73" Count="0" />
+      <LineId Id="83" Count="2" />
+      <LineId Id="74" Count="0" />
+      <LineId Id="122" Count="0" />
+      <LineId Id="124" Count="0" />
+      <LineId Id="75" Count="0" />
+      <LineId Id="77" Count="0" />
+      <LineId Id="76" Count="0" />
+      <LineId Id="78" Count="2" />
+      <LineId Id="42" Count="0" />
+      <LineId Id="58" Count="1" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannelCtrl.Ctrl_LoadProg">
+      <LineId Id="3" Count="7" />
+      <LineId Id="14" Count="18" />
+      <LineId Id="58" Count="1" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannelCtrl.Ctrl_R_Parameter_Rd">
+      <LineId Id="3" Count="7" />
+      <LineId Id="14" Count="28" />
+      <LineId Id="58" Count="1" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannelCtrl.Ctrl_R_Parameter_Wrt">
+      <LineId Id="3" Count="7" />
+      <LineId Id="14" Count="28" />
+      <LineId Id="58" Count="1" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannelCtrl.Ctrl_Reset">
+      <LineId Id="3" Count="7" />
+      <LineId Id="14" Count="2" />
+      <LineId Id="86" Count="2" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="81" Count="0" />
+      <LineId Id="20" Count="11" />
+      <LineId Id="82" Count="0" />
+      <LineId Id="35" Count="6" />
+      <LineId Id="73" Count="0" />
+      <LineId Id="83" Count="2" />
       <LineId Id="74" Count="1" />
-      <LineId Id="38" Count="1" />
-      <LineId Id="5" Count="0" />
+      <LineId Id="77" Count="0" />
+      <LineId Id="76" Count="0" />
+      <LineId Id="78" Count="2" />
+      <LineId Id="42" Count="0" />
+      <LineId Id="58" Count="1" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannelCtrl.Ctrl_Restart">
+      <LineId Id="3" Count="7" />
+      <LineId Id="14" Count="2" />
+      <LineId Id="86" Count="2" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="81" Count="0" />
+      <LineId Id="20" Count="11" />
+      <LineId Id="83" Count="0" />
+      <LineId Id="89" Count="0" />
+      <LineId Id="58" Count="1" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannelCtrl.Ctrl_Start">
+      <LineId Id="3" Count="7" />
+      <LineId Id="14" Count="2" />
+      <LineId Id="86" Count="2" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="81" Count="0" />
+      <LineId Id="20" Count="11" />
+      <LineId Id="58" Count="0" />
+      <LineId Id="89" Count="0" />
+      <LineId Id="59" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannelCtrl.Ctrl_Stop">
+      <LineId Id="3" Count="7" />
+      <LineId Id="14" Count="2" />
+      <LineId Id="86" Count="2" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="81" Count="0" />
+      <LineId Id="20" Count="11" />
+      <LineId Id="58" Count="0" />
+      <LineId Id="89" Count="0" />
+      <LineId Id="59" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannelCtrl.Ctrl_Stop_STO">
+      <LineId Id="3" Count="7" />
+      <LineId Id="14" Count="2" />
+      <LineId Id="86" Count="2" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="81" Count="0" />
+      <LineId Id="20" Count="11" />
+      <LineId Id="58" Count="0" />
+      <LineId Id="89" Count="0" />
+      <LineId Id="59" Count="0" />
+      <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.ItfChannel.Get">
       <LineId Id="3" Count="0" />
       <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannelCtrl.M_FunctionScope.Set">
+      <LineId Id="2" Count="0" />
+      <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.Template">
       <LineId Id="3" Count="45" />

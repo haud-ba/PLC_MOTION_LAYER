@@ -1,0 +1,311 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="LEGACY" Id="{b7654945-6852-0bee-0630-1c3e1de133e9}" SpecialFunc="None">
+    <Declaration><![CDATA[//-----------------------------------------------------------------------------
+//
+//
+//  LEGACY(PRG) 
+//    - compatibility to extern software controlling via ADS
+//      PLC_OPEN_DRIVE V 00.48.02 and lower
+//
+//    - legacy data structs 
+//      and/or members are mapped onto PLC_STATE_DRIVE structures
+//
+//    HAUD 2024 01 17
+//-----------------------------------------------------------------------------
+PROGRAM LEGACY
+VAR
+  nAxis                 : UINT;
+
+  // debug info
+  byGearInArrayIndex,
+  byGearInNcAxisId      : ARRAY[1..MAX_AXIS] OF BYTE;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+IF NOT GVL_AXIS_CTRL.bUseLegacyInterface
+THEN
+  RETURN;
+END_IF
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//
+//    ADS symbol access Version 00.48.02 and lower
+//
+//    converter from legacy data structs to Version ++00.50.02 data structs
+//
+//-----------------------------------------------------------------------------
+FOR nAxis := 1 TO PLC_CONSTANT.MAX_AXIS
+DO
+  //-----------------------------------------------------------------------------
+  // NaN, INF check
+  Check_NaN();
+  //-----------------------------------------------------------------------------
+  //-----------------------------------------------------------------------------
+  // control to plc
+  Ctrl_Data();
+  //-----------------------------------------------------------------------------
+  //-----------------------------------------------------------------------------
+  // GearIn parameter
+  Gear_Data();
+  //-----------------------------------------------------------------------------
+  //-----------------------------------------------------------------------------
+  // state from plc
+  State_Data();
+  //-----------------------------------------------------------------------------
+END_FOR
+
+
+]]></ST>
+    </Implementation>
+    <Action Name="Check_NaN" Id="{8fcf0af2-eb3b-0ecc-06b2-270233c96a00}">
+      <Implementation>
+        <ST><![CDATA[//-------------------------------------------------------------------------------------------------------------------
+// check for NaN or INF on legacy interface
+//-------------------------------------------------------------------------------------------------------------------
+  IF NOT IsFinite(F_LReal(GVL_AXIS_CTRL.gstAxisControl[nAxis].ToPlc.rSetPos))
+  THEN
+    GVL_AXIS_CTRL.gstAxisControl[nAxis].ToPlc.rSetPos     := 0.0;
+  END_IF
+  
+  IF NOT IsFinite(F_LReal(GVL_AXIS_CTRL.gstAxisControl[nAxis].ToPlc.rSetVelo))
+  THEN
+    GVL_AXIS_CTRL.gstAxisControl[nAxis].ToPlc.rSetVelo    := 0.0;
+  END_IF
+  
+  IF NOT IsFinite(F_LReal(GVL_AXIS_CTRL.gstAxisControl[nAxis].ToPlc.rAcc))
+  THEN
+    GVL_AXIS_CTRL.gstAxisControl[nAxis].ToPlc.rAcc        := 0.0;
+  END_IF
+  
+  IF NOT IsFinite(F_LReal(GVL_AXIS_CTRL.gstAxisControl[nAxis].ToPlc.rDec))
+  THEN
+    GVL_AXIS_CTRL.gstAxisControl[nAxis].ToPlc.rDec        := 0.0;
+  END_IF
+  
+  IF NOT IsFinite(F_LReal(GVL_AXIS_CTRL.gstAxisControl[nAxis].ToPlc.rOverride))
+  THEN
+    GVL_AXIS_CTRL.gstAxisControl[nAxis].ToPlc.rOverride   := 0.0;
+  END_IF
+//-------------------------------------------------------------------------------------------------------------------
+]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="Ctrl_Data" Id="{8cebfabc-b559-0569-1062-6fa8e68aca68}">
+      <Implementation>
+        <ST><![CDATA[//-------------------------------------------------------------------------------------------------------------------
+// get command (E_AxisFunction) from legacy interface
+//-------------------------------------------------------------------------------------------------------------------
+  GVL_AXIS.Ctrl[nAxis].eCtrl      := GVL_AXIS_CTRL.gstAxisControl[nAxis].ToPlc.uiAxisFunctionReq;
+//-------------------------------------------------------------------------------------------------------------------
+// get dynamic constraints from legacy interface
+//-------------------------------------------------------------------------------------------------------------------
+  GVL_AXIS.Data[nAxis].iDirection := GVL_AXIS_CTRL.gstAxisControl[nAxis].ToPlc.iDirection;
+  GVL_AXIS.Data[nAxis].rAcc       := GVL_AXIS_CTRL.gstAxisControl[nAxis].ToPlc.rAcc;
+  GVL_AXIS.Data[nAxis].rDec       := GVL_AXIS_CTRL.gstAxisControl[nAxis].ToPlc.rDec;
+  GVL_AXIS.Data[nAxis].rJerk      := 0.0; // MC function blocks use NC default instead
+  GVL_AXIS.Data[nAxis].rOverride  := GVL_AXIS_CTRL.gstAxisControl[nAxis].ToPlc.rOverride;
+  GVL_AXIS.Data[nAxis].rSetPos    := GVL_AXIS_CTRL.gstAxisControl[nAxis].ToPlc.rSetPos;
+  GVL_AXIS.Data[nAxis].rSetVelo   := GVL_AXIS_CTRL.gstAxisControl[nAxis].ToPlc.rSetVelo;
+//-------------------------------------------------------------------------------------------------------------------
+// get NC Axis parameter from legacy interface (write)
+//-------------------------------------------------------------------------------------------------------------------
+  GVL_AXIS.NcParameterWrt[nAxis].ParameterNumber  := GVL_AXIS_CTRL.gstAxisParam[nAxis].ParameterNumber;
+  GVL_AXIS.NcParameterWrt[nAxis].rValue           := GVL_AXIS_CTRL.gstAxisParam[nAxis].rValueWrite;
+//-------------------------------------------------------------------------------------------------------------------
+// get NC homing parameter from legacy interface
+//-------------------------------------------------------------------------------------------------------------------
+  GVL_AXIS.HomeParameter[nAxis].stHomingParam     := GVL_AXIS_CTRL.gstHomeParam[nAxis];
+//-------------------------------------------------------------------------------------------------------------------
+]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="Gear_Data" Id="{a6c2bc42-1def-0c4c-34e5-ca020f30df30}">
+      <Implementation>
+        <ST><![CDATA[//-------------------------------------------------------------------------------------------------------------------
+// get MotionOptions from legacy interface
+//-------------------------------------------------------------------------------------------------------------------
+GVL_AXIS.MotionOptions[nAxis]                                     := GVL_AXIS_CTRL.gstMotionOptions[nAxis];
+//-------------------------------------------------------------------------------------------------------------------
+// get gear in data from legacy interface
+//-------------------------------------------------------------------------------------------------------------------
+CASE GVL_AXIS.Ctrl[nAxis].eCtrl
+OF
+  //-----------------------------------------------------------------------------------------------------------------
+  // GearIn
+  //-----------------------------------------------------------------------------------------------------------------
+  E_AXIS_CTRL.AXIS_GEAR_IN:
+    //---------------------------------------------------------------------------------------------------------------
+    // copy data freom legacy interface
+    IF(GVL_AXIS_CTRL.gstAxisControl[nAxis].ToPlc.byAxisFuncPara > 0) AND
+      (GVL_AXIS_CTRL.gstAxisControl[nAxis].ToPlc.byAxisFuncPara <= PLC_CONSTANT.MAX_AXIS)
+    THEN
+      // copy array index to diag array
+      // ToPlc.byAxisFuncPara for GEAR_IN carries array index of master axis
+      byGearInArrayIndex[nAxis]                                   := GVL_AXIS_CTRL.gstAxisControl[nAxis].ToPlc.byAxisFuncPara;
+
+      GVL_AXIS.GearInParameter[nAxis].nAxisIndexMaster[1]         := byGearInArrayIndex[nAxis];
+      GVL_AXIS.GearInParameter[nAxis].rGearRatio[1]               := GVL_AXIS_CTRL.gstAxisGearParam[nAxis].RatioNumerator 
+                                                                   / GVL_AXIS_CTRL.gstAxisGearParam[nAxis].RatioDenominator;
+
+      GVL_AXIS.GearInParameter[nAxis].Acceleration                := GVL_AXIS_CTRL.gstAxisGearParam[nAxis].Acceleration;
+      GVL_AXIS.GearInParameter[nAxis].Deceleration                := GVL_AXIS_CTRL.gstAxisGearParam[nAxis].Deceleration;
+      GVL_AXIS.GearInParameter[nAxis].Jerk                        := GVL_AXIS_CTRL.gstAxisGearParam[nAxis].Jerk;
+
+      // feedback to extern control about MasterIndex
+      GVL_AXIS_CTRL.gstAxisControl[nAxis].FromPlc.byAxisFuncPara  := GVL_AXIS.GearInParameter[nAxis].nAxisIndexMaster[1];
+    ELSE
+      GVL_AXIS.GearInParameter[nAxis].nAxisIndexMaster[1]         :=
+      GVL_AXIS_CTRL.gstAxisControl[nAxis].FromPlc.byAxisFuncPara  := 0;
+    END_IF
+
+  //-----------------------------------------------------------------------------------------------------------------
+  // GearInMultimaster
+  //-----------------------------------------------------------------------------------------------------------------
+  E_AXIS_CTRL.AXIS_GEAR_IN_MULTIMASTER:
+    //---------------------------------------------------------------------------------------------------------------
+    // copy data freom legacy interface
+    GVL_AXIS.GearInParameter[nAxis].nAxisIndexMaster[1]  := GVL_AXIS_CTRL.gstAxisGearMultiMasterParam[nAxis].byAxisIDMaster1;
+    GVL_AXIS.GearInParameter[nAxis].nAxisIndexMaster[2]  := GVL_AXIS_CTRL.gstAxisGearMultiMasterParam[nAxis].byAxisIDMaster2;
+    GVL_AXIS.GearInParameter[nAxis].nAxisIndexMaster[3]  := GVL_AXIS_CTRL.gstAxisGearMultiMasterParam[nAxis].byAxisIDMaster3;
+    GVL_AXIS.GearInParameter[nAxis].nAxisIndexMaster[4]  := GVL_AXIS_CTRL.gstAxisGearMultiMasterParam[nAxis].byAxisIDMaster4;
+
+    GVL_AXIS.GearInParameter[nAxis].rGearRatio[1]        := GVL_AXIS_CTRL.gstAxisGearMultiMasterParam[nAxis].GearRatio1;
+    GVL_AXIS.GearInParameter[nAxis].rGearRatio[2]        := GVL_AXIS_CTRL.gstAxisGearMultiMasterParam[nAxis].GearRatio2;
+    GVL_AXIS.GearInParameter[nAxis].rGearRatio[3]        := GVL_AXIS_CTRL.gstAxisGearMultiMasterParam[nAxis].GearRatio3;
+    GVL_AXIS.GearInParameter[nAxis].rGearRatio[4]        := GVL_AXIS_CTRL.gstAxisGearMultiMasterParam[nAxis].GearRatio4;
+
+    GVL_AXIS.GearInParameter[nAxis].Acceleration         := GVL_AXIS_CTRL.gstAxisGearMultiMasterParam[nAxis].Acceleration;
+    GVL_AXIS.GearInParameter[nAxis].Deceleration         := GVL_AXIS_CTRL.gstAxisGearMultiMasterParam[nAxis].Deceleration;
+    GVL_AXIS.GearInParameter[nAxis].Jerk                 := GVL_AXIS_CTRL.gstAxisGearMultiMasterParam[nAxis].Jerk;
+
+ELSE
+    GVL_AXIS_CTRL.gstAxisControl[nAxis].FromPlc.byAxisFuncPara  := 0;
+END_CASE
+]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="State_Data" Id="{7ab8ebab-9808-045b-0729-d3c127c73400}">
+      <Implementation>
+        <ST><![CDATA[//-------------------------------------------------------------------------------------------------------------------
+// put state on legacy interface
+//-------------------------------------------------------------------------------------------------------------------
+  GVL_AXIS_CTRL.gstAxisControl[nAxis].FromPlc.uiAxisFunctionState := GVL_AXIS.State[nAxis].eState;
+//-------------------------------------------------------------------------------------------------------------------
+// put info on legacy interface
+//-------------------------------------------------------------------------------------------------------------------
+  GVL_AXIS_CTRL.gstAxisControl[nAxis].FromPlc.bEnabled            := GVL_AXIS.Info[nAxis].bEnabled;
+  GVL_AXIS_CTRL.gstAxisControl[nAxis].FromPlc.bReferenced         := GVL_AXIS.Info[nAxis].bReferenced;
+  GVL_AXIS_CTRL.gstAxisControl[nAxis].FromPlc.bReady              := GVL_AXIS.Info[nAxis].bReady;
+  GVL_AXIS_CTRL.gstAxisControl[nAxis].FromPlc.bBusy               := GVL_AXIS.Info[nAxis].bBusy;
+  GVL_AXIS_CTRL.gstAxisControl[nAxis].FromPlc.bError              := GVL_AXIS.Info[nAxis].bError;
+  GVL_AXIS_CTRL.gstAxisControl[nAxis].FromPlc.bTimeout            := GVL_AXIS.Info[nAxis].bTimeout;
+  GVL_AXIS_CTRL.gstAxisControl[nAxis].FromPlc.bInTarget           := GVL_AXIS.Info[nAxis].bInTarget;
+  GVL_AXIS_CTRL.gstAxisControl[nAxis].FromPlc.bStandstill         := GVL_AXIS.Info[nAxis].bStandstill;
+  
+  GVL_AXIS_CTRL.gstAxisControl[nAxis].FromPlc.uiErrorId           := GVL_AXIS.Info[nAxis].nErrorId;
+  
+  GVL_AXIS_CTRL.gstAxisControl[nAxis].FromPlc.rActPos             := GVL_AXIS.Info[nAxis].rActPos;
+  GVL_AXIS_CTRL.gstAxisControl[nAxis].FromPlc.rActVelo            := GVL_AXIS.Info[nAxis].rActVelo;
+  GVL_AXIS_CTRL.gstAxisControl[nAxis].FromPlc.rPosDiff            := GVL_AXIS.Info[nAxis].rPosDiff;
+  
+  GVL_AXIS_CTRL.gstAxisControl[nAxis].FromPlc.dwCoupleState       := GVL_AXIS.Info[nAxis].dwCoupleState;
+//-------------------------------------------------------------------------------------------------------------------
+// put NC parameter on interface (read)
+//-------------------------------------------------------------------------------------------------------------------
+  GVL_AXIS.NcParameterRd[nAxis].ParameterNumber                   := GVL_AXIS_CTRL.gstAxisParam[nAxis].ParameterNumber;               
+  GVL_AXIS_CTRL.gstAxisParam[nAxis].rValueRead                    := GVL_AXIS.NcParameterRd[nAxis].rValue;
+//-------------------------------------------------------------------------------------------------------------------
+]]></ST>
+      </Implementation>
+    </Action>
+    <LineIds Name="LEGACY">
+      <LineId Id="310" Count="0" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="8" Count="3" />
+      <LineId Id="7" Count="0" />
+      <LineId Id="14" Count="1" />
+      <LineId Id="20" Count="1" />
+      <LineId Id="16" Count="2" />
+      <LineId Id="26" Count="1" />
+      <LineId Id="308" Count="1" />
+      <LineId Id="234" Count="0" />
+      <LineId Id="264" Count="0" />
+      <LineId Id="71" Count="0" />
+      <LineId Id="42" Count="0" />
+      <LineId Id="87" Count="0" />
+      <LineId Id="307" Count="0" />
+      <LineId Id="266" Count="0" />
+      <LineId Id="86" Count="0" />
+      <LineId Id="88" Count="0" />
+      <LineId Id="72" Count="0" />
+      <LineId Id="39" Count="0" />
+      <LineId Id="279" Count="1" />
+      <LineId Id="306" Count="0" />
+      <LineId Id="23" Count="0" />
+      <LineId Id="19" Count="0" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="6" Count="0" />
+    </LineIds>
+    <LineIds Name="LEGACY.Check_NaN">
+      <LineId Id="26" Count="2" />
+      <LineId Id="2" Count="23" />
+      <LineId Id="1" Count="0" />
+      <LineId Id="29" Count="0" />
+    </LineIds>
+    <LineIds Name="LEGACY.Ctrl_Data">
+      <LineId Id="20" Count="2" />
+      <LineId Id="2" Count="0" />
+      <LineId Id="24" Count="2" />
+      <LineId Id="5" Count="6" />
+      <LineId Id="27" Count="2" />
+      <LineId Id="14" Count="1" />
+      <LineId Id="31" Count="2" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="1" Count="0" />
+      <LineId Id="34" Count="0" />
+    </LineIds>
+    <LineIds Name="LEGACY.Gear_Data">
+      <LineId Id="171" Count="0" />
+      <LineId Id="169" Count="1" />
+      <LineId Id="173" Count="0" />
+      <LineId Id="172" Count="0" />
+      <LineId Id="108" Count="0" />
+      <LineId Id="174" Count="0" />
+      <LineId Id="2" Count="5" />
+      <LineId Id="166" Count="0" />
+      <LineId Id="168" Count="0" />
+      <LineId Id="9" Count="16" />
+      <LineId Id="112" Count="1" />
+      <LineId Id="115" Count="0" />
+      <LineId Id="26" Count="5" />
+      <LineId Id="167" Count="0" />
+      <LineId Id="143" Count="1" />
+      <LineId Id="142" Count="0" />
+      <LineId Id="146" Count="1" />
+      <LineId Id="156" Count="0" />
+      <LineId Id="155" Count="0" />
+      <LineId Id="158" Count="3" />
+      <LineId Id="157" Count="0" />
+      <LineId Id="162" Count="2" />
+      <LineId Id="149" Count="0" />
+      <LineId Id="175" Count="0" />
+      <LineId Id="107" Count="0" />
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="LEGACY.State_Data">
+      <LineId Id="26" Count="0" />
+      <LineId Id="25" Count="0" />
+      <LineId Id="27" Count="0" />
+      <LineId Id="2" Count="0" />
+      <LineId Id="29" Count="2" />
+      <LineId Id="5" Count="17" />
+      <LineId Id="34" Count="0" />
+      <LineId Id="23" Count="1" />
+      <LineId Id="1" Count="0" />
+      <LineId Id="33" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

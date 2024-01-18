@@ -14,10 +14,12 @@ TYPE E_PROGRESS :
   PREPARE       :=  300,
   READY         :=  400,
   WAITING       :=  500,
+  WORKING       :=  600,
 
-  WORKING       :=  800,
-  ERROR         :=  900,
-  DONE          := 1000
+  DONE          := 1000,
+
+  ERROR         := 9000
+
 )UINT;
 END_TYPE
 ]]></Declaration>

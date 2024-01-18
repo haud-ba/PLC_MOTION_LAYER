@@ -191,6 +191,18 @@ PROPERTY Prog : STRING(255)
         <Declaration><![CDATA[]]></Declaration>
       </Set>
     </Property>
+    <Property Name="R_ParameterRead" Id="{a212addd-6c9d-00f3-1a5c-fa995be4af1f}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY R_ParameterRead : Pointer to ST_R_Parameter;]]></Declaration>
+      <Set Name="Set" Id="{4cd39b22-d871-03e3-3b5d-ef9d2a33c6a5}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="R_ParameterWrite" Id="{3526422b-21f0-04a0-1241-28fb5eab3854}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY R_ParameterWrite : pointer to ST_R_Parameter;]]></Declaration>
+      <Set Name="Set" Id="{c5a49a41-b4c8-0c83-0c14-68d14dd639db}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
     <Method Name="ReadLine" Id="{b8ab68f8-d791-074f-2c09-4edd328133eb}" FolderPath="methods\">
       <Declaration><![CDATA[METHOD ReadLine   : E_PROGRESS
 VAR_INPUT

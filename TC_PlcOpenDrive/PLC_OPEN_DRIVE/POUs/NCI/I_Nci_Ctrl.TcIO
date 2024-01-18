@@ -17,21 +17,21 @@ VAR_INPUT
 END_VAR
 ]]></Declaration>
     </Method>
-    <Property Name="eCmd" Id="{7146535b-566c-4f51-8c67-218d2af445a7}" FolderPath="properties\">
-      <Declaration><![CDATA[PROPERTY eCmd : E_NCI_CTRL]]></Declaration>
-      <Get Name="Get" Id="{58397bbe-29f5-490f-877a-c15434d1a318}">
+    <Property Name="eCmd" Id="{6f3ba5fc-3302-09dc-327b-99196a4613c9}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY eCmd : e_Ctrl_NciCommand]]></Declaration>
+      <Get Name="Get" Id="{b2a64b81-776f-0493-1873-0285d0dfbf97}">
         <Declaration><![CDATA[]]></Declaration>
       </Get>
-      <Set Name="Set" Id="{479ffcf6-ac5c-4a6b-af68-11a169eb66d8}">
+      <Set Name="Set" Id="{6bbbfcf8-f165-0b1a-3aa6-a3b52bae1e68}">
         <Declaration><![CDATA[]]></Declaration>
       </Set>
     </Property>
-    <Property Name="eState" Id="{5e306cc8-2113-4246-ac64-4b099491155d}" FolderPath="properties\">
-      <Declaration><![CDATA[PROPERTY eState : E_NCI_CTRL]]></Declaration>
-      <Get Name="Get" Id="{b869c2c5-43f2-4607-8d9b-f77dbbb1279b}">
+    <Property Name="eState" Id="{b2996bc9-9d3a-0025-29d9-90291bdff7a5}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY eState : e_Ctrl_NciCommand]]></Declaration>
+      <Get Name="Get" Id="{a2e4da9b-6ae2-0f0d-0b5e-f86c34c7bc60}">
         <Declaration><![CDATA[]]></Declaration>
       </Get>
-      <Set Name="Set" Id="{b69771ba-77ba-4294-8dc6-efb8549999c6}">
+      <Set Name="Set" Id="{9aa94802-3d75-0abe-1418-a52049675da9}">
         <Declaration><![CDATA[]]></Declaration>
       </Set>
     </Property>

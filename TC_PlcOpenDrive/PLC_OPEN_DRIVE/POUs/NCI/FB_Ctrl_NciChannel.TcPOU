@@ -751,7 +751,7 @@ _eCmdExecOld                 := _eCmdExec;
       </Implementation>
     </Method>
     <Property Name="eCmd" Id="{aada2267-d2f8-4ccd-9c2a-ad4fbfa3855a}" FolderPath="properties\">
-      <Declaration><![CDATA[PROPERTY eCmd : E_NCI_CTRL]]></Declaration>
+      <Declaration><![CDATA[PROPERTY eCmd : e_Ctrl_NciCommand]]></Declaration>
       <Get Name="Get" Id="{31b52fc1-c86c-4cb0-8c01-b0179a55f17e}">
         <Declaration><![CDATA[VAR
 END_VAR
@@ -772,7 +772,7 @@ END_VAR
       </Set>
     </Property>
     <Property Name="eState" Id="{c140c931-672f-418a-b4ed-3611e134ab7d}" FolderPath="properties\">
-      <Declaration><![CDATA[PROPERTY eState : E_NCI_CTRL]]></Declaration>
+      <Declaration><![CDATA[PROPERTY eState : e_Ctrl_NciCommand]]></Declaration>
       <Get Name="Get" Id="{fa1a870c-11c9-4dba-81f1-bfba35f0301a}">
         <Declaration><![CDATA[VAR
 END_VAR

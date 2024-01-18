@@ -50,10 +50,15 @@ VAR
   _fbItpWriteRParams    : Tc2_NCI.ItpWriteRParamsEx;
   _fbItpDelDtg          : Tc2_NCI.ItpDelDtgEx;
 
-  
 //ADS-Communication
   _fbReadLine           : Tc2_System.ADSREADEX;
 
+// R Parameter
+  // R[] Params used in G-Code
+  // R[0..899]    local namespace of Channel
+  // R[900..999]  global namespace of NC
+  _pParameterRead       : POINTER TO ST_R_Parameter;
+  _pParameterWrite      : POINTER TO ST_R_Parameter;
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -293,6 +298,20 @@ THEN
   END_IF
 END_IF
 
+IF NOT (_pParameterRead <> 0)
+THEN
+  _eCheck                         := E_CHECK_STATE.NCI_R_PARAMETER_READ_POINTER_INVALID;
+  RETURN;
+END_IF
+
+IF NOT (_pParameterWrite <> 0)
+THEN
+  _eCheck                         := E_CHECK_STATE.NCI_R_PARAMETER_WRITE_POINTER_INVALID;
+  RETURN;
+END_IF
+
+_eCheck                           := E_CHECK_STATE.CHECK_DONE;
+Check                             := TRUE;
 
 
 ]]></ST>
@@ -1165,7 +1184,22 @@ END_CASE
 CASE _eState
 OF
   E_PROGRESS.PREPARE:
-    _eState                         := E_PROGRESS.READY;
+    IF (_NciChannelRef^.NcToPlc.ItpState = Tc2_NCI.NCI_INTERPRETER_READY)
+    THEN
+      _eState                       := E_PROGRESS.READY;
+
+    ELSIF (_NciChannelRef^.NcToPlc.ItpState = Tc2_NCI.NCI_INTERPRETER_ABORTED)
+    THEN
+      _eState                       := E_PROGRESS.ERROR;
+
+      _stMsg.eType                  := E_MessageType.eMessageError;
+      _stMsg.eDevice                := ChannelDevice;
+      _stMsg.eSubdevice             := e_Subdevice.fbLoadProg;
+      _stMsg.iErrorNumber           := _NciChannelRef^.NcToPlc.ErrorCode;
+      _stMsg.sText                  := concat('Chn State: ', TO_STRING(_NciChannelRef^.NcToPlc.ChnState));
+      f_MessageSet(_stMsg);
+
+    END_IF
 END_CASE
 CASE _eState
 OF
@@ -1286,6 +1320,32 @@ PROPERTY Prog : STRING(255)
         <Declaration><![CDATA[]]></Declaration>
         <Implementation>
           <ST><![CDATA[_sProg:=Prog;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="R_ParameterRead" Id="{1d94ee80-e0c0-09f7-2765-1531f4130186}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY R_ParameterRead : Pointer to ST_R_Parameter;]]></Declaration>
+      <Set Name="Set" Id="{6f315c99-12ea-06e6-278f-97b49e415de3}">
+        <Declaration><![CDATA[
+VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_pParameterRead := R_ParameterRead;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="R_ParameterWrite" Id="{a0eae074-87ee-0f06-193a-3e71d3167e76}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY R_ParameterWrite : pointer to ST_R_Parameter;]]></Declaration>
+      <Set Name="Set" Id="{627efd03-d02a-0bee-2c9c-c5fc0343a404}">
+        <Declaration><![CDATA[
+VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_pParameterWrite := R_ParameterWrite;
 ]]></ST>
         </Implementation>
       </Set>
@@ -1449,15 +1509,16 @@ ReadLine                            := _eState;
       <Declaration><![CDATA[METHOD ReadRParams : E_PROGRESS
 VAR_INPUT
   Execute  : BOOL;
-  Addr     : POINTER TO LREAL;  // start adr of rParam array 
-  Index    : DINT;              // start index of R[Index] in NCI
-  Count    : DINT;              // count of R[index+i] in NCI
 END_VAR
 VAR_INST
   _eState           : E_PROGRESS;
-  _rValue           : LREAL;
   _udiErr           : UDINT;
   _stMsg            : ST_Message;
+
+  // local copy of last successful read
+  _nIndex           : DINT;
+  _nCount           : DINT;
+  _rValue           : ARRAY[0..MAX_R_PARA] OF LREAL;
 END_VAR
 ]]></Declaration>
       <Implementation>
@@ -1467,19 +1528,20 @@ IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
 CASE _eState
 OF
   E_PROGRESS.INIT:
-    _fbItpReadRParams(
-                  sNciToPlc         := _NciChannelRef^.NcToPlc, 
-                  bExecute          := FALSE, 
-                  pAddr             := Addr, 
-                  nIndex            := Index, 
-                  nCount            := Count);
-
     IF Execute 
     THEN
-      memset(ADR(_stMsg),0,SIZEOF(_stMsg));
-      _udiErr                       := 0;
-      _rValue                       := 0;
+      memset(ADR(_stMsg),  0,SIZEOF(_stMsg));
+      memset(ADR(_rValue), 0,SIZEOF(_rValue));
+
+      _udiErr := _nIndex := _nCount := 0;
       _eState                       := E_PROGRESS.BUSY;
+
+      _fbItpReadRParams(
+                  sNciToPlc         := _NciChannelRef^.NcToPlc, 
+                  bExecute          := FALSE, 
+                  pAddr             := ADR(_rValue), 
+                  nIndex            := _pParameterRead^._nStart, 
+                  nCount            := _pParameterRead^._nCount);
     END_IF
 END_CASE
 CASE _eState
@@ -1488,9 +1550,9 @@ OF
     _fbItpReadRParams(
                   sNciToPlc         := _NciChannelRef^.NcToPlc, 
                   bExecute          := TRUE, 
-                  pAddr             := Addr, 
-                  nIndex            := Index, 
-                  nCount            := Count,
+                  pAddr             := ADR(_rValue), 
+                  nIndex            := _pParameterRead^._nStart, 
+                  nCount            := _pParameterRead^._nCount,
                   nErrId            => _udiErr);
 
     IF _fbItpReadRParams.bErr 
@@ -1524,9 +1586,9 @@ OF
     _fbItpReadRParams(
                   sNciToPlc         := _NciChannelRef^.NcToPlc, 
                   bExecute          := TRUE, 
-                  pAddr             := Addr, 
-                  nIndex            := Index, 
-                  nCount            := Count,
+                  pAddr             := ADR(_rValue), 
+                  nIndex            := _pParameterRead^._nStart, 
+                  nCount            := _pParameterRead^._nCount,
                   nErrId            => _udiErr);
 
     IF _fbItpReadRParams.bErr 
@@ -1557,21 +1619,10 @@ END_CASE
 CASE _eState
 OF
   E_PROGRESS.PREPARE:
-    _eState                         := E_PROGRESS.READY;
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.READY:
-    _eState                         := E_PROGRESS.WAITING;
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.WAITING:
-    _eState                         := E_PROGRESS.WORKING;
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.WORKING:
+    _nIndex                         := _pParameterRead^._nStart;
+    _nCount                         := _pParameterRead^._nCount;
+    _pParameterRead^._rValue        := _rValue;
+
     _eState                         := E_PROGRESS.DONE;
 END_CASE
 CASE _eState
@@ -1581,9 +1632,9 @@ OF
     _fbItpReadRParams(
                   sNciToPlc         := _NciChannelRef^.NcToPlc, 
                   bExecute          := FALSE, 
-                  pAddr             := Addr, 
-                  nIndex            := Index, 
-                  nCount            := Count);
+                  pAddr             := ADR(_pParameterRead^._rValue), 
+                  nIndex            := _pParameterRead^._nStart, 
+                  nCount            := _pParameterRead^._nCount);
 END_CASE
 
 
@@ -1863,15 +1914,16 @@ StepOnAfterEStop                    := _eState;
       <Declaration><![CDATA[METHOD WriteRParams : E_PROGRESS
 VAR_INPUT
   Execute : BOOL;
-  Addr    : POINTER TO LREAL;
-  Index   : DINT;
-  Count   : DINT;
 END_VAR
 VAR_INST
   _eState           : E_PROGRESS;
-  _rValue           : LREAL;
   _udiErr           : UDINT;
   _stMsg            : ST_Message;
+
+  // local copy of last successful write
+  _nIndex           : DINT;
+  _nCount           : DINT;
+  _rValue           : ARRAY[0..MAX_R_PARA] OF LREAL;
 END_VAR
 ]]></Declaration>
       <Implementation>
@@ -1881,19 +1933,22 @@ IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
 CASE _eState
 OF
   E_PROGRESS.INIT:
-    _fbItpWriteRParams(
-                    bExecute        := FALSE, 
-                    pAddr           := Addr, 
-                    nIndex          := Index, 
-                    nCount          := Count, 
-                    sNciToPlc       := _NciChannelRef^.NcToPlc);
-
     IF Execute 
     THEN
       memset(ADR(_stMsg),0,SIZEOF(_stMsg));
-      _udiErr                       := 0;
-      _rValue                       := 0;
+      memset(ADR(_rValue),0,SIZEOF(_rValue));
+      _udiErr := _nIndex := _nCount := 0;
+
+      _rValue                       := _pParameterWrite^._rValue;
       _eState                       := E_PROGRESS.BUSY;
+
+      _fbItpWriteRParams(
+                    bExecute        := FALSE, 
+                    pAddr           := ADR(_rValue), 
+                    nIndex          := _pParameterWrite^._nStart, 
+                    nCount          := _pParameterWrite^._nCount, 
+                    sNciToPlc       := _NciChannelRef^.NcToPlc);
+
     END_IF
 END_CASE
 CASE _eState
@@ -1901,9 +1956,9 @@ OF
   E_PROGRESS.BUSY:
     _fbItpWriteRParams(
                     bExecute        := TRUE, 
-                    pAddr           := Addr, 
-                    nIndex          := Index, 
-                    nCount          := Count, 
+                    pAddr           := ADR(_rValue), 
+                    nIndex          := _pParameterWrite^._nStart, 
+                    nCount          := _pParameterWrite^._nCount, 
                     sNciToPlc       := _NciChannelRef^.NcToPlc,
                     nErrId          => _udiErr);
 
@@ -1937,9 +1992,9 @@ OF
   E_PROGRESS.STARTUP:
     _fbItpWriteRParams(
                     bExecute        := TRUE, 
-                    pAddr           := Addr, 
-                    nIndex          := Index, 
-                    nCount          := Count, 
+                    pAddr           := ADR(_rValue), 
+                    nIndex          := _pParameterWrite^._nStart, 
+                    nCount          := _pParameterWrite^._nCount, 
                     sNciToPlc       := _NciChannelRef^.NcToPlc,
                     nErrId          => _udiErr);
 
@@ -1971,21 +2026,9 @@ END_CASE
 CASE _eState
 OF
   E_PROGRESS.PREPARE:
-    _eState                         := E_PROGRESS.READY;
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.READY:
-    _eState                         := E_PROGRESS.WAITING;
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.WAITING:
-    _eState                         := E_PROGRESS.WORKING;
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.WORKING:
+    _nIndex                         := _pParameterWrite^._nStart;
+    _nCount                         := _pParameterWrite^._nCount;
+    _rValue                         := _pParameterWrite^._rValue;
     _eState                         := E_PROGRESS.DONE;
 END_CASE
 CASE _eState
@@ -1994,12 +2037,11 @@ OF
   E_PROGRESS.DONE:
     _fbItpWriteRParams(
                     bExecute        := FALSE, 
-                    pAddr           := Addr, 
-                    nIndex          := Index, 
-                    nCount          := Count, 
+                    pAddr           := ADR(_pParameterWrite^._rValue), 
+                    nIndex          := _pParameterWrite^._nStart, 
+                    nCount          := _pParameterWrite^._nCount, 
                     sNciToPlc       := _NciChannelRef^.NcToPlc);
 END_CASE
-
 
 WriteRParams                        := _eState;
 ]]></ST>
@@ -2039,8 +2081,11 @@ WriteRParams                        := _eState;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.Check">
-      <LineId Id="57" Count="4" />
-      <LineId Id="4" Count="48" />
+      <LineId Id="3" Count="50" />
+      <LineId Id="62" Count="5" />
+      <LineId Id="61" Count="0" />
+      <LineId Id="68" Count="6" />
+      <LineId Id="54" Count="2" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.ClearGroup">
@@ -2096,7 +2141,16 @@ WriteRParams                        := _eState;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.LoadProg">
-      <LineId Id="3" Count="121" />
+      <LineId Id="3" Count="92" />
+      <LineId Id="135" Count="1" />
+      <LineId Id="96" Count="0" />
+      <LineId Id="141" Count="0" />
+      <LineId Id="137" Count="1" />
+      <LineId Id="140" Count="0" />
+      <LineId Id="143" Count="6" />
+      <LineId Id="142" Count="0" />
+      <LineId Id="139" Count="0" />
+      <LineId Id="97" Count="27" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.M_FuncReq.Get">
@@ -2127,12 +2181,42 @@ WriteRParams                        := _eState;
       <LineId Id="3" Count="0" />
       <LineId Id="2" Count="0" />
     </LineIds>
+    <LineIds Name="FB_NciChannel.R_ParameterRead.Set">
+      <LineId Id="2" Count="0" />
+      <LineId Id="6" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannel.R_ParameterWrite.Set">
+      <LineId Id="2" Count="0" />
+      <LineId Id="6" Count="0" />
+    </LineIds>
     <LineIds Name="FB_NciChannel.ReadLine">
       <LineId Id="3" Count="131" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.ReadRParams">
-      <LineId Id="3" Count="126" />
+      <LineId Id="3" Count="5" />
+      <LineId Id="16" Count="2" />
+      <LineId Id="148" Count="0" />
+      <LineId Id="188" Count="0" />
+      <LineId Id="19" Count="0" />
+      <LineId Id="21" Count="0" />
+      <LineId Id="190" Count="6" />
+      <LineId Id="22" Count="4" />
+      <LineId Id="155" Count="2" />
+      <LineId Id="177" Count="2" />
+      <LineId Id="33" Count="29" />
+      <LineId Id="161" Count="2" />
+      <LineId Id="180" Count="2" />
+      <LineId Id="167" Count="0" />
+      <LineId Id="70" Count="28" />
+      <LineId Id="169" Count="1" />
+      <LineId Id="168" Count="0" />
+      <LineId Id="187" Count="0" />
+      <LineId Id="99" Count="1" />
+      <LineId Id="116" Count="3" />
+      <LineId Id="171" Count="2" />
+      <LineId Id="183" Count="2" />
+      <LineId Id="126" Count="3" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.StartStop">
@@ -2144,7 +2228,26 @@ WriteRParams                        := _eState;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.WriteRParams">
-      <LineId Id="3" Count="126" />
+      <LineId Id="3" Count="5" />
+      <LineId Id="16" Count="1" />
+      <LineId Id="147" Count="0" />
+      <LineId Id="150" Count="0" />
+      <LineId Id="177" Count="1" />
+      <LineId Id="175" Count="0" />
+      <LineId Id="21" Count="0" />
+      <LineId Id="181" Count="6" />
+      <LineId Id="179" Count="0" />
+      <LineId Id="22" Count="6" />
+      <LineId Id="165" Count="2" />
+      <LineId Id="32" Count="32" />
+      <LineId Id="168" Count="2" />
+      <LineId Id="68" Count="30" />
+      <LineId Id="153" Count="2" />
+      <LineId Id="99" Count="1" />
+      <LineId Id="116" Count="5" />
+      <LineId Id="171" Count="2" />
+      <LineId Id="125" Count="1" />
+      <LineId Id="128" Count="1" />
       <LineId Id="2" Count="0" />
     </LineIds>
   </POU>

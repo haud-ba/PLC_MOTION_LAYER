@@ -1,11 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
-  <DUT Name="ST_AXIS_STATE" Id="{4769737f-c1e9-07b0-0307-e866a6addcfa}">
+  <DUT Name="ST_CAM_STATE" Id="{429d5f47-2b73-0837-3eef-3bb02acbf2ef}">
     <Declaration><![CDATA[{attribute 'pack_mode' := '2'}
-TYPE ST_AXIS_STATE :
+TYPE ST_CAM_STATE :
 STRUCT
-  eState      : E_AXIS_STATE; // mirror the requested axis function; 
-                                        // + E_PROGRESS
+  nNumPointsRead          : UDINT;
+
 END_STRUCT
 END_TYPE
 ]]></Declaration>

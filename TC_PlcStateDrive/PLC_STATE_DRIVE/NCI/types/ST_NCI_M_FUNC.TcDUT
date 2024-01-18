@@ -8,6 +8,8 @@ STRUCT
   HskMFuncNo      : UINT;
   HskMFuncReq     : WORD;
   HFuncValue      : UDINT; 
+
+  MFuncGranted    : UINT;
 END_STRUCT
 END_TYPE
 ]]></Declaration>

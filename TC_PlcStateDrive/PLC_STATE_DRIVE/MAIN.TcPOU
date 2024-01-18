@@ -3,7 +3,11 @@
   <POU Name="MAIN" Id="{b9c2507d-2926-4719-8f82-549e0347748a}" SpecialFunc="None">
     <Declaration><![CDATA[PROGRAM MAIN
 VAR
-  nAxis                     : UINT;
+  bInit                     : BOOL;
+  eInit                     : E_PROGRESS;
+
+  nAxis,
+  nAxisInit                 : UINT;
 
 
   bWriteLog                 : BOOL;
@@ -32,15 +36,55 @@ DO
   GVL_AXIS.Control[nAxis].WriteNcParameter        := ADR(GVL_AXIS.NcParameterWrt);
   GVL_AXIS.Control[nAxis].ReadNcParameter         := ADR(GVL_AXIS.NcParameterRd);
 
-  GVL_AXIS.Control[nAxis].MultiMasterGearIn       := ADR(GVL_AXIS.GearMultiMasterParameter);
   GVL_AXIS.Control[nAxis].HomingParameter         := ADR(GVL_AXIS.HomeParameter);
   GVL_AXIS.Control[nAxis].MotionOptions           := ADR(GVL_AXIS.MotionOptions);
 END_FOR
 //-----------------------------------------------------------------------------------------------------------------
 // assign dataflow/
 //-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+// /INIT
+//-----------------------------------------------------------------------------------------------------------------
+IF NOT bInit
+THEN
+  CASE eInit
+  OF
+    E_PROGRESS.INVALID:
+      nAxisInit                                   := 1;
+      eInit                                       := E_PROGRESS.INIT;
 
+    E_PROGRESS.INIT:
+      GVL_AXIS.Ctrl[nAxisInit]                    := E_AXIS_CTRL.AXIS_NULL;
+      eInit                                       := E_PROGRESS.BUSY;
 
+    E_PROGRESS.BUSY:
+      GVL_AXIS.Ctrl[nAxisInit]                    := E_AXIS_CTRL.AXIS_INIT;
+      eInit                                       := E_PROGRESS.STARTUP;
+
+    E_PROGRESS.STARTUP:
+      IF (GVL_AXIS.State[nAxisInit].eState = E_AXIS_STATE.AXIS_INIT + E_PROGRESS.DONE)
+      THEN
+        nAxisInit                                 := nAxisInit + 1;
+        eInit                                     := E_PROGRESS.PREPARE;
+      END_IF
+
+    E_PROGRESS.PREPARE:
+      IF (nAxisInit > PLC_CONSTANT.MAX_AXIS)
+      THEN
+        bInit                                     := TRUE;
+        eInit                                     := E_PROGRESS.DONE;
+      ELSE
+        eInit                                     := E_PROGRESS.INIT;
+      END_IF
+
+    E_PROGRESS.DONE:
+      // in case bInit is requested again during runtime --> reset eInit, so Initialization can restart
+      eInit                                       := E_PROGRESS.INVALID;
+  END_CASE
+END_IF
+//-----------------------------------------------------------------------------------------------------------------
+// INIT
+//-----------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------
 // /cyclic
 //-----------------------------------------------------------------------------------------------------------------
@@ -85,7 +129,7 @@ END_IF
     </Implementation>
     <LineIds Name="MAIN">
       <LineId Id="34" Count="1" />
-      <LineId Id="31" Count="0" />
+      <LineId Id="132" Count="0" />
       <LineId Id="77" Count="2" />
       <LineId Id="33" Count="0" />
       <LineId Id="36" Count="0" />
@@ -100,9 +144,31 @@ END_IF
       <LineId Id="121" Count="0" />
       <LineId Id="104" Count="0" />
       <LineId Id="119" Count="1" />
-      <LineId Id="105" Count="2" />
+      <LineId Id="106" Count="1" />
       <LineId Id="7" Count="0" />
-      <LineId Id="80" Count="14" />
+      <LineId Id="80" Count="2" />
+      <LineId Id="150" Count="7" />
+      <LineId Id="172" Count="1" />
+      <LineId Id="175" Count="0" />
+      <LineId Id="174" Count="0" />
+      <LineId Id="171" Count="0" />
+      <LineId Id="176" Count="1" />
+      <LineId Id="158" Count="0" />
+      <LineId Id="178" Count="1" />
+      <LineId Id="181" Count="0" />
+      <LineId Id="180" Count="0" />
+      <LineId Id="182" Count="4" />
+      <LineId Id="188" Count="0" />
+      <LineId Id="187" Count="0" />
+      <LineId Id="189" Count="6" />
+      <LineId Id="198" Count="0" />
+      <LineId Id="197" Count="0" />
+      <LineId Id="200" Count="0" />
+      <LineId Id="199" Count="0" />
+      <LineId Id="160" Count="0" />
+      <LineId Id="162" Count="0" />
+      <LineId Id="164" Count="2" />
+      <LineId Id="85" Count="9" />
       <LineId Id="63" Count="0" />
       <LineId Id="73" Count="0" />
       <LineId Id="65" Count="7" />

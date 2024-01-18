@@ -5,7 +5,7 @@
 {attribute 'to_string'}
 TYPE E_AXIS_STATE :
 (
-  AXIS_INVALID,   // no valid command
+  AXIS_NULL,   // null reaction to command
   AXIS_INIT,
   AXIS_DISABLE,
   AXIS_ENABLE,

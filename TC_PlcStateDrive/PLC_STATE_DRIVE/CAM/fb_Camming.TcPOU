@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="fb_Camming" Id="{527605ca-3a86-0df1-134f-058287ba4975}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK fb_Camming
+VAR
+  _ItfAxisSlave   : I_McAxis;
+  _ItfAxisMaster  : I_McAxis;
+
+    
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <LineIds Name="fb_Camming">
+      <LineId Id="9" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>
