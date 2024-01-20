@@ -59,9 +59,8 @@ VAR
   {attribute 'hide'}
   _MultiMasterDummyRef            : ARRAY[1..4] OF AXIS_REF;
 
-  _fbGearIn                       : MC_GearIn;
+  _fbGearIn                       : Tc2_MC2.MC_GearIn;
   _fbGearInMultiMaster            : Tc2_MC2.MC_GearInMultiMaster;
-  
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -160,8 +159,13 @@ OF
   E_AXIS_STATE.AXIS_GEAR_IN_MULTIMASTER:
 
 ELSE
-  _eResult                          := E_PROGRESS.NOT_EXIST;
-  _Info^[_nAxisIndex].bError        := TRUE;
+  IF (_eCtrl > E_AXIS_CTRL.AXIS_NULL)
+  THEN
+    _eResult                          := E_PROGRESS.NOT_EXIST;
+    _Info^[_nAxisIndex].bError        := TRUE;
+  ELSE
+    _eResult                          := E_PROGRESS.INVALID;
+  END_IF
 END_CASE
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -2496,8 +2500,12 @@ END_VAR
       <LineId Id="1528" Count="1" />
       <LineId Id="1911" Count="0" />
       <LineId Id="1530" Count="3" />
+      <LineId Id="2028" Count="1" />
       <LineId Id="2001" Count="0" />
       <LineId Id="1974" Count="0" />
+      <LineId Id="2030" Count="0" />
+      <LineId Id="2032" Count="0" />
+      <LineId Id="2031" Count="0" />
       <LineId Id="1535" Count="0" />
       <LineId Id="1744" Count="0" />
       <LineId Id="1536" Count="1" />

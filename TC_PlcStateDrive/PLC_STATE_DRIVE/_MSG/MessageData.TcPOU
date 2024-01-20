@@ -80,7 +80,7 @@ CASE nState OF
     nState                  := 5;
 
   ELSIF (bPowerFail) OR 
-        (GVL_MSG.MessageIndex >= MSG_WRITE_COUNT)
+        (GVL_MSG.MessageIndex > PLC_CONSTANT.MAX_MESSAGE-1)
   THEN
     IF GVL_MSG.EnableLogging
     THEN
@@ -98,7 +98,7 @@ CASE nState OF
 
     bBusy                   := TRUE;
     iStart 	                := 1;
-    iEnd 		                := SEL((GVL_MSG.MessageIndex > PLC_CONSTANT.MAX_MESSAGE),
+    iEnd 		                := SEL((GVL_MSG.MessageIndex > PLC_CONSTANT.MAX_MESSAGE-1),
                                     GVL_MSG.MessageIndex,
                                     PLC_CONSTANT.MAX_MESSAGE);
     GVL_MSG.MessageIndex    := 1;

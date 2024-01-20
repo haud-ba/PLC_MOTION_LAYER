@@ -26,11 +26,12 @@ FOR nAxis := 1 TO PLC_CONSTANT.MAX_AXIS
 DO
   GVL_AXIS.Control[nAxis].AxisIndex               := nAxis;
 
-  GVL_AXIS.Control[nAxis].AxisCtrl                := ADR(GVL_AXIS.Ctrl);          // data structure for extern control to write into
-  GVL_AXIS.Control[nAxis].AxisState               := ADR(GVL_AXIS.State);         // data structure for extern control to read from
-  GVL_AXIS.Control[nAxis].Axes                    REF=   GVL_AXIS.AxisRef;       // cyclic NC mapping
+  GVL_AXIS.Control[nAxis].AxisCtrl                := ADR(GVL_AXIS.Ctrl);          // command
+  GVL_AXIS.Control[nAxis].AxisState               := ADR(GVL_AXIS.State);         // state + result of command
 
-  GVL_AXIS.Control[nAxis].AxisInfo                := ADR(GVL_AXIS.Info);          // act values and bits from axis
+  GVL_AXIS.Control[nAxis].Axes                    REF=   GVL_AXIS.AxisRef;        // All for one; coupling requires access across all axes
+
+  GVL_AXIS.Control[nAxis].AxisInfo                := ADR(GVL_AXIS.Info);          // axis information: act/set values and bits from axis
   GVL_AXIS.Control[nAxis].AxisData                := ADR(GVL_AXIS.Data);          // position and dynamic constraints for movement
   GVL_AXIS.Control[nAxis].AxisGearInParameter     := ADR(GVL_AXIS.GearInParameter);
 
@@ -50,12 +51,21 @@ IF NOT bInit
 THEN
   CASE eInit
   OF
-    E_PROGRESS.INVALID:
+    E_PROGRESS.INVALID,
+    E_PROGRESS.DONE:
       nAxisInit                                   := 1;
       eInit                                       := E_PROGRESS.INIT;
 
 
     E_PROGRESS.INIT:
+      stMsg.eType                                 := E_MessageType.eMessageInfo;
+      stMsg.eDevice                               := e_Device.General;
+      stMsg.eSubdevice                            := e_SubDevice.AxisControl;
+      stMsg.iErrorNumber                          := nAxisInit;
+
+      stMsg.sText                                 := concat('MAIN.eInit: ', TO_STRING(eInit));
+      f_MessageSet(stMsg);
+
       GVL_AXIS.Ctrl[nAxisInit].eCtrl              := E_AXIS_CTRL.AXIS_NULL;
       eInit                                       := E_PROGRESS.BUSY;
 
@@ -82,19 +92,23 @@ THEN
 
 
     E_PROGRESS.PREPARE:
-      IF (nAxisInit >= PLC_CONSTANT.MAX_AXIS)
+      IF (nAxisInit > PLC_CONSTANT.MAX_AXIS-1)
       THEN
         bInit                                     := TRUE;
         eInit                                     := E_PROGRESS.DONE;
+
+        stMsg.eType                               := E_MessageType.eMessageInfo;
+        stMsg.eDevice                             := e_Device.General;
+        stMsg.eSubdevice                          := e_SubDevice.AxisControl;
+        stMsg.iErrorNumber                        := MAX_AXIS;
+
+        stMsg.sText                               := concat('MAIN.eInit: ', TO_STRING(eInit));
+        f_MessageSet(stMsg);
+
       ELSE
         nAxisInit                                 := nAxisInit + 1;
         eInit                                     := E_PROGRESS.INIT;
       END_IF
-
-
-    E_PROGRESS.DONE:
-      // in case bInit is requested again during runtime --> reset eInit, so Initialization can restart
-      eInit                                       := E_PROGRESS.INVALID;
   END_CASE
 END_IF
 //-----------------------------------------------------------------------------------------------------------------
@@ -154,6 +168,7 @@ END_IF
       <LineId Id="102" Count="1" />
       <LineId Id="6" Count="0" />
       <LineId Id="95" Count="0" />
+      <LineId Id="257" Count="0" />
       <LineId Id="97" Count="0" />
       <LineId Id="110" Count="0" />
       <LineId Id="100" Count="0" />
@@ -166,10 +181,13 @@ END_IF
       <LineId Id="7" Count="0" />
       <LineId Id="80" Count="2" />
       <LineId Id="150" Count="7" />
+      <LineId Id="278" Count="0" />
       <LineId Id="172" Count="1" />
       <LineId Id="175" Count="0" />
       <LineId Id="211" Count="0" />
       <LineId Id="174" Count="0" />
+      <LineId Id="269" Count="6" />
+      <LineId Id="268" Count="0" />
       <LineId Id="171" Count="0" />
       <LineId Id="176" Count="1" />
       <LineId Id="210" Count="0" />
@@ -192,14 +210,12 @@ END_IF
       <LineId Id="188" Count="0" />
       <LineId Id="209" Count="0" />
       <LineId Id="187" Count="0" />
-      <LineId Id="189" Count="4" />
+      <LineId Id="189" Count="3" />
+      <LineId Id="260" Count="7" />
+      <LineId Id="258" Count="0" />
+      <LineId Id="193" Count="0" />
       <LineId Id="207" Count="0" />
       <LineId Id="194" Count="1" />
-      <LineId Id="198" Count="0" />
-      <LineId Id="212" Count="0" />
-      <LineId Id="197" Count="0" />
-      <LineId Id="200" Count="0" />
-      <LineId Id="199" Count="0" />
       <LineId Id="160" Count="0" />
       <LineId Id="162" Count="0" />
       <LineId Id="164" Count="2" />
