@@ -5,7 +5,7 @@
 ]]></Declaration>
     <Folder Name="methods" Id="{f1063346-b567-0cec-37b4-73f99aec2ce1}" />
     <Method Name="Cycle" Id="{05ec7737-5f93-0b30-38ee-c896f70763b2}" FolderPath="methods\">
-      <Declaration><![CDATA[METHOD Cycle
+      <Declaration><![CDATA[METHOD Cycle : E_PROGRESS
 VAR_INPUT
 END_VAR
 ]]></Declaration>

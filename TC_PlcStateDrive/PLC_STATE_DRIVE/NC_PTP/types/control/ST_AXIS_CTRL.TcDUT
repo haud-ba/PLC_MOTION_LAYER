@@ -6,7 +6,6 @@ TYPE ST_AXIS_CTRL :
 STRUCT
   eCtrl               : E_AXIS_CTRL;    // commanded axis function
   eProgress           : E_PROGRESS;     // progress command for synced functions
-  ParameterNumber     : Tc2_MC2.MC_AxisParameter; // which parameter to read/write
 END_STRUCT
 END_TYPE
 ]]></Declaration>

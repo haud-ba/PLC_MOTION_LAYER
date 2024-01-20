@@ -15,6 +15,8 @@ TYPE e_Device :
   // NCI channel
   NciChannel      := 3000,
 
+  Camming         := 6000,
+
   // message function blocks
   Data            := 10000
 )DINT;

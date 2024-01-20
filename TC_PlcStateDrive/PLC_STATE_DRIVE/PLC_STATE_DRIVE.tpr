@@ -1,4 +1,4 @@
-<TcModuleRefactorInfos RefactorCnt="3">
+<TcModuleRefactorInfos RefactorCnt="4">
   <TcModuleRefactorInfo RefactorCnt="1" DateTime="2023-12-22T09:00:36">
     <Renames>
       <RenameTypeItem>
@@ -57,6 +57,34 @@
         <From>_NcParameter</From>
         <To>_NcParameterWrt</To>
       </RenameTypeItem>
+    </Renames>
+  </TcModuleRefactorInfo>
+  <TcModuleRefactorInfo RefactorCnt="4" DateTime="2024-01-20T12:47:52">
+    <Renames>
+      <RenameTypeItem>
+        <Type>FB_McAxisCtrl</Type>
+        <From>_eCtrlParameterNr</From>
+        <To>_eParameterNrWrite</To>
+      </RenameTypeItem>
+      <RenameTypeItem>
+        <Type>FB_NciChannel</Type>
+        <From>_refNciChannelRef</From>
+        <To>_NciChannelRef</To>
+      </RenameTypeItem>
+      <RenameTypeItem>
+        <Type>FB_NciChannel</Type>
+        <From>_pValueRead</From>
+        <To>_pParameterRead</To>
+      </RenameTypeItem>
+      <RenameTypeItem>
+        <Type>FB_NciChannel</Type>
+        <From>_pValueWrite</From>
+        <To>_pParameterWrite</To>
+      </RenameTypeItem>
+      <RenameSymbol>
+        <From>GVL_AXIS_CTRL.bCompatible</From>
+        <To>GVL_AXIS_CTRL.bUseLegacyInterface</To>
+      </RenameSymbol>
     </Renames>
   </TcModuleRefactorInfo>
 </TcModuleRefactorInfos>

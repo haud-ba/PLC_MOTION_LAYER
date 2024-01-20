@@ -4,7 +4,6 @@
     <Declaration><![CDATA[TYPE ST_MotionOptions :
 STRUCT
   eBufferMode   : Tc2_MC2.MC_BufferMode;
-
 END_STRUCT
 END_TYPE
 ]]></Declaration>

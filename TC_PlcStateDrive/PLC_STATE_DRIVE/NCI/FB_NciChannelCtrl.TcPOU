@@ -45,89 +45,7 @@ VAR
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[IF NOT Check() THEN _eResult := E_PROGRESS.INVALID; RETURN; END_IF
-
-
-// cyclic data for M func from NCI interface
-_MFuncScope^.FastMFuncMask    := _NciChannelRef^.NcToPlc.FastMFuncMask;
-_MFuncScope^.HskMFuncNo       := _NciChannelRef^.NcToPlc.HskMFuncNo;
-_MFuncScope^.HskMFuncReq      := _NciChannelRef^.NcToPlc.HskMFuncReq;
-_MFuncScope^.HFuncValue       := _NciChannelRef^.NcToPlc.HFuncValue;
-_MFuncScope^.MFuncGranted     := _NciChannelRef^.PlcToNc.MFuncGranted;
-
-// M-Func to catch
-IF HSK 
-THEN
-  _nMFunc := MFunc;
-END_IF
-
-
-_eCmd                         := _Ctrl^.eCmd;
-
-// cmd change
-IF (_eCmd <> _eCmdOld)
-THEN
-  _eState                     := Cmd(_eCmd);
-  _eCmdOld                    := _eCmd;
-  _eResult                    := E_PROGRESS.BUSY;
-END_IF
-
-CASE _eState
-OF
-  E_NCI_STATE.NULL:
-    _eResult                  := E_PROGRESS.DONE;
-
-  E_NCI_STATE.INIT:
-  E_NCI_STATE.IDLE:
-  E_NCI_STATE.RESET:
-  E_NCI_STATE.LOAD_PROG:
-  E_NCI_STATE.FEED_TABLE:
-
-  E_NCI_STATE.BUILD_GROUP:
-    _eResult                  := Ctrl_BuildGroup(TRUE);
-
-  E_NCI_STATE.CLEAR_GROUP:
-    _eResult                  := Ctrl_ClearGroup(TRUE);
-
-  E_NCI_STATE.START:
-  E_NCI_STATE.STOP:
-  E_NCI_STATE.STO_STOP:
-  E_NCI_STATE.RESTART_STEP_ON:
-
-  E_NCI_STATE.M_FUNC_QUIT:
-
-  E_NCI_STATE.READ_R_PARA:
-    _eResult                  := Ctrl_R_Parameter_Rd(TRUE);
-
-  E_NCI_STATE.WRITE_R_PARA:
-
-ELSE
-  _eResult                    := E_PROGRESS.INVALID;
-END_CASE
-
-
-CASE _eResult
-OF
-  E_PROGRESS.INVALID:
-    _State^.eState            := E_PROGRESS.ERROR;
-
-  E_PROGRESS.ERROR:
-    _State^.eState            := _eState + E_PROGRESS.ERROR;
-
-  E_PROGRESS.DONE:
-    _State^.eState            := _eState + E_PROGRESS.DONE;
-
-ELSE
-    _State^.eState            := _eState + _eResult;
-END_CASE
-
-_State^.rAxisOverride         := _NciChannelRef^.PlcToNc.ChnAxesOvr;
-_State^.bMFuncReq             := TO_BOOL(_NciChannelRef^.NcToPlc.HskMFuncReq);
-_State^.nMFunc                := _NciChannelRef^.NcToPlc.HskMFuncNo;
-
-_State^.nItpState             := GetItpState();
-
-]]></ST>
+      <ST><![CDATA[]]></ST>
     </Implementation>
     <Folder Name="methods" Id="{ba370446-9d57-0cc3-1566-665e50cb472c}">
       <Folder Name="private" Id="{6c8eff13-b321-0e72-2088-796b2427b120}" />
@@ -155,7 +73,7 @@ THEN
   RETURN;
 END_IF
 
-IF NOT (_MFuncCyclic <> 0)
+IF NOT (_MFuncScope <> 0)
 THEN
   _eCheck                     := E_CHECK_STATE.NCI_M_FUNC_POINTER_INVALID;
   RETURN;
@@ -188,7 +106,7 @@ END_VAR
 END_VAR
 ]]></Declaration>
         <Implementation>
-          <ST><![CDATA[ChnId := _ipNciChannel.pNciChannelRef^.NcToPlc.ChnId;
+          <ST><![CDATA[ChnId := _NciChannelRef^.NcToPlc.ChnId;
 ]]></ST>
         </Implementation>
       </Get>
@@ -951,6 +869,101 @@ Ctrl_Stop_STO                                := _eState;
 ]]></ST>
       </Implementation>
     </Method>
+    <Method Name="Cycle" Id="{b035bfa7-9296-06ad-09e1-76b498398d9d}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD Cycle  : e_progress
+VAR_INST
+  _eCycle     : E_PROGRESS;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT Check() THEN Cycle := _eCycle := _eResult := E_PROGRESS.ERROR; RETURN; END_IF
+
+
+// cyclic data for M func from NCI interface
+_MFuncScope^.FastMFuncMask    := _NciChannelRef^.NcToPlc.FastMFuncMask;
+_MFuncScope^.HskMFuncNo       := _NciChannelRef^.NcToPlc.HskMFuncNo;
+_MFuncScope^.HskMFuncReq      := _NciChannelRef^.NcToPlc.HskMFuncReq;
+_MFuncScope^.HFuncValue       := _NciChannelRef^.NcToPlc.HFuncValue;
+_MFuncScope^.MFuncGranted     := _NciChannelRef^.PlcToNc.MFuncGranted;
+
+// M-Func to catch
+IF HSK 
+THEN
+  _nMFunc := MFunc;
+END_IF
+
+
+_eCmd                         := _Ctrl^.eCmd;
+
+// cmd change
+IF (_eCmd <> _eCmdOld)
+THEN
+  _eState                     := Cmd(_eCmd);
+  _eCmdOld                    := _eCmd;
+  _eResult                    := E_PROGRESS.BUSY;
+END_IF
+
+CASE _eState
+OF
+  E_NCI_STATE.NULL:
+    _eResult                  := E_PROGRESS.DONE;
+
+  E_NCI_STATE.INIT:
+  E_NCI_STATE.IDLE:
+  E_NCI_STATE.RESET:
+  E_NCI_STATE.LOAD_PROG:
+  E_NCI_STATE.FEED_TABLE:
+
+  E_NCI_STATE.BUILD_GROUP:
+    _eResult                  := Ctrl_BuildGroup(TRUE);
+
+  E_NCI_STATE.CLEAR_GROUP:
+    _eResult                  := Ctrl_ClearGroup(TRUE);
+
+  E_NCI_STATE.START:
+  E_NCI_STATE.STOP:
+  E_NCI_STATE.STO_STOP:
+  E_NCI_STATE.RESTART_STEP_ON:
+
+  E_NCI_STATE.M_FUNC_QUIT:
+
+  E_NCI_STATE.READ_R_PARA:
+    _eResult                  := Ctrl_R_Parameter_Rd(TRUE);
+
+  E_NCI_STATE.WRITE_R_PARA:
+
+ELSE
+  _eResult                    := E_PROGRESS.INVALID;
+END_CASE
+
+
+CASE _eResult
+OF
+  E_PROGRESS.INVALID:
+    _State^.eState            := E_PROGRESS.ERROR;
+
+  E_PROGRESS.ERROR:
+    _State^.eState            := _eState + E_PROGRESS.ERROR;
+
+  E_PROGRESS.DONE:
+    _State^.eState            := _eState + E_PROGRESS.DONE;
+
+ELSE
+    _State^.eState            := _eState + _eResult;
+END_CASE
+
+_State^.rAxisOverride         := _NciChannelRef^.PlcToNc.ChnAxesOvr;
+_State^.bMFuncReq             := TO_BOOL(_NciChannelRef^.NcToPlc.HskMFuncReq);
+_State^.nMFunc                := _NciChannelRef^.NcToPlc.HskMFuncNo;
+
+_State^.nItpState             := GetItpState();
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+Cycle := _eCycle              := E_PROGRESS.WORKING;
+]]></ST>
+      </Implementation>
+    </Method>
     <Property Name="ItfChannel" Id="{9649047d-6a01-03f4-2290-fc77c4980149}" FolderPath="properties\">
       <Declaration><![CDATA[PROPERTY ItfChannel : I_NciChannel]]></Declaration>
       <Get Name="Get" Id="{dba2e612-8feb-0761-0d03-93a353fa309a}">
@@ -1057,18 +1070,10 @@ Template_1 := _eState;
       </XmlArchive>
     </ObjectProperties>
     <LineIds Name="FB_NciChannelCtrl">
-      <LineId Id="3" Count="8" />
-      <LineId Id="139" Count="0" />
-      <LineId Id="12" Count="19" />
-      <LineId Id="137" Count="1" />
-      <LineId Id="32" Count="19" />
-      <LineId Id="135" Count="1" />
-      <LineId Id="52" Count="27" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.Check">
-      <LineId Id="3" Count="14" />
-      <LineId Id="30" Count="10" />
+      <LineId Id="3" Count="25" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.ChnCtrl.Set">
@@ -1084,183 +1089,72 @@ Template_1 := _eState;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.Cmd">
-      <LineId Id="3" Count="9" />
-      <LineId Id="81" Count="0" />
-      <LineId Id="13" Count="3" />
-      <LineId Id="18" Count="1" />
-      <LineId Id="23" Count="5" />
-      <LineId Id="30" Count="2" />
-      <LineId Id="83" Count="0" />
-      <LineId Id="33" Count="2" />
-      <LineId Id="84" Count="0" />
-      <LineId Id="36" Count="2" />
-      <LineId Id="85" Count="0" />
-      <LineId Id="39" Count="2" />
-      <LineId Id="86" Count="0" />
-      <LineId Id="42" Count="2" />
-      <LineId Id="82" Count="0" />
-      <LineId Id="45" Count="2" />
-      <LineId Id="78" Count="0" />
-      <LineId Id="48" Count="2" />
-      <LineId Id="80" Count="0" />
-      <LineId Id="51" Count="17" />
+      <LineId Id="3" Count="68" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.Ctrl_BuildGroup">
-      <LineId Id="3" Count="7" />
-      <LineId Id="14" Count="46" />
+      <LineId Id="3" Count="54" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.Ctrl_ClearGroup">
-      <LineId Id="3" Count="7" />
-      <LineId Id="14" Count="2" />
-      <LineId Id="18" Count="1" />
-      <LineId Id="59" Count="0" />
-      <LineId Id="61" Count="7" />
-      <LineId Id="83" Count="0" />
-      <LineId Id="69" Count="1" />
-      <LineId Id="23" Count="1" />
-      <LineId Id="84" Count="0" />
-      <LineId Id="87" Count="6" />
-      <LineId Id="95" Count="2" />
-      <LineId Id="85" Count="1" />
-      <LineId Id="72" Count="3" />
-      <LineId Id="81" Count="0" />
-      <LineId Id="76" Count="1" />
-      <LineId Id="79" Count="0" />
-      <LineId Id="39" Count="0" />
-      <LineId Id="80" Count="0" />
-      <LineId Id="82" Count="0" />
-      <LineId Id="78" Count="0" />
-      <LineId Id="40" Count="1" />
-      <LineId Id="43" Count="3" />
+      <LineId Id="3" Count="57" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.Ctrl_ConfirmHsk">
-      <LineId Id="3" Count="7" />
-      <LineId Id="14" Count="27" />
+      <LineId Id="3" Count="35" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.Ctrl_Idle">
-      <LineId Id="3" Count="7" />
-      <LineId Id="14" Count="2" />
-      <LineId Id="86" Count="2" />
-      <LineId Id="18" Count="0" />
-      <LineId Id="103" Count="2" />
-      <LineId Id="107" Count="0" />
-      <LineId Id="109" Count="3" />
-      <LineId Id="115" Count="0" />
-      <LineId Id="106" Count="0" />
-      <LineId Id="116" Count="2" />
-      <LineId Id="81" Count="0" />
-      <LineId Id="21" Count="10" />
-      <LineId Id="101" Count="0" />
-      <LineId Id="39" Count="2" />
-      <LineId Id="73" Count="0" />
-      <LineId Id="83" Count="2" />
-      <LineId Id="74" Count="0" />
-      <LineId Id="122" Count="0" />
-      <LineId Id="124" Count="0" />
-      <LineId Id="75" Count="0" />
-      <LineId Id="77" Count="0" />
-      <LineId Id="76" Count="0" />
-      <LineId Id="78" Count="2" />
-      <LineId Id="42" Count="0" />
-      <LineId Id="58" Count="1" />
+      <LineId Id="3" Count="59" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.Ctrl_LoadProg">
-      <LineId Id="3" Count="7" />
-      <LineId Id="14" Count="18" />
-      <LineId Id="58" Count="1" />
+      <LineId Id="3" Count="28" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.Ctrl_R_Parameter_Rd">
-      <LineId Id="3" Count="7" />
-      <LineId Id="14" Count="28" />
-      <LineId Id="58" Count="1" />
+      <LineId Id="3" Count="38" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.Ctrl_R_Parameter_Wrt">
-      <LineId Id="3" Count="7" />
-      <LineId Id="14" Count="28" />
-      <LineId Id="58" Count="1" />
+      <LineId Id="3" Count="38" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.Ctrl_Reset">
-      <LineId Id="3" Count="7" />
-      <LineId Id="14" Count="2" />
-      <LineId Id="86" Count="2" />
-      <LineId Id="18" Count="0" />
-      <LineId Id="81" Count="0" />
-      <LineId Id="20" Count="11" />
-      <LineId Id="82" Count="0" />
-      <LineId Id="35" Count="6" />
-      <LineId Id="73" Count="0" />
-      <LineId Id="83" Count="2" />
-      <LineId Id="74" Count="1" />
-      <LineId Id="77" Count="0" />
-      <LineId Id="76" Count="0" />
-      <LineId Id="78" Count="2" />
-      <LineId Id="42" Count="0" />
-      <LineId Id="58" Count="1" />
+      <LineId Id="3" Count="49" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.Ctrl_Restart">
-      <LineId Id="3" Count="7" />
-      <LineId Id="14" Count="2" />
-      <LineId Id="86" Count="2" />
-      <LineId Id="18" Count="0" />
-      <LineId Id="81" Count="0" />
-      <LineId Id="20" Count="11" />
-      <LineId Id="83" Count="0" />
-      <LineId Id="89" Count="0" />
-      <LineId Id="58" Count="1" />
+      <LineId Id="3" Count="31" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.Ctrl_Start">
-      <LineId Id="3" Count="7" />
-      <LineId Id="14" Count="2" />
-      <LineId Id="86" Count="2" />
-      <LineId Id="18" Count="0" />
-      <LineId Id="81" Count="0" />
-      <LineId Id="20" Count="11" />
-      <LineId Id="58" Count="0" />
-      <LineId Id="89" Count="0" />
-      <LineId Id="59" Count="0" />
+      <LineId Id="3" Count="30" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.Ctrl_Stop">
-      <LineId Id="3" Count="7" />
-      <LineId Id="14" Count="2" />
-      <LineId Id="86" Count="2" />
-      <LineId Id="18" Count="0" />
-      <LineId Id="81" Count="0" />
-      <LineId Id="20" Count="11" />
-      <LineId Id="58" Count="0" />
-      <LineId Id="89" Count="0" />
-      <LineId Id="59" Count="0" />
+      <LineId Id="3" Count="30" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.Ctrl_Stop_STO">
-      <LineId Id="3" Count="7" />
-      <LineId Id="14" Count="2" />
-      <LineId Id="86" Count="2" />
-      <LineId Id="18" Count="0" />
-      <LineId Id="81" Count="0" />
-      <LineId Id="20" Count="11" />
-      <LineId Id="58" Count="0" />
-      <LineId Id="89" Count="0" />
-      <LineId Id="59" Count="0" />
+      <LineId Id="3" Count="30" />
       <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannelCtrl.Cycle">
+      <LineId Id="6" Count="80" />
+      <LineId Id="91" Count="0" />
+      <LineId Id="90" Count="0" />
+      <LineId Id="89" Count="0" />
+      <LineId Id="87" Count="0" />
+      <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.ItfChannel.Get">
       <LineId Id="3" Count="0" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.M_FunctionScope.Set">
+      <LineId Id="3" Count="0" />
       <LineId Id="2" Count="0" />
-      <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.Template">
       <LineId Id="3" Count="45" />

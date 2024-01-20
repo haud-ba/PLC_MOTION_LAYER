@@ -217,7 +217,7 @@ BuilDGroup                          := _eState;
 NCI-Group configured axes structure
 ===============================================================
 *)
-PROPERTY CfgAxes : Tc2_NCI.NCI_EXT3DGROUP
+PROPERTY CfgAxes : POINTER TO Tc2_NCI.NCI_EXT3DGROUP
 ]]></Declaration>
       <Set Name="Set" Id="{3f21a688-4a65-0616-3362-9c84f2e67e36}">
         <Declaration><![CDATA[]]></Declaration>
@@ -2081,11 +2081,7 @@ WriteRParams                        := _eState;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.Check">
-      <LineId Id="3" Count="50" />
-      <LineId Id="62" Count="5" />
-      <LineId Id="61" Count="0" />
-      <LineId Id="68" Count="6" />
-      <LineId Id="54" Count="2" />
+      <LineId Id="3" Count="67" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.ClearGroup">
@@ -2141,16 +2137,7 @@ WriteRParams                        := _eState;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.LoadProg">
-      <LineId Id="3" Count="92" />
-      <LineId Id="135" Count="1" />
-      <LineId Id="96" Count="0" />
-      <LineId Id="141" Count="0" />
-      <LineId Id="137" Count="1" />
-      <LineId Id="140" Count="0" />
-      <LineId Id="143" Count="6" />
-      <LineId Id="142" Count="0" />
-      <LineId Id="139" Count="0" />
-      <LineId Id="97" Count="27" />
+      <LineId Id="3" Count="136" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.M_FuncReq.Get">
@@ -2182,41 +2169,19 @@ WriteRParams                        := _eState;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.R_ParameterRead.Set">
+      <LineId Id="3" Count="0" />
       <LineId Id="2" Count="0" />
-      <LineId Id="6" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.R_ParameterWrite.Set">
+      <LineId Id="3" Count="0" />
       <LineId Id="2" Count="0" />
-      <LineId Id="6" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.ReadLine">
       <LineId Id="3" Count="131" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.ReadRParams">
-      <LineId Id="3" Count="5" />
-      <LineId Id="16" Count="2" />
-      <LineId Id="148" Count="0" />
-      <LineId Id="188" Count="0" />
-      <LineId Id="19" Count="0" />
-      <LineId Id="21" Count="0" />
-      <LineId Id="190" Count="6" />
-      <LineId Id="22" Count="4" />
-      <LineId Id="155" Count="2" />
-      <LineId Id="177" Count="2" />
-      <LineId Id="33" Count="29" />
-      <LineId Id="161" Count="2" />
-      <LineId Id="180" Count="2" />
-      <LineId Id="167" Count="0" />
-      <LineId Id="70" Count="28" />
-      <LineId Id="169" Count="1" />
-      <LineId Id="168" Count="0" />
-      <LineId Id="187" Count="0" />
-      <LineId Id="99" Count="1" />
-      <LineId Id="116" Count="3" />
-      <LineId Id="171" Count="2" />
-      <LineId Id="183" Count="2" />
-      <LineId Id="126" Count="3" />
+      <LineId Id="3" Count="116" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.StartStop">
@@ -2228,26 +2193,7 @@ WriteRParams                        := _eState;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.WriteRParams">
-      <LineId Id="3" Count="5" />
-      <LineId Id="16" Count="1" />
-      <LineId Id="147" Count="0" />
-      <LineId Id="150" Count="0" />
-      <LineId Id="177" Count="1" />
-      <LineId Id="175" Count="0" />
-      <LineId Id="21" Count="0" />
-      <LineId Id="181" Count="6" />
-      <LineId Id="179" Count="0" />
-      <LineId Id="22" Count="6" />
-      <LineId Id="165" Count="2" />
-      <LineId Id="32" Count="32" />
-      <LineId Id="168" Count="2" />
-      <LineId Id="68" Count="30" />
-      <LineId Id="153" Count="2" />
-      <LineId Id="99" Count="1" />
-      <LineId Id="116" Count="5" />
-      <LineId Id="171" Count="2" />
-      <LineId Id="125" Count="1" />
-      <LineId Id="128" Count="1" />
+      <LineId Id="3" Count="116" />
       <LineId Id="2" Count="0" />
     </LineIds>
   </POU>

@@ -4,7 +4,7 @@
     <Declaration><![CDATA[{attribute 'pack_mode' := '2'}
 TYPE ST_MOTION_OPTIONS :
 STRUCT
-  eBufferMode   : Tc2_MC2.MC_BufferMode;
+  eBufferMode   : Tc2_MC2.MC_BufferMode;  // used in FB_McAxisCtrl.MoverBufferPos, MoveBufferVelo
 
 END_STRUCT
 END_TYPE

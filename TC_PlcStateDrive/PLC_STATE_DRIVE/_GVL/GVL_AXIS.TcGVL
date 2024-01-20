@@ -6,20 +6,20 @@ VAR_GLOBAL
 
   AxisRef                     : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF Tc2_MC2.AXIS_REF;
 
-  Control                     : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF FB_McAxisCtrl;  // cyclic interface for accepting and executing orders
-  Ctrl                        : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_AXIS_CTRL;    // command structure to write into
-  State                       : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_AXIS_STATE;   // state structure to read from
-  Info                        : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_AXIS_INFO;    // axis state and position data to read from
-  Data                        : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_MOVE_DATA;    // axis data to write into
+  Control                     : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF FB_McAxisCtrl;     // cyclic interface for accepting and executing orders
+  Ctrl                        : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_AXIS_CTRL;      // command structure to write into
+  State                       : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_AXIS_STATE;     // state structure to read from
+  Info                        : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_AXIS_INFO;      // axis state and position data to read from
+  Data                        : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_MOVE_DATA;      // axis data to write into
 
-  NcParameterWrt              : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_NC_PARAMETER; // struct for a single parameter value put/get your data here before/after using Ctrl
-  NcParameterRd               : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_NC_PARAMETER; // struct for a single parameter value put/get your data here before/after using Ctrl
+  NcParameterWrt              : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_NC_PARAMETER;   // struct for a single parameter value put/get your data here before/after using Ctrl
+  NcParameterRd               : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_NC_PARAMETER;   // struct for a single parameter value put/get your data here before/after using Ctrl
 
-  HomeParameter               : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_HOMING;       // homing parameter for each axis
+  HomeParameter               : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_HOMING;         // homing parameter for each axis
 
-  GearInParameter             : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_GEAR_IN;
+  GearInParameter             : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_GEAR_IN;        // GearIn and GearInMultiMaster, index to master axes[1-4], rGearRatio[1-4]
 
-  MotionOptions               : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_MOTION_OPTIONS;
+  MotionOptions               : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_MOTION_OPTIONS; // additional motion parameters
 END_VAR]]></Declaration>
   </GVL>
 </TcPlcObject>

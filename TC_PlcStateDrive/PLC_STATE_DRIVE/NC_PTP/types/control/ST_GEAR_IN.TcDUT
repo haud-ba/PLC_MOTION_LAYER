@@ -3,7 +3,10 @@
   <DUT Name="ST_GEAR_IN" Id="{4efdd300-d04e-0b13-188d-d85306bab98e}">
     <Declaration><![CDATA[{attribute 'pack_mode' := '2'}
 TYPE ST_GEAR_IN :
-STRUCT  
+STRUCT
+  bAdvancedSlaveDynamics  : BOOL;
+  nMultiMasterSyncMode    : INT;
+
   nAxisIndexMaster    : ARRAY [1..4] OF BYTE; // Index of Master1-4
   rGearRatio          : ARRAY [1..4] OF REAL; 
   Acceleration        : REAL;

@@ -15,6 +15,7 @@ TYPE E_PROGRESS :
   READY         :=  400,
   WAITING       :=  500,
   WORKING       :=  600,
+  FINISHING     :=  700,
 
   DONE          := 1000,
 

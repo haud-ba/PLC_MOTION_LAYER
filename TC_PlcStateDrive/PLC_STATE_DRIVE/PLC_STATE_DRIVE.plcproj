@@ -380,6 +380,7 @@
     <Folder Include="NC_PTP\types" />
   </ItemGroup>
   <ItemGroup>
+    <SubObject Include="FB_McAxisCtrl.AxisGearInMultiMaster" />
     <SubObject Include="FB_McAxisCtrl.Template">
       <ExcludeFromBuild>true</ExcludeFromBuild>
     </SubObject>

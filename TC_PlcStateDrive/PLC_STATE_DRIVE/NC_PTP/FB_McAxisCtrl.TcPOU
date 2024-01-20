@@ -12,7 +12,7 @@ VAR
   _rTargetWindow            : LREAL := 0.1;   // TODO: get that from NC
 
   // pointers to all; access required for coupling; access by index
-  _Axes                     : POINTER TO ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF AXIS_REF;
+  _Axes                     : REFERENCE TO ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF AXIS_REF;
 
   _stCtrl                   : POINTER TO ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_AXIS_CTRL;    // contains command to be executed
   _stState                  : POINTER TO ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_AXIS_STATE;   // mirrors command with added result
@@ -59,8 +59,8 @@ VAR
   {attribute 'hide'}
   _MultiMasterDummyRef            : ARRAY[1..4] OF AXIS_REF;
 
-
-
+  _fbGearIn                       : MC_GearIn;
+  _fbGearInMultiMaster            : Tc2_MC2.MC_GearInMultiMaster;
   
 END_VAR
 ]]></Declaration>
@@ -146,14 +146,14 @@ OF
   E_AXIS_STATE.AXIS_PARAMETER_READ:
     _eResult                        := ParameterRead(TRUE, _NcParameterRd^[_nAxisIndex].ParameterNumber);
 
-
   E_AXIS_STATE.AXIS_PARAMETER_WRITE:
+    _eResult                        := ParameterWrite(TRUE, _NcParameterWrt^[_nAxisIndex].ParameterNumber);
 
   E_AXIS_STATE.AXIS_PARAMETER_WRITE_PERSISTENT:
-
-
+    _eResult                        := ParameterWritePersistent(TRUE, _NcParameterWrt^[_nAxisIndex].ParameterNumber);
 
   E_AXIS_STATE.AXIS_GEAR_IN:
+
   E_AXIS_STATE.AXIS_GEAR_OUT:
   E_AXIS_STATE.AXIS_GEAR_IN_MULTIMASTER:
 
@@ -173,11 +173,23 @@ THEN
 END_IF
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
+// Check AxisInit
+//-----------------------------------------------------------------------------
+IF NOT (_eInit = E_PROGRESS.DONE)
+THEN
+  _Info^[_nAxisIndex].bReady        := FALSE;
+ELSE
+  _Info^[_nAxisIndex].bReady        := _AxisRef.Status.ControlLoopClosed AND
+                                       (NOT _AxisRef.Status.Error)       AND 
+                                       (NOT _AxisRef.Status.Moving);
+END_IF
+//-----------------------------------------------------------------------------
 //  execution state result error
 //-----------------------------------------------------------------------------
 CASE _eResult
 OF
   E_PROGRESS.ERROR:
+    _Info^[_nAxisIndex].bReady      := FALSE;
     _Info^[_nAxisIndex].bError      := TRUE;
     _Info^[_nAxisIndex].nErrorId    := ErrorId;
     _stState^[_nAxisIndex].eState   := _eState + _eResult;
@@ -198,31 +210,25 @@ END_CASE
 CASE _eAxisCycle
 OF
   E_PROGRESS.ERROR:
+    _Info^[_nAxisIndex].bReady      := FALSE;
     _Info^[_nAxisIndex].bError      := TRUE;
     _stState^[_nAxisIndex].eState   := _eState + _eAxisCycle;
 END_CASE
 //-----------------------------------------------------------------------------
 // Check ControlLoop
 //-----------------------------------------------------------------------------
-IF _AxisRef^.Status.ControlLoopClosed
+IF _AxisRef.Status.ControlLoopClosed
 THEN
   _Info^[_nAxisIndex].bEnabled      := TRUE;
 ELSE
   _Info^[_nAxisIndex].bEnabled      := FALSE;
 END_IF
 //-----------------------------------------------------------------------------
-// Check AxisInit
+_Info^[_nAxisIndex].bStandstill     := _AxisRef.Status.NotMoving;
 //-----------------------------------------------------------------------------
-IF NOT (_eInit = E_PROGRESS.DONE)
-THEN
-  _Info^[_nAxisIndex].bReady        := FALSE;
-END_IF
-//-----------------------------------------------------------------------------
-_Info^[_nAxisIndex].bStandstill     := _AxisRef^.Status.NotMoving;
-//-----------------------------------------------------------------------------
-_Info^[_nAxisIndex].rActPos         := _AxisRef^.NcToPlc.ActPos;
-_Info^[_nAxisIndex].rActVelo        := _AxisRef^.NcToPlc.ActVelo;
-_Info^[_nAxisIndex].rPosDiff        := _AxisRef^.NcToPlc.PosDiff;
+_Info^[_nAxisIndex].rActPos         := _AxisRef.NcToPlc.ActPos;
+_Info^[_nAxisIndex].rActVelo        := _AxisRef.NcToPlc.ActVelo;
+_Info^[_nAxisIndex].rPosDiff        := _AxisRef.NcToPlc.PosDiff;
 //-----------------------------------------------------------------------------
 IF (_Info^[_nAxisIndex].rActPos < _Data^[_nAxisIndex].rSetPos + _rTargetWindow) AND
    (_Info^[_nAxisIndex].rActPos > _Data^[_nAxisIndex].rSetPos - _rTargetWindow) AND
@@ -235,12 +241,12 @@ END_IF
 //-----------------------------------------------------------------------------
 // copy CoupleState from axis
 //-----------------------------------------------------------------------------
-_Info^[_nAxisIndex].dwCoupleState   := _AxisRef^.NcToPlc.CoupleState;
+_Info^[_nAxisIndex].dwCoupleState   := _AxisRef.NcToPlc.CoupleState;
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 // copy NC AxisId from axis
 //-----------------------------------------------------------------------------
-_Info^[_nAxisIndex].nNcAxisId       := _AxisRef^.NcToPlc.AxisId;
+_Info^[_nAxisIndex].nNcAxisId       := _AxisRef.NcToPlc.AxisId;
 //-----------------------------------------------------------------------------
 ]]></ST>
     </Implementation>
@@ -249,7 +255,7 @@ _Info^[_nAxisIndex].nNcAxisId       := _AxisRef^.NcToPlc.AxisId;
     </Folder>
     <Folder Name="properties" Id="{ec33a634-95a7-05e3-1cf2-1ebdb2bd51b4}" />
     <Property Name="Axes" Id="{d1a038b3-28c4-0a30-3eec-6fb30703f53e}" FolderPath="properties\">
-      <Declaration><![CDATA[PROPERTY Axes : POINTER TO ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF AXIS_REF]]></Declaration>
+      <Declaration><![CDATA[PROPERTY Axes : reference TO ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF AXIS_REF]]></Declaration>
       <Set Name="Set" Id="{a34fa163-c682-0310-2adf-d8e91c170ae2}">
         <Declaration><![CDATA[VAR
 END_VAR
@@ -396,6 +402,358 @@ AxisEnable := _eState;
 ]]></ST>
       </Implementation>
     </Method>
+    <Method Name="AxisGearIn" Id="{93b372b7-90fa-0265-20ee-a1e0c6284158}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD AxisGearIn : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+END_VAR
+VAR_INST
+  _eState           : E_PROGRESS;
+  _rValue           : LREAL;
+  _nErr,
+  _nMasterIndex,
+  _nMasterNcId      : UDINT;
+  _stMsg            : ST_Message;
+
+
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT Check() THEN _eState := E_PROGRESS.ERROR; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+
+CASE _eState
+OF
+  E_PROGRESS.INIT:
+    IF Execute 
+    THEN
+      memset(ADR(_stMsg),0,SIZEOF(_stMsg));
+      _nMasterNcId                  :=
+      _nMasterIndex                 :=
+      _nErr                         := 0;
+      _rValue                       := 0;
+
+      IF NOT (_GearInParameter^[_nAxisIndex].nAxisIndexMaster[1] > 0) OR
+         NOT (_GearInParameter^[_nAxisIndex].nAxisIndexMaster[1] <= MAX_AXIS)
+      THEN
+        _nMasterIndex               := _GearInParameter^[_nAxisIndex].nAxisIndexMaster[1];
+
+        _stMsg.eType                := E_MessageType.eMessageError;
+        _stMsg.eDevice              := e_Device.Axis + TO_UINT(_AxisRef.NcToPlc.AxisId);
+        _stMsg.eSubdevice           := e_Subdevice.fbGearIn;
+        _stMsg.iErrorNumber         := 
+        _nErr                       := 666;
+
+        _stMsg.sText                := concat('nAxisIndexMaster[1] out of range: ', TO_STRING(_nMasterIndex));
+        f_MessageSet(_stMsg);
+
+        _eState                     := E_PROGRESS.ERROR;
+      ELSE
+        _nMasterIndex               := _GearInParameter^[_nAxisIndex].nAxisIndexMaster[1];
+        _nMasterNcId                := _Info^[_nMasterIndex].nNcAxisId;
+
+        _stMsg.eType                := E_MessageType.eMessageInfo;
+        _stMsg.eDevice              := e_Device.Axis + TO_UINT(_AxisRef.NcToPlc.AxisId);
+        _stMsg.eSubdevice           := e_Subdevice.fbGearIn;
+        _stMsg.iErrorNumber         := 0;
+  
+        _stMsg.sText                  := concat('GearIn start: ', TO_STRING(_nMasterIndex));
+        f_MessageSet(_stMsg);
+
+        _eState                     := E_PROGRESS.BUSY;
+      END_IF
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.BUSY:
+    _eState                         := E_PROGRESS.STARTUP;
+    _fbGearIn(
+              Master                := _Axes[_nMasterIndex], 
+              Slave                 := _AxisRef, 
+              Execute               := FALSE, 
+              RatioNumerator        := _GearInParameter^[_nAxisIndex].rGearRatio[1], 
+              RatioDenominator      := 1, 
+              Acceleration          := _GearInParameter^[_nAxisIndex].Acceleration, 
+              Deceleration          := _GearInParameter^[_nAxisIndex].Deceleration, 
+              Jerk                  := _GearInParameter^[_nAxisIndex].Jerk);
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.STARTUP:
+    _fbGearIn(
+              Master                := _Axes[_nMasterIndex], 
+              Slave                 := _AxisRef, 
+              Execute               := TRUE, 
+              RatioNumerator        := _GearInParameter^[_nAxisIndex].rGearRatio[1], 
+              RatioDenominator      := 1, 
+              Acceleration          := _GearInParameter^[_nAxisIndex].Acceleration, 
+              Deceleration          := _GearInParameter^[_nAxisIndex].Deceleration, 
+              Jerk                  := _GearInParameter^[_nAxisIndex].Jerk);
+
+    IF (_fbGearIn.Error)
+    THEN
+      _nErr                         := _fbGearIn.ErrorID;
+      _stMsg.eType                  := E_MessageType.eMessageError;
+      _stMsg.eDevice                := e_Device.Axis + TO_UINT(_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             := e_Subdevice.fbGearIn;
+      _stMsg.iErrorNumber           := _nErr;
+
+      _stMsg.sText                  := concat('GearIn failed: ', TO_STRING(_nMasterIndex));
+      f_MessageSet(_stMsg);
+      _eState                       := E_PROGRESS.ERROR;
+
+    ELSIF (_fbGearIn.InGear)
+    THEN
+      _eState                       := E_PROGRESS.READY;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.READY:
+    _eState                         := E_PROGRESS.DONE;
+
+    _stMsg.eType                    := E_MessageType.eMessageInfo;
+    _stMsg.eDevice                  := e_Device.Axis + TO_UINT(_AxisRef.NcToPlc.AxisId);
+    _stMsg.eSubdevice               := e_Subdevice.fbGearIn;
+    _stMsg.iErrorNumber             := 0;
+
+    _stMsg.sText                    := concat('GearIn done: ', TO_STRING(_nMasterIndex));
+    f_MessageSet(_stMsg);
+
+    _fbGearIn(
+              Master                := _Axes[_nMasterIndex], 
+              Slave                 := _AxisRef, 
+              Execute               := FALSE, 
+              RatioNumerator        := _GearInParameter^[_nAxisIndex].rGearRatio[1], 
+              RatioDenominator      := 1, 
+              Acceleration          := _GearInParameter^[_nAxisIndex].Acceleration, 
+              Deceleration          := _GearInParameter^[_nAxisIndex].Deceleration, 
+              Jerk                  := _GearInParameter^[_nAxisIndex].Jerk);
+
+END_CASE
+
+AxisGearIn                          := _eState;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="AxisGearInMultiMaster" Id="{2753b84c-8efc-02bd-1ed9-f32e456b6aa2}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD AxisGearInMultiMaster : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+END_VAR
+VAR_INST
+  _eState           : E_PROGRESS;
+  _rValue           : LREAL;
+  _nAx,
+  _nErr             : UDINT;
+
+  _nMasterIndex,
+  _nMasterNcId      : ARRAY[1..4] OF UDINT;
+
+  _stOptions        : Tc2_MC2.ST_GearInMultiMasterOptions;
+  _nSyncMode        : int;
+
+  _stMsg            : ST_Message;
+
+
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT Check() THEN _eState := E_PROGRESS.ERROR; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+
+CASE _eState
+OF
+  E_PROGRESS.INIT:
+    IF Execute 
+    THEN
+      memset(ADR(_stMsg),0,SIZEOF(_stMsg));
+      memset(ADR(_nMasterNcId), 0,SIZEOF(_nMasterNcId));
+      memset(ADR(_nMasterIndex),0,SIZEOF(_nMasterIndex));
+      memset(ADR(_stOptions),   0,SIZEOF(_stOptions));
+      _nErr                           := 0;
+      _rValue                         := 0;
+
+      IF NOT (_GearInParameter^[_nAxisIndex].nAxisIndexMaster[1] > 0) OR
+         NOT (_GearInParameter^[_nAxisIndex].nAxisIndexMaster[1] <= MAX_AXIS)
+      THEN
+        _nMasterIndex[1]              := _GearInParameter^[_nAxisIndex].nAxisIndexMaster[1];
+
+        _stMsg.eType                  := E_MessageType.eMessageError;
+        _stMsg.eDevice                := e_Device.Axis + TO_UINT(_AxisRef.NcToPlc.AxisId);
+        _stMsg.eSubdevice             := e_Subdevice.fbGearIn;
+        _stMsg.iErrorNumber           := 
+        _nErr                         := 666;
+
+        _stMsg.sText                  := concat('_GearInParameter[', TO_STRING(_nAxisIndex));
+        _stMsg.sText                  := concat(_stMsg.sText,    '].nAxisIndexMaster[1] out of range: ');
+        _stMsg.sText                  := concat(_stMsg.sText, TO_STRING(_nMasterIndex[1]));
+        f_MessageSet(_stMsg);
+
+        _eState                       := E_PROGRESS.ERROR;
+
+      ELSE
+        _stOptions.AdvancedSlaveDynamics  := _GearInParameter^[_nAxisIndex].bAdvancedSlaveDynamics;
+        _nSyncMode                        := _GearInParameter^[_nAxisIndex].nMultiMasterSyncMode;
+
+        _nMasterIndex[1]              := _GearInParameter^[_nAxisIndex].nAxisIndexMaster[1];
+        _nMasterNcId[1]               := _Info^[_nMasterIndex[1]].nNcAxisId;
+
+        _fbGearInMultiMaster.Master1  := _Axes[_nMasterIndex[1]];
+
+        memcpy(ADR(_stOptions.SyncMode), ADR(_nSyncMode), SIZEOF(_stOptions.SyncMode));
+
+
+        _stMsg.eType                  := E_MessageType.eMessageInfo;
+        _stMsg.eDevice                := e_Device.Axis + TO_UINT(_AxisRef.NcToPlc.AxisId);
+        _stMsg.eSubdevice             := e_Subdevice.fbGearIn;
+        _stMsg.iErrorNumber           := _eState;
+
+        _stMsg.sText                  := concat('_GearInParameter[', TO_STRING(_nAxisIndex));
+        _stMsg.sText                  := concat(_stMsg.sText,    '] MultiMaster check: ');
+        _stMsg.sText                  := concat(_stMsg.sText, TO_STRING(_nMasterIndex[1]));
+        f_MessageSet(_stMsg);
+
+        _nAx                          := 2; // next master index to check
+
+        _eState                       := E_PROGRESS.BUSY;
+      END_IF
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.BUSY:
+    IF NOT (_GearInParameter^[_nAxisIndex].nAxisIndexMaster[_nAx] > 0) OR
+       NOT (_GearInParameter^[_nAxisIndex].nAxisIndexMaster[_nAx] <= MAX_AXIS)
+    THEN
+      _eState                         := E_PROGRESS.READY;
+    ELSE
+      _nMasterIndex[_nAx]             := _GearInParameter^[_nAxisIndex].nAxisIndexMaster[_nAx];
+      _nMasterNcId [_nAx]             := _Info^[_nMasterIndex[_nAx]].nNcAxisId;
+
+      _stMsg.eType                    := E_MessageType.eMessageInfo;
+      _stMsg.eDevice                  := e_Device.Axis + TO_UINT(_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice               := e_Subdevice.fbGearIn;
+      _stMsg.iErrorNumber             := _eState;
+
+      _stMsg.sText                    := concat('_GearInParameter[', TO_STRING(_nAxisIndex));
+      _stMsg.sText                    := concat(_stMsg.sText,    '] MultiMaster check: ');
+      _stMsg.sText                    := concat(_stMsg.sText, TO_STRING(_nMasterIndex[_nAx]));
+      f_MessageSet(_stMsg);
+
+      _eState                         := E_PROGRESS.STARTUP;
+    END_IF
+
+    _fbGearInMultiMaster(
+                      Slave           := _AxisRef, 
+                      Enable          := FALSE, 
+                      GearRatio1      := _GearInParameter^[_nAxisIndex].rGearRatio[1], 
+                      GearRatio2      := _GearInParameter^[_nAxisIndex].rGearRatio[2], 
+                      GearRatio3      := _GearInParameter^[_nAxisIndex].rGearRatio[3], 
+                      GearRatio4      := _GearInParameter^[_nAxisIndex].rGearRatio[4], 
+                      Acceleration    := _GearInParameter^[_nAxisIndex].Acceleration, 
+                      Deceleration    := _GearInParameter^[_nAxisIndex].Deceleration, 
+                      Jerk            := _GearInParameter^[_nAxisIndex].Jerk);
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.STARTUP:
+    _nAx                              := _nAx + 1;
+    _eState                           := E_PROGRESS.BUSY;
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.READY:
+    _fbGearInMultiMaster(
+                      Slave           := _AxisRef, 
+                      Enable          := TRUE, 
+                      GearRatio1      := _GearInParameter^[_nAxisIndex].rGearRatio[1], 
+                      GearRatio2      := _GearInParameter^[_nAxisIndex].rGearRatio[2], 
+                      GearRatio3      := _GearInParameter^[_nAxisIndex].rGearRatio[3], 
+                      GearRatio4      := _GearInParameter^[_nAxisIndex].rGearRatio[4], 
+                      Acceleration    := _GearInParameter^[_nAxisIndex].Acceleration, 
+                      Deceleration    := _GearInParameter^[_nAxisIndex].Deceleration, 
+                      Jerk            := _GearInParameter^[_nAxisIndex].Jerk);
+
+    IF (_fbGearInMultiMaster.Error)
+    THEN
+      _nErr                           := _fbGearInMultiMaster.ErrorID;
+      _stMsg.eType                    := E_MessageType.eMessageError;
+      _stMsg.eDevice                  := e_Device.Axis + TO_UINT(_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice               := e_Subdevice.fbGearInMultiMaster;
+      _stMsg.iErrorNumber             := _nErr;
+
+      _stMsg.sText                    := concat(TO_STRING(_eCtrl),'[');
+      _stMsg.sText                    := concat(_stMsg.sText, TO_STRING(_nAxisIndex));
+      _stMsg.sText                    := concat(_stMsg.sText, ']');
+      _stMsg.sText                    := concat('fbGearInMultiMaster error: ', TO_STRING(_nErr));
+      f_MessageSet(_stMsg);
+      _eState                         := E_PROGRESS.ERROR;
+
+    ELSIF (_fbGearIn.InGear)
+    THEN
+      _eState                         := E_PROGRESS.WORKING;
+    END_IF
+
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.WORKING:
+    // now GearRatio[x] can be altered from outside
+    // axis function waits here for further instructions from outside world
+    // _stCtrl[_nAxisIndex].eProgress = e_Progress.DONE must be used to leave this axis function
+    _fbGearInMultiMaster(
+                      Slave           := _AxisRef, 
+                      Enable          := TRUE, 
+                      GearRatio1      := _GearInParameter^[_nAxisIndex].rGearRatio[1], 
+                      GearRatio2      := _GearInParameter^[_nAxisIndex].rGearRatio[2], 
+                      GearRatio3      := _GearInParameter^[_nAxisIndex].rGearRatio[3], 
+                      GearRatio4      := _GearInParameter^[_nAxisIndex].rGearRatio[4], 
+                      Acceleration    := _GearInParameter^[_nAxisIndex].Acceleration, 
+                      Deceleration    := _GearInParameter^[_nAxisIndex].Deceleration, 
+                      Jerk            := _GearInParameter^[_nAxisIndex].Jerk);
+
+    IF (_fbGearInMultiMaster.Error)
+    THEN
+      _nErr                           := _fbGearInMultiMaster.ErrorID;
+      _stMsg.eType                    := E_MessageType.eMessageError;
+      _stMsg.eDevice                  := e_Device.Axis + TO_UINT(_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice               := e_Subdevice.fbGearInMultiMaster;
+      _stMsg.iErrorNumber             := _nErr;
+
+      _stMsg.sText                    := concat(TO_STRING(_eCtrl),'[');
+      _stMsg.sText                    := concat(_stMsg.sText, TO_STRING(_nAxisIndex));
+      _stMsg.sText                    := concat(_stMsg.sText, ']');
+      _stMsg.sText                    := concat('fbGearInMultiMaster error: ', TO_STRING(_nErr));
+      f_MessageSet(_stMsg);
+      _eState                         := E_PROGRESS.ERROR;
+
+    ELSIF (_stCtrl^[_nAxisIndex].eProgress = E_PROGRESS.DONE)
+    THEN
+      // when Ctrl decides to leave; make finishing move and be done
+      _eState                         := E_PROGRESS.FINISHING;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.FINISHING:
+    _eState                           := E_PROGRESS.DONE;
+
+    _stMsg.eType                      := E_MessageType.eMessageInfo;
+    _stMsg.eDevice                    := e_Device.Axis + TO_UINT(_AxisRef.NcToPlc.AxisId);
+    _stMsg.eSubdevice                 := e_Subdevice.fbGearInMultiMaster;
+    _stMsg.iErrorNumber               := _eState;
+
+    _stMsg.sText                      := concat(TO_STRING(_eCtrl), ': ');
+    _stMsg.sText                      := concat(_stMsg.sText, TO_STRING(_eState));
+    f_MessageSet(_stMsg);
+END_CASE
+
+AxisGearInMultiMaster                 := _eState;
+]]></ST>
+      </Implementation>
+    </Method>
     <Property Name="AxisGearInParameter" Id="{b3665f5f-7d61-0534-18c3-fc4c139bfd64}" FolderPath="properties\">
       <Declaration><![CDATA[PROPERTY AxisGearInParameter : pointer to ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_GEAR_IN]]></Declaration>
       <Set Name="Set" Id="{c3054604-2569-09a1-2cae-8365cfdd1ede}">
@@ -506,7 +864,7 @@ OF
       _udiErr               := 0;
       _rValue               := 0;
 
-      IF (_AxisRef^.Status.Homed)
+      IF (_AxisRef.Status.Homed)
       THEN
         _eState             := E_PROGRESS.BUSY;
       ELSE
@@ -664,7 +1022,7 @@ OF
       _eState                       := _eResult;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
-      _stMsg.eDevice                := e_Device.Axis + TO_DINT(_AxisRef^.NcToPlc.AxisId);
+      _stMsg.eDevice                := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
       _stMsg.eSubdevice             := e_Subdevice.fbAxis_StartUp;
       _stMsg.iErrorNumber := _nErrorId  := 6666;
 
@@ -681,8 +1039,8 @@ OF
     THEN
       _fbCoeRead(
                 Execute             := FALSE,
-                NetId               := _AxisRef^.ADS.NetId, 
-                Axis                := _AxisRef^);
+                NetId               := _AxisRef.ADS.NetId, 
+                Axis                := _AxisRef);
   
       IF (EncoderType > 1)
       THEN
@@ -697,7 +1055,7 @@ OF
       _eState                       := _eResult;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
-      _stMsg.eDevice                := e_Device.Axis + TO_DINT(_AxisRef^.NcToPlc.AxisId);
+      _stMsg.eDevice                := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
       _stMsg.eSubdevice             := e_Subdevice.fbAxis_StartupReset;
       _stMsg.iErrorNumber           := ErrorId;
 
@@ -718,8 +1076,8 @@ OF
 
     _fbCoeRead(
               Execute               := TRUE,
-              NetId                 := _AxisRef^.ADS.NetId, 
-              Axis                  := _AxisRef^);
+              NetId                 := _AxisRef.ADS.NetId, 
+              Axis                  := _AxisRef);
 
     IF _fbCoeRead.Busy
     THEN
@@ -730,8 +1088,8 @@ CASE _eState
 OF
   E_PROGRESS.WAITING:
     _fbCoeRead(
-              NetId                 := _AxisRef^.ADS.NetId, 
-              Axis                  := _AxisRef^);
+              NetId                 := _AxisRef.ADS.NetId, 
+              Axis                  := _AxisRef);
 
     IF (_fbCoeRead.Error)
     THEN
@@ -740,11 +1098,11 @@ OF
 
       _fbCoeRead(
                 Execute             := FALSE,
-                NetId               := _AxisRef^.ADS.NetId, 
-                Axis                := _AxisRef^);
+                NetId               := _AxisRef.ADS.NetId, 
+                Axis                := _AxisRef);
 
       _stMsg.eType                  := E_MessageType.eMessageError;
-      _stMsg.eDevice                := e_Device.Axis + TO_DINT(_AxisRef^.NcToPlc.AxisId);
+      _stMsg.eDevice                := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
       _stMsg.eSubdevice             := e_Subdevice.fbCoeRead;
 
       _stMsg.iErrorNumber           := SEL((_fbCoeRead.CANopenErrId > 0), _fbCoeRead.AdsErrId, _fbCoeRead.CANopenErrId);
@@ -768,11 +1126,11 @@ OF
     // clear fb
     _fbCoeRead(
               Execute               := FALSE,
-              NetId                 := _AxisRef^.ADS.NetId, 
-              Axis                  := _AxisRef^);
+              NetId                 := _AxisRef.ADS.NetId, 
+              Axis                  := _AxisRef);
 
     _stMsg.eType                    := E_MessageType.eMessageInfo;
-    _stMsg.eDevice                  := e_Device.Axis + TO_DINT(_AxisRef^.NcToPlc.AxisId);
+    _stMsg.eDevice                  := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
     _stMsg.eSubdevice               := e_Subdevice.fbAxis_StartUp;
     _stMsg.iErrorNumber             := 0;
     _stMsg.sText                    := concat('Axis Init: ', TO_STRING(_eState));
@@ -785,7 +1143,7 @@ AxisInit                            := _eState;
       </Implementation>
     </Method>
     <Property Name="AxisRef" Id="{d622fbfb-1430-047a-062d-a4dac266c76c}" FolderPath="properties\">
-      <Declaration><![CDATA[PROPERTY AxisRef : pointer to Tc2_MC2.AXIS_REF]]></Declaration>
+      <Declaration><![CDATA[PROPERTY AxisRef : reference to Tc2_MC2.AXIS_REF]]></Declaration>
       <Get Name="Get" Id="{47a12226-31e2-0390-1c5c-a7209008eb2f}">
         <Declaration><![CDATA[
 VAR
@@ -934,7 +1292,7 @@ THEN
   RETURN;
 END_IF
 
-IF NOT (_Axes <> 0)
+IF NOT __ISVALIDREF(_Axes)
 THEN
   _eCheck                 := E_CHECK_STATE.AXIS_REF_POINTER_INVALID;
   RETURN;
@@ -1036,9 +1394,20 @@ Check                     := TRUE;
       </Implementation>
     </Method>
     <Method Name="Cmd" Id="{1389b619-e85f-0feb-358b-830cf714b972}" FolderPath="methods\private\">
-      <Declaration><![CDATA[METHOD PRIVATE Cmd : E_AXIS_STATE
+      <Declaration><![CDATA[//-------------------------------------------------------------------------------------
+//
+//  HAUD 2024 01 20
+//
+//  Cmd
+//    - gets state for ctrl
+//    - checks for eInit to be done, before any other commands are accepted
+//    - prepare your commands here
+//    - init what you have to here
+//
+//-------------------------------------------------------------------------------------
+METHOD PRIVATE Cmd  : E_AXIS_STATE
 VAR_INPUT
-  eCmd      : E_AXIS_CTRL;
+  eCmd              : E_AXIS_CTRL;
 END_VAR
 VAR_INST
   _estate   : E_AXIS_STATE;
@@ -1049,87 +1418,120 @@ END_VAR
         <ST><![CDATA[
 CASE eCmd
 OF
+  //-------------------------------------------------------------------------------------
   E_AXIS_CTRL.AXIS_INIT:
-    _eInit                  := AxisInit(FALSE);
-    _estate                 := E_AXIS_STATE.AXIS_INIT;
+    _eInit                            := AxisInit(FALSE);
+    _estate                           := E_AXIS_STATE.AXIS_INIT;
 ELSE
   IF (_eInit <> E_PROGRESS.DONE)
   THEN
-    _estate                 := E_AXIS_STATE.AXIS_NULL;
+    _estate                           := E_AXIS_STATE.AXIS_NULL;
   ELSE
     CASE eCmd
     OF
+      //---------------------------------------------------------------------------------
       E_AXIS_CTRL.AXIS_DISABLE:
-        _eres               := AxisDisable(FALSE);
-        _estate             := E_AXIS_STATE.AXIS_DISABLE;
-    
+        _eres                         := AxisDisable(FALSE);
+        _estate                       := E_AXIS_STATE.AXIS_DISABLE;
+
+      //---------------------------------------------------------------------------------
       E_AXIS_CTRL.AXIS_ENABLE:
-        _eres               := AxisEnable(FALSE);
-        _estate             := E_AXIS_STATE.AXIS_ENABLE;
-    
+        _eres                         := AxisEnable(FALSE);
+        _estate                       := E_AXIS_STATE.AXIS_ENABLE;
+
+      //---------------------------------------------------------------------------------
       E_AXIS_CTRL.AXIS_IDLE:
-        _eres               := Idle(FALSE);
-        _estate             := E_AXIS_STATE.AXIS_IDLE;
-    
+        _eres                         := Idle(FALSE);
+        _estate                       := E_AXIS_STATE.AXIS_IDLE;
+
+      //---------------------------------------------------------------------------------
       E_AXIS_CTRL.AXIS_HOME:
-        _eres               := AxisHome(FALSE);
-        _estate             := E_AXIS_STATE.AXIS_HOME;
-    
+        _eres                         := AxisHome(FALSE);
+        _estate                       := E_AXIS_STATE.AXIS_HOME;
+
+      //---------------------------------------------------------------------------------
       E_AXIS_CTRL.AXIS_MOVE_POS:
-        _eres               := MovePosition(FALSE, _Data^[_nAxisIndex]);
-        _estate             := E_AXIS_STATE.AXIS_MOVE_POS;
-    
+        _eres                         := MovePosition(FALSE, _Data^[_nAxisIndex]);
+        _estate                       := E_AXIS_STATE.AXIS_MOVE_POS;
+
+      //---------------------------------------------------------------------------------
       E_AXIS_CTRL.AXIS_MOVE_VELO:
-        _eres               := MoveVelocity(FALSE, _Data^[_nAxisIndex]);
-        _estate             := E_AXIS_STATE.AXIS_MOVE_VELO;
-    
+        _eres                         := MoveVelocity(FALSE, _Data^[_nAxisIndex]);
+        _estate                       := E_AXIS_STATE.AXIS_MOVE_VELO;
+
+      //---------------------------------------------------------------------------------
       E_AXIS_CTRL.AXIS_RESET:
         // OnChange clear error bit
-        _Info^[_nAxisIndex].bError      := FALSE;
-        _eres               := AxisReset(FALSE);
-        _estate             := E_AXIS_STATE.AXIS_RESET;
-    
+        _Info^[_nAxisIndex].bError    := FALSE;
+        _eres                         := AxisReset(FALSE);
+        _estate                       := E_AXIS_STATE.AXIS_RESET;
+
+      //---------------------------------------------------------------------------------
       E_AXIS_CTRL.AXIS_HALT:
-        _eres               := AxisHalt(FALSE, _Data^[_nAxisIndex]);
-        _estate             := E_AXIS_STATE.AXIS_HALT;
-    
+        _eres                         := AxisHalt(FALSE, _Data^[_nAxisIndex]);
+        _estate                       := E_AXIS_STATE.AXIS_HALT;
+
+      //---------------------------------------------------------------------------------
       E_AXIS_CTRL.AXIS_STOP:
-        _eres               := AxisStop(FALSE, _Data^[_nAxisIndex]);
-        _estate             := E_AXIS_STATE.AXIS_STOP;
-    
+        _eres                         := AxisStop(FALSE, _Data^[_nAxisIndex]);
+        _estate                       := E_AXIS_STATE.AXIS_STOP;
+
+
+      //---------------------------------------------------------------------------------
       E_AXIS_CTRL.AXIS_MOVE_BUFFER:
-        _eres               := MoveBufferPos(FALSE, _Data^[_nAxisIndex]);
-        _estate             := E_AXIS_STATE.AXIS_MOVE_BUFFER;
-    
+        _eres                         := MoveBufferPos(FALSE, _Data^[_nAxisIndex]);
+        _estate                       := E_AXIS_STATE.AXIS_MOVE_BUFFER;
+
+
+      //---------------------------------------------------------------------------------
       E_AXIS_CTRL.AXIS_MOVE_BUFFER_VELO:
-        _eres               := MoveBufferVelo(FALSE, _Data^[_nAxisIndex]);
-        _estate             := E_AXIS_STATE.AXIS_MOVE_BUFFER_VELO;
-    
+        _eres                         := MoveBufferVelo(FALSE, _Data^[_nAxisIndex]);
+        _estate                       := E_AXIS_STATE.AXIS_MOVE_BUFFER_VELO;
+
+
+      //---------------------------------------------------------------------------------
       E_AXIS_CTRL.AXIS_PARAMETER_READ:
-        _eParameterNrWrite   := _NcParameterWrt^[_nAxisIndex].ParameterNumber;
-        _eres               := ParameterRead(FALSE, _eParameterNrWrite);
-        _estate             := E_AXIS_STATE.AXIS_PARAMETER_READ;
+        _eParameterNrWrite            := _NcParameterWrt^[_nAxisIndex].ParameterNumber;
+        _eres                         := ParameterRead(FALSE, _eParameterNrWrite);
 
+        _estate                       := E_AXIS_STATE.AXIS_PARAMETER_READ;
+
+
+      //---------------------------------------------------------------------------------
       E_AXIS_CTRL.AXIS_PARAMETER_WRITE:
-        _eParameterNrWrite   := _NcParameterWrt^[_nAxisIndex].ParameterNumber;
-        _rParameterWrtValue := _NcParameterWrt^[_nAxisIndex].rValue;
+        _eParameterNrWrite            := _NcParameterWrt^[_nAxisIndex].ParameterNumber;
+        _rParameterWrtValue           := _NcParameterWrt^[_nAxisIndex].rValue;
 
-        _estate             := E_AXIS_STATE.AXIS_PARAMETER_WRITE;
+        _estate                       := E_AXIS_STATE.AXIS_PARAMETER_WRITE;
 
+
+      //---------------------------------------------------------------------------------
       E_AXIS_CTRL.AXIS_PARAMETER_WRITE_PERSISTENT:
-        _eParameterNrWrite   := _NcParameterWrt^[_nAxisIndex].ParameterNumber;
-        _rParameterWrtValue := _NcParameterWrt^[_nAxisIndex].rValue;
+        _eParameterNrWrite            := _NcParameterWrt^[_nAxisIndex].ParameterNumber;
+        _rParameterWrtValue           := _NcParameterWrt^[_nAxisIndex].rValue;
 
-        _estate             := E_AXIS_STATE.AXIS_PARAMETER_WRITE_PERSISTENT;
-    
+        _estate                       := E_AXIS_STATE.AXIS_PARAMETER_WRITE_PERSISTENT;
+
+      //---------------------------------------------------------------------------------
       E_AXIS_CTRL.AXIS_GEAR_IN:
-        _estate             := E_AXIS_STATE.AXIS_GEAR_IN;
-    
+        _eres                         := AxisGearIn(FALSE);
+        _estate                       := E_AXIS_STATE.AXIS_GEAR_IN;
+
+      //---------------------------------------------------------------------------------    
       E_AXIS_CTRL.AXIS_GEAR_OUT:
-        _estate             := E_AXIS_STATE.AXIS_GEAR_OUT;
-    
+        _estate                       := E_AXIS_STATE.AXIS_GEAR_OUT;
+
+      //---------------------------------------------------------------------------------
       E_AXIS_CTRL.AXIS_GEAR_IN_MULTIMASTER:
-        _estate             := E_AXIS_STATE.AXIS_GEAR_IN_MULTIMASTER;
+        _fbGearInMultiMaster.Master1  := _MultiMasterDummyRef[1];
+        _fbGearInMultiMaster.Master2  := _MultiMasterDummyRef[2];
+        _fbGearInMultiMaster.Master3  := _MultiMasterDummyRef[3];
+        _fbGearInMultiMaster.Master4  := _MultiMasterDummyRef[4];
+
+        _eres                         := AxisGearInMultiMaster(FALSE);
+        _estate                       := E_AXIS_STATE.AXIS_GEAR_IN_MULTIMASTER;
+
+    //-----------------------------------------------------------------------------------
     ELSE
       _estate               := E_AXIS_STATE.AXIS_NULL;
       _eres                 := E_PROGRESS.ERROR; // wrong note! wrong note!
@@ -1153,7 +1555,7 @@ END_VAR
 
 IF _HomeParameter^[_nAxisIndex].stHomingParam.SimulateHomeSensor
 THEN
-	IF (_AxisRef^.NcToPlc.HomingState < 4)
+	IF (_AxisRef.NcToPlc.HomingState < 4)
   THEN
 		_bCal := TRUE;
 	ELSE
@@ -1205,23 +1607,13 @@ OF
   E_PROGRESS.INIT:
     IF Execute 
     THEN
+      _eResult                      := Reset(FALSE);
       _eState                       := E_PROGRESS.BUSY;
     END_IF
 END_CASE
 CASE _eState
 OF
   E_PROGRESS.BUSY:
-    IF _AxisRef^.Status.Error
-    THEN
-      _eResult                      := Reset(FALSE);
-      _eState                       := E_PROGRESS.STARTUP;
-    ELSE
-      _eState                       := E_PROGRESS.PREPARE;
-    END_IF
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.STARTUP:
     _eResult                        := Reset(TRUE);
 
     IF (_eResult = E_PROGRESS.DONE)
@@ -1243,26 +1635,16 @@ OF
 
     IF (_eResult = E_PROGRESS.DONE)
     THEN
-      _eState                       := E_PROGRESS.WAITING;
+      Enable(FALSE);
+      _eState                       := E_PROGRESS.DONE;
 
     ELSIF (_eResult = E_PROGRESS.ERROR)
     THEN
       _eState                       := E_PROGRESS.BUSY;
     END_IF
 END_CASE
-CASE _eState
-OF
-  E_PROGRESS.WAITING:
-    Enable(FALSE);
-    _eState                         := E_PROGRESS.WORKING;
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.WORKING:
-    _eState                         := E_PROGRESS.DONE;
-END_CASE
 
-Idle := _eState;
+Idle                                := _eState;
 ]]></ST>
       </Implementation>
     </Method>
@@ -1278,9 +1660,9 @@ END_VAR
       <Implementation>
         <ST><![CDATA[
   _stMsg.eType               := E_MessageType.eMessageInfo;
-  _stMsg.eDevice             := E_Device.Axis + TO_DINT(_AxisRef^.NcToPlc.AxisId);
+  _stMsg.eDevice             := E_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
   _stMsg.eSubdevice          := e_Subdevice.AxisMode;
-  _stMsg.iErrorNumber        := _AxisRef^.NcToPlc.AxisId;
+  _stMsg.iErrorNumber        := _nAxisIndex;
 
   _sCtrl                     := concat('E_AXIS_CTRL', '.');
   _sCtrl                     := concat(_sCtrl, TO_STRING(_eCtrl));
@@ -1303,9 +1685,9 @@ END_VAR
       <Implementation>
         <ST><![CDATA[
   _stMsg.eType               := E_MessageType.eMessageInfo;
-  _stMsg.eDevice             := E_Device.Axis + TO_DINT(_AxisRef^.NcToPlc.AxisId);
+  _stMsg.eDevice             := E_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
   _stMsg.eSubdevice          := e_Subdevice.AxisMode;
-  _stMsg.iErrorNumber        := _AxisRef^.NcToPlc.AxisId;
+  _stMsg.iErrorNumber        := _nAxisIndex;
 
   _sCtrl                     := concat('E_AXIS_CTRL', '.');
   _sCtrl                     := concat(_sCtrl, TO_STRING(_eCtrl));
@@ -1858,7 +2240,7 @@ OF
 		_fbReset(
             Execute                 := FALSE, 
             Timeout                 := T#2500MS, 
-            Axis                    := _AxisRef^);
+            Axis                    := _AxisRef);
 END_CASE
 CASE _eState
 OF
@@ -1869,14 +2251,14 @@ OF
 
 		_fbReset(
             Execute                 := TRUE, 
-            Axis                    := _AxisRef^, 
+            Axis                    := _AxisRef, 
             AdsErrId                => _udiErrAds, 
             SercosErrId             => _udiErrSer);
 
     IF _fbReset.Error
     THEN
       _stMsg.eType                  := E_MessageType.eMessageError;
-      _stMsg.eDevice                := e_Device.Axis + TO_DINT(_AxisRef^.NcToPlc.AxisId);
+      _stMsg.eDevice                := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
       _stMsg.eSubdevice             :=  e_SubDevice.fbResetSercos;
       _stMsg.iErrorNumber           := _udiErrAds;
 
@@ -1895,7 +2277,7 @@ OF
 
     ELSE
       IF _tonDelay.Q AND
-         _AxisRef^.NcToPlc.StateDWord.28
+         _AxisRef.NcToPlc.StateDWord.28
       THEN
         _nRepeat                    := _nRepeat + 1;
         _eState                     := E_PROGRESS.BUSY;    
@@ -2020,12 +2402,22 @@ END_VAR
       <LineId Id="1722" Count="2" />
       <LineId Id="1466" Count="10" />
       <LineId Id="1725" Count="1" />
-      <LineId Id="1477" Count="58" />
+      <LineId Id="1477" Count="44" />
+      <LineId Id="1523" Count="0" />
+      <LineId Id="1910" Count="0" />
+      <LineId Id="1524" Count="2" />
+      <LineId Id="1528" Count="1" />
+      <LineId Id="1911" Count="0" />
+      <LineId Id="1530" Count="5" />
       <LineId Id="1744" Count="0" />
       <LineId Id="1536" Count="1" />
       <LineId Id="1745" Count="0" />
-      <LineId Id="1538" Count="9" />
-      <LineId Id="1549" Count="5" />
+      <LineId Id="1538" Count="7" />
+      <LineId Id="1837" Count="10" />
+      <LineId Id="1546" Count="1" />
+      <LineId Id="1549" Count="3" />
+      <LineId Id="1835" Count="0" />
+      <LineId Id="1553" Count="1" />
       <LineId Id="1742" Count="0" />
       <LineId Id="1557" Count="3" />
       <LineId Id="1700" Count="1" />
@@ -2036,13 +2428,10 @@ END_VAR
       <LineId Id="1738" Count="1" />
       <LineId Id="1731" Count="2" />
       <LineId Id="1735" Count="0" />
+      <LineId Id="1834" Count="0" />
       <LineId Id="1740" Count="0" />
       <LineId Id="1736" Count="1" />
-      <LineId Id="1562" Count="8" />
-      <LineId Id="1717" Count="2" />
-      <LineId Id="1712" Count="0" />
-      <LineId Id="1714" Count="2" />
-      <LineId Id="1571" Count="1" />
+      <LineId Id="1562" Count="10" />
       <LineId Id="1720" Count="0" />
       <LineId Id="1574" Count="2" />
       <LineId Id="1721" Count="0" />
@@ -2068,6 +2457,123 @@ END_VAR
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.AxisEnable">
       <LineId Id="708" Count="36" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_McAxisCtrl.AxisGearIn">
+      <LineId Id="674" Count="8" />
+      <LineId Id="751" Count="1" />
+      <LineId Id="683" Count="1" />
+      <LineId Id="775" Count="0" />
+      <LineId Id="774" Count="0" />
+      <LineId Id="776" Count="2" />
+      <LineId Id="788" Count="0" />
+      <LineId Id="787" Count="0" />
+      <LineId Id="779" Count="2" />
+      <LineId Id="792" Count="1" />
+      <LineId Id="782" Count="1" />
+      <LineId Id="794" Count="0" />
+      <LineId Id="784" Count="1" />
+      <LineId Id="789" Count="1" />
+      <LineId Id="858" Count="0" />
+      <LineId Id="860" Count="6" />
+      <LineId Id="791" Count="0" />
+      <LineId Id="685" Count="0" />
+      <LineId Id="786" Count="0" />
+      <LineId Id="686" Count="5" />
+      <LineId Id="795" Count="7" />
+      <LineId Id="811" Count="0" />
+      <LineId Id="692" Count="3" />
+      <LineId Id="813" Count="7" />
+      <LineId Id="829" Count="0" />
+      <LineId Id="844" Count="0" />
+      <LineId Id="830" Count="2" />
+      <LineId Id="834" Count="3" />
+      <LineId Id="839" Count="3" />
+      <LineId Id="847" Count="0" />
+      <LineId Id="843" Count="0" />
+      <LineId Id="845" Count="0" />
+      <LineId Id="696" Count="0" />
+      <LineId Id="846" Count="0" />
+      <LineId Id="697" Count="4" />
+      <LineId Id="869" Count="7" />
+      <LineId Id="867" Count="0" />
+      <LineId Id="849" Count="8" />
+      <LineId Id="848" Count="0" />
+      <LineId Id="702" Count="0" />
+      <LineId Id="718" Count="1" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_McAxisCtrl.AxisGearInMultiMaster">
+      <LineId Id="674" Count="8" />
+      <LineId Id="877" Count="1" />
+      <LineId Id="914" Count="0" />
+      <LineId Id="683" Count="1" />
+      <LineId Id="775" Count="0" />
+      <LineId Id="774" Count="0" />
+      <LineId Id="776" Count="2" />
+      <LineId Id="788" Count="0" />
+      <LineId Id="787" Count="0" />
+      <LineId Id="779" Count="2" />
+      <LineId Id="792" Count="0" />
+      <LineId Id="952" Count="0" />
+      <LineId Id="793" Count="0" />
+      <LineId Id="953" Count="0" />
+      <LineId Id="782" Count="1" />
+      <LineId Id="794" Count="0" />
+      <LineId Id="784" Count="0" />
+      <LineId Id="1013" Count="0" />
+      <LineId Id="785" Count="0" />
+      <LineId Id="1011" Count="1" />
+      <LineId Id="1010" Count="0" />
+      <LineId Id="789" Count="1" />
+      <LineId Id="997" Count="1" />
+      <LineId Id="917" Count="0" />
+      <LineId Id="919" Count="0" />
+      <LineId Id="916" Count="0" />
+      <LineId Id="858" Count="0" />
+      <LineId Id="860" Count="3" />
+      <LineId Id="958" Count="3" />
+      <LineId Id="866" Count="0" />
+      <LineId Id="904" Count="0" />
+      <LineId Id="903" Count="0" />
+      <LineId Id="791" Count="0" />
+      <LineId Id="685" Count="0" />
+      <LineId Id="786" Count="0" />
+      <LineId Id="686" Count="4" />
+      <LineId Id="908" Count="2" />
+      <LineId Id="975" Count="0" />
+      <LineId Id="974" Count="0" />
+      <LineId Id="944" Count="1" />
+      <LineId Id="964" Count="9" />
+      <LineId Id="962" Count="0" />
+      <LineId Id="906" Count="1" />
+      <LineId Id="946" Count="0" />
+      <LineId Id="881" Count="0" />
+      <LineId Id="886" Count="7" />
+      <LineId Id="811" Count="0" />
+      <LineId Id="692" Count="3" />
+      <LineId Id="844" Count="0" />
+      <LineId Id="995" Count="0" />
+      <LineId Id="948" Count="3" />
+      <LineId Id="1000" Count="9" />
+      <LineId Id="996" Count="0" />
+      <LineId Id="976" Count="18" />
+      <LineId Id="947" Count="0" />
+      <LineId Id="697" Count="0" />
+      <LineId Id="1015" Count="2" />
+      <LineId Id="1051" Count="0" />
+      <LineId Id="1053" Count="0" />
+      <LineId Id="1052" Count="0" />
+      <LineId Id="1018" Count="27" />
+      <LineId Id="1050" Count="0" />
+      <LineId Id="1046" Count="1" />
+      <LineId Id="1049" Count="0" />
+      <LineId Id="698" Count="3" />
+      <LineId Id="869" Count="6" />
+      <LineId Id="999" Count="0" />
+      <LineId Id="876" Count="0" />
+      <LineId Id="702" Count="0" />
+      <LineId Id="718" Count="1" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.AxisGearInParameter.Set">
@@ -2270,68 +2776,104 @@ END_VAR
       <LineId Id="154" Count="0" />
       <LineId Id="11" Count="0" />
       <LineId Id="13" Count="0" />
+      <LineId Id="201" Count="0" />
       <LineId Id="84" Count="1" />
       <LineId Id="94" Count="0" />
       <LineId Id="86" Count="0" />
       <LineId Id="100" Count="3" />
       <LineId Id="97" Count="1" />
+      <LineId Id="200" Count="0" />
       <LineId Id="15" Count="0" />
       <LineId Id="81" Count="0" />
       <LineId Id="16" Count="0" />
+      <LineId Id="199" Count="0" />
       <LineId Id="18" Count="0" />
       <LineId Id="17" Count="0" />
       <LineId Id="82" Count="0" />
       <LineId Id="19" Count="0" />
+      <LineId Id="198" Count="0" />
       <LineId Id="29" Count="0" />
       <LineId Id="32" Count="0" />
       <LineId Id="83" Count="0" />
-      <LineId Id="51" Count="1" />
+      <LineId Id="51" Count="0" />
+      <LineId Id="197" Count="0" />
+      <LineId Id="52" Count="0" />
       <LineId Id="33" Count="0" />
       <LineId Id="115" Count="0" />
-      <LineId Id="53" Count="1" />
+      <LineId Id="53" Count="0" />
+      <LineId Id="196" Count="0" />
+      <LineId Id="54" Count="0" />
       <LineId Id="34" Count="0" />
       <LineId Id="124" Count="0" />
-      <LineId Id="55" Count="1" />
+      <LineId Id="55" Count="0" />
+      <LineId Id="195" Count="0" />
+      <LineId Id="56" Count="0" />
       <LineId Id="35" Count="0" />
       <LineId Id="125" Count="0" />
-      <LineId Id="57" Count="1" />
+      <LineId Id="57" Count="0" />
+      <LineId Id="194" Count="0" />
+      <LineId Id="58" Count="0" />
       <LineId Id="36" Count="0" />
       <LineId Id="156" Count="1" />
       <LineId Id="114" Count="0" />
-      <LineId Id="59" Count="1" />
+      <LineId Id="59" Count="0" />
+      <LineId Id="193" Count="0" />
+      <LineId Id="60" Count="0" />
       <LineId Id="37" Count="0" />
       <LineId Id="126" Count="0" />
-      <LineId Id="61" Count="1" />
+      <LineId Id="61" Count="0" />
+      <LineId Id="192" Count="0" />
+      <LineId Id="62" Count="0" />
       <LineId Id="38" Count="0" />
       <LineId Id="127" Count="0" />
       <LineId Id="39" Count="0" />
+      <LineId Id="191" Count="0" />
+      <LineId Id="185" Count="0" />
       <LineId Id="63" Count="0" />
       <LineId Id="40" Count="0" />
       <LineId Id="141" Count="0" />
       <LineId Id="64" Count="0" />
+      <LineId Id="190" Count="0" />
+      <LineId Id="184" Count="0" />
       <LineId Id="67" Count="0" />
       <LineId Id="41" Count="0" />
       <LineId Id="142" Count="0" />
       <LineId Id="65" Count="0" />
+      <LineId Id="189" Count="0" />
+      <LineId Id="183" Count="0" />
       <LineId Id="68" Count="0" />
       <LineId Id="45" Count="0" />
       <LineId Id="134" Count="0" />
       <LineId Id="143" Count="0" />
+      <LineId Id="186" Count="0" />
       <LineId Id="46" Count="0" />
+      <LineId Id="187" Count="0" />
+      <LineId Id="179" Count="0" />
       <LineId Id="128" Count="1" />
       <LineId Id="135" Count="0" />
       <LineId Id="137" Count="1" />
-      <LineId Id="130" Count="2" />
+      <LineId Id="130" Count="0" />
+      <LineId Id="188" Count="0" />
+      <LineId Id="178" Count="0" />
+      <LineId Id="131" Count="1" />
       <LineId Id="136" Count="0" />
       <LineId Id="139" Count="1" />
       <LineId Id="133" Count="0" />
+      <LineId Id="180" Count="0" />
       <LineId Id="47" Count="1" />
-      <LineId Id="69" Count="1" />
+      <LineId Id="177" Count="0" />
+      <LineId Id="69" Count="0" />
+      <LineId Id="181" Count="0" />
+      <LineId Id="70" Count="0" />
       <LineId Id="49" Count="0" />
-      <LineId Id="71" Count="1" />
+      <LineId Id="71" Count="0" />
+      <LineId Id="182" Count="0" />
+      <LineId Id="72" Count="0" />
       <LineId Id="50" Count="0" />
+      <LineId Id="172" Count="4" />
+      <LineId Id="171" Count="0" />
       <LineId Id="30" Count="0" />
-      <LineId Id="24" Count="0" />
+      <LineId Id="202" Count="2" />
       <LineId Id="28" Count="0" />
       <LineId Id="26" Count="0" />
       <LineId Id="14" Count="0" />
@@ -2353,14 +2895,8 @@ END_VAR
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.Idle">
       <LineId Id="674" Count="7" />
+      <LineId Id="758" Count="0" />
       <LineId Id="685" Count="5" />
-      <LineId Id="720" Count="1" />
-      <LineId Id="725" Count="0" />
-      <LineId Id="691" Count="0" />
-      <LineId Id="722" Count="0" />
-      <LineId Id="724" Count="0" />
-      <LineId Id="723" Count="0" />
-      <LineId Id="692" Count="3" />
       <LineId Id="727" Count="0" />
       <LineId Id="729" Count="0" />
       <LineId Id="728" Count="0" />
@@ -2374,13 +2910,13 @@ END_VAR
       <LineId Id="737" Count="0" />
       <LineId Id="736" Count="0" />
       <LineId Id="738" Count="0" />
+      <LineId Id="760" Count="0" />
       <LineId Id="706" Count="0" />
       <LineId Id="744" Count="0" />
       <LineId Id="741" Count="2" />
       <LineId Id="739" Count="0" />
-      <LineId Id="707" Count="3" />
-      <LineId Id="740" Count="0" />
-      <LineId Id="711" Count="8" />
+      <LineId Id="707" Count="0" />
+      <LineId Id="718" Count="1" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.LogControl">

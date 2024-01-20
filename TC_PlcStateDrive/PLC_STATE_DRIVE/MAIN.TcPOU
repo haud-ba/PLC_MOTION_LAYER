@@ -28,7 +28,7 @@ DO
 
   GVL_AXIS.Control[nAxis].AxisCtrl                := ADR(GVL_AXIS.Ctrl);          // data structure for extern control to write into
   GVL_AXIS.Control[nAxis].AxisState               := ADR(GVL_AXIS.State);         // data structure for extern control to read from
-  GVL_AXIS.Control[nAxis].AxisRef                 := ADR(GVL_AXIS.AxisRef);       // cyclic NC mapping
+  GVL_AXIS.Control[nAxis].Axes                    REF=   GVL_AXIS.AxisRef;       // cyclic NC mapping
 
   GVL_AXIS.Control[nAxis].AxisInfo                := ADR(GVL_AXIS.Info);          // act values and bits from axis
   GVL_AXIS.Control[nAxis].AxisData                := ADR(GVL_AXIS.Data);          // position and dynamic constraints for movement
@@ -56,12 +56,12 @@ THEN
 
 
     E_PROGRESS.INIT:
-      GVL_AXIS.Ctrl[nAxisInit]                    := E_AXIS_CTRL.AXIS_NULL;
+      GVL_AXIS.Ctrl[nAxisInit].eCtrl              := E_AXIS_CTRL.AXIS_NULL;
       eInit                                       := E_PROGRESS.BUSY;
 
 
     E_PROGRESS.BUSY:
-      GVL_AXIS.Ctrl[nAxisInit]                    := E_AXIS_CTRL.AXIS_INIT;
+      GVL_AXIS.Ctrl[nAxisInit].eCtrl              := E_AXIS_CTRL.AXIS_INIT;
 
       IF    (GVL_AXIS.State[nAxisInit].eState = E_AXIS_STATE.AXIS_INIT + E_PROGRESS.ERROR)
       THEN
@@ -72,7 +72,7 @@ THEN
         stMsg.eSubdevice                          := e_SubDevice.AxisControl;
         stMsg.iErrorNumber                        := GVL_AXIS.Control[nAxisInit].ErrorId;
 
-        stMsg.sText                               := concat('MAIN.eInit ERROR at Index: ', nAxisInit);
+        stMsg.sText                               := concat('MAIN.eInit ERROR at Index: ', TO_STRING(nAxisInit));
         f_MessageSet(stMsg);
 
       ELSIF (GVL_AXIS.State[nAxisInit].eState = E_AXIS_STATE.AXIS_INIT + E_PROGRESS.DONE)

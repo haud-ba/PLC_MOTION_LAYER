@@ -18,9 +18,15 @@ END_VAR
 NCI-Group configured axes structure
 ===============================================================
 *)
-PROPERTY CfgAxes : Tc2_NCI.NCI_EXT3DGROUP
+PROPERTY CfgAxes : POINTER TO Tc2_NCI.NCI_EXT3DGROUP
 ]]></Declaration>
       <Set Name="Set" Id="{a17b3827-ea8b-0a64-13b8-c09d077fde4f}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="ChannelRef" Id="{36771113-5574-03d7-0084-2394369390e0}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY ChannelRef : POINTER TO ST_NciChannel_Ref]]></Declaration>
+      <Set Name="Set" Id="{9a93ca84-8c3f-0679-34f1-f6d996690cdd}">
         <Declaration><![CDATA[]]></Declaration>
       </Set>
     </Property>
@@ -35,12 +41,6 @@ END_VAR
       <Declaration><![CDATA[METHOD ConfirmHSK : E_PROGRESS
 VAR_INPUT
   Execute           : BOOL;
-END_VAR
-]]></Declaration>
-    </Method>
-    <Method Name="Cycle" Id="{b83bdbd1-6fd1-0c3d-399a-51183c82aa9c}" FolderPath="methods\">
-      <Declaration><![CDATA[METHOD Cycle : e_progress
-VAR_INPUT
 END_VAR
 ]]></Declaration>
     </Method>
@@ -64,9 +64,7 @@ PROPERTY Error : BOOL]]></Declaration>
     </Property>
     <Method Name="Error_Get" Id="{2fdf4a03-72b9-0902-2752-4c88e406c951}" FolderPath="methods\">
       <Declaration><![CDATA[METHOD Error_Get : BOOL
-VAR_INST
-  _stMsg            : ST_Message;
-END_VAR]]></Declaration>
+]]></Declaration>
     </Method>
     <Method Name="EStop" Id="{6c2be89c-2b45-03d5-1f3f-a92d8fd7e29f}" FolderPath="methods\">
       <Declaration><![CDATA[METHOD EStop : E_PROGRESS
@@ -137,6 +135,12 @@ VAR_INPUT
 END_VAR
 ]]></Declaration>
     </Method>
+    <Property Name="M_FuncReq" Id="{3304e30a-4e38-0a18-39f8-085b63540fc2}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY M_FuncReq : word]]></Declaration>
+      <Get Name="Get" Id="{ffa7ef9b-2860-0015-27d4-bbbcb4f4c69f}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+    </Property>
     <Property Name="MFunc" Id="{e6813d63-ef99-0544-3d58-efdd02a6e34a}" FolderPath="properties\">
       <Declaration><![CDATA[(*
 ===============================================================
@@ -166,13 +170,6 @@ actual path velo [Units/s]
 *)
 PROPERTY PathVelo : LREAL]]></Declaration>
       <Get Name="Get" Id="{cd152074-f45b-0b1b-3a3a-2f28700c43c9}">
-        <Declaration><![CDATA[]]></Declaration>
-      </Get>
-    </Property>
-    <Property Name="pNciChannelRef" Id="{bb530c1e-4d3b-0e21-2fba-bdeecbcb4e89}" FolderPath="properties\">
-      <Declaration><![CDATA[PROPERTY pNciChannelRef : POINTER TO ST_NciChannel_Ref
-]]></Declaration>
-      <Get Name="Get" Id="{1df798e9-227e-013f-232f-19ff964449c7}">
         <Declaration><![CDATA[]]></Declaration>
       </Get>
     </Property>
@@ -218,9 +215,6 @@ END_VAR
       <Declaration><![CDATA[METHOD ReadRParams : E_PROGRESS
 VAR_INPUT
   Execute  : BOOL;
-  Addr     : POINTER TO LREAL;  // start adr of rParam array 
-  Index    : DINT;              // start index of R[Index] in NCI
-  Count    : DINT;              // count of R[index+i] in NCI
 END_VAR
 ]]></Declaration>
     </Method>
@@ -244,9 +238,6 @@ END_VAR
       <Declaration><![CDATA[METHOD WriteRParams : E_PROGRESS
 VAR_INPUT
   Execute : BOOL;
-  Addr    : POINTER TO LREAL;
-  Index   : DINT;
-  Count   : DINT;
 END_VAR
 ]]></Declaration>
     </Method>
