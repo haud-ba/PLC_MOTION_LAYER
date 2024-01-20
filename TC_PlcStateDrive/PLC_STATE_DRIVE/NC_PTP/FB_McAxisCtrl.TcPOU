@@ -90,12 +90,10 @@ _eCtrl                              := _stCtrl^[_nAxisIndex].eCtrl;
 //-----------------------------------------------------------------------------
 IF (_eCtrl <> _eCtrlOld)
 THEN
+  // get busy
   _eState                           := Cmd(_eCtrl); // get execution state for command
   _eCtrlOld                         := _eCtrl;
-
   LogControl();
-
-  _stState^[_nAxisIndex].eState     := _eState + E_PROGRESS.BUSY;
 END_IF
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -108,7 +106,11 @@ OF
     // axis always requires one init from outside world at startup
     // _eInit has to be valid for other commands to be accepted in Cmd(_eCtrl)
     _eInit := _eResult              := AxisInit(TRUE);
+
+  E_AXIS_STATE.AXIS_NO_INIT:
     //-------------------------------------------------------------------------
+    // we are here because you sent a command before having done AXIS_INIT
+    _eResult                        := E_PROGRESS.ERROR;
 
   E_AXIS_STATE.AXIS_DISABLE:
     _eResult                        := AxisDisable(TRUE);
@@ -158,7 +160,8 @@ OF
   E_AXIS_STATE.AXIS_GEAR_IN_MULTIMASTER:
 
 ELSE
-  _eResult                          := _eState;
+  _eResult                          := E_PROGRESS.NOT_EXIST;
+  _Info^[_nAxisIndex].bError        := TRUE;
 END_CASE
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -168,8 +171,8 @@ END_CASE
 IF (_eResult <> _eResultOld)
 THEN
   LogResult();
-  _Info^[_nAxisIndex].nErrorId     := 0;
-  _eResultOld                      := _eResult;
+  _Info^[_nAxisIndex].nErrorId      := 0;
+  _eResultOld                       := _eResult;
 END_IF
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -192,16 +195,11 @@ OF
     _Info^[_nAxisIndex].bReady      := FALSE;
     _Info^[_nAxisIndex].bError      := TRUE;
     _Info^[_nAxisIndex].nErrorId    := ErrorId;
-    _stState^[_nAxisIndex].eState   := _eState + _eResult;
 END_CASE
 //-----------------------------------------------------------------------------
-// execution state result done
+// execution state result to interface
 //-----------------------------------------------------------------------------
-CASE _eResult
-OF
-  E_PROGRESS.DONE:
-    _stState^[_nAxisIndex].eState   := _eState + _eResult;
-END_CASE
+_stState^[_nAxisIndex].eState       := _eState + _eResult;
 //-----------------------------------------------------------------------------
 // _stState.[nAxisIndex].eState is overridden by MC_Power.bError
 //  _eAxisCycle := Cycle() is called at the top; checks MC_Power.bError
@@ -582,7 +580,7 @@ OF
 
         _stMsg.eType                  := E_MessageType.eMessageError;
         _stMsg.eDevice                := e_Device.Axis + TO_UINT(_AxisRef.NcToPlc.AxisId);
-        _stMsg.eSubdevice             := e_Subdevice.fbGearIn;
+        _stMsg.eSubdevice             := e_Subdevice.fbGearInMultiMaster;
         _stMsg.iErrorNumber           := 
         _nErr                         := 666;
 
@@ -594,20 +592,20 @@ OF
         _eState                       := E_PROGRESS.ERROR;
 
       ELSE
+        _eState                       := E_PROGRESS.BUSY;
+
         _stOptions.AdvancedSlaveDynamics  := _GearInParameter^[_nAxisIndex].bAdvancedSlaveDynamics;
         _nSyncMode                        := _GearInParameter^[_nAxisIndex].nMultiMasterSyncMode;
 
         _nMasterIndex[1]              := _GearInParameter^[_nAxisIndex].nAxisIndexMaster[1];
         _nMasterNcId[1]               := _Info^[_nMasterIndex[1]].nNcAxisId;
-
-        _fbGearInMultiMaster.Master1  := _Axes[_nMasterIndex[1]];
-
         memcpy(ADR(_stOptions.SyncMode), ADR(_nSyncMode), SIZEOF(_stOptions.SyncMode));
 
+        _fbGearInMultiMaster.Master1  := _Axes[_nMasterIndex[1]];   // assign AXIS_REF of master
 
         _stMsg.eType                  := E_MessageType.eMessageInfo;
         _stMsg.eDevice                := e_Device.Axis + TO_UINT(_AxisRef.NcToPlc.AxisId);
-        _stMsg.eSubdevice             := e_Subdevice.fbGearIn;
+        _stMsg.eSubdevice             := e_Subdevice.fbGearInMultiMaster;
         _stMsg.iErrorNumber           := _eState;
 
         _stMsg.sText                  := concat('_GearInParameter[', TO_STRING(_nAxisIndex));
@@ -616,8 +614,6 @@ OF
         f_MessageSet(_stMsg);
 
         _nAx                          := 2; // next master index to check
-
-        _eState                       := E_PROGRESS.BUSY;
       END_IF
     END_IF
 END_CASE
@@ -627,22 +623,24 @@ OF
     IF NOT (_GearInParameter^[_nAxisIndex].nAxisIndexMaster[_nAx] > 0) OR
        NOT (_GearInParameter^[_nAxisIndex].nAxisIndexMaster[_nAx] <= MAX_AXIS)
     THEN
+      // next entry not valid
+      // Master1 is already checked --> let's get ready
       _eState                         := E_PROGRESS.READY;
     ELSE
+      _eState                         := E_PROGRESS.STARTUP;
+
       _nMasterIndex[_nAx]             := _GearInParameter^[_nAxisIndex].nAxisIndexMaster[_nAx];
       _nMasterNcId [_nAx]             := _Info^[_nMasterIndex[_nAx]].nNcAxisId;
 
       _stMsg.eType                    := E_MessageType.eMessageInfo;
       _stMsg.eDevice                  := e_Device.Axis + TO_UINT(_AxisRef.NcToPlc.AxisId);
-      _stMsg.eSubdevice               := e_Subdevice.fbGearIn;
+      _stMsg.eSubdevice               := e_Subdevice.fbGearInMultiMaster;
       _stMsg.iErrorNumber             := _eState;
 
       _stMsg.sText                    := concat('_GearInParameter[', TO_STRING(_nAxisIndex));
       _stMsg.sText                    := concat(_stMsg.sText,    '] MultiMaster check: ');
       _stMsg.sText                    := concat(_stMsg.sText, TO_STRING(_nMasterIndex[_nAx]));
       f_MessageSet(_stMsg);
-
-      _eState                         := E_PROGRESS.STARTUP;
     END_IF
 
     _fbGearInMultiMaster(
@@ -654,13 +652,31 @@ OF
                       GearRatio4      := _GearInParameter^[_nAxisIndex].rGearRatio[4], 
                       Acceleration    := _GearInParameter^[_nAxisIndex].Acceleration, 
                       Deceleration    := _GearInParameter^[_nAxisIndex].Deceleration, 
-                      Jerk            := _GearInParameter^[_nAxisIndex].Jerk);
+                      Jerk            := _GearInParameter^[_nAxisIndex].Jerk,
+                      Options         := _stOptions);
 END_CASE
 CASE _eState
 OF
   E_PROGRESS.STARTUP:
-    _nAx                              := _nAx + 1;
-    _eState                           := E_PROGRESS.BUSY;
+    CASE _nAx
+    OF
+      2:
+        _nAx                          := _nAx + 1;
+        _eState                       := E_PROGRESS.BUSY;
+        _fbGearInMultiMaster.Master2  := _Axes[_nMasterIndex[2]];   // assign AXIS_REF of master
+
+      3:
+        _nAx                          := _nAx + 1;
+        _eState                       := E_PROGRESS.BUSY;
+        _fbGearInMultiMaster.Master3  := _Axes[_nMasterIndex[3]];   // assign AXIS_REF of master
+
+      4:
+        _nAx                          := _nAx + 1;
+        _eState                       := E_PROGRESS.BUSY;
+        _fbGearInMultiMaster.Master4  := _Axes[_nMasterIndex[4]];   // assign AXIS_REF of master
+    ELSE
+      _eState                         := E_PROGRESS.READY;
+    END_CASE
 END_CASE
 CASE _eState
 OF
@@ -1091,15 +1107,18 @@ OF
               NetId                 := _AxisRef.ADS.NetId, 
               Axis                  := _AxisRef);
 
+    IF NOT _fbCoeRead.Busy
+    THEN
+      _eState                       := E_PROGRESS.WORKING;
+    END_IF
+
+// in case encoder type is used without hardware, error must be ignored here
+(*
     IF (_fbCoeRead.Error)
     THEN
       _eState                       := E_PROGRESS.ERROR;
-      _Info^[_nAxisIndex].nErrorId  := SEL((_fbCoeRead.CANopenErrId > 0), _fbCoeRead.AdsErrId, _fbCoeRead.CANopenErrId);
 
-      _fbCoeRead(
-                Execute             := FALSE,
-                NetId               := _AxisRef.ADS.NetId, 
-                Axis                := _AxisRef);
+      _Info^[_nAxisIndex].nErrorId  := SEL((_fbCoeRead.CANopenErrId > 0), _fbCoeRead.AdsErrId, _fbCoeRead.CANopenErrId);
 
       _stMsg.eType                  := E_MessageType.eMessageError;
       _stMsg.eDevice                := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
@@ -1110,10 +1129,16 @@ OF
       _stMsg.sText                  := TO_STRING(_eState);
       f_MessageSet(_stMsg);
 
+      _fbCoeRead(
+                Execute             := FALSE,
+                NetId               := _AxisRef.ADS.NetId, 
+                Axis                := _AxisRef);
+
     ELSIF NOT _fbCoeRead.Busy
     THEN
       _eState                       := E_PROGRESS.WORKING;
     END_IF
+*)
 END_CASE
 CASE _eState
 OF
@@ -1425,7 +1450,7 @@ OF
 ELSE
   IF (_eInit <> E_PROGRESS.DONE)
   THEN
-    _estate                           := E_AXIS_STATE.AXIS_NULL;
+    _estate                           := E_AXIS_STATE.AXIS_NO_INIT;
   ELSE
     CASE eCmd
     OF
@@ -1533,13 +1558,19 @@ ELSE
 
     //-----------------------------------------------------------------------------------
     ELSE
-      _estate               := E_AXIS_STATE.AXIS_NULL;
-      _eres                 := E_PROGRESS.ERROR; // wrong note! wrong note!
+      _estate                         := eCmd;
+      _eres                           := E_PROGRESS.ERROR; // wrong note! wrong note!
     END_CASE
   END_IF // _eInit
 END_CASE
 
-Cmd                         := _estate;
+IF NOT (_eres = E_PROGRESS.ERROR)
+THEN
+  // only get busy on valid command
+  _stState^[_nAxisIndex].eState       := _eState + E_PROGRESS.BUSY;
+END_IF
+
+Cmd                                   := _estate;
 
 ]]></ST>
       </Implementation>
@@ -1751,7 +1782,6 @@ OF
                                   Dec         := Data.rDec, 
                                   Jerk        := Data.rJerk, 
                                   BufferMode  := _BufferMode);
-
 END_CASE
 CASE _eState
 OF
@@ -1767,11 +1797,37 @@ OF
                                   BufferMode  := _BufferMode);
     IF (_eres = E_PROGRESS.ERROR)
     THEN
-      _eState := E_PROGRESS.ERROR;
+      _eState       := E_PROGRESS.ERROR;
+                       MovePosBuffer(
+                                  Enable      := FALSE, 
+                                  Position    := Data.rSetPos, 
+                                  Vel         := Data.rSetVelo, 
+                                  Acc         := Data.rAcc, 
+                                  Dec         := Data.rDec, 
+                                  Jerk        := Data.rJerk, 
+                                  BufferMode  := _BufferMode);
+
+    ELSIF (_stCtrl^[_nAxisIndex].eProgress = E_PROGRESS.DONE)
+    THEN
+      // when Ctrl decides to leave; make finishing move and be done
+      _eState       := E_PROGRESS.FINISHING;
     END_IF
 END_CASE
+CASE _eState
+OF
+  E_PROGRESS.FINISHING:
+    _eState         := E_PROGRESS.DONE;
+    _eres           := MovePosBuffer(
+                                  Enable      := FALSE, 
+                                  Position    := Data.rSetPos, 
+                                  Vel         := Data.rSetVelo, 
+                                  Acc         := Data.rAcc, 
+                                  Dec         := Data.rDec, 
+                                  Jerk        := Data.rJerk, 
+                                  BufferMode  := _BufferMode);
+END_CASE
 
-MoveBufferPos := _eState;
+MoveBufferPos       := _eState;
 ]]></ST>
       </Implementation>
     </Method>
@@ -1827,10 +1883,34 @@ OF
     IF (_eres = E_PROGRESS.ERROR)
     THEN
       _eState := E_PROGRESS.ERROR;
+                       MoveVeloBuffer(
+                                  Enable      := FALSE, 
+                                  Velocity    := Data.rSetVelo, 
+                                  Acc         := Data.rAcc, 
+                                  Dec         := Data.rDec, 
+                                  Jerk        := Data.rJerk, 
+                                  BufferMode  := _BufferMode);
+
+    ELSIF (_stCtrl^[_nAxisIndex].eProgress = E_PROGRESS.DONE)
+    THEN
+      // when Ctrl decides to leave; make finishing move and be done
+      _eState       := E_PROGRESS.FINISHING;
     END_IF
 END_CASE
+CASE _eState
+OF
+  E_PROGRESS.FINISHING:
+    _eState         := E_PROGRESS.DONE;
+    _eres           := MoveVeloBuffer(
+                                  Enable      := FALSE, 
+                                  Velocity    := Data.rSetVelo, 
+                                  Acc         := Data.rAcc, 
+                                  Dec         := Data.rDec, 
+                                  Jerk        := Data.rJerk, 
+                                  BufferMode  := _BufferMode);
+END_CASE
 
-MoveBufferVelo := _eState;
+MoveBufferVelo      := _eState;
 ]]></ST>
       </Implementation>
     </Method>
@@ -2400,15 +2480,25 @@ END_VAR
       <LineId Id="1693" Count="0" />
       <LineId Id="1456" Count="9" />
       <LineId Id="1722" Count="2" />
-      <LineId Id="1466" Count="10" />
+      <LineId Id="1466" Count="1" />
+      <LineId Id="1975" Count="0" />
+      <LineId Id="1468" Count="1" />
+      <LineId Id="1471" Count="0" />
+      <LineId Id="1474" Count="2" />
       <LineId Id="1725" Count="1" />
-      <LineId Id="1477" Count="44" />
+      <LineId Id="1477" Count="6" />
+      <LineId Id="1485" Count="0" />
+      <LineId Id="2022" Count="4" />
+      <LineId Id="1486" Count="35" />
       <LineId Id="1523" Count="0" />
       <LineId Id="1910" Count="0" />
       <LineId Id="1524" Count="2" />
       <LineId Id="1528" Count="1" />
       <LineId Id="1911" Count="0" />
-      <LineId Id="1530" Count="5" />
+      <LineId Id="1530" Count="3" />
+      <LineId Id="2001" Count="0" />
+      <LineId Id="1974" Count="0" />
+      <LineId Id="1535" Count="0" />
       <LineId Id="1744" Count="0" />
       <LineId Id="1536" Count="1" />
       <LineId Id="1745" Count="0" />
@@ -2418,12 +2508,9 @@ END_VAR
       <LineId Id="1549" Count="3" />
       <LineId Id="1835" Count="0" />
       <LineId Id="1553" Count="1" />
-      <LineId Id="1742" Count="0" />
-      <LineId Id="1557" Count="3" />
-      <LineId Id="1700" Count="1" />
-      <LineId Id="1710" Count="0" />
+      <LineId Id="2027" Count="0" />
+      <LineId Id="1558" Count="2" />
       <LineId Id="1708" Count="0" />
-      <LineId Id="1707" Count="0" />
       <LineId Id="1729" Count="1" />
       <LineId Id="1738" Count="1" />
       <LineId Id="1731" Count="2" />
@@ -2523,37 +2610,47 @@ END_VAR
       <LineId Id="784" Count="0" />
       <LineId Id="1013" Count="0" />
       <LineId Id="785" Count="0" />
+      <LineId Id="1074" Count="1" />
       <LineId Id="1011" Count="1" />
       <LineId Id="1010" Count="0" />
       <LineId Id="789" Count="1" />
+      <LineId Id="1073" Count="0" />
       <LineId Id="997" Count="1" />
-      <LineId Id="917" Count="0" />
-      <LineId Id="919" Count="0" />
-      <LineId Id="916" Count="0" />
       <LineId Id="858" Count="0" />
       <LineId Id="860" Count="3" />
       <LineId Id="958" Count="3" />
       <LineId Id="866" Count="0" />
       <LineId Id="904" Count="0" />
       <LineId Id="903" Count="0" />
-      <LineId Id="791" Count="0" />
-      <LineId Id="685" Count="0" />
       <LineId Id="786" Count="0" />
       <LineId Id="686" Count="4" />
       <LineId Id="908" Count="2" />
+      <LineId Id="1076" Count="1" />
       <LineId Id="975" Count="0" />
       <LineId Id="974" Count="0" />
+      <LineId Id="1070" Count="1" />
       <LineId Id="944" Count="1" />
       <LineId Id="964" Count="9" />
-      <LineId Id="962" Count="0" />
-      <LineId Id="906" Count="1" />
+      <LineId Id="907" Count="0" />
       <LineId Id="946" Count="0" />
       <LineId Id="881" Count="0" />
       <LineId Id="886" Count="7" />
       <LineId Id="811" Count="0" />
+      <LineId Id="1072" Count="0" />
       <LineId Id="692" Count="3" />
-      <LineId Id="844" Count="0" />
-      <LineId Id="995" Count="0" />
+      <LineId Id="1054" Count="1" />
+      <LineId Id="1085" Count="0" />
+      <LineId Id="1089" Count="0" />
+      <LineId Id="1086" Count="2" />
+      <LineId Id="1058" Count="0" />
+      <LineId Id="1090" Count="0" />
+      <LineId Id="1068" Count="0" />
+      <LineId Id="1084" Count="0" />
+      <LineId Id="1080" Count="1" />
+      <LineId Id="1091" Count="0" />
+      <LineId Id="1082" Count="1" />
+      <LineId Id="1063" Count="1" />
+      <LineId Id="1056" Count="0" />
       <LineId Id="948" Count="3" />
       <LineId Id="1000" Count="9" />
       <LineId Id="996" Count="0" />
@@ -2673,20 +2770,24 @@ END_VAR
       <LineId Id="50" Count="3" />
       <LineId Id="141" Count="0" />
       <LineId Id="143" Count="1" />
+      <LineId Id="267" Count="5" />
+      <LineId Id="265" Count="0" />
       <LineId Id="130" Count="2" />
       <LineId Id="175" Count="0" />
+      <LineId Id="264" Count="0" />
       <LineId Id="145" Count="0" />
       <LineId Id="166" Count="0" />
-      <LineId Id="162" Count="3" />
-      <LineId Id="168" Count="3" />
+      <LineId Id="169" Count="2" />
       <LineId Id="177" Count="0" />
       <LineId Id="172" Count="0" />
       <LineId Id="176" Count="0" />
       <LineId Id="173" Count="1" />
+      <LineId Id="259" Count="4" />
       <LineId Id="167" Count="0" />
       <LineId Id="135" Count="1" />
       <LineId Id="146" Count="0" />
       <LineId Id="140" Count="0" />
+      <LineId Id="266" Count="0" />
       <LineId Id="55" Count="3" />
       <LineId Id="243" Count="0" />
       <LineId Id="202" Count="0" />
@@ -2879,7 +2980,11 @@ END_VAR
       <LineId Id="14" Count="0" />
       <LineId Id="104" Count="0" />
       <LineId Id="91" Count="0" />
+      <LineId Id="216" Count="2" />
+      <LineId Id="221" Count="0" />
+      <LineId Id="219" Count="0" />
       <LineId Id="105" Count="0" />
+      <LineId Id="220" Count="0" />
       <LineId Id="22" Count="0" />
       <LineId Id="20" Count="0" />
       <LineId Id="5" Count="0" />
@@ -2952,10 +3057,16 @@ END_VAR
       <LineId Id="802" Count="0" />
       <LineId Id="792" Count="6" />
       <LineId Id="791" Count="0" />
-      <LineId Id="800" Count="0" />
       <LineId Id="762" Count="0" />
       <LineId Id="778" Count="2" />
-      <LineId Id="804" Count="12" />
+      <LineId Id="804" Count="11" />
+      <LineId Id="847" Count="7" />
+      <LineId Id="832" Count="0" />
+      <LineId Id="828" Count="3" />
+      <LineId Id="816" Count="0" />
+      <LineId Id="834" Count="3" />
+      <LineId Id="846" Count="0" />
+      <LineId Id="838" Count="7" />
       <LineId Id="782" Count="0" />
       <LineId Id="788" Count="1" />
       <LineId Id="2" Count="0" />
@@ -2971,8 +3082,12 @@ END_VAR
       <LineId Id="762" Count="0" />
       <LineId Id="778" Count="2" />
       <LineId Id="804" Count="2" />
-      <LineId Id="808" Count="8" />
-      <LineId Id="782" Count="0" />
+      <LineId Id="808" Count="7" />
+      <LineId Id="856" Count="6" />
+      <LineId Id="848" Count="0" />
+      <LineId Id="829" Count="9" />
+      <LineId Id="849" Count="6" />
+      <LineId Id="847" Count="0" />
       <LineId Id="788" Count="1" />
       <LineId Id="2" Count="0" />
     </LineIds>

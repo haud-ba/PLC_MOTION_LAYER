@@ -19,6 +19,7 @@ TYPE E_PROGRESS :
 
   DONE          := 1000,
 
+  NOT_EXIST     := 6000,
   ERROR         := 9000
 
 )UINT;

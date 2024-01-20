@@ -254,7 +254,7 @@
     <Compile Include="_MSG\types\ST_Message.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="_MSG\Visualization.TcVIS">
+    <Compile Include="_MSG\T_MESSAGE_LIST.TcVIS">
       <SubType>Code</SubType>
       <DependentUpon>Visualization Manager.TcVMO</DependentUpon>
     </Compile>

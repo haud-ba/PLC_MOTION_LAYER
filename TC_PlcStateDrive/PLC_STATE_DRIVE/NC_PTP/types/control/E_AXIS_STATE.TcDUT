@@ -10,6 +10,8 @@ TYPE E_AXIS_STATE :
   AXIS_DISABLE,
   AXIS_ENABLE,
 
+  AXIS_NO_INIT  := 9,
+  
   AXIS_IDLE     := 10, // clear axis and enable
   AXIS_HOME,
   AXIS_MOVE_POS,
