@@ -4,8 +4,8 @@
     <Declaration><![CDATA[{attribute 'pack_mode' := '2'}
 TYPE ST_AXIS_STATE :
 STRUCT
-  eState      : E_AXIS_STATE; // mirror the requested axis function; 
-                                        // + E_PROGRESS
+  eState        : E_AXIS_STATE; // mirror the requested command + E_PROGRESS
+  eAxisEncoder  : E_AxisEncoderType;
 END_STRUCT
 END_TYPE
 ]]></Declaration>

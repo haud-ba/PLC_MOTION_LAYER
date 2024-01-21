@@ -259,7 +259,7 @@ OF
     
       _stMsg.eType                  := E_MessageType.eMessageError;
       _stMsg.eDevice                := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
-      _stMsg.eSubdevice             :=  e_SubDevice.AxisControl;
+      _stMsg.eSubdevice             :=  e_SubDevice.fbAxis;
       _stMsg.iErrorNumber           := _nErrorId;
 
       f_MessageSet(_stMsg);
@@ -320,6 +320,7 @@ OF
     THEN
       _fbPower.Enable               := FALSE;
       _eState                       := E_PROGRESS.ERROR;
+
     ELSE
       _eState                       := E_PROGRESS.WAITING;
     END_IF
@@ -333,7 +334,7 @@ OF
     
       _stMsg.eType                  := E_MessageType.eMessageError;
       _stMsg.eDevice                := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
-      _stMsg.eSubdevice             :=  e_SubDevice.AxisControl;
+      _stMsg.eSubdevice             :=  e_SubDevice.fbAxisEnable;
       _stMsg.iErrorNumber           := _nErrorId;
     
       f_MessageSet(_stMsg);
@@ -1462,7 +1463,7 @@ OF
     THEN
       _stMsg.eType                  := E_MessageType.eMessageInfo;
       _stMsg.eDevice                := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
-      _stMsg.eSubdevice             := e_Subdevice.AxisControl;
+      _stMsg.eSubdevice             := e_Subdevice.fbAxis;
       _stMsg.iErrorNumber           := 0;
       _stMsg.sText                  := concat('StartUp NcAxisId: ', TO_STRING(_AxisRef.NcToPlc.AxisId));
 
@@ -1509,7 +1510,7 @@ OF
 
       _stMsg.eType                  := E_MessageType.eMessageError;
       _stMsg.eDevice                := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
-      _stMsg.eSubdevice             := e_Subdevice.AxisControl;
+      _stMsg.eSubdevice             := e_Subdevice.fbAxis;
       _stMsg.iErrorNumber           := _nErrorId;
       _stMsg.sText                  := 'StartUp Ads Error Read Encoder Type';
 
@@ -1523,7 +1524,7 @@ OF
 
       _stMsg.eType                  := E_MessageType.eMessageInfo;
       _stMsg.eDevice                := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
-      _stMsg.eSubdevice             := e_Subdevice.AxisControl;
+      _stMsg.eSubdevice             := e_Subdevice.fbAxis;
       _stMsg.iErrorNumber           := 0;
       _stMsg.sText                  := concat('Encoder Type: ', _sEncoder);
 
@@ -1563,7 +1564,7 @@ OF
 
       _stMsg.eType                  := E_MessageType.eMessageError;
       _stMsg.eDevice                := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);;
-      _stMsg.eSubdevice             := e_Subdevice.AxisControl;
+      _stMsg.eSubdevice             := e_Subdevice.fbAxis;
       _stMsg.iErrorNumber           := _nErrorId;
       _stMsg.sText                  := 'StartUp Ads Error Read Axis Name';
 
@@ -1576,7 +1577,7 @@ OF
 
       _stMsg.eType                  := E_MessageType.eMessageInfo;
       _stMsg.eDevice                := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);;
-      _stMsg.eSubdevice             := e_Subdevice.AxisControl;
+      _stMsg.eSubdevice             := e_Subdevice.fbAxis;
       _stMsg.iErrorNumber           := 0;
       _stMsg.sText                  := concat('Axis Name: ', _sName);
 
@@ -1993,9 +1994,7 @@ WriteParameterPersistent            := _eState;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_McAxis.Disable">
-      <LineId Id="861" Count="0" />
-      <LineId Id="790" Count="40" />
-      <LineId Id="833" Count="15" />
+      <LineId Id="873" Count="57" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_McAxis.Enable">
@@ -2005,7 +2004,9 @@ WriteParameterPersistent            := _eState;
       <LineId Id="709" Count="4" />
       <LineId Id="739" Count="1" />
       <LineId Id="744" Count="0" />
-      <LineId Id="741" Count="1" />
+      <LineId Id="741" Count="0" />
+      <LineId Id="796" Count="0" />
+      <LineId Id="742" Count="0" />
       <LineId Id="714" Count="0" />
       <LineId Id="743" Count="0" />
       <LineId Id="715" Count="0" />

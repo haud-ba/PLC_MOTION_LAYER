@@ -3,12 +3,52 @@
   <Itf Name="I_McAxis" Id="{df9f672e-6c08-07db-39bc-3fcca419c0c5}">
     <Declaration><![CDATA[INTERFACE I_McAxis
 ]]></Declaration>
-    <Folder Name="properties" Id="{c3aa66e4-adb2-0576-2fa7-bb2e1744bc40}" />
-    <Property Name="AxisRef" Id="{5b5f341e-5598-0c1b-0e07-a2e86f8ec7a8}" FolderPath="properties\">
-      <Declaration><![CDATA[PROPERTY AxisRef : reference to AXIS_REF]]></Declaration>
-      <Get Name="Get" Id="{e308e6f3-b4af-0894-0c9f-f1d325a62694}">
+    <Folder Name="methods" Id="{b49529db-ea8c-01b3-3687-85fa88f4ed08}" />
+    <Folder Name="properties" Id="{22419678-1517-0009-372c-adf97db95a98}" />
+    <Property Name="AxisRef" Id="{7d2a114d-4432-0095-2ecb-a474e2a031bd}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY AxisRef : reference to Tc2_MC2.AXIS_REF]]></Declaration>
+      <Get Name="Get" Id="{840fa35e-f799-0e3f-1997-2ec77a2f3043}">
         <Declaration><![CDATA[]]></Declaration>
       </Get>
     </Property>
+    <Method Name="Disable" Id="{6733f6f1-eee7-046b-33ae-7a8adfed7590}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD Disable : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+END_VAR
+]]></Declaration>
+    </Method>
+    <Method Name="Enable" Id="{3268550c-0f61-0793-3744-93a382e3a070}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD Enable : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+END_VAR
+]]></Declaration>
+    </Method>
+    <Method Name="Halt" Id="{a0dc8f7e-08ff-058b-0cd9-6d80a8af16ba}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD Halt : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+  Dec               : LREAL;
+  Jerk              : LREAL;
+END_VAR
+]]></Declaration>
+    </Method>
+    <Method Name="Reset" Id="{b60d6850-a4c7-07c3-05ec-3f927ae74504}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD Reset : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+END_VAR
+]]></Declaration>
+    </Method>
+    <Method Name="Stop" Id="{9ed3be03-537d-07e4-2377-251305834f1b}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD Stop : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+  Dec               : LREAL;
+  Jerk              : LREAL;
+END_VAR
+]]></Declaration>
+    </Method>
   </Itf>
 </TcPlcObject>

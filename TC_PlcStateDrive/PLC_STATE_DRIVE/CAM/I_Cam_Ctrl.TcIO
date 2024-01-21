@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <Itf Name="I_Cam_Ctrl" Id="{4e1da497-37ee-0168-2b24-5b9fbd7bcd6c}">
+    <Declaration><![CDATA[INTERFACE I_Cam_Ctrl
+]]></Declaration>
+    <Folder Name="methods" Id="{289023ab-c939-0f43-2a6d-f07aa32fae6f}" />
+    <Method Name="Cycle" Id="{ce9f2a1e-2df8-0349-1e51-54c4c0c7254a}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD Cycle  : e_progress
+]]></Declaration>
+    </Method>
+  </Itf>
+</TcPlcObject>

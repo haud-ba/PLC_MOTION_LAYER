@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Refactors>
+  <Renames>
+    <RenamedSymbol>
+      <Type guid="b4255e95-d04d-4216-a935-7528bf2b6255">e_Subdevice</Type>
+      <From>AxisControl</From>
+      <To>fbAxis</To>
+    </RenamedSymbol>
+    <RenamedSymbol>
+      <Type guid="b4255e95-d04d-4216-a935-7528bf2b6255">e_Subdevice</Type>
+      <From>AxisMode</From>
+      <To>AxisControl</To>
+    </RenamedSymbol>
+    <RenamedType>
+      <Type guid="47c7a3b9-4345-4eb8-82bc-f0cb273a3a93">FB_CAMMING</Type>
+      <From>fb_Camming</From>
+      <To>FB_CamCtrl</To>
+    </RenamedType>
+    <RenamedType>
+      <Type guid="01fe2e24-3767-4acb-adc6-253db965f62f">TEMPLATE_1</Type>
+      <From>Template_1</From>
+      <To>CamInfo</To>
+    </RenamedType>
+  </Renames>
+</Refactors>

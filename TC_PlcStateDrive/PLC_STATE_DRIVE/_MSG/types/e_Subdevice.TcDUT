@@ -6,14 +6,15 @@
 TYPE e_Subdevice :
 (
   // sub device for message system
-  AxisControl := 0,
+  fbAxis          := 0,
   fbAxis_StartUp,
   fbAxis_StartupReset,
   fbAxis_Cycle,
+  fbAxisEnable,
   fbCoeRead,
 
   // Motion Control FB Instances
-  fbPower         := 10,
+  fbPower           := 10,
   fbReset,
   fbResetSercos,
   fbHalt,
@@ -27,20 +28,27 @@ TYPE e_Subdevice :
   fbMoveEndless,
   fbMovePtP,
 
-  fbGearIn := 50,
+  fbGearIn          := 50,
   fbGearOut,
   fbGearInMultiMaster,
 
-  fbCamIn := 60,
-  fbCamOut,
+  fbCamInV2         := 60,
+  fbCamScalingV2,
+  fbCamInfoV2,
+  fbReadMotionFunction,
+  fbReadMotionFunctionPoint,
+  fbReadMotionFunctionValues,
+  fbWriteMotionFunction,
+  fbWriteMotionFunctionPoint,
 
-  fbReadParameter := 100,
+
+  fbReadParameter   := 100,
   fbReadBoolParameter,
   fbWriteParameter,
   fbWriteBoolParameter,
   fbWriteParameterPersistent,
 
-	fbBuildGroup := 200,
+	fbBuildGroup      := 200,
 	fbClearGroup,
 	fbLoadProg,
 	fbResetItp,
@@ -58,7 +66,11 @@ TYPE e_Subdevice :
   Get_ItpState,
   Get_Error,
 
-  AxisMode      := 1000,
+  AxisControl      := 1000,
+  AxisControl_Enable,
+  AxisControl_Idle,
+  AxisControl_GearOut,
+
 
   Ctrl_Nci_Cmd  := 2000
 )DINT;

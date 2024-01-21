@@ -59,6 +59,7 @@ VAR
   {attribute 'hide'}
   _MultiMasterDummyRef            : ARRAY[1..4] OF AXIS_REF;
 
+  _fbGearOut                      : Tc2_MC2.MC_GearOut;
   _fbGearIn                       : Tc2_MC2.MC_GearIn;
   _fbGearInMultiMaster            : Tc2_MC2.MC_GearInMultiMaster;
 END_VAR
@@ -154,9 +155,13 @@ OF
     _eResult                        := ParameterWritePersistent(TRUE, _NcParameterWrt^[_nAxisIndex].ParameterNumber);
 
   E_AXIS_STATE.AXIS_GEAR_IN:
+    _eResult                        := AxisGearIn(TRUE);
 
   E_AXIS_STATE.AXIS_GEAR_OUT:
+    _eResult                        := AxisGearOut(TRUE);
+
   E_AXIS_STATE.AXIS_GEAR_IN_MULTIMASTER:
+    _eResult                        := AxisGearInMultiMaster(TRUE);
 
 ELSE
   IF (_eCtrl > E_AXIS_CTRL.AXIS_NULL)
@@ -204,6 +209,10 @@ END_CASE
 // execution state result to interface
 //-----------------------------------------------------------------------------
 _stState^[_nAxisIndex].eState       := _eState + _eResult;
+//-----------------------------------------------------------------------------
+// encoder type (enum)
+//-----------------------------------------------------------------------------
+_stState^[_nAxisIndex].eAxisEncoder := EncoderType;
 //-----------------------------------------------------------------------------
 // _stState.[nAxisIndex].eState is overridden by MC_Power.bError
 //  _eAxisCycle := Cycle() is called at the top; checks MC_Power.bError
@@ -436,7 +445,7 @@ OF
       _rValue                       := 0;
 
       IF NOT (_GearInParameter^[_nAxisIndex].nAxisIndexMaster[1] > 0) OR
-         NOT (_GearInParameter^[_nAxisIndex].nAxisIndexMaster[1] <= MAX_AXIS)
+         NOT (_GearInParameter^[_nAxisIndex].nAxisIndexMaster[1] < MAX_AXIS+1)
       THEN
         _nMasterIndex               := _GearInParameter^[_nAxisIndex].nAxisIndexMaster[1];
 
@@ -446,11 +455,17 @@ OF
         _stMsg.iErrorNumber         := 
         _nErr                       := 666;
 
-        _stMsg.sText                := concat('nAxisIndexMaster[1] out of range: ', TO_STRING(_nMasterIndex));
+        _stMsg.sText                := concat('_GearInParameter[', TO_STRING(_nAxisIndex));
+        _stMsg.sText                := concat(_stMsg.sText,    '].nAxisIndexMaster[1] out of range: ');
+        _stMsg.sText                := concat(_stMsg.sText, TO_STRING(_nMasterIndex));
+
         f_MessageSet(_stMsg);
 
         _eState                     := E_PROGRESS.ERROR;
+
       ELSE
+        _eState                     := E_PROGRESS.BUSY;
+
         _nMasterIndex               := _GearInParameter^[_nAxisIndex].nAxisIndexMaster[1];
         _nMasterNcId                := _Info^[_nMasterIndex].nNcAxisId;
 
@@ -459,10 +474,8 @@ OF
         _stMsg.eSubdevice           := e_Subdevice.fbGearIn;
         _stMsg.iErrorNumber         := 0;
   
-        _stMsg.sText                  := concat('GearIn start: ', TO_STRING(_nMasterIndex));
+        _stMsg.sText                := concat('GearIn BUSY: ', TO_STRING(_nMasterIndex));
         f_MessageSet(_stMsg);
-
-        _eState                     := E_PROGRESS.BUSY;
       END_IF
     END_IF
 END_CASE
@@ -496,12 +509,13 @@ OF
     IF (_fbGearIn.Error)
     THEN
       _nErr                         := _fbGearIn.ErrorID;
+
       _stMsg.eType                  := E_MessageType.eMessageError;
       _stMsg.eDevice                := e_Device.Axis + TO_UINT(_AxisRef.NcToPlc.AxisId);
       _stMsg.eSubdevice             := e_Subdevice.fbGearIn;
       _stMsg.iErrorNumber           := _nErr;
 
-      _stMsg.sText                  := concat('GearIn failed: ', TO_STRING(_nMasterIndex));
+      _stMsg.sText                  := concat('GearIn ERROR: ', TO_STRING(_nMasterIndex));
       f_MessageSet(_stMsg);
       _eState                       := E_PROGRESS.ERROR;
 
@@ -522,17 +536,15 @@ OF
 
     _stMsg.sText                    := concat('GearIn done: ', TO_STRING(_nMasterIndex));
     f_MessageSet(_stMsg);
-
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.DONE,
+  E_PROGRESS.ERROR:
     _fbGearIn(
               Master                := _Axes[_nMasterIndex], 
               Slave                 := _AxisRef, 
-              Execute               := FALSE, 
-              RatioNumerator        := _GearInParameter^[_nAxisIndex].rGearRatio[1], 
-              RatioDenominator      := 1, 
-              Acceleration          := _GearInParameter^[_nAxisIndex].Acceleration, 
-              Deceleration          := _GearInParameter^[_nAxisIndex].Deceleration, 
-              Jerk                  := _GearInParameter^[_nAxisIndex].Jerk);
-
+              Execute               := FALSE);
 END_CASE
 
 AxisGearIn                          := _eState;
@@ -625,7 +637,7 @@ CASE _eState
 OF
   E_PROGRESS.BUSY:
     IF NOT (_GearInParameter^[_nAxisIndex].nAxisIndexMaster[_nAx] > 0) OR
-       NOT (_GearInParameter^[_nAxisIndex].nAxisIndexMaster[_nAx] <= MAX_AXIS)
+       NOT (_GearInParameter^[_nAxisIndex].nAxisIndexMaster[_nAx] < MAX_AXIS+1)
     THEN
       // next entry not valid
       // Master1 is already checked --> let's get ready
@@ -786,6 +798,118 @@ END_VAR
         </Implementation>
       </Set>
     </Property>
+    <Method Name="AxisGearOut" Id="{ecd7fdba-4017-0a44-19d0-26000bfe6621}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD AxisGearOut : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+END_VAR
+VAR_INST
+  _eState           : E_PROGRESS;
+  _rValue           : LREAL;
+  _nErr,
+  _stMsg            : ST_Message;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT Check() THEN _eState := E_PROGRESS.ERROR; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+
+CASE _eState
+OF
+  E_PROGRESS.INIT:
+    IF Execute 
+    THEN
+      memset(ADR(_stMsg),0,SIZEOF(_stMsg));
+      _nErr                       := 0;
+      _rValue                     := 0;
+
+      _fbGearOut(
+            Slave                 := _AxisRef, 
+            Execute               := FALSE);
+
+      IF (_AxisRef.NcToPlc.CoupleState < 2)
+      THEN
+        _eState                   := E_PROGRESS.DONE;
+      ELSE
+        _eState                   := E_PROGRESS.BUSY;
+
+        _stMsg.eType              := E_MessageType.eMessageInfo;
+        _stMsg.eDevice            := e_Device.Axis + TO_UINT(_AxisRef.NcToPlc.AxisId);
+        _stMsg.eSubdevice         := e_Subdevice.fbGearOut;
+        _stMsg.iErrorNumber       := 0;
+  
+        _stMsg.sText              := concat('GearOut BUSY: ', TO_STRING(_nAxisIndex));
+        f_MessageSet(_stMsg);
+      END_IF
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.BUSY:
+    _fbGearOut(
+            Slave                 := _AxisRef, 
+            Execute               := TRUE);
+
+    IF (_fbGearOut.Error)
+    THEN
+      _nErr                       := _fbGearOut.ErrorID;
+
+      _stMsg.eType                := E_MessageType.eMessageError;
+      _stMsg.eDevice              := e_Device.Axis + TO_UINT(_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice           := e_Subdevice.fbGearOut;
+      _stMsg.iErrorNumber         := _nErr;
+
+      _stMsg.sText                := concat('GearOut ERROR: ', TO_STRING(_nAxisIndex));
+      f_MessageSet(_stMsg);
+      _eState                     := E_PROGRESS.ERROR;
+
+    ELSIF (_fbGearOut.Done)
+    THEN
+      _stMsg.eType                := E_MessageType.eMessageInfo;
+      _stMsg.eDevice              := e_Device.Axis + TO_UINT(_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice           := e_Subdevice.fbGearOut;
+      _stMsg.iErrorNumber         := 0;
+  
+      _stMsg.sText                := concat('GearOut DONE: ', TO_STRING(_nAxisIndex));
+      f_MessageSet(_stMsg);
+
+      IF (_AxisRef.NcToPlc.CoupleState < 2)
+      THEN
+        _eState                   := E_PROGRESS.DONE;
+      ELSE
+        _eState                   := E_PROGRESS.STARTUP;
+      END_IF
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.STARTUP:
+    _eState                       := E_PROGRESS.BUSY;
+    _fbGearOut(
+          Slave                   := _AxisRef, 
+          Execute                 := FALSE);
+
+    _stMsg.eType                  := E_MessageType.eMessageInfo;
+    _stMsg.eDevice                := e_Device.Axis + TO_UINT(_AxisRef.NcToPlc.AxisId);
+    _stMsg.eSubdevice             := e_Subdevice.fbGearOut;
+    _stMsg.iErrorNumber           := 0;
+
+    _stMsg.sText                  := concat('GearOut CoupleState: ', TO_STRING(_AxisRef.NcToPlc.CoupleState));
+    f_MessageSet(_stMsg);
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.DONE,
+  E_PROGRESS.ERROR:
+    _fbGearOut(
+            Slave                 := _AxisRef, 
+            Execute               := FALSE);
+END_CASE
+
+AxisGearOut                       := _eState;
+]]></ST>
+      </Implementation>
+    </Method>
     <Method Name="AxisHalt" Id="{9b3aecb2-f7be-0371-1558-f6e3e61aa21b}" FolderPath="methods\">
       <Declaration><![CDATA[METHOD AxisHalt : E_PROGRESS
 VAR_INPUT
@@ -1548,6 +1672,7 @@ ELSE
 
       //---------------------------------------------------------------------------------    
       E_AXIS_CTRL.AXIS_GEAR_OUT:
+        _eres                         := AxisGearOut(FALSE);
         _estate                       := E_AXIS_STATE.AXIS_GEAR_OUT;
 
       //---------------------------------------------------------------------------------
@@ -1631,6 +1756,8 @@ END_VAR
 VAR_INST
   _eResult,
   _eState           : E_PROGRESS;
+  _stMsg            : ST_Message;
+  _nRetry           : UINT;
 END_VAR
 ]]></Declaration>
       <Implementation>
@@ -1642,6 +1769,8 @@ OF
   E_PROGRESS.INIT:
     IF Execute 
     THEN
+      memset(ADR(_stMsg),0,SIZEOF(_stMsg));
+      _nRetry                       := 0;
       _eResult                      := Reset(FALSE);
       _eState                       := E_PROGRESS.BUSY;
     END_IF
@@ -1653,29 +1782,64 @@ OF
 
     IF (_eResult = E_PROGRESS.DONE)
     THEN
-      _eState                       := E_PROGRESS.PREPARE;
+      _nRetry                       := _nRetry + 1;
+      _eState                       := E_PROGRESS.STARTUP;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.PREPARE:
+  E_PROGRESS.STARTUP:
     _eResult                        := Reset(FALSE);
     _eResult                        := Enable(FALSE);
     _eState                         := E_PROGRESS.READY;
 END_CASE
 CASE _eState
 OF
+  E_PROGRESS.PREPARE:
+    _eResult                        := Reset(FALSE);
+    _eResult                        := Enable(FALSE);
+
+    _eState                         := E_PROGRESS.BUSY;
+
+    _stMsg.eType                    := E_MessageType.eMessageInfo;
+    _stMsg.eDevice                  := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
+    _stMsg.eSubdevice               :=  e_SubDevice.AxisControl_Enable;
+    _stMsg.iErrorNumber             := _nErrorId;
+
+    _stMsg.sText                    := concat(TO_STRING(_eCtrl), ' retry: ');
+    _stMsg.sText                    := concat(_stMsg.sText, TO_STRING(_nRetry));
+
+    f_MessageSet(_stMsg);
+END_CASE
+CASE _eState
+OF
   E_PROGRESS.READY:
     _eResult                        := Enable(TRUE);
 
-    IF (_eResult = E_PROGRESS.DONE)
+    IF (_nRetry > MAX_RETRY)
+    THEN
+      _eState                       := E_PROGRESS.ERROR;
+
+    ELSIF (_eResult = E_PROGRESS.DONE)
     THEN
       Enable(FALSE);
       _eState                       := E_PROGRESS.DONE;
 
     ELSIF (_eResult = E_PROGRESS.ERROR)
     THEN
-      _eState                       := E_PROGRESS.BUSY;
+      _eState                       := E_PROGRESS.PREPARE;
+
+      _nErrorId                     := _AxisRef.NcToPlc.ErrorCode;
+    
+      _stMsg.eType                  := E_MessageType.eMessageError;
+      _stMsg.eDevice                := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             :=  e_SubDevice.AxisControl_Enable;
+      _stMsg.iErrorNumber           := _nErrorId;
+
+      _stMsg.sText                  := concat(TO_STRING(_eCtrl), ' error axis enable: ');
+      _stMsg.sText                  := concat(_stMsg.sText, TO_STRING(_nAxisIndex));
+
+      f_MessageSet(_stMsg);
     END_IF
 END_CASE
 
@@ -1693,10 +1857,9 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[
-  _stMsg.eType               := E_MessageType.eMessageInfo;
+        <ST><![CDATA[  _stMsg.eType               := E_MessageType.eMessageInfo;
   _stMsg.eDevice             := E_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
-  _stMsg.eSubdevice          := e_Subdevice.AxisMode;
+  _stMsg.eSubdevice          := e_Subdevice.AxisControl;
   _stMsg.iErrorNumber        := _nAxisIndex;
 
   _sCtrl                     := concat('E_AXIS_CTRL', '.');
@@ -1721,7 +1884,7 @@ END_VAR
         <ST><![CDATA[
   _stMsg.eType               := E_MessageType.eMessageInfo;
   _stMsg.eDevice             := E_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
-  _stMsg.eSubdevice          := e_Subdevice.AxisMode;
+  _stMsg.eSubdevice          := e_Subdevice.AxisControl;
   _stMsg.iErrorNumber        := _nAxisIndex;
 
   _sCtrl                     := concat('E_AXIS_CTRL', '.');
@@ -2480,58 +2643,7 @@ END_VAR
       </Set>
     </Property>
     <LineIds Name="FB_McAxisCtrl">
-      <LineId Id="1444" Count="8" />
-      <LineId Id="1693" Count="0" />
-      <LineId Id="1456" Count="9" />
-      <LineId Id="1722" Count="2" />
-      <LineId Id="1466" Count="1" />
-      <LineId Id="1975" Count="0" />
-      <LineId Id="1468" Count="1" />
-      <LineId Id="1471" Count="0" />
-      <LineId Id="1474" Count="2" />
-      <LineId Id="1725" Count="1" />
-      <LineId Id="1477" Count="6" />
-      <LineId Id="1485" Count="0" />
-      <LineId Id="2022" Count="4" />
-      <LineId Id="1486" Count="35" />
-      <LineId Id="1523" Count="0" />
-      <LineId Id="1910" Count="0" />
-      <LineId Id="1524" Count="2" />
-      <LineId Id="1528" Count="1" />
-      <LineId Id="1911" Count="0" />
-      <LineId Id="1530" Count="3" />
-      <LineId Id="2028" Count="1" />
-      <LineId Id="2001" Count="0" />
-      <LineId Id="1974" Count="0" />
-      <LineId Id="2030" Count="0" />
-      <LineId Id="2032" Count="0" />
-      <LineId Id="2031" Count="0" />
-      <LineId Id="1535" Count="0" />
-      <LineId Id="1744" Count="0" />
-      <LineId Id="1536" Count="1" />
-      <LineId Id="1745" Count="0" />
-      <LineId Id="1538" Count="7" />
-      <LineId Id="1837" Count="10" />
-      <LineId Id="1546" Count="1" />
-      <LineId Id="1549" Count="3" />
-      <LineId Id="1835" Count="0" />
-      <LineId Id="1553" Count="1" />
-      <LineId Id="2027" Count="0" />
-      <LineId Id="1558" Count="2" />
-      <LineId Id="1708" Count="0" />
-      <LineId Id="1729" Count="1" />
-      <LineId Id="1738" Count="1" />
-      <LineId Id="1731" Count="2" />
-      <LineId Id="1735" Count="0" />
-      <LineId Id="1834" Count="0" />
-      <LineId Id="1740" Count="0" />
-      <LineId Id="1736" Count="1" />
-      <LineId Id="1562" Count="10" />
-      <LineId Id="1720" Count="0" />
-      <LineId Id="1574" Count="2" />
-      <LineId Id="1721" Count="0" />
-      <LineId Id="1578" Count="12" />
-      <LineId Id="1636" Count="4" />
+      <LineId Id="2042" Count="193" />
       <LineId Id="17" Count="0" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.Axes.Set">
@@ -2564,15 +2676,19 @@ END_VAR
       <LineId Id="788" Count="0" />
       <LineId Id="787" Count="0" />
       <LineId Id="779" Count="2" />
-      <LineId Id="792" Count="1" />
-      <LineId Id="782" Count="1" />
+      <LineId Id="792" Count="0" />
+      <LineId Id="891" Count="0" />
+      <LineId Id="893" Count="2" />
+      <LineId Id="892" Count="0" />
+      <LineId Id="783" Count="0" />
       <LineId Id="794" Count="0" />
-      <LineId Id="784" Count="1" />
+      <LineId Id="784" Count="0" />
+      <LineId Id="898" Count="0" />
+      <LineId Id="785" Count="0" />
+      <LineId Id="896" Count="1" />
       <LineId Id="789" Count="1" />
       <LineId Id="858" Count="0" />
       <LineId Id="860" Count="6" />
-      <LineId Id="791" Count="0" />
-      <LineId Id="685" Count="0" />
       <LineId Id="786" Count="0" />
       <LineId Id="686" Count="5" />
       <LineId Id="795" Count="7" />
@@ -2582,6 +2698,7 @@ END_VAR
       <LineId Id="829" Count="0" />
       <LineId Id="844" Count="0" />
       <LineId Id="830" Count="2" />
+      <LineId Id="899" Count="0" />
       <LineId Id="834" Count="3" />
       <LineId Id="839" Count="3" />
       <LineId Id="847" Count="0" />
@@ -2591,9 +2708,9 @@ END_VAR
       <LineId Id="846" Count="0" />
       <LineId Id="697" Count="4" />
       <LineId Id="869" Count="7" />
-      <LineId Id="867" Count="0" />
-      <LineId Id="849" Count="8" />
-      <LineId Id="848" Count="0" />
+      <LineId Id="901" Count="3" />
+      <LineId Id="906" Count="3" />
+      <LineId Id="915" Count="0" />
       <LineId Id="702" Count="0" />
       <LineId Id="718" Count="1" />
       <LineId Id="2" Count="0" />
@@ -2684,6 +2801,47 @@ END_VAR
     <LineIds Name="FB_McAxisCtrl.AxisGearInParameter.Set">
       <LineId Id="2" Count="0" />
       <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_McAxisCtrl.AxisGearOut">
+      <LineId Id="674" Count="10" />
+      <LineId Id="858" Count="0" />
+      <LineId Id="923" Count="2" />
+      <LineId Id="989" Count="2" />
+      <LineId Id="993" Count="0" />
+      <LineId Id="917" Count="0" />
+      <LineId Id="916" Count="0" />
+      <LineId Id="1002" Count="0" />
+      <LineId Id="995" Count="6" />
+      <LineId Id="992" Count="0" />
+      <LineId Id="686" Count="4" />
+      <LineId Id="927" Count="2" />
+      <LineId Id="926" Count="0" />
+      <LineId Id="830" Count="2" />
+      <LineId Id="899" Count="0" />
+      <LineId Id="834" Count="3" />
+      <LineId Id="839" Count="3" />
+      <LineId Id="847" Count="0" />
+      <LineId Id="843" Count="0" />
+      <LineId Id="845" Count="0" />
+      <LineId Id="982" Count="6" />
+      <LineId Id="981" Count="0" />
+      <LineId Id="957" Count="1" />
+      <LineId Id="696" Count="0" />
+      <LineId Id="959" Count="0" />
+      <LineId Id="961" Count="0" />
+      <LineId Id="960" Count="0" />
+      <LineId Id="846" Count="0" />
+      <LineId Id="963" Count="4" />
+      <LineId Id="969" Count="2" />
+      <LineId Id="980" Count="0" />
+      <LineId Id="973" Count="6" />
+      <LineId Id="697" Count="0" />
+      <LineId Id="902" Count="2" />
+      <LineId Id="906" Count="0" />
+      <LineId Id="930" Count="2" />
+      <LineId Id="702" Count="0" />
+      <LineId Id="718" Count="1" />
+      <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.AxisHalt">
       <LineId Id="744" Count="16" />
@@ -2975,6 +3133,7 @@ END_VAR
       <LineId Id="181" Count="0" />
       <LineId Id="70" Count="0" />
       <LineId Id="49" Count="0" />
+      <LineId Id="222" Count="0" />
       <LineId Id="71" Count="0" />
       <LineId Id="182" Count="0" />
       <LineId Id="72" Count="0" />
@@ -3008,37 +3167,53 @@ END_VAR
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.Idle">
       <LineId Id="674" Count="7" />
+      <LineId Id="780" Count="1" />
       <LineId Id="758" Count="0" />
       <LineId Id="685" Count="5" />
       <LineId Id="727" Count="0" />
       <LineId Id="729" Count="0" />
       <LineId Id="728" Count="0" />
       <LineId Id="730" Count="0" />
+      <LineId Id="809" Count="0" />
       <LineId Id="696" Count="0" />
       <LineId Id="731" Count="0" />
       <LineId Id="697" Count="3" />
       <LineId Id="733" Count="1" />
-      <LineId Id="701" Count="4" />
+      <LineId Id="701" Count="1" />
+      <LineId Id="786" Count="2" />
+      <LineId Id="805" Count="1" />
+      <LineId Id="804" Count="0" />
+      <LineId Id="791" Count="0" />
+      <LineId Id="807" Count="0" />
+      <LineId Id="795" Count="8" />
+      <LineId Id="792" Count="0" />
+      <LineId Id="703" Count="2" />
       <LineId Id="735" Count="0" />
+      <LineId Id="811" Count="0" />
+      <LineId Id="810" Count="0" />
+      <LineId Id="812" Count="0" />
       <LineId Id="737" Count="0" />
+      <LineId Id="813" Count="0" />
       <LineId Id="736" Count="0" />
       <LineId Id="738" Count="0" />
       <LineId Id="760" Count="0" />
       <LineId Id="706" Count="0" />
       <LineId Id="744" Count="0" />
       <LineId Id="741" Count="2" />
+      <LineId Id="778" Count="0" />
+      <LineId Id="770" Count="5" />
+      <LineId Id="784" Count="0" />
+      <LineId Id="783" Count="0" />
+      <LineId Id="776" Count="0" />
+      <LineId Id="782" Count="0" />
+      <LineId Id="777" Count="0" />
       <LineId Id="739" Count="0" />
       <LineId Id="707" Count="0" />
       <LineId Id="718" Count="1" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.LogControl">
-      <LineId Id="7" Count="0" />
-      <LineId Id="9" Count="3" />
-      <LineId Id="25" Count="2" />
-      <LineId Id="22" Count="0" />
-      <LineId Id="13" Count="0" />
-      <LineId Id="15" Count="1" />
+      <LineId Id="35" Count="10" />
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.LogResult">

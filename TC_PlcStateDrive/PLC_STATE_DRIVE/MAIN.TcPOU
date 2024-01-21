@@ -40,6 +40,8 @@ DO
 
   GVL_AXIS.Control[nAxis].HomingParameter         := ADR(GVL_AXIS.HomeParameter);
   GVL_AXIS.Control[nAxis].MotionOptions           := ADR(GVL_AXIS.MotionOptions);
+
+  GVL_AXIS.ItfMcAxis[nAxis]                       := GVL_AXIS.Control[nAxis]; 
 END_FOR
 //-----------------------------------------------------------------------------------------------------------------
 // assign dataflow/
@@ -60,7 +62,7 @@ THEN
     E_PROGRESS.INIT:
       stMsg.eType                                 := E_MessageType.eMessageInfo;
       stMsg.eDevice                               := e_Device.General;
-      stMsg.eSubdevice                            := e_SubDevice.AxisControl;
+      stMsg.eSubdevice                            := e_SubDevice.fbAxis;
       stMsg.iErrorNumber                          := nAxisInit;
 
       stMsg.sText                                 := concat('MAIN.eInit: ', TO_STRING(eInit));
@@ -79,7 +81,7 @@ THEN
 
         stMsg.eType                               := E_MessageType.eMessageError;
         stMsg.eDevice                             := e_Device.General;
-        stMsg.eSubdevice                          := e_SubDevice.AxisControl;
+        stMsg.eSubdevice                          := e_SubDevice.fbAxis;
         stMsg.iErrorNumber                        := GVL_AXIS.Control[nAxisInit].ErrorId;
 
         stMsg.sText                               := concat('MAIN.eInit ERROR at Index: ', TO_STRING(nAxisInit));
@@ -87,11 +89,11 @@ THEN
 
       ELSIF (GVL_AXIS.State[nAxisInit].eState = E_AXIS_STATE.AXIS_INIT + E_PROGRESS.DONE)
       THEN
-        eInit                                     := E_PROGRESS.PREPARE;
+        eInit                                     := E_PROGRESS.READY;
       END_IF
 
 
-    E_PROGRESS.PREPARE:
+    E_PROGRESS.READY:
       IF (nAxisInit > PLC_CONSTANT.MAX_AXIS-1)
       THEN
         bInit                                     := TRUE;
@@ -99,7 +101,7 @@ THEN
 
         stMsg.eType                               := E_MessageType.eMessageInfo;
         stMsg.eDevice                             := e_Device.General;
-        stMsg.eSubdevice                          := e_SubDevice.AxisControl;
+        stMsg.eSubdevice                          := e_SubDevice.fbAxis;
         stMsg.iErrorNumber                        := MAX_AXIS;
 
         stMsg.sText                               := concat('MAIN.eInit: ', TO_STRING(eInit));
@@ -178,6 +180,8 @@ END_IF
       <LineId Id="104" Count="0" />
       <LineId Id="119" Count="1" />
       <LineId Id="106" Count="1" />
+      <LineId Id="280" Count="0" />
+      <LineId Id="279" Count="0" />
       <LineId Id="7" Count="0" />
       <LineId Id="80" Count="2" />
       <LineId Id="150" Count="7" />

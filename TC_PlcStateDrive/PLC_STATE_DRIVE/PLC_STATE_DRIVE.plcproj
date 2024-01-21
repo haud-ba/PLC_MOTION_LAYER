@@ -27,10 +27,22 @@
     <Compile Include="CAM.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="CAM\fb_Camming.TcPOU">
+    <Compile Include="CAM\FB_CamAxis.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="CAM\FB_CamCtrl.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="CAM\I_Cam_Ctrl.TcIO">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="CAM\types\ST_CAM_CTRL.TcDUT">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="CAM\types\ST_CAM_DATA.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="CAM\types\ST_CAM_INFO.TcDUT">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="CAM\types\ST_CAM_STATE.TcDUT">
@@ -380,6 +392,9 @@
     <Folder Include="NC_PTP\types" />
   </ItemGroup>
   <ItemGroup>
+    <SubObject Include="FB_CamAxis.Template">
+      <ExcludeFromBuild>true</ExcludeFromBuild>
+    </SubObject>
     <SubObject Include="FB_McAxisCtrl.AxisGearInMultiMaster" />
     <SubObject Include="FB_McAxisCtrl.Template">
       <ExcludeFromBuild>true</ExcludeFromBuild>

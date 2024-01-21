@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
-  <DUT Name="ST_CAM_STATE" Id="{429d5f47-2b73-0837-3eef-3bb02acbf2ef}">
+  <DUT Name="ST_CAM_INFO" Id="{071665c8-af33-0eb5-0770-2e8f064bb1fc}">
     <Declaration><![CDATA[{attribute 'pack_mode' := '2'}
-TYPE ST_CAM_STATE :
+TYPE ST_CAM_INFO :
 STRUCT
-  eState            : E_AXIS_STATE; // mirror the requested command + E_PROGRESS
+  nNumPointsRead    : UDINT;
 END_STRUCT
 END_TYPE
 ]]></Declaration>

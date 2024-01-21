@@ -18,6 +18,7 @@ VAR_GLOBAL CONSTANT
 
 
   MAX_AXIS              : UINT    := 3;
+  MAX_RETRY             : UINT    := 5;
 
 {IF defined (WIN)}
   {info 'WIN folders'}

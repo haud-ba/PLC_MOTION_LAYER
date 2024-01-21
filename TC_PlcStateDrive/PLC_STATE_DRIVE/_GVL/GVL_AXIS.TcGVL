@@ -4,14 +4,43 @@
     <Declaration><![CDATA[{attribute 'qualified_only'}
 VAR_GLOBAL
 
+  // TwinCAT NC mapping cyclic reference
+  //  - link to NC/PtP
+  //  - a motion Ctrl function block gets REFERENCE TO all axis
   AxisRef                     : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF Tc2_MC2.AXIS_REF;
 
-  Control                     : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF FB_McAxisCtrl;     // cyclic interface for accepting and executing orders
+  //-----------------------------------------------------------------------------
+  // interfaces of I_McAxis 
+  //  - to provide access to basic MC functions in 
+  //    - NCI(PRG)() / FB_NciChannelCtrl,
+  //    - CAM(PRG)() / FB_CamCtrl
+  //-----------------------------------------------------------------------------
+  ItfMcAxis                   : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF I_McAxis;     // interface to basic MC functions
+
+
+  //-----------------------------------------------------------------------------
+  // command and state structure
+  //  - datafields for anyone to access
+  //    - ADS via symbol
+  //    - cyclic mapping to any other cyclic network/runtime
+  //-----------------------------------------------------------------------------
   Ctrl                        : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_AXIS_CTRL;      // command structure to write into
   State                       : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_AXIS_STATE;     // state structure to read from
+
+  //-----------------------------------------------------------------------------
+  // data and info structure
+  //  - parameter data fields for
+  //    - Ctrl  --> Data
+  //    - State --> Info
+  //-----------------------------------------------------------------------------
   Info                        : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_AXIS_INFO;      // axis state and position data to read from
   Data                        : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_MOVE_DATA;      // axis data to write into
 
+
+  //-----------------------------------------------------------------------------
+  // special function parameter structs
+  // - additional details for axis command
+  //-----------------------------------------------------------------------------
   NcParameterWrt              : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_NC_PARAMETER;   // struct for a single parameter value put/get your data here before/after using Ctrl
   NcParameterRd               : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_NC_PARAMETER;   // struct for a single parameter value put/get your data here before/after using Ctrl
 
@@ -20,6 +49,15 @@ VAR_GLOBAL
   GearInParameter             : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_GEAR_IN;        // GearIn and GearInMultiMaster, index to master axes[1-4], rGearRatio[1-4]
 
   MotionOptions               : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_MOTION_OPTIONS; // additional motion parameters
+
+
+  //-----------------------------------------------------------------------------
+  // cyclic interface function block: FB_McAxisCtrl
+  //  - PtP MC functions are here
+  //  - implements I_McAxis
+  //-----------------------------------------------------------------------------
+  Control                     : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF FB_McAxisCtrl;     // cyclic interface for accepting and executing orders
+
 END_VAR]]></Declaration>
   </GVL>
 </TcPlcObject>

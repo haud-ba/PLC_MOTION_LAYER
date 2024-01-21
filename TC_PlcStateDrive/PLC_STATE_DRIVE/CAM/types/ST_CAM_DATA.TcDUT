@@ -6,11 +6,17 @@ TYPE ST_CAM_DATA :
 STRUCT
   rActivationPosition     : LREAL;
   nActivationMode         : UINT;
-  nCamTableId             : UDINT;
+  nCamTableId             : UDINT;  // For multi-cam plate coupling, the CamTableId also has to be transferred explicitly. If a single cam plate is involved in the coupling, the CamTableId can be set to 0.
   nPointId                : UDINT;
-  nNumPoints              : udint; // 0 = full motion function size
+  nNumPoints              : UDINT;  // 0 = full motion function size
+
   stCamScalingData        : ST_CAM_SCALING_DATA;
   stOptions               : ST_CAM_OPTIONS;
+
+  // MC_CamInfo_V2 parameters
+  bAtMasterPosition       : BOOL;   // If AtMasterPosition is TRUE, the data related to the specified MasterPosition is determined. Otherwise the data refers to the current master position.
+  rMasterPosition         : LREAL;  // Master position to which the data that is determined refers. This input parameter is not necessary if AtMasterPosition is FALSE.
+
 END_STRUCT
 END_TYPE
 ]]></Declaration>

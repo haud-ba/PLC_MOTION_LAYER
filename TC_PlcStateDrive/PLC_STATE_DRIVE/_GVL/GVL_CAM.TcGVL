@@ -3,6 +3,35 @@
   <GVL Name="GVL_CAM" Id="{c9bb08d2-1305-0698-0ab7-36202cf53175}">
     <Declaration><![CDATA[{attribute 'qualified_only'}
 VAR_GLOBAL
+  //-----------------------------------------------------------------------------
+  // command and state structure
+  //  - datafields for anyone to access
+  //    - ADS via symbol
+  //    - cyclic mapping to any other cyclic network/runtime
+  //-----------------------------------------------------------------------------
+  Ctrl                        : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_CAM_CTRL;      // command structure to write into
+  State                       : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_CAM_STATE;     // state structure to read from
+
+
+  //-----------------------------------------------------------------------------
+  // data and info structure
+  //  - parameter data fields for
+  //    - Ctrl  --> Data
+  //    - State --> Info
+  //-----------------------------------------------------------------------------
+  Info                        : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_CAM_INFO;
+  Data                        : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_CAM_DATA;
+
+
+  //-----------------------------------------------------------------------------
+  // cyclic interface function block: FB_CamCtrl
+  //  - MC_Camming functions are here 
+  //-----------------------------------------------------------------------------
+{IF defined (CAM)}
+  Control                     : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF FB_CamCtrl;
+{ELSE}
+  Control                     : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF I_Cam_Ctrl;
+{END_IF}
 END_VAR]]></Declaration>
   </GVL>
 </TcPlcObject>
