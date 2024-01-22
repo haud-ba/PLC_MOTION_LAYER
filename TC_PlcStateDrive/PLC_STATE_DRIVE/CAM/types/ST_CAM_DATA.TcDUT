@@ -4,7 +4,11 @@
     <Declaration><![CDATA[{attribute 'pack_mode' := '2'}
 TYPE ST_CAM_DATA :
 STRUCT
+  // MC_CamInfo_V2 parameters
+  bAtMasterPosition       : BIT;    // If AtMasterPosition is TRUE, the data related to the specified MasterPosition is determined. Otherwise the data refers to the current master position.
   nMasterIndex            : UINT;   // Index in GVL_AXIS.AxisRef[nMasterIndex]
+
+  rMasterPosition         : LREAL;  // Master position to which the data that is determined refers. This input parameter is not necessary if AtMasterPosition is FALSE.
   rActivationPosition     : LREAL;
   nActivationMode         : UINT;
   nCamTableId             : UDINT;  // For multi-cam plate coupling, the CamTableId also has to be transferred explicitly. If a single cam plate is involved in the coupling, the CamTableId can be set to 0.
@@ -13,11 +17,6 @@ STRUCT
 
   stCamScalingData        : ST_CAM_SCALING_DATA;
   stOptions               : ST_CAM_OPTIONS;
-
-  // MC_CamInfo_V2 parameters
-  bAtMasterPosition       : BOOL;   // If AtMasterPosition is TRUE, the data related to the specified MasterPosition is determined. Otherwise the data refers to the current master position.
-  rMasterPosition         : LREAL;  // Master position to which the data that is determined refers. This input parameter is not necessary if AtMasterPosition is FALSE.
-
 END_STRUCT
 END_TYPE
 ]]></Declaration>

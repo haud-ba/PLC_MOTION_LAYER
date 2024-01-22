@@ -392,10 +392,10 @@
     <Folder Include="NC_PTP\types" />
   </ItemGroup>
   <ItemGroup>
+    <SubObject Include="FB_CamAxis.CamIn" />
     <SubObject Include="FB_CamAxis.Template">
       <ExcludeFromBuild>true</ExcludeFromBuild>
     </SubObject>
-    <SubObject Include="FB_CamCtrl.AxisCamInfo" />
     <SubObject Include="FB_CamCtrl.AxisCamIn" />
     <SubObject Include="FB_McAxisCtrl.AxisGearInMultiMaster" />
     <SubObject Include="FB_McAxisCtrl.Template">

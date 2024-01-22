@@ -60,8 +60,8 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN _eState := E_PROGRESS.ERROR; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+IF NOT Check() THEN _eState := E_PROGRESS.ERROR; END_IF
 
 CASE _eState
 OF
@@ -163,8 +163,8 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN _eState := E_PROGRESS.ERROR; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+IF NOT Check() THEN _eState := E_PROGRESS.ERROR; END_IF
 
 
 CASE _eState
@@ -492,6 +492,7 @@ OF
 ELSE
   IF (_eInit <> E_PROGRESS.DONE)
   THEN
+    _eres                             := E_PROGRESS.INVALID;
     _estate                           := E_AXIS_STATE.AXIS_NO_INIT;
   ELSE
     CASE eCmd
@@ -588,7 +589,7 @@ OF
 
   E_AXIS_STATE.AXIS_NO_INIT:
     //-------------------------------------------------------------------------
-    // we are here because you sent a command before having done AXIS_INIT
+    // we are here because you sent a command before having done CAM_INIT
     _eResult                        := E_PROGRESS.ERROR;
 
   E_AXIS_STATE.AXIS_IDLE:
@@ -679,12 +680,14 @@ END_VAR
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_CamCtrl.AxisCamIdle">
-      <LineId Id="824" Count="82" />
+      <LineId Id="825" Count="1" />
+      <LineId Id="907" Count="0" />
+      <LineId Id="827" Count="79" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_CamCtrl.AxisCamIn">
+      <LineId Id="1095" Count="0" />
       <LineId Id="1094" Count="0" />
-      <LineId Id="983" Count="0" />
       <LineId Id="890" Count="7" />
       <LineId Id="900" Count="0" />
       <LineId Id="1038" Count="0" />
@@ -758,7 +761,9 @@ END_VAR
       <LineId Id="162" Count="0" />
     </LineIds>
     <LineIds Name="FB_CamCtrl.Cmd">
-      <LineId Id="387" Count="62" />
+      <LineId Id="387" Count="8" />
+      <LineId Id="450" Count="0" />
+      <LineId Id="396" Count="53" />
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_CamCtrl.Cycle">

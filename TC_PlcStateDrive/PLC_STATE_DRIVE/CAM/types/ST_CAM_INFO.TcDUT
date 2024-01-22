@@ -4,6 +4,7 @@
     <Declaration><![CDATA[{attribute 'pack_mode' := '2'}
 TYPE ST_CAM_INFO :
 STRUCT
+  bError            : BIT;
   nNumPointsRead    : UDINT;
 END_STRUCT
 END_TYPE

@@ -290,7 +290,7 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN _eState := E_PROGRESS.ERROR; END_IF
+        <ST><![CDATA[IF NOT Check() THEN AxisBufferPos := E_PROGRESS.ERROR; RETURN; END_IF
 IF NOT Enable THEN _eState := E_PROGRESS.INIT; END_IF
 
 CASE _eState
@@ -376,7 +376,7 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN _eState := E_PROGRESS.ERROR; END_IF
+        <ST><![CDATA[IF NOT Check() THEN AxisBufferVelo := E_PROGRESS.ERROR; RETURN; END_IF
 IF NOT Enable THEN _eState := E_PROGRESS.INIT; END_IF
 
 CASE _eState
@@ -486,7 +486,7 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN _eState := E_PROGRESS.ERROR; END_IF
+        <ST><![CDATA[IF NOT Check() THEN AxisDisable := E_PROGRESS.ERROR; RETURN; END_IF
 IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
 
 CASE _eState
@@ -542,7 +542,7 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN _eState := E_PROGRESS.ERROR; END_IF
+        <ST><![CDATA[IF NOT Check() THEN AxisEnable := E_PROGRESS.ERROR; RETURN; END_IF
 IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
 
 CASE _eState
@@ -599,7 +599,7 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN _eState := E_PROGRESS.ERROR; END_IF
+        <ST><![CDATA[IF NOT Check() THEN AxisGearIn := E_PROGRESS.ERROR; RETURN; END_IF
 IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
 
 CASE _eState
@@ -743,7 +743,7 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN _eState := E_PROGRESS.ERROR; END_IF
+        <ST><![CDATA[IF NOT Check() THEN AxisGearInMultiMaster := E_PROGRESS.ERROR; RETURN; END_IF
 IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
 
 CASE _eState
@@ -980,7 +980,7 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN _eState := E_PROGRESS.ERROR; END_IF
+        <ST><![CDATA[IF NOT Check() THEN AxisGearOut := E_PROGRESS.ERROR; RETURN; END_IF
 IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
 
 CASE _eState
@@ -1096,7 +1096,7 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN _eState := E_PROGRESS.ERROR; END_IF
+        <ST><![CDATA[IF NOT Check() THEN AxisHalt := E_PROGRESS.ERROR; RETURN; END_IF
 IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
 
 CASE _eState
@@ -1165,7 +1165,7 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN _eState := E_PROGRESS.ERROR; END_IF
+        <ST><![CDATA[IF NOT Check() THEN AxisHome := E_PROGRESS.ERROR; RETURN; END_IF
 IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
 
 CASE _eState
@@ -1273,7 +1273,7 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN _eState := E_PROGRESS.ERROR; END_IF
+        <ST><![CDATA[IF NOT Check() THEN AxisIdle := E_PROGRESS.ERROR; return; END_IF
 IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
 
 CASE _eState
@@ -1399,7 +1399,7 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN _eState := E_PROGRESS.ERROR; END_IF
+        <ST><![CDATA[IF NOT Check() THEN AxisInit := E_PROGRESS.ERROR; RETURN; END_IF
 IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
 
 CASE _eState
@@ -1575,7 +1575,7 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN _eState := E_PROGRESS.ERROR; END_IF
+        <ST><![CDATA[IF NOT Check() THEN AxisMoveToPosition := E_PROGRESS.ERROR; RETURN; END_IF
 IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
 
 CASE _eState
@@ -1649,7 +1649,7 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN _eState := E_PROGRESS.ERROR; END_IF
+        <ST><![CDATA[IF NOT Check() THEN AxisMoveVelocity := E_PROGRESS.ERROR; RETURN; END_IF
 IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
 
 CASE _eState
@@ -1723,7 +1723,7 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN _eState := E_PROGRESS.ERROR; END_IF
+        <ST><![CDATA[IF NOT Check() THEN AxisParameterRead := E_PROGRESS.ERROR; RETURN; END_IF
 IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
 
 CASE _eState
@@ -1786,7 +1786,7 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN _eState := E_PROGRESS.ERROR; END_IF
+        <ST><![CDATA[IF NOT Check() THEN AxisParameterWrite := E_PROGRESS.ERROR; RETURN; END_IF
 IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
 
 CASE _eState
@@ -1848,7 +1848,7 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN _eState := E_PROGRESS.ERROR; END_IF
+        <ST><![CDATA[IF NOT Check() THEN AxisParameterWritePersistent := E_PROGRESS.ERROR; RETURN; END_IF
 IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
 
 CASE _eState
@@ -1921,7 +1921,7 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN _eState := E_PROGRESS.ERROR; END_IF
+        <ST><![CDATA[IF NOT Check() THEN AxisReset := E_PROGRESS.ERROR; RETURN; END_IF
 IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
 
 CASE _eState
@@ -1985,7 +1985,7 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN _eState := E_PROGRESS.ERROR; END_IF
+        <ST><![CDATA[IF NOT Check() THEN AxisStop := E_PROGRESS.ERROR; RETURN; END_IF
 IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
 
 CASE _eState
@@ -2460,7 +2460,7 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN _eState := E_PROGRESS.ERROR; END_IF
+        <ST><![CDATA[IF NOT Check() THEN ResetSoE := E_PROGRESS.ERROR; RETURN; END_IF
 IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
 
 CASE _eState

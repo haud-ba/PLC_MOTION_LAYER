@@ -4,15 +4,17 @@
     <Declaration><![CDATA[{attribute 'pack_mode' := '2'}
 TYPE ST_CAM_SCALING_DATA :
 STRUCT
+  bMasterRelative         : BIT;
+  bSlaveRelative          : BIT;
+
   // scaling of X-axis (Master) of the CAM
   nMasterScalingMode      : UINT;
-  bMasterRelative         : BOOL;
   rMasterOffset           : LREAL;
   rMasterScaling          : LREAL := 1.0;
 
   // scaling of Y-axis (Slave) of CAM
   nSlaveScalingMode       : UINT;
-  bSlaveRelative          : BOOL;
+
   rSlaveOffset            : LREAL;
   rSlaveScaling           : LREAL := 1.0;
 END_STRUCT
