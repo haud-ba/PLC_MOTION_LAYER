@@ -22,6 +22,10 @@ VAR
 
 
   _stCamInfoData                : Tc2_MC2_Camming.MC_CamInfoData;
+  _stCamData                    : ST_CAM_DATA;
+  _stCamInfo                    : ST_CAM_INFO;
+
+
 
 END_VAR
 ]]></Declaration>
@@ -31,6 +35,124 @@ END_VAR
     <Folder Name="methods" Id="{1344f50f-5f72-04d5-3e8d-fe0c241daa85}">
       <Folder Name="private" Id="{40a64932-496b-0628-3ccd-b6d3e9fa789e}" />
     </Folder>
+    <Method Name="CamIn" Id="{a1512ead-40ed-0e1b-2fd0-8416babceab2}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD CamIn : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+  nMasterIndex      : UINT;
+END_VAR
+VAR_INST
+  _eCk              : E_CHECK_STATE;
+  _eState           : E_PROGRESS;
+  _rValue           : LREAL;
+  _udiErr           : UDINT;
+  _stMsg            : ST_Message;
+
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+
+
+CASE _eState
+OF
+  E_PROGRESS.INIT:
+    IF Execute 
+    THEN
+      memset(ADR(_stMsg),0,SIZEOF(_stMsg));
+      _udiErr                       := 0;
+
+      IF NOT (nMasterIndex = _stCamData.nMasterIndex)
+      THEN
+        _eState                     := E_PROGRESS.ERROR;
+        _eCk                        := E_CHECK_STATE.CAM_MASTER_AXIS_REF_INVALID;
+
+        _stMsg.eType                := E_MessageType.eMessageError;
+        _stMsg.eDevice              := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+        _stMsg.eSubdevice           := e_Subdevice.fbCamInfoV2;
+        _stMsg.iErrorNumber         := nMasterIndex;
+  
+        _stMsg.sText                := concat('CAM_IN: ', TO_STRING(_eCk));
+        f_MessageSet(_stMsg);
+
+      ELSE
+        _eState                     := E_PROGRESS.BUSY;
+        _eCk                        := E_CHECK_STATE.CHECK_DONE;
+
+        _stMsg.eType                := E_MessageType.eMessageInfo;
+        _stMsg.eDevice              := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+        _stMsg.eSubdevice           := e_Subdevice.fbCamInfoV2;
+        _stMsg.iErrorNumber         := 0;
+  
+        _stMsg.sText                := concat('CAM IN: ', TO_STRING(_eState));
+        f_MessageSet(_stMsg);
+
+      _fbCamInV2(
+          Master                    := _AxisMaster, 
+          Slave                     := _AxisSlave, 
+          Execute                   := FALSE, 
+          ActivationMode            := _stCamData.nActivationMode, 
+          ActivationPosition        := _stCamData.rActivationPosition, 
+          CamTableID                := _stCamData.nCamTableId, 
+          Scaling                   := _stCamData.stCamScalingData, 
+          Options                   := _stCamData.stOptions);
+      END_IF
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.BUSY:
+    _fbCamInV2(
+          Master                    := _AxisMaster, 
+          Slave                     := _AxisSlave, 
+          Execute                   := TRUE, 
+          ActivationMode            := _stCamData.nActivationMode, 
+          ActivationPosition        := _stCamData.rActivationPosition, 
+          CamTableID                := _stCamData.nCamTableId, 
+          Scaling                   := _stCamData.stCamScalingData, 
+          Options                   := _stCamData.stOptions);
+
+    IF (_fbCamInV2.Error)
+    THEN
+      _eState                       := E_PROGRESS.ERROR;
+      _udiErr                       := _fbCamInV2.ErrorID;
+
+      _stMsg.eType                  := E_MessageType.eMessageError;
+      _stMsg.eDevice                := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+      _stMsg.eSubdevice             := e_Subdevice.fbCamInV2;
+      _stMsg.iErrorNumber           := _udiErr;
+
+      _stMsg.sText                  := concat('CAM_IN: ', TO_STRING(_eState));
+      f_MessageSet(_stMsg);
+
+      _fbCamInV2(
+          Master                    := _AxisMaster, 
+          Slave                     := _AxisSlave, 
+          Execute                   := TRUE); 
+
+    ELSIF (_fbCamInV2.InSync)
+    THEN
+      _eState                       := E_PROGRESS.DONE;
+
+      _stMsg.eType                  := E_MessageType.eMessageInfo;
+      _stMsg.eDevice                := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+      _stMsg.eSubdevice             := e_Subdevice.fbCamInfoV2;
+      _stMsg.iErrorNumber           := 0;
+
+      _stMsg.sText                  := concat('CAM INFO: ', TO_STRING(_eState));
+      f_MessageSet(_stMsg);
+
+      _fbCamInV2(
+          Master                    := _AxisMaster, 
+          Slave                     := _AxisSlave, 
+          Execute                   := TRUE); 
+    END_IF
+END_CASE
+
+AxisCamInfo                             := _eState;
+]]></ST>
+      </Implementation>
+    </Method>
     <Method Name="CamInfo" Id="{144f8857-4ea4-0982-3c35-d07419e585c9}" FolderPath="methods\">
       <Declaration><![CDATA[METHOD CamInfo : E_PROGRESS
 VAR_INPUT
@@ -102,6 +224,10 @@ OF
       _stMsg.sText                  := concat('CAM INFO: ', TO_STRING(_eState));
       f_MessageSet(_stMsg);
 
+      _fbCamInfoV2(
+              Slave                 := _AxisSlave, 
+              Execute               := FALSE);
+
     ELSIF (_fbCamInfoV2.Done)
     THEN
       _eState                       := E_PROGRESS.DONE;
@@ -114,18 +240,11 @@ OF
 
       _stMsg.sText                  := concat('CAM INFO: ', TO_STRING(_eState));
       f_MessageSet(_stMsg);
-    END_IF
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.ERROR,
-  E_PROGRESS.DONE:
+
       _fbCamInfoV2(
               Slave                 := _AxisSlave, 
-              Execute               := FALSE, 
-              CamTableID            := CamTableID, 
-              AtMasterPosition      := AtMasterPosition, 
-              MasterPosition        := MasterPosition);
+              Execute               := FALSE);
+    END_IF
 END_CASE
 
 CamInfo                             := _eState;
@@ -221,6 +340,34 @@ Template_1 := _eState;
     <LineIds Name="FB_CamAxis">
       <LineId Id="9" Count="0" />
     </LineIds>
+    <LineIds Name="FB_CamAxis.CamIn">
+      <LineId Id="983" Count="0" />
+      <LineId Id="890" Count="7" />
+      <LineId Id="900" Count="0" />
+      <LineId Id="1038" Count="0" />
+      <LineId Id="1003" Count="0" />
+      <LineId Id="1005" Count="0" />
+      <LineId Id="1007" Count="0" />
+      <LineId Id="1022" Count="0" />
+      <LineId Id="1029" Count="7" />
+      <LineId Id="1023" Count="0" />
+      <LineId Id="1009" Count="0" />
+      <LineId Id="1021" Count="0" />
+      <LineId Id="1010" Count="0" />
+      <LineId Id="1027" Count="0" />
+      <LineId Id="1014" Count="6" />
+      <LineId Id="1049" Count="9" />
+      <LineId Id="1008" Count="0" />
+      <LineId Id="918" Count="4" />
+      <LineId Id="1039" Count="8" />
+      <LineId Id="930" Count="13" />
+      <LineId Id="1059" Count="3" />
+      <LineId Id="947" Count="3" />
+      <LineId Id="952" Count="8" />
+      <LineId Id="1063" Count="3" />
+      <LineId Id="964" Count="3" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
     <LineIds Name="FB_CamAxis.CamInfo">
       <LineId Id="745" Count="7" />
       <LineId Id="853" Count="1" />
@@ -238,6 +385,7 @@ Template_1 := _eState;
       <LineId Id="866" Count="0" />
       <LineId Id="865" Count="0" />
       <LineId Id="834" Count="0" />
+      <LineId Id="872" Count="3" />
       <LineId Id="823" Count="0" />
       <LineId Id="808" Count="0" />
       <LineId Id="820" Count="0" />
@@ -248,13 +396,11 @@ Template_1 := _eState;
       <LineId Id="844" Count="0" />
       <LineId Id="843" Count="0" />
       <LineId Id="842" Count="0" />
+      <LineId Id="871" Count="0" />
+      <LineId Id="868" Count="2" />
       <LineId Id="821" Count="0" />
       <LineId Id="762" Count="0" />
-      <LineId Id="783" Count="1" />
-      <LineId Id="845" Count="0" />
-      <LineId Id="785" Count="0" />
-      <LineId Id="846" Count="5" />
-      <LineId Id="787" Count="2" />
+      <LineId Id="788" Count="1" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_CamAxis.CheckRef">

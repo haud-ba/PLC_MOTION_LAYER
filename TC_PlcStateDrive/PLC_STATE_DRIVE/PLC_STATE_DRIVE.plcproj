@@ -395,6 +395,8 @@
     <SubObject Include="FB_CamAxis.Template">
       <ExcludeFromBuild>true</ExcludeFromBuild>
     </SubObject>
+    <SubObject Include="FB_CamCtrl.AxisCamInfo" />
+    <SubObject Include="FB_CamCtrl.AxisCamIn" />
     <SubObject Include="FB_McAxisCtrl.AxisGearInMultiMaster" />
     <SubObject Include="FB_McAxisCtrl.Template">
       <ExcludeFromBuild>true</ExcludeFromBuild>

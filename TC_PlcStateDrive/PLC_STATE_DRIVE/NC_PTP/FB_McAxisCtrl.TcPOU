@@ -14,8 +14,8 @@ VAR
   // pointers to all; access required for coupling; access by index
   _Axes                     : REFERENCE TO ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF AXIS_REF;
 
-  _stCtrl                   : POINTER TO ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_AXIS_CTRL;    // contains command to be executed
-  _stState                  : POINTER TO ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_AXIS_STATE;   // mirrors command with added result
+  _Ctrl                     : POINTER TO ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_AXIS_CTRL;    // contains command to be executed
+  _State                    : POINTER TO ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_AXIS_STATE;   // mirrors command with added result
 
   _Info                     : POINTER TO ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_AXIS_INFO;    // axis state and position data to read from
   _Data                     : POINTER TO ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_MOVE_DATA;    // structure for cyclic interface
@@ -83,7 +83,7 @@ _eAxisCycle                         := Cycle();
 //-----------------------------------------------------------------------------
 // get command from outside world
 //-----------------------------------------------------------------------------
-_eCtrl                              := _stCtrl^[_nAxisIndex].eCtrl;
+_eCtrl                              := _Ctrl^[_nAxisIndex].eCtrl;
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //  OnChange react to command
@@ -119,16 +119,16 @@ OF
     _eResult                        := AxisEnable(TRUE);
 
   E_AXIS_STATE.AXIS_IDLE:
-    _eResult                        := Idle(TRUE);
+    _eResult                        := AxisIdle(TRUE);
 
   E_AXIS_STATE.AXIS_HOME:
     _eResult                        := AxisHome(TRUE);
 
   E_AXIS_STATE.AXIS_MOVE_POS:
-    _eResult                        := MovePosition(TRUE, _Data^[_nAxisIndex]);
+    _eResult                        := AxisMoveToPosition(TRUE, _Data^[_nAxisIndex]);
 
   E_AXIS_STATE.AXIS_MOVE_VELO:
-    _eResult                        := MoveVelocity(TRUE, _Data^[_nAxisIndex]);
+    _eResult                        := AxisMoveVelocity(TRUE, _Data^[_nAxisIndex]);
 
   E_AXIS_STATE.AXIS_RESET:
     _eResult                        := AxisReset(TRUE);
@@ -140,19 +140,19 @@ OF
     _eResult                        := AxisStop(TRUE, _Data^[_nAxisIndex]);
 
   E_AXIS_STATE.AXIS_MOVE_BUFFER:
-    _eResult                        := MoveBufferPos(TRUE, _Data^[_nAxisIndex]);
+    _eResult                        := AxisBufferPos(TRUE, _Data^[_nAxisIndex]);
 
   E_AXIS_STATE.AXIS_MOVE_BUFFER_VELO:
-    _eResult                        := MoveBufferVelo(TRUE, _Data^[_nAxisIndex]);
+    _eResult                        := AxisBufferVelo(TRUE, _Data^[_nAxisIndex]);
 
   E_AXIS_STATE.AXIS_PARAMETER_READ:
-    _eResult                        := ParameterRead(TRUE, _NcParameterRd^[_nAxisIndex].ParameterNumber);
+    _eResult                        := AxisParameterRead(TRUE, _NcParameterRd^[_nAxisIndex].ParameterNumber);
 
   E_AXIS_STATE.AXIS_PARAMETER_WRITE:
-    _eResult                        := ParameterWrite(TRUE, _NcParameterWrt^[_nAxisIndex].ParameterNumber);
+    _eResult                        := AxisParameterWrite(TRUE, _NcParameterWrt^[_nAxisIndex].ParameterNumber);
 
   E_AXIS_STATE.AXIS_PARAMETER_WRITE_PERSISTENT:
-    _eResult                        := ParameterWritePersistent(TRUE, _NcParameterWrt^[_nAxisIndex].ParameterNumber);
+    _eResult                        := AxisParameterWritePersistent(TRUE, _NcParameterWrt^[_nAxisIndex].ParameterNumber);
 
   E_AXIS_STATE.AXIS_GEAR_IN:
     _eResult                        := AxisGearIn(TRUE);
@@ -208,11 +208,11 @@ END_CASE
 //-----------------------------------------------------------------------------
 // execution state result to interface
 //-----------------------------------------------------------------------------
-_stState^[_nAxisIndex].eState       := _eState + _eResult;
+_State^[_nAxisIndex].eState       := _eState + _eResult;
 //-----------------------------------------------------------------------------
 // encoder type (enum)
 //-----------------------------------------------------------------------------
-_stState^[_nAxisIndex].eAxisEncoder := EncoderType;
+_State^[_nAxisIndex].eAxisEncoder := EncoderType;
 //-----------------------------------------------------------------------------
 // _stState.[nAxisIndex].eState is overridden by MC_Power.bError
 //  _eAxisCycle := Cycle() is called at the top; checks MC_Power.bError
@@ -223,7 +223,7 @@ OF
   E_PROGRESS.ERROR:
     _Info^[_nAxisIndex].bReady      := FALSE;
     _Info^[_nAxisIndex].bError      := TRUE;
-    _stState^[_nAxisIndex].eState   := _eState + _eAxisCycle;
+    _State^[_nAxisIndex].eState   := _eState + _eAxisCycle;
 END_CASE
 //-----------------------------------------------------------------------------
 // Check ControlLoop
@@ -277,6 +277,175 @@ END_VAR
         </Implementation>
       </Set>
     </Property>
+    <Method Name="AxisBufferPos" Id="{8bea1fe6-78db-0d06-2903-94e698371421}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD AxisBufferPos : E_PROGRESS
+VAR_INPUT
+  Enable            : BOOL;
+  Data              : ST_MOVE_DATA;
+END_VAR
+VAR_INST
+  _BufferMode       : Tc2_MC2.MC_BufferMode;
+  _eres,
+  _eState           : E_PROGRESS;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT Check() THEN _eState := E_PROGRESS.ERROR; END_IF
+IF NOT Enable THEN _eState := E_PROGRESS.INIT; END_IF
+
+CASE _eState
+OF
+  E_PROGRESS.INIT:
+    IF Enable 
+    THEN
+      _eState       := E_PROGRESS.BUSY;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.BUSY:
+    _eState         := E_PROGRESS.WORKING;
+    _BufferMode     := _MotionOptions^[_nAxisIndex].eBufferMode;
+    _eres           := MovePosBuffer(
+                                  Enable      := FALSE, 
+                                  Position    := Data.rSetPos, 
+                                  Vel         := Data.rSetVelo, 
+                                  Acc         := Data.rAcc, 
+                                  Dec         := Data.rDec, 
+                                  Jerk        := Data.rJerk, 
+                                  BufferMode  := _BufferMode);
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.WORKING:
+    _BufferMode     := _MotionOptions^[_nAxisIndex].eBufferMode;
+    _eres           := MovePosBuffer(
+                                  Enable      := TRUE, 
+                                  Position    := Data.rSetPos, 
+                                  Vel         := Data.rSetVelo, 
+                                  Acc         := Data.rAcc, 
+                                  Dec         := Data.rDec, 
+                                  Jerk        := Data.rJerk, 
+                                  BufferMode  := _BufferMode);
+    IF (_eres = E_PROGRESS.ERROR)
+    THEN
+      _eState       := E_PROGRESS.ERROR;
+                       MovePosBuffer(
+                                  Enable      := FALSE, 
+                                  Position    := Data.rSetPos, 
+                                  Vel         := Data.rSetVelo, 
+                                  Acc         := Data.rAcc, 
+                                  Dec         := Data.rDec, 
+                                  Jerk        := Data.rJerk, 
+                                  BufferMode  := _BufferMode);
+
+    ELSIF (_Ctrl^[_nAxisIndex].eProgress = E_PROGRESS.DONE)
+    THEN
+      // when Ctrl decides to leave; make finishing move and be done
+      _eState       := E_PROGRESS.FINISHING;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.FINISHING:
+    _eState         := E_PROGRESS.DONE;
+    _eres           := MovePosBuffer(
+                                  Enable      := FALSE, 
+                                  Position    := Data.rSetPos, 
+                                  Vel         := Data.rSetVelo, 
+                                  Acc         := Data.rAcc, 
+                                  Dec         := Data.rDec, 
+                                  Jerk        := Data.rJerk, 
+                                  BufferMode  := _BufferMode);
+END_CASE
+
+AxisBufferPos       := _eState;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="AxisBufferVelo" Id="{374fe133-fb4a-0fd3-3a5b-fe68bfd11804}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD AxisBufferVelo : E_PROGRESS
+VAR_INPUT
+  Enable            : BOOL;
+  Data              : ST_MOVE_DATA;
+END_VAR
+VAR_INST
+  _BufferMode       : Tc2_MC2.MC_BufferMode;
+  _eres,
+  _eState           : E_PROGRESS;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT Check() THEN _eState := E_PROGRESS.ERROR; END_IF
+IF NOT Enable THEN _eState := E_PROGRESS.INIT; END_IF
+
+CASE _eState
+OF
+  E_PROGRESS.INIT:
+    IF Enable 
+    THEN
+      _eState       := E_PROGRESS.BUSY;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.BUSY:
+    _eState         := E_PROGRESS.WORKING;
+    _BufferMode     := _MotionOptions^[_nAxisIndex].eBufferMode;
+    _eres           := MoveVeloBuffer(
+                                  Enable      := FALSE, 
+                                  Velocity    := Data.rSetVelo, 
+                                  Acc         := Data.rAcc, 
+                                  Dec         := Data.rDec, 
+                                  Jerk        := Data.rJerk, 
+                                  BufferMode  := _BufferMode);
+
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.WORKING:
+    _BufferMode     := _MotionOptions^[_nAxisIndex].eBufferMode;
+    _eres           := MoveVeloBuffer(
+                                  Enable      := TRUE, 
+                                  Velocity    := Data.rSetVelo, 
+                                  Acc         := Data.rAcc, 
+                                  Dec         := Data.rDec, 
+                                  Jerk        := Data.rJerk, 
+                                  BufferMode  := _BufferMode);
+    IF (_eres = E_PROGRESS.ERROR)
+    THEN
+      _eState := E_PROGRESS.ERROR;
+                       MoveVeloBuffer(
+                                  Enable      := FALSE, 
+                                  Velocity    := Data.rSetVelo, 
+                                  Acc         := Data.rAcc, 
+                                  Dec         := Data.rDec, 
+                                  Jerk        := Data.rJerk, 
+                                  BufferMode  := _BufferMode);
+
+    ELSIF (_Ctrl^[_nAxisIndex].eProgress = E_PROGRESS.DONE)
+    THEN
+      // when Ctrl decides to leave; make finishing move and be done
+      _eState       := E_PROGRESS.FINISHING;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.FINISHING:
+    _eState         := E_PROGRESS.DONE;
+    _eres           := MoveVeloBuffer(
+                                  Enable      := FALSE, 
+                                  Velocity    := Data.rSetVelo, 
+                                  Acc         := Data.rAcc, 
+                                  Dec         := Data.rDec, 
+                                  Jerk        := Data.rJerk, 
+                                  BufferMode  := _BufferMode);
+END_CASE
+
+AxisBufferVelo      := _eState;
+]]></ST>
+      </Implementation>
+    </Method>
     <Property Name="AxisCtrl" Id="{6f4cd776-1490-073c-2411-2e9fa9e9a6b2}" FolderPath="properties\">
       <Declaration><![CDATA[PROPERTY AxisCtrl : pointer to ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF st_axis_ctrl]]></Declaration>
       <Set Name="Set" Id="{e630f942-2d4d-05b1-0f59-706c62e18b88}">
@@ -284,7 +453,7 @@ END_VAR
 END_VAR
 ]]></Declaration>
         <Implementation>
-          <ST><![CDATA[_stCtrl := AxisCtrl;
+          <ST><![CDATA[_Ctrl := AxisCtrl;
 ]]></ST>
         </Implementation>
       </Set>
@@ -761,7 +930,7 @@ OF
       f_MessageSet(_stMsg);
       _eState                         := E_PROGRESS.ERROR;
 
-    ELSIF (_stCtrl^[_nAxisIndex].eProgress = E_PROGRESS.DONE)
+    ELSIF (_Ctrl^[_nAxisIndex].eProgress = E_PROGRESS.DONE)
     THEN
       // when Ctrl decides to leave; make finishing move and be done
       _eState                         := E_PROGRESS.FINISHING;
@@ -1091,6 +1260,105 @@ AxisHome := _eState;
 ]]></ST>
       </Implementation>
     </Method>
+    <Method Name="AxisIdle" Id="{91e094ba-3637-045f-257e-8b0236a82b6e}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD AxisIdle : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+END_VAR
+VAR_INST
+  _eResult,
+  _eState           : E_PROGRESS;
+  _stMsg            : ST_Message;
+  _nRetry           : UINT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT Check() THEN _eState := E_PROGRESS.ERROR; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+
+CASE _eState
+OF
+  E_PROGRESS.INIT:
+    IF Execute 
+    THEN
+      memset(ADR(_stMsg),0,SIZEOF(_stMsg));
+      _nRetry                       := 0;
+      _eResult                      := Reset(FALSE);
+      _eState                       := E_PROGRESS.BUSY;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.BUSY:
+    _eResult                        := Reset(TRUE);
+
+    IF (_eResult = E_PROGRESS.DONE)
+    THEN
+      _nRetry                       := _nRetry + 1;
+      _eState                       := E_PROGRESS.STARTUP;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.STARTUP:
+    _eResult                        := Reset(FALSE);
+    _eResult                        := Enable(FALSE);
+    _eState                         := E_PROGRESS.READY;
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PREPARE:
+    _eResult                        := Reset(FALSE);
+    _eResult                        := Enable(FALSE);
+
+    _eState                         := E_PROGRESS.BUSY;
+
+    _stMsg.eType                    := E_MessageType.eMessageInfo;
+    _stMsg.eDevice                  := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
+    _stMsg.eSubdevice               :=  e_SubDevice.AxisControl_Enable;
+    _stMsg.iErrorNumber             := _nErrorId;
+
+    _stMsg.sText                    := concat(TO_STRING(_eCtrl), ' retry: ');
+    _stMsg.sText                    := concat(_stMsg.sText, TO_STRING(_nRetry));
+
+    f_MessageSet(_stMsg);
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.READY:
+    _eResult                        := Enable(TRUE);
+
+    IF (_nRetry > MAX_RETRY)
+    THEN
+      _eState                       := E_PROGRESS.ERROR;
+
+    ELSIF (_eResult = E_PROGRESS.DONE)
+    THEN
+      Enable(FALSE);
+      _eState                       := E_PROGRESS.DONE;
+
+    ELSIF (_eResult = E_PROGRESS.ERROR)
+    THEN
+      _eState                       := E_PROGRESS.PREPARE;
+
+      _nErrorId                     := _AxisRef.NcToPlc.ErrorCode;
+    
+      _stMsg.eType                  := E_MessageType.eMessageError;
+      _stMsg.eDevice                := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             :=  e_SubDevice.AxisControl_Enable;
+      _stMsg.iErrorNumber           := _nErrorId;
+
+      _stMsg.sText                  := concat(TO_STRING(_eCtrl), ' error axis enable: ');
+      _stMsg.sText                  := concat(_stMsg.sText, TO_STRING(_nAxisIndex));
+
+      f_MessageSet(_stMsg);
+    END_IF
+END_CASE
+
+AxisIdle                                := _eState;
+]]></ST>
+      </Implementation>
+    </Method>
     <Property Name="AxisIndex" Id="{ec26ef16-42cd-03a5-0740-028e92c264af}" FolderPath="properties\">
       <Declaration><![CDATA[PROPERTY AxisIndex : uint]]></Declaration>
       <Set Name="Set" Id="{72c20e5d-c07d-04e2-2e7f-3065a8d113f1}">
@@ -1295,6 +1563,340 @@ AxisInit                            := _eState;
 ]]></ST>
       </Implementation>
     </Method>
+    <Method Name="AxisMoveToPosition" Id="{27760da5-88ba-02a4-20e2-a43d8fea6b68}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD AxisMoveToPosition : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+  Data              : ST_MOVE_DATA;
+END_VAR
+VAR_INST
+  _eres,
+  _eState           : E_PROGRESS;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT Check() THEN _eState := E_PROGRESS.ERROR; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+
+CASE _eState
+OF
+  E_PROGRESS.INIT:
+    IF Execute 
+    THEN
+      _eState               := E_PROGRESS.BUSY;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.BUSY:
+    _eState                 := E_PROGRESS.WAITING;
+    _eres                   := MoveToPos(
+                                      Execute    := FALSE, 
+                                      Position   := Data.rSetPos, 
+                                      Vel        := Data.rSetVelo, 
+                                      Acc        := Data.rAcc, 
+                                      Dec        := Data.rDec, 
+                                      Jerk       := Data.rJerk, 
+                                      BufferMode := Tc2_MC2.MC_BufferMode.MC_Aborting);
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.WAITING:
+    _eres                   := MoveToPos(
+                                      Execute    := TRUE, 
+                                      Position   := Data.rSetPos, 
+                                      Vel        := Data.rSetVelo, 
+                                      Acc        := Data.rAcc, 
+                                      Dec        := Data.rDec, 
+                                      Jerk       := Data.rJerk, 
+                                      BufferMode := Tc2_MC2.MC_BufferMode.MC_Aborting);
+
+    IF (_eres = E_PROGRESS.ERROR)
+    THEN
+        _eState             := E_PROGRESS.ERROR;
+    ELSIF (_eres = E_PROGRESS.DONE)
+    THEN 
+      _eState               := E_PROGRESS.WORKING;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.WORKING:
+    _eState                 := E_PROGRESS.DONE;
+    _eres                   := MoveToPos(
+                                      Execute    := FALSE, 
+                                      Position   := Data.rSetPos, 
+                                      Vel        := Data.rSetVelo, 
+                                      Acc        := Data.rAcc, 
+                                      Dec        := Data.rDec, 
+                                      Jerk       := Data.rJerk, 
+                                      BufferMode := Tc2_MC2.MC_BufferMode.MC_Aborting);
+END_CASE
+
+AxisMoveToPosition := _eState;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="AxisMoveVelocity" Id="{636baf69-d370-0962-3889-6678baa38f82}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD AxisMoveVelocity : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+  Data              : ST_MOVE_DATA;
+END_VAR
+VAR_INST
+  _eres,
+  _eState           : E_PROGRESS;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT Check() THEN _eState := E_PROGRESS.ERROR; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+
+CASE _eState
+OF
+  E_PROGRESS.INIT:
+    IF Execute 
+    THEN
+      _eState               := E_PROGRESS.BUSY;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.BUSY:
+    _eState                 := E_PROGRESS.WAITING;
+    _eres                   := MoveVelo(
+                                    Execute     := FALSE, 
+                                    Velocity    := Data.rSetVelo, 
+                                    Acc         := Data.rAcc, 
+                                    Dec         := Data.rDec, 
+                                    Jerk        := Data.rJerk, 
+                                    Direction   := Data.iDirection, 
+                                    BufferMode  := Tc2_MC2.MC_BufferMode.MC_Aborting);
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.WAITING:
+    _eres                   := MoveVelo(
+                                    Execute     := TRUE, 
+                                    Velocity    := Data.rSetVelo, 
+                                    Acc         := Data.rAcc, 
+                                    Dec         := Data.rDec, 
+                                    Jerk        := Data.rJerk, 
+                                    Direction   := Data.iDirection, 
+                                    BufferMode  := Tc2_MC2.MC_BufferMode.MC_Aborting);
+    IF (_eres = E_PROGRESS.ERROR)
+    THEN
+        _eState             := E_PROGRESS.ERROR;
+    ELSIF (_eres = E_PROGRESS.DONE)
+    THEN 
+      _eState               := E_PROGRESS.WORKING;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.WORKING:
+    _eState                 := E_PROGRESS.DONE;
+    _eres                   := MoveVelo(
+                                    Execute     := FALSE, 
+                                    Velocity    := Data.rSetVelo, 
+                                    Acc         := Data.rAcc, 
+                                    Dec         := Data.rDec, 
+                                    Jerk        := Data.rJerk, 
+                                    Direction   := Data.iDirection, 
+                                    BufferMode  := Tc2_MC2.MC_BufferMode.MC_Aborting);
+END_CASE
+
+AxisMoveVelocity                := _eState;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="AxisParameterRead" Id="{e888c5ae-12ad-0616-229c-9fc3342dcc87}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD AxisParameterRead : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+  ParameterNr       : Tc2_MC2.MC_AxisParameter;
+END_VAR
+VAR_INST
+  _eres,
+  _eState           : E_PROGRESS;
+  _rValue           : LREAL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT Check() THEN _eState := E_PROGRESS.ERROR; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+
+CASE _eState
+OF
+  E_PROGRESS.INIT:
+    IF Execute 
+    THEN
+      _rValue                                     := 0.0;
+      _eState                                     := E_PROGRESS.BUSY;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.BUSY:
+    _eState                                       := E_PROGRESS.WAITING;
+    _eres           := ReadParameter(
+                                  Execute         := FALSE,
+                                  ParameterNumber := ParameterNr);
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.WAITING:
+    _eres           := ReadParameter(
+                                  Execute         := TRUE,
+                                  ParameterNumber := ParameterNr);
+
+    IF (_eres = E_PROGRESS.ERROR)
+    THEN
+      _eState                                     := E_PROGRESS.ERROR;
+    ELSIF (_eres = E_PROGRESS.DONE)
+    THEN 
+      _eState                                     := E_PROGRESS.WORKING;
+    END_IF
+
+  E_PROGRESS.WORKING:
+    _eState                                       := E_PROGRESS.DONE;
+    _eres           := ReadParameter(
+                                  Execute         := FALSE,
+                                  ParameterNumber := ParameterNr);
+
+    _NcParameterWrt^[_nAxisIndex].rValue          :=
+    _rParameterReadValue                          := 
+    _rValue                                       :=ReadParameterValue;
+END_CASE
+
+AxisParameterRead := _eState;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="AxisParameterWrite" Id="{77ad02f2-e55b-0375-1054-18aeccc4f797}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD AxisParameterWrite : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+  ParameterNr       : Tc2_MC2.MC_AxisParameter;
+END_VAR
+VAR_INST
+  _eres,
+  _eState           : E_PROGRESS;
+  _rValue           : LREAL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT Check() THEN _eState := E_PROGRESS.ERROR; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+
+CASE _eState
+OF
+  E_PROGRESS.INIT:
+    IF Execute 
+    THEN
+      _rValue                                     := _NcParameterWrt^[_nAxisIndex].rValue;
+      _eState                                     := E_PROGRESS.BUSY;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.BUSY:
+    _eState                                       := E_PROGRESS.WAITING;
+    _eres           := WriteParameter(
+                                  Execute         := FALSE,
+                                  Value           := _rValue,
+                                  ParameterNumber := ParameterNr);
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.WAITING:
+    _eres           := WriteParameter(
+                                  Execute         := TRUE,
+                                  Value           := _rValue,
+                                  ParameterNumber := ParameterNr);
+    IF (_eres = E_PROGRESS.ERROR)
+    THEN
+      _eState                                     := E_PROGRESS.ERROR;
+    ELSIF (_eres = E_PROGRESS.DONE)
+    THEN 
+      _eState                                     := E_PROGRESS.WORKING;
+    END_IF
+
+  E_PROGRESS.WORKING:
+    _eState                                       := E_PROGRESS.DONE;
+    _eres           := WriteParameter(
+                                  Execute         := FALSE,
+                                  Value           := _rValue,
+                                  ParameterNumber := ParameterNr);
+END_CASE
+
+AxisParameterWrite                                    := _eState;
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="AxisParameterWritePersistent" Id="{bfd2219d-61cd-01fc-2d61-aa05055375fb}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD AxisParameterWritePersistent : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+  ParameterNr       : Tc2_MC2.MC_AxisParameter;
+END_VAR
+VAR_INST
+  _eres,
+  _eState           : E_PROGRESS;
+  _rValue           : LREAL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT Check() THEN _eState := E_PROGRESS.ERROR; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+
+CASE _eState
+OF
+  E_PROGRESS.INIT:
+    IF Execute 
+    THEN
+      _rValue                                     := _NcParameterWrt^[_nAxisIndex].rValue;
+      _eState                                     := E_PROGRESS.BUSY;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.BUSY:
+    _eState                                       := E_PROGRESS.WAITING;
+    _eres           := WriteParameterPersistent(
+                                  Execute         := FALSE,
+                                  Value           := _rValue,
+                                  ParameterNumber := ParameterNr);
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.WAITING:
+    _eres           := WriteParameterPersistent(
+                                  Execute         := TRUE,
+                                  Value           := _rValue,
+                                  ParameterNumber := ParameterNr);
+    IF (_eres = E_PROGRESS.ERROR)
+    THEN
+      _eState                                     := E_PROGRESS.ERROR;
+    ELSIF (_eres = E_PROGRESS.DONE)
+    THEN 
+      _eState                                     := E_PROGRESS.WORKING;
+    END_IF
+
+  E_PROGRESS.WORKING:
+    _eState                                       := E_PROGRESS.DONE;
+    _eres           := WriteParameterPersistent(
+                                  Execute         := FALSE,
+                                  Value           := _rValue,
+                                  ParameterNumber := ParameterNr);
+END_CASE
+
+AxisParameterWritePersistent                          := _eState;
+
+]]></ST>
+      </Implementation>
+    </Method>
     <Property Name="AxisRef" Id="{d622fbfb-1430-047a-062d-a4dac266c76c}" FolderPath="properties\">
       <Declaration><![CDATA[PROPERTY AxisRef : reference to Tc2_MC2.AXIS_REF]]></Declaration>
       <Get Name="Get" Id="{47a12226-31e2-0390-1c5c-a7209008eb2f}">
@@ -1366,7 +1968,7 @@ AxisReset                           := _eState;
 END_VAR
 ]]></Declaration>
         <Implementation>
-          <ST><![CDATA[_stState := AxisState;
+          <ST><![CDATA[_State := AxisState;
 ]]></ST>
         </Implementation>
       </Set>
@@ -1456,13 +2058,13 @@ END_IF
 _AxisRef                  := _Axes[_nAxisIndex];
 //-----------------------------------------------------------------------------
 
-IF NOT (_stCtrl <> 0)
+IF NOT (_Ctrl <> 0)
 THEN
   _eCheck                 := E_CHECK_STATE.AXIS_CTRL_POINTER_INVALID;
   RETURN;
 END_IF
 
-IF NOT (_stState <> 0)
+IF NOT (_State <> 0)
 THEN
   _eCheck                 := E_CHECK_STATE.AXIS_STATE_POINTER_INVALID;
   RETURN;
@@ -1594,7 +2196,7 @@ ELSE
 
       //---------------------------------------------------------------------------------
       E_AXIS_CTRL.AXIS_IDLE:
-        _eres                         := Idle(FALSE);
+        _eres                         := AxisIdle(FALSE);
         _estate                       := E_AXIS_STATE.AXIS_IDLE;
 
       //---------------------------------------------------------------------------------
@@ -1604,12 +2206,12 @@ ELSE
 
       //---------------------------------------------------------------------------------
       E_AXIS_CTRL.AXIS_MOVE_POS:
-        _eres                         := MovePosition(FALSE, _Data^[_nAxisIndex]);
+        _eres                         := AxisMoveToPosition(FALSE, _Data^[_nAxisIndex]);
         _estate                       := E_AXIS_STATE.AXIS_MOVE_POS;
 
       //---------------------------------------------------------------------------------
       E_AXIS_CTRL.AXIS_MOVE_VELO:
-        _eres                         := MoveVelocity(FALSE, _Data^[_nAxisIndex]);
+        _eres                         := AxisMoveVelocity(FALSE, _Data^[_nAxisIndex]);
         _estate                       := E_AXIS_STATE.AXIS_MOVE_VELO;
 
       //---------------------------------------------------------------------------------
@@ -1632,20 +2234,20 @@ ELSE
 
       //---------------------------------------------------------------------------------
       E_AXIS_CTRL.AXIS_MOVE_BUFFER:
-        _eres                         := MoveBufferPos(FALSE, _Data^[_nAxisIndex]);
+        _eres                         := AxisBufferPos(FALSE, _Data^[_nAxisIndex]);
         _estate                       := E_AXIS_STATE.AXIS_MOVE_BUFFER;
 
 
       //---------------------------------------------------------------------------------
       E_AXIS_CTRL.AXIS_MOVE_BUFFER_VELO:
-        _eres                         := MoveBufferVelo(FALSE, _Data^[_nAxisIndex]);
+        _eres                         := AxisBufferVelo(FALSE, _Data^[_nAxisIndex]);
         _estate                       := E_AXIS_STATE.AXIS_MOVE_BUFFER_VELO;
 
 
       //---------------------------------------------------------------------------------
       E_AXIS_CTRL.AXIS_PARAMETER_READ:
         _eParameterNrWrite            := _NcParameterWrt^[_nAxisIndex].ParameterNumber;
-        _eres                         := ParameterRead(FALSE, _eParameterNrWrite);
+        _eres                         := AxisParameterRead(FALSE, _eParameterNrWrite);
 
         _estate                       := E_AXIS_STATE.AXIS_PARAMETER_READ;
 
@@ -1696,7 +2298,7 @@ END_CASE
 IF NOT (_eres = E_PROGRESS.ERROR)
 THEN
   // only get busy on valid command
-  _stState^[_nAxisIndex].eState       := _eState + E_PROGRESS.BUSY;
+  _State^[_nAxisIndex].eState       := _eState + E_PROGRESS.BUSY;
 END_IF
 
 Cmd                                   := _estate;
@@ -1748,105 +2350,6 @@ END_VAR
         </Implementation>
       </Set>
     </Property>
-    <Method Name="Idle" Id="{91e094ba-3637-045f-257e-8b0236a82b6e}" FolderPath="methods\">
-      <Declaration><![CDATA[METHOD Idle : E_PROGRESS
-VAR_INPUT
-  Execute           : BOOL;
-END_VAR
-VAR_INST
-  _eResult,
-  _eState           : E_PROGRESS;
-  _stMsg            : ST_Message;
-  _nRetry           : UINT;
-END_VAR
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN _eState := E_PROGRESS.ERROR; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
-
-CASE _eState
-OF
-  E_PROGRESS.INIT:
-    IF Execute 
-    THEN
-      memset(ADR(_stMsg),0,SIZEOF(_stMsg));
-      _nRetry                       := 0;
-      _eResult                      := Reset(FALSE);
-      _eState                       := E_PROGRESS.BUSY;
-    END_IF
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.BUSY:
-    _eResult                        := Reset(TRUE);
-
-    IF (_eResult = E_PROGRESS.DONE)
-    THEN
-      _nRetry                       := _nRetry + 1;
-      _eState                       := E_PROGRESS.STARTUP;
-    END_IF
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.STARTUP:
-    _eResult                        := Reset(FALSE);
-    _eResult                        := Enable(FALSE);
-    _eState                         := E_PROGRESS.READY;
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.PREPARE:
-    _eResult                        := Reset(FALSE);
-    _eResult                        := Enable(FALSE);
-
-    _eState                         := E_PROGRESS.BUSY;
-
-    _stMsg.eType                    := E_MessageType.eMessageInfo;
-    _stMsg.eDevice                  := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
-    _stMsg.eSubdevice               :=  e_SubDevice.AxisControl_Enable;
-    _stMsg.iErrorNumber             := _nErrorId;
-
-    _stMsg.sText                    := concat(TO_STRING(_eCtrl), ' retry: ');
-    _stMsg.sText                    := concat(_stMsg.sText, TO_STRING(_nRetry));
-
-    f_MessageSet(_stMsg);
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.READY:
-    _eResult                        := Enable(TRUE);
-
-    IF (_nRetry > MAX_RETRY)
-    THEN
-      _eState                       := E_PROGRESS.ERROR;
-
-    ELSIF (_eResult = E_PROGRESS.DONE)
-    THEN
-      Enable(FALSE);
-      _eState                       := E_PROGRESS.DONE;
-
-    ELSIF (_eResult = E_PROGRESS.ERROR)
-    THEN
-      _eState                       := E_PROGRESS.PREPARE;
-
-      _nErrorId                     := _AxisRef.NcToPlc.ErrorCode;
-    
-      _stMsg.eType                  := E_MessageType.eMessageError;
-      _stMsg.eDevice                := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
-      _stMsg.eSubdevice             :=  e_SubDevice.AxisControl_Enable;
-      _stMsg.iErrorNumber           := _nErrorId;
-
-      _stMsg.sText                  := concat(TO_STRING(_eCtrl), ' error axis enable: ');
-      _stMsg.sText                  := concat(_stMsg.sText, TO_STRING(_nAxisIndex));
-
-      f_MessageSet(_stMsg);
-    END_IF
-END_CASE
-
-Idle                                := _eState;
-]]></ST>
-      </Implementation>
-    </Method>
     <Method Name="LogControl" Id="{d80366c5-11f3-0a8a-297c-4979ebf61c8a}" FolderPath="methods\private\">
       <Declaration><![CDATA[METHOD PRIVATE LogControl
 VAR_INST
@@ -1912,322 +2415,6 @@ END_VAR
         </Implementation>
       </Set>
     </Property>
-    <Method Name="MoveBufferPos" Id="{8bea1fe6-78db-0d06-2903-94e698371421}" FolderPath="methods\">
-      <Declaration><![CDATA[METHOD MoveBufferPos : E_PROGRESS
-VAR_INPUT
-  Enable            : BOOL;
-  Data              : ST_MOVE_DATA;
-END_VAR
-VAR_INST
-  _BufferMode       : Tc2_MC2.MC_BufferMode;
-  _eres,
-  _eState           : E_PROGRESS;
-END_VAR
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN _eState := E_PROGRESS.ERROR; END_IF
-IF NOT Enable THEN _eState := E_PROGRESS.INIT; END_IF
-
-CASE _eState
-OF
-  E_PROGRESS.INIT:
-    IF Enable 
-    THEN
-      _eState       := E_PROGRESS.BUSY;
-    END_IF
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.BUSY:
-    _eState         := E_PROGRESS.WORKING;
-    _BufferMode     := _MotionOptions^[_nAxisIndex].eBufferMode;
-    _eres           := MovePosBuffer(
-                                  Enable      := FALSE, 
-                                  Position    := Data.rSetPos, 
-                                  Vel         := Data.rSetVelo, 
-                                  Acc         := Data.rAcc, 
-                                  Dec         := Data.rDec, 
-                                  Jerk        := Data.rJerk, 
-                                  BufferMode  := _BufferMode);
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.WORKING:
-    _BufferMode     := _MotionOptions^[_nAxisIndex].eBufferMode;
-    _eres           := MovePosBuffer(
-                                  Enable      := TRUE, 
-                                  Position    := Data.rSetPos, 
-                                  Vel         := Data.rSetVelo, 
-                                  Acc         := Data.rAcc, 
-                                  Dec         := Data.rDec, 
-                                  Jerk        := Data.rJerk, 
-                                  BufferMode  := _BufferMode);
-    IF (_eres = E_PROGRESS.ERROR)
-    THEN
-      _eState       := E_PROGRESS.ERROR;
-                       MovePosBuffer(
-                                  Enable      := FALSE, 
-                                  Position    := Data.rSetPos, 
-                                  Vel         := Data.rSetVelo, 
-                                  Acc         := Data.rAcc, 
-                                  Dec         := Data.rDec, 
-                                  Jerk        := Data.rJerk, 
-                                  BufferMode  := _BufferMode);
-
-    ELSIF (_stCtrl^[_nAxisIndex].eProgress = E_PROGRESS.DONE)
-    THEN
-      // when Ctrl decides to leave; make finishing move and be done
-      _eState       := E_PROGRESS.FINISHING;
-    END_IF
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.FINISHING:
-    _eState         := E_PROGRESS.DONE;
-    _eres           := MovePosBuffer(
-                                  Enable      := FALSE, 
-                                  Position    := Data.rSetPos, 
-                                  Vel         := Data.rSetVelo, 
-                                  Acc         := Data.rAcc, 
-                                  Dec         := Data.rDec, 
-                                  Jerk        := Data.rJerk, 
-                                  BufferMode  := _BufferMode);
-END_CASE
-
-MoveBufferPos       := _eState;
-]]></ST>
-      </Implementation>
-    </Method>
-    <Method Name="MoveBufferVelo" Id="{374fe133-fb4a-0fd3-3a5b-fe68bfd11804}" FolderPath="methods\">
-      <Declaration><![CDATA[METHOD MoveBufferVelo : E_PROGRESS
-VAR_INPUT
-  Enable            : BOOL;
-  Data              : ST_MOVE_DATA;
-END_VAR
-VAR_INST
-  _BufferMode       : Tc2_MC2.MC_BufferMode;
-  _eres,
-  _eState           : E_PROGRESS;
-END_VAR
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN _eState := E_PROGRESS.ERROR; END_IF
-IF NOT Enable THEN _eState := E_PROGRESS.INIT; END_IF
-
-CASE _eState
-OF
-  E_PROGRESS.INIT:
-    IF Enable 
-    THEN
-      _eState       := E_PROGRESS.BUSY;
-    END_IF
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.BUSY:
-    _eState         := E_PROGRESS.WORKING;
-    _BufferMode     := _MotionOptions^[_nAxisIndex].eBufferMode;
-    _eres           := MoveVeloBuffer(
-                                  Enable      := FALSE, 
-                                  Velocity    := Data.rSetVelo, 
-                                  Acc         := Data.rAcc, 
-                                  Dec         := Data.rDec, 
-                                  Jerk        := Data.rJerk, 
-                                  BufferMode  := _BufferMode);
-
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.WORKING:
-    _BufferMode     := _MotionOptions^[_nAxisIndex].eBufferMode;
-    _eres           := MoveVeloBuffer(
-                                  Enable      := TRUE, 
-                                  Velocity    := Data.rSetVelo, 
-                                  Acc         := Data.rAcc, 
-                                  Dec         := Data.rDec, 
-                                  Jerk        := Data.rJerk, 
-                                  BufferMode  := _BufferMode);
-    IF (_eres = E_PROGRESS.ERROR)
-    THEN
-      _eState := E_PROGRESS.ERROR;
-                       MoveVeloBuffer(
-                                  Enable      := FALSE, 
-                                  Velocity    := Data.rSetVelo, 
-                                  Acc         := Data.rAcc, 
-                                  Dec         := Data.rDec, 
-                                  Jerk        := Data.rJerk, 
-                                  BufferMode  := _BufferMode);
-
-    ELSIF (_stCtrl^[_nAxisIndex].eProgress = E_PROGRESS.DONE)
-    THEN
-      // when Ctrl decides to leave; make finishing move and be done
-      _eState       := E_PROGRESS.FINISHING;
-    END_IF
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.FINISHING:
-    _eState         := E_PROGRESS.DONE;
-    _eres           := MoveVeloBuffer(
-                                  Enable      := FALSE, 
-                                  Velocity    := Data.rSetVelo, 
-                                  Acc         := Data.rAcc, 
-                                  Dec         := Data.rDec, 
-                                  Jerk        := Data.rJerk, 
-                                  BufferMode  := _BufferMode);
-END_CASE
-
-MoveBufferVelo      := _eState;
-]]></ST>
-      </Implementation>
-    </Method>
-    <Method Name="MovePosition" Id="{27760da5-88ba-02a4-20e2-a43d8fea6b68}" FolderPath="methods\">
-      <Declaration><![CDATA[METHOD MovePosition : E_PROGRESS
-VAR_INPUT
-  Execute           : BOOL;
-  Data              : ST_MOVE_DATA;
-END_VAR
-VAR_INST
-  _eres,
-  _eState           : E_PROGRESS;
-END_VAR
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN _eState := E_PROGRESS.ERROR; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
-
-CASE _eState
-OF
-  E_PROGRESS.INIT:
-    IF Execute 
-    THEN
-      _eState               := E_PROGRESS.BUSY;
-    END_IF
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.BUSY:
-    _eState                 := E_PROGRESS.WAITING;
-    _eres                   := MoveToPos(
-                                      Execute    := FALSE, 
-                                      Position   := Data.rSetPos, 
-                                      Vel        := Data.rSetVelo, 
-                                      Acc        := Data.rAcc, 
-                                      Dec        := Data.rDec, 
-                                      Jerk       := Data.rJerk, 
-                                      BufferMode := Tc2_MC2.MC_BufferMode.MC_Aborting);
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.WAITING:
-    _eres                   := MoveToPos(
-                                      Execute    := TRUE, 
-                                      Position   := Data.rSetPos, 
-                                      Vel        := Data.rSetVelo, 
-                                      Acc        := Data.rAcc, 
-                                      Dec        := Data.rDec, 
-                                      Jerk       := Data.rJerk, 
-                                      BufferMode := Tc2_MC2.MC_BufferMode.MC_Aborting);
-
-    IF (_eres = E_PROGRESS.ERROR)
-    THEN
-        _eState             := E_PROGRESS.ERROR;
-    ELSIF (_eres = E_PROGRESS.DONE)
-    THEN 
-      _eState               := E_PROGRESS.WORKING;
-    END_IF
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.WORKING:
-    _eState                 := E_PROGRESS.DONE;
-    _eres                   := MoveToPos(
-                                      Execute    := FALSE, 
-                                      Position   := Data.rSetPos, 
-                                      Vel        := Data.rSetVelo, 
-                                      Acc        := Data.rAcc, 
-                                      Dec        := Data.rDec, 
-                                      Jerk       := Data.rJerk, 
-                                      BufferMode := Tc2_MC2.MC_BufferMode.MC_Aborting);
-END_CASE
-
-MovePosition := _eState;
-]]></ST>
-      </Implementation>
-    </Method>
-    <Method Name="MoveVelocity" Id="{636baf69-d370-0962-3889-6678baa38f82}" FolderPath="methods\">
-      <Declaration><![CDATA[METHOD MoveVelocity : E_PROGRESS
-VAR_INPUT
-  Execute           : BOOL;
-  Data              : ST_MOVE_DATA;
-END_VAR
-VAR_INST
-  _eres,
-  _eState           : E_PROGRESS;
-END_VAR
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN _eState := E_PROGRESS.ERROR; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
-
-CASE _eState
-OF
-  E_PROGRESS.INIT:
-    IF Execute 
-    THEN
-      _eState               := E_PROGRESS.BUSY;
-    END_IF
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.BUSY:
-    _eState                 := E_PROGRESS.WAITING;
-    _eres                   := MoveVelo(
-                                    Execute     := FALSE, 
-                                    Velocity    := Data.rSetVelo, 
-                                    Acc         := Data.rAcc, 
-                                    Dec         := Data.rDec, 
-                                    Jerk        := Data.rJerk, 
-                                    Direction   := Data.iDirection, 
-                                    BufferMode  := Tc2_MC2.MC_BufferMode.MC_Aborting);
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.WAITING:
-    _eres                   := MoveVelo(
-                                    Execute     := TRUE, 
-                                    Velocity    := Data.rSetVelo, 
-                                    Acc         := Data.rAcc, 
-                                    Dec         := Data.rDec, 
-                                    Jerk        := Data.rJerk, 
-                                    Direction   := Data.iDirection, 
-                                    BufferMode  := Tc2_MC2.MC_BufferMode.MC_Aborting);
-    IF (_eres = E_PROGRESS.ERROR)
-    THEN
-        _eState             := E_PROGRESS.ERROR;
-    ELSIF (_eres = E_PROGRESS.DONE)
-    THEN 
-      _eState               := E_PROGRESS.WORKING;
-    END_IF
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.WORKING:
-    _eState                 := E_PROGRESS.DONE;
-    _eres                   := MoveVelo(
-                                    Execute     := FALSE, 
-                                    Velocity    := Data.rSetVelo, 
-                                    Acc         := Data.rAcc, 
-                                    Dec         := Data.rDec, 
-                                    Jerk        := Data.rJerk, 
-                                    Direction   := Data.iDirection, 
-                                    BufferMode  := Tc2_MC2.MC_BufferMode.MC_Aborting);
-END_CASE
-
-MoveVelocity                := _eState;
-]]></ST>
-      </Implementation>
-    </Method>
     <Property Name="NcParameterValue" Id="{4f83dc68-3391-08cc-2ba6-0dca5b6f9170}" FolderPath="properties\">
       <Declaration><![CDATA[PROPERTY NcParameterValue : Lreal]]></Declaration>
       <Get Name="Get" Id="{c17f1740-3dbe-0323-21bb-d695e230a5f7}">
@@ -2240,193 +2427,6 @@ END_VAR
         </Implementation>
       </Get>
     </Property>
-    <Method Name="ParameterRead" Id="{e888c5ae-12ad-0616-229c-9fc3342dcc87}" FolderPath="methods\">
-      <Declaration><![CDATA[METHOD ParameterRead : E_PROGRESS
-VAR_INPUT
-  Execute           : BOOL;
-  ParameterNr       : Tc2_MC2.MC_AxisParameter;
-END_VAR
-VAR_INST
-  _eres,
-  _eState           : E_PROGRESS;
-  _rValue           : LREAL;
-END_VAR
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN _eState := E_PROGRESS.ERROR; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
-
-CASE _eState
-OF
-  E_PROGRESS.INIT:
-    IF Execute 
-    THEN
-      _rValue                                     := 0.0;
-      _eState                                     := E_PROGRESS.BUSY;
-    END_IF
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.BUSY:
-    _eState                                       := E_PROGRESS.WAITING;
-    _eres           := ReadParameter(
-                                  Execute         := FALSE,
-                                  ParameterNumber := ParameterNr);
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.WAITING:
-    _eres           := ReadParameter(
-                                  Execute         := TRUE,
-                                  ParameterNumber := ParameterNr);
-
-    IF (_eres = E_PROGRESS.ERROR)
-    THEN
-      _eState                                     := E_PROGRESS.ERROR;
-    ELSIF (_eres = E_PROGRESS.DONE)
-    THEN 
-      _eState                                     := E_PROGRESS.WORKING;
-    END_IF
-
-  E_PROGRESS.WORKING:
-    _eState                                       := E_PROGRESS.DONE;
-    _eres           := ReadParameter(
-                                  Execute         := FALSE,
-                                  ParameterNumber := ParameterNr);
-
-    _NcParameterWrt^[_nAxisIndex].rValue          :=
-    _rParameterReadValue                          := 
-    _rValue                                       :=ReadParameterValue;
-END_CASE
-
-ParameterRead := _eState;
-]]></ST>
-      </Implementation>
-    </Method>
-    <Method Name="ParameterWrite" Id="{77ad02f2-e55b-0375-1054-18aeccc4f797}" FolderPath="methods\">
-      <Declaration><![CDATA[METHOD ParameterWrite : E_PROGRESS
-VAR_INPUT
-  Execute           : BOOL;
-  ParameterNr       : Tc2_MC2.MC_AxisParameter;
-END_VAR
-VAR_INST
-  _eres,
-  _eState           : E_PROGRESS;
-  _rValue           : LREAL;
-END_VAR
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN _eState := E_PROGRESS.ERROR; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
-
-CASE _eState
-OF
-  E_PROGRESS.INIT:
-    IF Execute 
-    THEN
-      _rValue                                     := _NcParameterWrt^[_nAxisIndex].rValue;
-      _eState                                     := E_PROGRESS.BUSY;
-    END_IF
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.BUSY:
-    _eState                                       := E_PROGRESS.WAITING;
-    _eres           := WriteParameter(
-                                  Execute         := FALSE,
-                                  Value           := _rValue,
-                                  ParameterNumber := ParameterNr);
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.WAITING:
-    _eres           := WriteParameter(
-                                  Execute         := TRUE,
-                                  Value           := _rValue,
-                                  ParameterNumber := ParameterNr);
-    IF (_eres = E_PROGRESS.ERROR)
-    THEN
-      _eState                                     := E_PROGRESS.ERROR;
-    ELSIF (_eres = E_PROGRESS.DONE)
-    THEN 
-      _eState                                     := E_PROGRESS.WORKING;
-    END_IF
-
-  E_PROGRESS.WORKING:
-    _eState                                       := E_PROGRESS.DONE;
-    _eres           := WriteParameter(
-                                  Execute         := FALSE,
-                                  Value           := _rValue,
-                                  ParameterNumber := ParameterNr);
-END_CASE
-
-ParameterWrite                                    := _eState;
-
-]]></ST>
-      </Implementation>
-    </Method>
-    <Method Name="ParameterWritePersistent" Id="{bfd2219d-61cd-01fc-2d61-aa05055375fb}" FolderPath="methods\">
-      <Declaration><![CDATA[METHOD ParameterWritePersistent : E_PROGRESS
-VAR_INPUT
-  Execute           : BOOL;
-  ParameterNr       : Tc2_MC2.MC_AxisParameter;
-END_VAR
-VAR_INST
-  _eres,
-  _eState           : E_PROGRESS;
-  _rValue           : LREAL;
-END_VAR
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN _eState := E_PROGRESS.ERROR; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
-
-CASE _eState
-OF
-  E_PROGRESS.INIT:
-    IF Execute 
-    THEN
-      _rValue                                     := _NcParameterWrt^[_nAxisIndex].rValue;
-      _eState                                     := E_PROGRESS.BUSY;
-    END_IF
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.BUSY:
-    _eState                                       := E_PROGRESS.WAITING;
-    _eres           := WriteParameterPersistent(
-                                  Execute         := FALSE,
-                                  Value           := _rValue,
-                                  ParameterNumber := ParameterNr);
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.WAITING:
-    _eres           := WriteParameterPersistent(
-                                  Execute         := TRUE,
-                                  Value           := _rValue,
-                                  ParameterNumber := ParameterNr);
-    IF (_eres = E_PROGRESS.ERROR)
-    THEN
-      _eState                                     := E_PROGRESS.ERROR;
-    ELSIF (_eres = E_PROGRESS.DONE)
-    THEN 
-      _eState                                     := E_PROGRESS.WORKING;
-    END_IF
-
-  E_PROGRESS.WORKING:
-    _eState                                       := E_PROGRESS.DONE;
-    _eres           := WriteParameterPersistent(
-                                  Execute         := FALSE,
-                                  Value           := _rValue,
-                                  ParameterNumber := ParameterNr);
-END_CASE
-
-ParameterWritePersistent                          := _eState;
-
-]]></ST>
-      </Implementation>
-    </Method>
     <Property Name="ReadNcParameter" Id="{73c29011-949c-0182-1bfa-4914a1c5e4f4}" FolderPath="properties\">
       <Declaration><![CDATA[PROPERTY ReadNcParameter : pointer to ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF st_nc_parameter]]></Declaration>
       <Set Name="Set" Id="{35143572-1cc0-0e7a-19af-74d16589d588}">
@@ -2643,12 +2643,52 @@ END_VAR
       </Set>
     </Property>
     <LineIds Name="FB_McAxisCtrl">
-      <LineId Id="2042" Count="193" />
+      <LineId Id="4106" Count="193" />
       <LineId Id="17" Count="0" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.Axes.Set">
       <LineId Id="2" Count="0" />
       <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_McAxisCtrl.AxisBufferPos">
+      <LineId Id="744" Count="7" />
+      <LineId Id="755" Count="6" />
+      <LineId Id="802" Count="0" />
+      <LineId Id="792" Count="6" />
+      <LineId Id="791" Count="0" />
+      <LineId Id="762" Count="0" />
+      <LineId Id="778" Count="2" />
+      <LineId Id="804" Count="11" />
+      <LineId Id="847" Count="7" />
+      <LineId Id="832" Count="0" />
+      <LineId Id="828" Count="3" />
+      <LineId Id="816" Count="0" />
+      <LineId Id="834" Count="3" />
+      <LineId Id="846" Count="0" />
+      <LineId Id="838" Count="7" />
+      <LineId Id="782" Count="0" />
+      <LineId Id="788" Count="1" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_McAxisCtrl.AxisBufferVelo">
+      <LineId Id="744" Count="7" />
+      <LineId Id="755" Count="6" />
+      <LineId Id="802" Count="0" />
+      <LineId Id="792" Count="1" />
+      <LineId Id="795" Count="3" />
+      <LineId Id="791" Count="0" />
+      <LineId Id="800" Count="0" />
+      <LineId Id="762" Count="0" />
+      <LineId Id="778" Count="2" />
+      <LineId Id="804" Count="2" />
+      <LineId Id="808" Count="7" />
+      <LineId Id="856" Count="6" />
+      <LineId Id="848" Count="0" />
+      <LineId Id="829" Count="9" />
+      <LineId Id="849" Count="6" />
+      <LineId Id="847" Count="0" />
+      <LineId Id="788" Count="1" />
+      <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.AxisCtrl.Set">
       <LineId Id="2" Count="0" />
@@ -2890,6 +2930,53 @@ END_VAR
       <LineId Id="717" Count="2" />
       <LineId Id="2" Count="0" />
     </LineIds>
+    <LineIds Name="FB_McAxisCtrl.AxisIdle">
+      <LineId Id="674" Count="7" />
+      <LineId Id="780" Count="1" />
+      <LineId Id="758" Count="0" />
+      <LineId Id="685" Count="5" />
+      <LineId Id="727" Count="0" />
+      <LineId Id="729" Count="0" />
+      <LineId Id="728" Count="0" />
+      <LineId Id="730" Count="0" />
+      <LineId Id="809" Count="0" />
+      <LineId Id="696" Count="0" />
+      <LineId Id="731" Count="0" />
+      <LineId Id="697" Count="3" />
+      <LineId Id="733" Count="1" />
+      <LineId Id="701" Count="1" />
+      <LineId Id="786" Count="2" />
+      <LineId Id="805" Count="1" />
+      <LineId Id="804" Count="0" />
+      <LineId Id="791" Count="0" />
+      <LineId Id="807" Count="0" />
+      <LineId Id="795" Count="8" />
+      <LineId Id="792" Count="0" />
+      <LineId Id="703" Count="2" />
+      <LineId Id="735" Count="0" />
+      <LineId Id="811" Count="0" />
+      <LineId Id="810" Count="0" />
+      <LineId Id="812" Count="0" />
+      <LineId Id="737" Count="0" />
+      <LineId Id="813" Count="0" />
+      <LineId Id="736" Count="0" />
+      <LineId Id="738" Count="0" />
+      <LineId Id="760" Count="0" />
+      <LineId Id="706" Count="0" />
+      <LineId Id="744" Count="0" />
+      <LineId Id="741" Count="2" />
+      <LineId Id="778" Count="0" />
+      <LineId Id="770" Count="5" />
+      <LineId Id="784" Count="0" />
+      <LineId Id="783" Count="0" />
+      <LineId Id="776" Count="0" />
+      <LineId Id="782" Count="0" />
+      <LineId Id="777" Count="0" />
+      <LineId Id="739" Count="0" />
+      <LineId Id="707" Count="0" />
+      <LineId Id="718" Count="1" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
     <LineIds Name="FB_McAxisCtrl.AxisIndex.Set">
       <LineId Id="2" Count="0" />
     </LineIds>
@@ -2967,6 +3054,82 @@ END_VAR
       <LineId Id="154" Count="0" />
       <LineId Id="60" Count="2" />
       <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_McAxisCtrl.AxisMoveToPosition">
+      <LineId Id="924" Count="7" />
+      <LineId Id="935" Count="50" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_McAxisCtrl.AxisMoveVelocity">
+      <LineId Id="744" Count="7" />
+      <LineId Id="755" Count="5" />
+      <LineId Id="825" Count="0" />
+      <LineId Id="793" Count="6" />
+      <LineId Id="792" Count="0" />
+      <LineId Id="762" Count="0" />
+      <LineId Id="778" Count="2" />
+      <LineId Id="801" Count="14" />
+      <LineId Id="782" Count="4" />
+      <LineId Id="817" Count="7" />
+      <LineId Id="787" Count="2" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_McAxisCtrl.AxisParameterRead">
+      <LineId Id="744" Count="7" />
+      <LineId Id="826" Count="0" />
+      <LineId Id="755" Count="6" />
+      <LineId Id="793" Count="2" />
+      <LineId Id="762" Count="0" />
+      <LineId Id="778" Count="2" />
+      <LineId Id="797" Count="2" />
+      <LineId Id="796" Count="0" />
+      <LineId Id="800" Count="6" />
+      <LineId Id="808" Count="0" />
+      <LineId Id="785" Count="0" />
+      <LineId Id="828" Count="0" />
+      <LineId Id="811" Count="2" />
+      <LineId Id="810" Count="0" />
+      <LineId Id="809" Count="0" />
+      <LineId Id="807" Count="0" />
+      <LineId Id="827" Count="0" />
+      <LineId Id="787" Count="2" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_McAxisCtrl.AxisParameterWrite">
+      <LineId Id="744" Count="7" />
+      <LineId Id="754" Count="7" />
+      <LineId Id="793" Count="1" />
+      <LineId Id="828" Count="0" />
+      <LineId Id="795" Count="0" />
+      <LineId Id="762" Count="0" />
+      <LineId Id="778" Count="2" />
+      <LineId Id="829" Count="3" />
+      <LineId Id="800" Count="6" />
+      <LineId Id="808" Count="0" />
+      <LineId Id="785" Count="0" />
+      <LineId Id="849" Count="0" />
+      <LineId Id="833" Count="3" />
+      <LineId Id="787" Count="2" />
+      <LineId Id="850" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_McAxisCtrl.AxisParameterWritePersistent">
+      <LineId Id="744" Count="7" />
+      <LineId Id="754" Count="7" />
+      <LineId Id="793" Count="1" />
+      <LineId Id="828" Count="0" />
+      <LineId Id="795" Count="0" />
+      <LineId Id="762" Count="0" />
+      <LineId Id="778" Count="2" />
+      <LineId Id="829" Count="3" />
+      <LineId Id="800" Count="6" />
+      <LineId Id="808" Count="0" />
+      <LineId Id="785" Count="0" />
+      <LineId Id="848" Count="0" />
+      <LineId Id="833" Count="3" />
+      <LineId Id="787" Count="2" />
+      <LineId Id="849" Count="0" />
+      <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.AxisRef.Get">
       <LineId Id="2" Count="0" />
@@ -3165,53 +3328,6 @@ END_VAR
       <LineId Id="2" Count="0" />
       <LineId Id="5" Count="0" />
     </LineIds>
-    <LineIds Name="FB_McAxisCtrl.Idle">
-      <LineId Id="674" Count="7" />
-      <LineId Id="780" Count="1" />
-      <LineId Id="758" Count="0" />
-      <LineId Id="685" Count="5" />
-      <LineId Id="727" Count="0" />
-      <LineId Id="729" Count="0" />
-      <LineId Id="728" Count="0" />
-      <LineId Id="730" Count="0" />
-      <LineId Id="809" Count="0" />
-      <LineId Id="696" Count="0" />
-      <LineId Id="731" Count="0" />
-      <LineId Id="697" Count="3" />
-      <LineId Id="733" Count="1" />
-      <LineId Id="701" Count="1" />
-      <LineId Id="786" Count="2" />
-      <LineId Id="805" Count="1" />
-      <LineId Id="804" Count="0" />
-      <LineId Id="791" Count="0" />
-      <LineId Id="807" Count="0" />
-      <LineId Id="795" Count="8" />
-      <LineId Id="792" Count="0" />
-      <LineId Id="703" Count="2" />
-      <LineId Id="735" Count="0" />
-      <LineId Id="811" Count="0" />
-      <LineId Id="810" Count="0" />
-      <LineId Id="812" Count="0" />
-      <LineId Id="737" Count="0" />
-      <LineId Id="813" Count="0" />
-      <LineId Id="736" Count="0" />
-      <LineId Id="738" Count="0" />
-      <LineId Id="760" Count="0" />
-      <LineId Id="706" Count="0" />
-      <LineId Id="744" Count="0" />
-      <LineId Id="741" Count="2" />
-      <LineId Id="778" Count="0" />
-      <LineId Id="770" Count="5" />
-      <LineId Id="784" Count="0" />
-      <LineId Id="783" Count="0" />
-      <LineId Id="776" Count="0" />
-      <LineId Id="782" Count="0" />
-      <LineId Id="777" Count="0" />
-      <LineId Id="739" Count="0" />
-      <LineId Id="707" Count="0" />
-      <LineId Id="718" Count="1" />
-      <LineId Id="2" Count="0" />
-    </LineIds>
     <LineIds Name="FB_McAxisCtrl.LogControl">
       <LineId Id="35" Count="10" />
       <LineId Id="5" Count="0" />
@@ -3234,125 +3350,9 @@ END_VAR
       <LineId Id="2" Count="0" />
       <LineId Id="5" Count="0" />
     </LineIds>
-    <LineIds Name="FB_McAxisCtrl.MoveBufferPos">
-      <LineId Id="744" Count="7" />
-      <LineId Id="755" Count="6" />
-      <LineId Id="802" Count="0" />
-      <LineId Id="792" Count="6" />
-      <LineId Id="791" Count="0" />
-      <LineId Id="762" Count="0" />
-      <LineId Id="778" Count="2" />
-      <LineId Id="804" Count="11" />
-      <LineId Id="847" Count="7" />
-      <LineId Id="832" Count="0" />
-      <LineId Id="828" Count="3" />
-      <LineId Id="816" Count="0" />
-      <LineId Id="834" Count="3" />
-      <LineId Id="846" Count="0" />
-      <LineId Id="838" Count="7" />
-      <LineId Id="782" Count="0" />
-      <LineId Id="788" Count="1" />
-      <LineId Id="2" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_McAxisCtrl.MoveBufferVelo">
-      <LineId Id="744" Count="7" />
-      <LineId Id="755" Count="6" />
-      <LineId Id="802" Count="0" />
-      <LineId Id="792" Count="1" />
-      <LineId Id="795" Count="3" />
-      <LineId Id="791" Count="0" />
-      <LineId Id="800" Count="0" />
-      <LineId Id="762" Count="0" />
-      <LineId Id="778" Count="2" />
-      <LineId Id="804" Count="2" />
-      <LineId Id="808" Count="7" />
-      <LineId Id="856" Count="6" />
-      <LineId Id="848" Count="0" />
-      <LineId Id="829" Count="9" />
-      <LineId Id="849" Count="6" />
-      <LineId Id="847" Count="0" />
-      <LineId Id="788" Count="1" />
-      <LineId Id="2" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_McAxisCtrl.MovePosition">
-      <LineId Id="924" Count="7" />
-      <LineId Id="935" Count="50" />
-      <LineId Id="2" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_McAxisCtrl.MoveVelocity">
-      <LineId Id="744" Count="7" />
-      <LineId Id="755" Count="5" />
-      <LineId Id="825" Count="0" />
-      <LineId Id="793" Count="6" />
-      <LineId Id="792" Count="0" />
-      <LineId Id="762" Count="0" />
-      <LineId Id="778" Count="2" />
-      <LineId Id="801" Count="14" />
-      <LineId Id="782" Count="4" />
-      <LineId Id="817" Count="7" />
-      <LineId Id="787" Count="2" />
-      <LineId Id="2" Count="0" />
-    </LineIds>
     <LineIds Name="FB_McAxisCtrl.NcParameterValue.Get">
       <LineId Id="2" Count="0" />
       <LineId Id="5" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_McAxisCtrl.ParameterRead">
-      <LineId Id="744" Count="7" />
-      <LineId Id="826" Count="0" />
-      <LineId Id="755" Count="6" />
-      <LineId Id="793" Count="2" />
-      <LineId Id="762" Count="0" />
-      <LineId Id="778" Count="2" />
-      <LineId Id="797" Count="2" />
-      <LineId Id="796" Count="0" />
-      <LineId Id="800" Count="6" />
-      <LineId Id="808" Count="0" />
-      <LineId Id="785" Count="0" />
-      <LineId Id="828" Count="0" />
-      <LineId Id="811" Count="2" />
-      <LineId Id="810" Count="0" />
-      <LineId Id="809" Count="0" />
-      <LineId Id="807" Count="0" />
-      <LineId Id="827" Count="0" />
-      <LineId Id="787" Count="2" />
-      <LineId Id="2" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_McAxisCtrl.ParameterWrite">
-      <LineId Id="744" Count="7" />
-      <LineId Id="754" Count="7" />
-      <LineId Id="793" Count="1" />
-      <LineId Id="828" Count="0" />
-      <LineId Id="795" Count="0" />
-      <LineId Id="762" Count="0" />
-      <LineId Id="778" Count="2" />
-      <LineId Id="829" Count="3" />
-      <LineId Id="800" Count="6" />
-      <LineId Id="808" Count="0" />
-      <LineId Id="785" Count="0" />
-      <LineId Id="849" Count="0" />
-      <LineId Id="833" Count="3" />
-      <LineId Id="787" Count="2" />
-      <LineId Id="850" Count="0" />
-      <LineId Id="2" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_McAxisCtrl.ParameterWritePersistent">
-      <LineId Id="744" Count="7" />
-      <LineId Id="754" Count="7" />
-      <LineId Id="793" Count="1" />
-      <LineId Id="828" Count="0" />
-      <LineId Id="795" Count="0" />
-      <LineId Id="762" Count="0" />
-      <LineId Id="778" Count="2" />
-      <LineId Id="829" Count="3" />
-      <LineId Id="800" Count="6" />
-      <LineId Id="808" Count="0" />
-      <LineId Id="785" Count="0" />
-      <LineId Id="848" Count="0" />
-      <LineId Id="833" Count="3" />
-      <LineId Id="787" Count="2" />
-      <LineId Id="849" Count="0" />
-      <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.ReadNcParameter.Set">
       <LineId Id="2" Count="0" />

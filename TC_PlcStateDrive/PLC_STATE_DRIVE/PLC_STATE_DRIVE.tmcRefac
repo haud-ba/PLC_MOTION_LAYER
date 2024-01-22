@@ -17,9 +17,94 @@
       <To>FB_CamCtrl</To>
     </RenamedType>
     <RenamedType>
-      <Type guid="01fe2e24-3767-4acb-adc6-253db965f62f">TEMPLATE_1</Type>
+      <Type guid="11f597ea-b498-4b19-844c-4322169eeb57">CAMINFO</Type>
+      <From>CamInfo</From>
+      <To>AxisCamInfo</To>
+    </RenamedType>
+    <RenamedType>
+      <Type guid="01fe2e24-3767-4acb-adc6-253db965f62f">CAMINFO</Type>
       <From>Template_1</From>
-      <To>CamInfo</To>
+      <To>AxisCamInfo</To>
+    </RenamedType>
+    <RenamedType>
+      <Type guid="845132c9-4ff4-4716-b48d-7e4b96285888">IDLE</Type>
+      <From>Idle</From>
+      <To>AxisIdle</To>
+    </RenamedType>
+    <RenamedType>
+      <Type guid="9e5bb995-0118-4e4f-b8f0-61af38b767c7">MOVEBUFFERPOS</Type>
+      <From>MoveBufferPos</From>
+      <To>AxisBufferPos</To>
+    </RenamedType>
+    <RenamedType>
+      <Type guid="22fe4740-8289-4c9a-aba8-0b211f516be2">MOVEBUFFERVELO</Type>
+      <From>MoveBufferVelo</From>
+      <To>AxisBufferVelo</To>
+    </RenamedType>
+    <RenamedType>
+      <Type guid="32c7abd6-f179-41ed-b111-51742f6a188e">MOVEPOSITION</Type>
+      <From>MovePosition</From>
+      <To>AxisMoveToPosition</To>
+    </RenamedType>
+    <RenamedType>
+      <Type guid="76da091a-aab3-4a2b-a97a-93311a23fc64">MOVEVELOCITY</Type>
+      <From>MoveVelocity</From>
+      <To>AxisMoveVelocity</To>
+    </RenamedType>
+    <RenamedType>
+      <Type guid="fd3963dd-6b6e-455f-b36f-6a8a94adbf61">PARAMETERREAD</Type>
+      <From>ParameterRead</From>
+      <To>AxisParameterRead</To>
+    </RenamedType>
+    <RenamedType>
+      <Type guid="621ca481-9c98-403c-81a7-ede76c448471">PARAMETERWRITE</Type>
+      <From>ParameterWrite</From>
+      <To>AxisParameterWrite</To>
+    </RenamedType>
+    <RenamedType>
+      <Type guid="aa6387ee-180e-42b5-bc92-5f4ca5d3061d">PARAMETERWRITEPERSISTENT</Type>
+      <From>ParameterWritePersistent</From>
+      <To>AxisParameterWritePersistent</To>
+    </RenamedType>
+    <RenamedSymbol>
+      <Type guid="47c7a3b9-4345-4eb8-82bc-f0cb273a3a93">FB_CamCtrl</Type>
+      <From>_stCtrl</From>
+      <To>_Ctrl</To>
+    </RenamedSymbol>
+    <RenamedSymbol>
+      <Type guid="47c7a3b9-4345-4eb8-82bc-f0cb273a3a93">FB_CamCtrl</Type>
+      <From>_stState</From>
+      <To>_State</To>
+    </RenamedSymbol>
+    <RenamedSymbol>
+      <Type guid="8c2293d3-2335-4f54-844e-5312237b23aa">FB_McAxisCtrl</Type>
+      <From>_stCtrl</From>
+      <To>_Ctrl</To>
+    </RenamedSymbol>
+    <RenamedSymbol>
+      <Type guid="8c2293d3-2335-4f54-844e-5312237b23aa">FB_McAxisCtrl</Type>
+      <From>_stState</From>
+      <To>_State</To>
+    </RenamedSymbol>
+    <RenamedType>
+      <Type guid="b47cf4ad-fb3e-4ba0-8801-3bf976d0a42a">AXISINIT</Type>
+      <From>AxisInit</From>
+      <To>CamInit</To>
+    </RenamedType>
+    <RenamedType>
+      <Type guid="9706c068-b260-46d5-a59a-53c974a2f5a2">CAMIDLE</Type>
+      <From>Idle</From>
+      <To>AxisCamIdle</To>
+    </RenamedType>
+    <RenamedType>
+      <Type guid="205bb65e-c90d-406c-a544-7d8e888bda74">CAMIN</Type>
+      <From>CamIn</From>
+      <To>AxisCamIn</To>
+    </RenamedType>
+    <RenamedType>
+      <Type guid="b4e088de-392e-4d52-be23-715f1a3c9954">CAMIN</Type>
+      <From>AxisCamInfo_1</From>
+      <To>AxisCamIn</To>
     </RenamedType>
   </Renames>
 </Refactors>

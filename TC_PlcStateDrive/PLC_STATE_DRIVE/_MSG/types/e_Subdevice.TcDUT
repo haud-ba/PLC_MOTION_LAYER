@@ -32,7 +32,8 @@ TYPE e_Subdevice :
   fbGearOut,
   fbGearInMultiMaster,
 
-  fbCamInV2         := 60,
+  CamControl        := 60,
+  fbCamInV2,
   fbCamScalingV2,
   fbCamInfoV2,
   fbReadMotionFunction,

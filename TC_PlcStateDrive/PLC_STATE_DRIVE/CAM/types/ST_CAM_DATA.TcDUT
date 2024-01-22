@@ -4,6 +4,7 @@
     <Declaration><![CDATA[{attribute 'pack_mode' := '2'}
 TYPE ST_CAM_DATA :
 STRUCT
+  nMasterIndex            : UINT;   // Index in GVL_AXIS.AxisRef[nMasterIndex]
   rActivationPosition     : LREAL;
   nActivationMode         : UINT;
   nCamTableId             : UDINT;  // For multi-cam plate coupling, the CamTableId also has to be transferred explicitly. If a single cam plate is involved in the coupling, the CamTableId can be set to 0.
