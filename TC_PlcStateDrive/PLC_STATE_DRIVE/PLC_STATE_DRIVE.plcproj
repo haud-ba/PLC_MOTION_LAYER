@@ -54,6 +54,12 @@
     <Compile Include="CAM\types\ST_CAM_SCALING_DATA.TcDUT">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="CAM\types\ST_MOTION_FUNCTION.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="CAM\types\ST_MOTION_FUNCTION_POINT.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="MAPPING\MAPPING_in.TcPOU">
       <SubType>Code</SubType>
     </Compile>
@@ -295,6 +301,18 @@
     <Compile Include="_LEGACY_VERSION\ST_NcParam.TcDUT">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="_UML\CD_AXIS_ACCESS.TcCD">
+      <SubType>Code</SubType>
+      <ExcludeFromBuild>true</ExcludeFromBuild>
+    </Compile>
+    <Compile Include="_UML\CD_CAM_ACCESS.TcCD">
+      <SubType>Code</SubType>
+      <ExcludeFromBuild>true</ExcludeFromBuild>
+    </Compile>
+    <Compile Include="_UML\CD_LEGACY_AXIS.TcCD">
+      <SubType>Code</SubType>
+      <ExcludeFromBuild>true</ExcludeFromBuild>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <PlaceholderReference Include="System_VisuElemMeter">
@@ -381,6 +399,7 @@
     <Folder Include="NC_PTP\types\control" />
     <Folder Include="NC_PTP\types\axis" />
     <Folder Include="MAPPING" />
+    <Folder Include="_UML" />
     <Folder Include="_LEGACY_VERSION" />
     <Folder Include="_MSG\types" />
     <Folder Include="NC_PTP" />

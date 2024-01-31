@@ -606,6 +606,15 @@ OF
       _nErrorId                     := 0;
       _rValue                       := 0;
       _eState                       := E_PROGRESS.BUSY;
+
+      _stMsg.eType                  := E_MessageType.eMessageInfo;
+      _stMsg.eDevice                := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             :=  e_SubDevice.fbMoveAbsolute1;
+      _stMsg.iErrorNumber           := 0;
+
+      _stMsg.sText                  := concat('AXIS_MOVE_BUFFER: ', TO_STRING(_eState));
+
+      f_MessageSet(_stMsg);
     END_IF
 END_CASE
 CASE _eState
@@ -642,7 +651,19 @@ OF
                     Jerk            := Jerk, 
                     BufferMode      := BufferMode);
 
-    _eState                         := E_PROGRESS.PREPARE;
+    IF (_fbMoveAbsolute[1].Active)
+    THEN
+      _eState                       := E_PROGRESS.PREPARE;
+
+      _stMsg.eType                  := E_MessageType.eMessageInfo;
+      _stMsg.eDevice                := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             :=  e_SubDevice.fbMoveAbsolute1;
+      _stMsg.iErrorNumber           := 0;
+
+      _stMsg.sText                  := concat('AXIS_MOVE_BUFFER: ', TO_STRING(_eState));
+
+      f_MessageSet(_stMsg);
+    END_IF
 END_CASE
 CASE _eState
 OF
@@ -654,6 +675,15 @@ OF
     THEN
       _rValue                       := Position;
       _eState                       := E_PROGRESS.READY;
+
+      _stMsg.eType                  := E_MessageType.eMessageInfo;
+      _stMsg.eDevice                := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             :=  e_SubDevice.fbMoveAbsolute2;
+      _stMsg.iErrorNumber           := 0;
+
+      _stMsg.sText                  := concat('AXIS_MOVE_BUFFER: ', TO_STRING(_eState));
+
+      f_MessageSet(_stMsg);
     END_IF
 
 
@@ -679,18 +709,37 @@ OF
                     Deceleration    := Dec, 
                     Jerk            := Jerk, 
                     BufferMode      := BufferMode);
-    _eState                         := E_PROGRESS.WAITING;
+
+    IF (_fbMoveAbsolute[2].Active)
+    THEN
+      _eState                       := E_PROGRESS.WAITING;
+
+      _stMsg.eType                  := E_MessageType.eMessageInfo;
+      _stMsg.eDevice                := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             :=  e_SubDevice.fbMoveAbsolute2;
+      _stMsg.iErrorNumber           := 0;
+
+      _stMsg.sText                  := concat('AXIS_MOVE_BUFFER: ', TO_STRING(_eState));
+
+      f_MessageSet(_stMsg);
+    END_IF
 END_CASE
 CASE _eState
 OF
   E_PROGRESS.WAITING:
-    _fbMoveAbsolute[1](Axis         := _AxisRef);
-    _fbMoveAbsolute[2](Axis         := _AxisRef);
-
     IF (Position <> _rValue)
     THEN
       _rValue                       := Position;
-      _eState                       := E_PROGRESS.STARTUP;
+      _eState                       := E_PROGRESS.BUSY;
+
+      _stMsg.eType                  := E_MessageType.eMessageInfo;
+      _stMsg.eDevice                := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             :=  e_SubDevice.fbMoveAbsolute1;
+      _stMsg.iErrorNumber           := 0;
+
+      _stMsg.sText                  := concat('AXIS_MOVE_BUFFER: ', TO_STRING(_eState));
+
+      f_MessageSet(_stMsg);
     END_IF
 END_CASE
 
@@ -702,7 +751,7 @@ OF
     _fbMoveAbsolute[2](Axis         := _AxisRef,
                        Execute      := FALSE);
 
-    MovePosBuffer                      := _eState;
+    MovePosBuffer                   := _eState;
     RETURN;
 END_CASE
 
@@ -2102,7 +2151,35 @@ WriteParameterPersistent            := _eState;
     </LineIds>
     <LineIds Name="FB_McAxis.MovePosBuffer">
       <LineId Id="1182" Count="0" />
-      <LineId Id="1025" Count="141" />
+      <LineId Id="1025" Count="10" />
+      <LineId Id="1199" Count="4" />
+      <LineId Id="1206" Count="1" />
+      <LineId Id="1204" Count="1" />
+      <LineId Id="1036" Count="5" />
+      <LineId Id="1256" Count="0" />
+      <LineId Id="1043" Count="28" />
+      <LineId Id="1208" Count="1" />
+      <LineId Id="1072" Count="0" />
+      <LineId Id="1213" Count="6" />
+      <LineId Id="1251" Count="0" />
+      <LineId Id="1211" Count="0" />
+      <LineId Id="1210" Count="0" />
+      <LineId Id="1073" Count="10" />
+      <LineId Id="1221" Count="6" />
+      <LineId Id="1252" Count="0" />
+      <LineId Id="1220" Count="0" />
+      <LineId Id="1084" Count="24" />
+      <LineId Id="1229" Count="10" />
+      <LineId Id="1253" Count="0" />
+      <LineId Id="1240" Count="1" />
+      <LineId Id="1110" Count="3" />
+      <LineId Id="1117" Count="1" />
+      <LineId Id="1257" Count="0" />
+      <LineId Id="1120" Count="0" />
+      <LineId Id="1244" Count="6" />
+      <LineId Id="1255" Count="0" />
+      <LineId Id="1254" Count="0" />
+      <LineId Id="1121" Count="45" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_McAxis.MoveToPos">

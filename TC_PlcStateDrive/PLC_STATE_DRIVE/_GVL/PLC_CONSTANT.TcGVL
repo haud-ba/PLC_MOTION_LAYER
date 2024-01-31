@@ -4,6 +4,10 @@
     <Declaration><![CDATA[//{attribute 'qualified_only'}
 VAR_GLOBAL CONSTANT
 
+  //-----------------------------------------------------------------------------
+  // file paths for message system
+  //  - compiler define option WIN switches to Windows file paths
+  //-----------------------------------------------------------------------------
 {IF defined (WIN)}
   {info 'WIN folders'}
   LOG_DIR               : STRING  := 'C:\TwinCAT\#MsgFiles\';
@@ -16,10 +20,16 @@ VAR_GLOBAL CONSTANT
 
   MAX_MESSAGE           : INT     := 200; // max entry in message list
 
-
+  //-----------------------------------------------------------------------------
+  // AXIS related limits
+  //-----------------------------------------------------------------------------
   MAX_AXIS              : UINT    := 3;
   MAX_RETRY             : UINT    := 5;
 
+
+  //-----------------------------------------------------------------------------
+  // NCI related limits and *.nc standard folder
+  //-----------------------------------------------------------------------------
 {IF defined (WIN)}
   {info 'WIN folders'}
   NCI_DIR               : STRING  := 'C:\TwinCAT\Mc\Nci\';
@@ -28,33 +38,38 @@ VAR_GLOBAL CONSTANT
   NCI_DIR               : STRING  := '/usr/local/etc/TwinCAT/Mc/Nci/';
 {END_IF}
 
-  MAX_NCI_CH            : UINT    := 1;
-  MAX_CAM_CH            : UINT    := 1;
-
 {IF defined (NCI)}
   {info 'NCI Channel active'}
-  NCI_ACTIVE            : BOOL := TRUE;
+  NCI_ACTIVE            : BOOL    := TRUE;
+  CONFIG_NAME           : STRING  := 'NCI_Spec_Ch_';
 {ELSE}
   {info 'NCI Channel NOT active'}
-  NCI_ACTIVE            : BOOL := FALSE;
+  NCI_ACTIVE            : BOOL    := FALSE;
+  CONFIG_NAME           : STRING  := 'NCI_NOT_ACTIVE';
 {END_IF}
 
-{IF defined (CAM)}
-  {info 'CAMMING active'}
-  CAM_ACTIVE            : BOOL := TRUE;
-{ELSE}
-  {info 'CAMMING NOT active'}
-  CAM_ACTIVE            : BOOL := FALSE;
-{END_IF}
-
+  MAX_NCI_CH            : UINT    := 1;
 
   MAX_PATH_STEPS        : UINT    := 5;
   MAX_MC_AXIS           : UINT    := 3;
   MAX_AUX_AXIS          : UINT    := 2;
   MAX_R_PARA            : UINT    := 10;
 
-  CONFIG_NAME           : STRING  := 'NCI_Spec_Ch_';
 
+  //-----------------------------------------------------------------------------
+  // CAMMING related limits
+  //-----------------------------------------------------------------------------
+{IF defined (CAM)}
+  {info 'CAMMING active'}
+  CAM_ACTIVE                  : BOOL    := TRUE;
+{ELSE}
+  {info 'CAMMING NOT active'}
+  CAM_ACTIVE                  : BOOL    := FALSE;
+{END_IF}
+
+  MAX_CAM_CH                  : UINT    := 1;
+
+  MAX_MOTION_FUNCTION_POINTS  : UINT    := 10;
 
 END_VAR]]></Declaration>
   </GVL>

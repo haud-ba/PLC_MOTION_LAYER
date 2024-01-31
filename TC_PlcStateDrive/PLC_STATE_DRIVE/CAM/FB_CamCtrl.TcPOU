@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
   <POU Name="FB_CamCtrl" Id="{527605ca-3a86-0df1-134f-058287ba4975}" SpecialFunc="None">
-    <Declaration><![CDATA[FUNCTION_BLOCK FB_CamCtrl EXTENDS FB_CamAxis
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_CamCtrl EXTENDS FB_CamAxis IMPLEMENTS I_Cam_Ctrl
 VAR
   _eInit                    : E_PROGRESS;
   _nAxisIndex               : UINT;       // know thyself
@@ -216,6 +216,108 @@ END_CASE
 
 
 AxisCamIn                           := _eState;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="AxisCamInfo" Id="{7859892a-46c7-0d87-3a89-4f7426594dde}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD AxisCamInfo : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+END_VAR
+VAR_INST
+  _eCk              : E_CHECK_STATE;
+
+  _eResult,
+  _eState           : E_PROGRESS;
+  _rValue           : LREAL;
+  _udiErr           : UDINT;
+  _stMsg            : ST_Message;
+
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+IF NOT Check() THEN _eState := E_PROGRESS.ERROR; END_IF
+
+
+CASE _eState
+OF
+  E_PROGRESS.INIT:
+    IF Execute 
+    THEN
+      memset(ADR(_stMsg),0,SIZEOF(_stMsg));
+      _udiErr                       := 0;
+
+      _eState                       := E_PROGRESS.BUSY;
+      _eCk                          := E_CHECK_STATE.CHECK_DONE;
+      _eResult                      := CamInfo(FALSE, _stCamData.nCamTableId, _stCamData.bAtMasterPosition, _stCamData.rMasterPosition);
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.BUSY:
+      _eResult                      := CamInfo(TRUE, _stCamData.nCamTableId, _stCamData.bAtMasterPosition, _stCamData.rMasterPosition);
+
+    IF (_eResult = E_PROGRESS.ERROR)
+    THEN
+      CamInfo(FALSE, _stCamData.nCamTableId, _stCamData.bAtMasterPosition, _stCamData.rMasterPosition);
+      _eState                       := E_PROGRESS.ERROR;
+
+    ELSIF (_eResult = E_PROGRESS.DONE)
+    THEN
+      CamInfo(FALSE, _stCamData.nCamTableId, _stCamData.bAtMasterPosition, _stCamData.rMasterPosition);
+      _eState                       := E_PROGRESS.DONE;
+    END_IF
+END_CASE
+
+
+AxisCamInfo                         := _eState;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="AxisCamOut" Id="{fa8ab9c6-0050-01d8-1b7c-db7a59dcbe93}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD AxisCamOut : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+END_VAR
+VAR_INST
+  _eResult,
+  _eState           : E_PROGRESS;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+IF NOT Check() THEN _eState := E_PROGRESS.ERROR; END_IF
+
+
+CASE _eState
+OF
+  E_PROGRESS.INIT:
+    IF Execute 
+    THEN
+      _eState                       := E_PROGRESS.BUSY;
+      _eResult                      := CamOut(FALSE);
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.BUSY:
+    _eResult                        := CamOut(TRUE);
+
+    IF (_eResult = E_PROGRESS.ERROR)
+    THEN
+      CamOut(FALSE);
+      _eState                       := E_PROGRESS.ERROR;
+
+    ELSIF (_eResult = E_PROGRESS.DONE)
+    THEN
+      CamOut(FALSE);
+      _eState                       := E_PROGRESS.DONE;
+    END_IF
+END_CASE
+
+
+AxisCamOut                          := _eState;
 ]]></ST>
       </Implementation>
     </Method>
@@ -505,10 +607,19 @@ ELSE
         _estate                       := E_AXIS_STATE.CAM_IN;
 
       //---------------------------------------------------------------------------------
+      E_AXIS_CTRL.CAM_OUT:
+        _eres                         := AxisCamOut(FALSE);
+        _estate                       := E_AXIS_STATE.CAM_OUT;
+
+      //---------------------------------------------------------------------------------
       E_AXIS_CTRL.CAM_SCALING:
+        _stCamData                    := _Data^[_nAxisIndex];
+        //_eres                         := 
         _estate                       := E_AXIS_STATE.CAM_SCALING;
+
       //---------------------------------------------------------------------------------
       E_AXIS_CTRL.CAM_INFO:
+        _eres                         := AxisCamInfo(FALSE);
         _estate                       := E_AXIS_STATE.CAM_INFO;
 
       //---------------------------------------------------------------------------------
@@ -542,7 +653,7 @@ END_CASE
 IF NOT (_eres = E_PROGRESS.ERROR)
 THEN
   // only get busy on valid command
-  _State^[_nAxisIndex].eState       := _eState + E_PROGRESS.BUSY;
+  _eResult                            := E_PROGRESS.BUSY;
 END_IF
 
 Cmd                                   := _estate;
@@ -554,16 +665,34 @@ Cmd                                   := _estate;
       <Declaration><![CDATA[METHOD Cycle  : e_progress
 VAR_INST
   _eCycle     : E_PROGRESS;
+
+  _eCheckOld  : E_CHECK_STATE;
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN Cycle := _eCycle := _eResult := E_PROGRESS.ERROR; RETURN; END_IF
+        <ST><![CDATA[
+IF NOT Check() THEN Cycle := _eCycle := _eResult := E_PROGRESS.ERROR; END_IF
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+// OnChange log _eCheck; in case of error --> return to caller
+//-----------------------------------------------------------------------------
+IF (_eCheck <> _eCheckOld)
+THEN
+  LogCheck();
+  _eCheckOld                          := _eCheck;
+END_IF
+
+IF NOT (_eCheck = E_CHECK_STATE.CHECK_DONE)
+THEN
+  RETURN;
+END_IF
+
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 // get command from outside world
 //-----------------------------------------------------------------------------
-_eCtrl                              := _Ctrl^[_nAxisIndex].eCtrl;
+_eCtrl                                := _Ctrl^[_nAxisIndex].eCtrl;
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //  OnChange react to command
@@ -571,8 +700,8 @@ _eCtrl                              := _Ctrl^[_nAxisIndex].eCtrl;
 IF (_eCtrl <> _eCtrlOld)
 THEN
   // get busy
-  _eState                           := Cmd(_eCtrl); // get execution state for command
-  _eCtrlOld                         := _eCtrl;
+  _eState                             := Cmd(_eCtrl); // get execution state for command
+  _eCtrlOld                           := _eCtrl;
   LogControl();
 END_IF
 //-----------------------------------------------------------------------------
@@ -585,15 +714,15 @@ OF
     //-------------------------------------------------------------------------
     // axis always requires one init from outside world at startup
     // _eInit has to be valid for other commands to be accepted in Cmd(_eCtrl)
-    _eInit := _eResult              := CamInit(TRUE);
+    _eInit := _eResult                := CamInit(TRUE);
 
   E_AXIS_STATE.AXIS_NO_INIT:
     //-------------------------------------------------------------------------
     // we are here because you sent a command before having done CAM_INIT
-    _eResult                        := E_PROGRESS.ERROR;
+    _eResult                          := E_PROGRESS.ERROR;
 
   E_AXIS_STATE.AXIS_IDLE:
-    _eResult                        := AxisCamIdle(TRUE);
+    _eResult                          := AxisCamIdle(TRUE);
 
 ELSE
   IF (_eCtrl > E_AXIS_CTRL.AXIS_NULL)
@@ -612,10 +741,44 @@ END_CASE
 IF (_eResult <> _eResultOld)
 THEN
   LogResult();
-  _eResultOld                       := _eResult;
+  _eResultOld                         := _eResult;
 END_IF
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
+//  CAM couplingstate and TableId freom AXIS_REF
+//-----------------------------------------------------------------------------
+_Info^[_nAxisIndex].wCamCouplingState   := _AxisSlave.NcToPlc.CamCouplingState;
+_Info^[_nAxisIndex].nCamCouplingTableId := _AxisSlave.NcToPlc.CamCouplingTableID;
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//  E_AXIS_STATE + E_PROGRESS to ST_CAM_STATE.eState
+//-----------------------------------------------------------------------------
+_State^[_nAxisIndex].eState             := _eState + _eResult;
+//-----------------------------------------------------------------------------
+
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="LogCheck" Id="{07c28c51-a3c9-0ac7-05cc-9445042f78eb}" FolderPath="methods\private\">
+      <Declaration><![CDATA[METHOD LogCheck
+VAR_INST
+  _sChck            : STRING(30);
+
+  _stMsg            : ST_Message;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[  _stMsg.eType               := SEL((_eCheck = E_CHECK_STATE.CHECK_DONE),(E_MessageType.eMessageError),(E_MessageType.eMessageInfo));
+  _stMsg.eDevice             := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+  _stMsg.eSubdevice          := e_Subdevice.CamControl;
+  _stMsg.iErrorNumber        := _nAxisIndex;
+
+  _sChck                     := concat('E_CHECK_STATE', '.');
+  _sChck                     := concat(_sChck, TO_STRING(_eCheck));
+
+  _stMsg.sText               := concat('cyclic check: ', _sChck);
+  f_MessageSet(_stMsg);
 ]]></ST>
       </Implementation>
     </Method>
@@ -631,7 +794,7 @@ END_VAR
       <Implementation>
         <ST><![CDATA[  _stMsg.eType               := E_MessageType.eMessageInfo;
   _stMsg.eDevice             := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
-  _stMsg.eSubdevice          := e_Subdevice.fbCamAxis;
+  _stMsg.eSubdevice          := e_Subdevice.CamControl;
   _stMsg.iErrorNumber        := _nAxisIndex;
 
   _sCtrl                     := concat('E_AXIS_CTRL', '.');
@@ -656,18 +819,58 @@ END_VAR
         <ST><![CDATA[
   _stMsg.eType               := E_MessageType.eMessageInfo;
   _stMsg.eDevice             := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
-  _stMsg.eSubdevice          := e_Subdevice.fbCamAxis;
+  _stMsg.eSubdevice          := e_Subdevice.CamControl;
   _stMsg.iErrorNumber        := _nAxisIndex;
 
   _sCtrl                     := concat('E_AXIS_CTRL', '.');
-  _sCtrl                     := concat(_sCtrl, TO_STRING(_eCtrl));
+  _sCtrl                     := concat(_sCtrl, TO_STRING(_eCtrlOld));
 
-  _sResult                   := concat('E_PROGRESS', '.');
+  _sResult                   := concat(': E_PROGRESS', '.');
   _sResult                   := concat(_sResult, TO_STRING(_eResult));
 
   _stMsg.sText               := concat(_sCtrl, ' ');
   _stMsg.sText               := concat(_sCtrl, _sResult);
   f_MessageSet(_stMsg);
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="TO_ST_MOTION_FUNCTION" Id="{75a25c3a-47c4-066c-32ce-cda7e26d5af0}" FolderPath="methods\private\">
+      <Declaration><![CDATA[METHOD TO_ST_MOTION_FUNCTION : ST_MOTION_FUNCTION
+VAR_INPUT
+  pCamRef    : POINTER TO Tc2_MC2_Camming.MC_CAM_REF;
+END_VAR
+VAR
+  _idx        : UINT;
+  _stMf       : ST_MOTION_FUNCTION;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT (pCamRef <> 0) THEN RETURN; END_IF
+
+_stMf.nMotionFunctionSize   := TO_UINT(pCamRef^.ArraySize);
+_stMf.nPoints               := TO_UINT(pCamRef^.NoOfRows);
+
+FOR _idx := 1 TO MAX_MOTION_FUNCTION_POINTS
+DO
+  IF NOT (_idx > _stMf.nPoints)
+  THEN
+    _stMf.stMotionFunction[_idx].nFunctionType      := _mcMotionFunction[_idx].FunctionType;
+    _stMf.stMotionFunction[_idx].nPointIndex        := TO_UINT(_mcMotionFunction[_idx].PointIndex);
+    _stMf.stMotionFunction[_idx].nRelIndexNextPoint := TO_UINT(_mcMotionFunction[_idx].RelIndexNextPoint);
+
+    _stMf.stMotionFunction[_idx].wPointType         := TO_WORD(_mcMotionFunction[_idx].PointType);
+
+    _stMf.stMotionFunction[_idx].rMasterPos         := _mcMotionFunction[_idx].MasterPos;
+    _stMf.stMotionFunction[_idx].rSlavePos          := _mcMotionFunction[_idx].SlavePos;
+
+    _stMf.stMotionFunction[_idx].rSlaveVelo         := _mcMotionFunction[_idx].SlaveVelo;
+    _stMf.stMotionFunction[_idx].rSlaveAcc          := _mcMotionFunction[_idx].SlaveAcc;
+    _stMf.stMotionFunction[_idx].rSlaveJerk         := _mcMotionFunction[_idx].SlaveJerk;
+  END_IF
+END_FOR
+
+TO_ST_MOTION_FUNCTION := _stMf;
 
 ]]></ST>
       </Implementation>
@@ -707,6 +910,53 @@ END_VAR
       <LineId Id="931" Count="1" />
       <LineId Id="1091" Count="0" />
       <LineId Id="933" Count="1" />
+      <LineId Id="1083" Count="0" />
+      <LineId Id="948" Count="1" />
+      <LineId Id="1092" Count="0" />
+      <LineId Id="950" Count="0" />
+      <LineId Id="964" Count="0" />
+      <LineId Id="1086" Count="0" />
+      <LineId Id="1093" Count="0" />
+      <LineId Id="966" Count="1" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_CamCtrl.AxisCamInfo">
+      <LineId Id="1095" Count="0" />
+      <LineId Id="1094" Count="0" />
+      <LineId Id="890" Count="7" />
+      <LineId Id="900" Count="0" />
+      <LineId Id="1038" Count="0" />
+      <LineId Id="1021" Count="0" />
+      <LineId Id="1010" Count="0" />
+      <LineId Id="1027" Count="0" />
+      <LineId Id="918" Count="4" />
+      <LineId Id="930" Count="0" />
+      <LineId Id="1082" Count="0" />
+      <LineId Id="931" Count="1" />
+      <LineId Id="1091" Count="0" />
+      <LineId Id="933" Count="0" />
+      <LineId Id="1083" Count="0" />
+      <LineId Id="948" Count="1" />
+      <LineId Id="1092" Count="0" />
+      <LineId Id="950" Count="0" />
+      <LineId Id="964" Count="0" />
+      <LineId Id="1086" Count="0" />
+      <LineId Id="1093" Count="0" />
+      <LineId Id="966" Count="1" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_CamCtrl.AxisCamOut">
+      <LineId Id="1095" Count="0" />
+      <LineId Id="1094" Count="0" />
+      <LineId Id="890" Count="6" />
+      <LineId Id="1021" Count="0" />
+      <LineId Id="1027" Count="0" />
+      <LineId Id="918" Count="4" />
+      <LineId Id="930" Count="0" />
+      <LineId Id="1082" Count="0" />
+      <LineId Id="931" Count="1" />
+      <LineId Id="1091" Count="0" />
+      <LineId Id="933" Count="0" />
       <LineId Id="1083" Count="0" />
       <LineId Id="948" Count="1" />
       <LineId Id="1092" Count="0" />
@@ -763,13 +1013,44 @@ END_VAR
     <LineIds Name="FB_CamCtrl.Cmd">
       <LineId Id="387" Count="8" />
       <LineId Id="450" Count="0" />
-      <LineId Id="396" Count="53" />
+      <LineId Id="396" Count="9" />
+      <LineId Id="472" Count="2" />
+      <LineId Id="477" Count="0" />
+      <LineId Id="475" Count="1" />
+      <LineId Id="407" Count="1" />
+      <LineId Id="499" Count="1" />
+      <LineId Id="409" Count="0" />
+      <LineId Id="478" Count="0" />
+      <LineId Id="410" Count="1" />
+      <LineId Id="471" Count="0" />
+      <LineId Id="412" Count="37" />
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_CamCtrl.Cycle">
+      <LineId Id="126" Count="0" />
       <LineId Id="10" Count="0" />
+      <LineId Id="100" Count="3" />
+      <LineId Id="98" Count="0" />
+      <LineId Id="104" Count="3" />
+      <LineId Id="109" Count="0" />
+      <LineId Id="108" Count="0" />
+      <LineId Id="110" Count="2" />
+      <LineId Id="99" Count="0" />
       <LineId Id="81" Count="0" />
-      <LineId Id="24" Count="56" />
+      <LineId Id="24" Count="55" />
+      <LineId Id="87" Count="1" />
+      <LineId Id="90" Count="0" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="93" Count="1" />
+      <LineId Id="119" Count="2" />
+      <LineId Id="125" Count="0" />
+      <LineId Id="124" Count="0" />
+      <LineId Id="95" Count="0" />
+      <LineId Id="92" Count="0" />
+      <LineId Id="91" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_CamCtrl.LogCheck">
+      <LineId Id="29" Count="9" />
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_CamCtrl.LogControl">
@@ -789,6 +1070,30 @@ END_VAR
       <LineId Id="35" Count="0" />
       <LineId Id="15" Count="1" />
       <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_CamCtrl.TO_ST_MOTION_FUNCTION">
+      <LineId Id="5" Count="0" />
+      <LineId Id="14" Count="0" />
+      <LineId Id="11" Count="0" />
+      <LineId Id="15" Count="0" />
+      <LineId Id="19" Count="0" />
+      <LineId Id="17" Count="0" />
+      <LineId Id="20" Count="0" />
+      <LineId Id="22" Count="1" />
+      <LineId Id="16" Count="0" />
+      <LineId Id="25" Count="1" />
+      <LineId Id="32" Count="0" />
+      <LineId Id="31" Count="0" />
+      <LineId Id="30" Count="0" />
+      <LineId Id="27" Count="1" />
+      <LineId Id="37" Count="0" />
+      <LineId Id="29" Count="0" />
+      <LineId Id="33" Count="1" />
+      <LineId Id="24" Count="0" />
+      <LineId Id="21" Count="0" />
+      <LineId Id="35" Count="1" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="10" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>

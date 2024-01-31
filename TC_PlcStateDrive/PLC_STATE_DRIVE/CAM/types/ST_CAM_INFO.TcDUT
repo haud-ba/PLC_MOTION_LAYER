@@ -4,8 +4,11 @@
     <Declaration><![CDATA[{attribute 'pack_mode' := '2'}
 TYPE ST_CAM_INFO :
 STRUCT
-  bError            : BIT;
-  nNumPointsRead    : UDINT;
+  bError              : BIT;
+  wCamCouplingState   : ARRAY[0..7] OF WORD;
+  nCamCouplingTableId : ARRAY[0..7] OF UINT;
+
+  nNumPointsRead      : UDINT;
 END_STRUCT
 END_TYPE
 ]]></Declaration>

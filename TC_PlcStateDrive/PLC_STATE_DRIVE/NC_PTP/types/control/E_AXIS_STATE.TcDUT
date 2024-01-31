@@ -36,6 +36,7 @@ TYPE E_AXIS_STATE :
 
   CAM_INIT                := 60,
   CAM_IN,
+  CAM_OUT,
   CAM_SCALING,
   CAM_INFO,
   CAM_RD_MOTION_FUNCTION,

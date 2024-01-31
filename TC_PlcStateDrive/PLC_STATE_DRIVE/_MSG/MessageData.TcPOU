@@ -75,17 +75,11 @@ CASE nState OF
   bBusy                     := 
   bDone                     := FALSE;
   
-  IF bWriteFile
+  IF (bWriteFile) OR
+     (bPowerFail) OR 
+     (GVL_MSG.MessageIndex > PLC_CONSTANT.MAX_MESSAGE-1)
   THEN
-    nState                  := 5;
-
-  ELSIF (bPowerFail) OR 
-        (GVL_MSG.MessageIndex > PLC_CONSTANT.MAX_MESSAGE-1)
-  THEN
-    IF GVL_MSG.EnableLogging
-    THEN
-      nState                := 5;
-    END_IF
+    nState                := 5;
   END_IF
 END_CASE
 CASE nState OF
@@ -173,19 +167,23 @@ CASE nState OF
   nState                    := 225;
   IF (aWriteList[iCount].eType > 0)
   THEN
-    sTmp                    := TO_STRING(aWriteList[iCount].eType);
-    sTmp                    := Tc2_Standard.CONCAT(sTmp, sTab);
-    sTmp                    := Tc2_Standard.CONCAT(sTmp, aWriteList[iCount].tTime);
-    sTmp                    := Tc2_Standard.CONCAT(sTmp, sTab);
-    sTmp                    := Tc2_Standard.CONCAT(sTmp, Device_To_String(aWriteList[iCount].eDevice));
-    sTmp                    := Tc2_Standard.CONCAT(sTmp, sTab);
-    sTmp                    := Tc2_Standard.CONCAT(sTmp, TO_STRING(aWriteList[iCount].eSubdevice));
-    sTmp                    := Tc2_Standard.CONCAT(sTmp, sTab);
-    sTmp                    := Tc2_Standard.CONCAT(sTmp, TO_STRING(aWriteList[iCount].iErrorNumber));
-    sTmp                    := Tc2_Standard.CONCAT(sTmp, sTab);
-    sTmp                    := Tc2_Standard.CONCAT(sTmp, aWriteList[iCount].sText);
-    sTmp                    := Tc2_Standard.CONCAT(sTmp, sNewLine);
-    Builder(ADR(sTmp), ADR(sWriteData), StringLen(ADR(sTmp)));
+    IF (aWriteList[iCount].eType = E_MessageType.eMessageError) OR
+       (GVL_MSG.EnableLogging)
+    THEN
+      sTmp                    := TO_STRING(aWriteList[iCount].eType);
+      sTmp                    := Tc2_Standard.CONCAT(sTmp, sTab);
+      sTmp                    := Tc2_Standard.CONCAT(sTmp, aWriteList[iCount].tTime);
+      sTmp                    := Tc2_Standard.CONCAT(sTmp, sTab);
+      sTmp                    := Tc2_Standard.CONCAT(sTmp, Device_To_String(aWriteList[iCount].eDevice));
+      sTmp                    := Tc2_Standard.CONCAT(sTmp, sTab);
+      sTmp                    := Tc2_Standard.CONCAT(sTmp, TO_STRING(aWriteList[iCount].eSubdevice));
+      sTmp                    := Tc2_Standard.CONCAT(sTmp, sTab);
+      sTmp                    := Tc2_Standard.CONCAT(sTmp, TO_STRING(aWriteList[iCount].iErrorNumber));
+      sTmp                    := Tc2_Standard.CONCAT(sTmp, sTab);
+      sTmp                    := Tc2_Standard.CONCAT(sTmp, aWriteList[iCount].sText);
+      sTmp                    := Tc2_Standard.CONCAT(sTmp, sNewLine);
+      Builder(ADR(sTmp), ADR(sWriteData), StringLen(ADR(sTmp)));
+    END_IF
   END_IF
   iCount                    := iCount + 1;
 END_CASE
@@ -294,6 +292,9 @@ VAR
   // NCI channel
   nmodNciChannel      : DINT := 3000;
 
+  // CAMMING
+  nmodCamming         : DINT := 6000;
+
   // message function blocks
   nmodData            : DINT := 10000;
 
@@ -315,6 +316,14 @@ ELSE
     sId := concat(sId, TO_STRING(nId));
  
     Device_to_String := concat(TO_STRING(e_device.Data), sId);
+
+  ELSIF (eMsgDevice > nmodCamming)
+  THEN
+    nId := eMsgDevice MOD nmodCamming;
+    sId := concat(sId, TO_STRING(nId));
+    sId := concat('_AXIS', sId);
+ 
+    Device_to_String := concat(TO_STRING(e_device.Camming), sId);
 
   ELSIF (eMsgDevice > nmodNciChannel)
   THEN
@@ -513,12 +522,12 @@ bErrorWrite := fbFileOpen.bError OR fbFileWrite.bError;
     <LineIds Name="MessageData">
       <LineId Id="2900" Count="23" />
       <LineId Id="3287" Count="1" />
-      <LineId Id="2924" Count="1" />
-      <LineId Id="2928" Count="0" />
-      <LineId Id="3289" Count="0" />
       <LineId Id="2930" Count="0" />
+      <LineId Id="3362" Count="0" />
       <LineId Id="3290" Count="0" />
-      <LineId Id="2932" Count="8" />
+      <LineId Id="2932" Count="0" />
+      <LineId Id="2935" Count="0" />
+      <LineId Id="2937" Count="3" />
       <LineId Id="3294" Count="1" />
       <LineId Id="3241" Count="0" />
       <LineId Id="2941" Count="1" />
@@ -558,7 +567,11 @@ bErrorWrite := fbFileOpen.bError OR fbFileWrite.bError;
       <LineId Id="3190" Count="1" />
       <LineId Id="3006" Count="0" />
       <LineId Id="3310" Count="0" />
-      <LineId Id="3007" Count="16" />
+      <LineId Id="3007" Count="1" />
+      <LineId Id="3363" Count="2" />
+      <LineId Id="3009" Count="12" />
+      <LineId Id="3366" Count="0" />
+      <LineId Id="3022" Count="1" />
       <LineId Id="3192" Count="1" />
       <LineId Id="3311" Count="0" />
       <LineId Id="3027" Count="1" />
@@ -593,6 +606,9 @@ bErrorWrite := fbFileOpen.bError OR fbFileWrite.bError;
       <LineId Id="35" Count="1" />
       <LineId Id="39" Count="1" />
       <LineId Id="38" Count="0" />
+      <LineId Id="88" Count="4" />
+      <LineId Id="95" Count="0" />
+      <LineId Id="93" Count="1" />
       <LineId Id="42" Count="0" />
       <LineId Id="41" Count="0" />
       <LineId Id="43" Count="0" />

@@ -33,6 +33,7 @@ TYPE e_Subdevice :
   fbGearInMultiMaster,
 
   CamControl        := 60,
+  fbCamOut,
   fbCamInV2,
   fbCamScalingV2,
   fbCamInfoV2,
@@ -41,6 +42,7 @@ TYPE e_Subdevice :
   fbReadMotionFunctionValues,
   fbWriteMotionFunction,
   fbWriteMotionFunctionPoint,
+  fbSetOnlineChangeMode,
 
 
   fbReadParameter   := 100,

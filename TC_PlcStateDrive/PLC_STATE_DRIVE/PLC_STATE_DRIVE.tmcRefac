@@ -106,5 +106,60 @@
       <From>AxisCamInfo_1</From>
       <To>AxisCamIn</To>
     </RenamedType>
+    <RenamedType>
+      <Type guid="ef3b1fb5-7993-4291-8a8f-2e33f95ccd75">AXISCAMIN_1</Type>
+      <From>AxisCamIn_1</From>
+      <To>AxisCamOut</To>
+    </RenamedType>
+    <RenamedSymbol>
+      <Type guid="12732a22-da0a-498e-943f-610ca4af0b0d">LogCheck</Type>
+      <From>_sCtrl</From>
+      <To>_sChck</To>
+    </RenamedSymbol>
+    <RenamedType>
+      <Type guid="a96fc740-1c82-4521-b1d6-f990cc515c2a">CAMSCALING_1</Type>
+      <From>CamScaling_1</From>
+      <To>ReadMotionFunction</To>
+    </RenamedType>
+    <RenamedType>
+      <Type guid="3c9a3db6-d4e6-43ec-ba33-f93fe16fe8c4">ST_CAM_TABLE_INFO</Type>
+      <From>ST_CAM_TABLE_INFO</From>
+      <To>ST_MOTION_FUNCTION</To>
+    </RenamedType>
+    <RenamedType>
+      <Type guid="2d3d5fef-0511-4b34-a569-7d88724e8a43">READMOTIONFUNCTION_1</Type>
+      <From>ReadMotionFunction_1</From>
+      <To>SetOnLineChangeMode</To>
+    </RenamedType>
+    <RenamedSymbol>
+      <Type guid="2d19837c-a2ae-4e7d-b299-2186cb857acb">FB_CamAxis</Type>
+      <From>_stCamInfoData</From>
+      <To>_mcCamInfoData</To>
+    </RenamedSymbol>
+    <RenamedSymbol>
+      <Type guid="2d19837c-a2ae-4e7d-b299-2186cb857acb">FB_CamAxis</Type>
+      <From>_stCamRef</From>
+      <To>_mcCamRef</To>
+    </RenamedSymbol>
+    <RenamedSymbol>
+      <Type guid="2d19837c-a2ae-4e7d-b299-2186cb857acb">FB_CamAxis</Type>
+      <From>_stMotionFunction</From>
+      <To>_mcMotionFunction</To>
+    </RenamedSymbol>
+    <RenamedSymbol>
+      <Type guid="1d6f357c-f02f-482d-907b-637240e23cac">FB_NciChannelCtrl</Type>
+      <From>_eCmd</From>
+      <To>_eCtrl</To>
+    </RenamedSymbol>
+    <RenamedSymbol>
+      <Type guid="1d6f357c-f02f-482d-907b-637240e23cac">FB_NciChannelCtrl</Type>
+      <From>_eCmdOld</From>
+      <To>_eCtrlOld</To>
+    </RenamedSymbol>
+    <RenamedType>
+      <Type guid="cd022377-0d5b-43fd-a635-a6f560e5a880">LOG_CTRL</Type>
+      <From>Log_Ctrl</From>
+      <To>LogControl</To>
+    </RenamedType>
   </Renames>
 </Refactors>
