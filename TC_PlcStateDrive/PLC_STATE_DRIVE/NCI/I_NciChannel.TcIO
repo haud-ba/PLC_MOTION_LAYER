@@ -13,12 +13,7 @@ END_VAR
 ]]></Declaration>
     </Method>
     <Property Name="CfgAxes" Id="{6d0f3be9-a58a-0a3e-269f-25f12935e57b}" FolderPath="properties\">
-      <Declaration><![CDATA[(*
-===============================================================
-NCI-Group configured axes structure
-===============================================================
-*)
-PROPERTY CfgAxes : POINTER TO Tc2_NCI.NCI_EXT3DGROUP
+      <Declaration><![CDATA[PROPERTY CfgAxes : POINTER TO ST_3D_Group
 ]]></Declaration>
       <Set Name="Set" Id="{a17b3827-ea8b-0a64-13b8-c09d077fde4f}">
         <Declaration><![CDATA[]]></Declaration>
@@ -85,6 +80,12 @@ VAR_INPUT
 END_VAR
 ]]></Declaration>
     </Method>
+    <Method Name="GetLoadedProg" Id="{43d426f4-cf90-0cf3-3487-4e81f05cd792}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD GetLoadedProg : string
+VAR_INPUT
+END_VAR
+]]></Declaration>
+    </Method>
     <Property Name="HSK" Id="{62d1d256-7ef6-01e7-0eb6-bb78462e5707}" FolderPath="properties\">
       <Declaration><![CDATA[(*
 ===============================================================
@@ -96,26 +97,8 @@ PROPERTY HSK : BOOL]]></Declaration>
         <Declaration><![CDATA[]]></Declaration>
       </Get>
     </Property>
-    <Property Name="I_AuxAxis" Id="{f46c55b0-a771-0009-31d2-322ce3cdda78}" FolderPath="properties\">
-      <Declaration><![CDATA[PROPERTY I_AuxAxis : ARRAY[1..MAX_AUX_AXIS] OF I_McAxis
-]]></Declaration>
-      <Set Name="Set" Id="{f6176704-4fe5-0910-3829-e5bdbd1c464a}">
-        <Declaration><![CDATA[]]></Declaration>
-      </Set>
-    </Property>
-    <Property Name="I_McAxis" Id="{22d35153-4c94-0f6b-1a93-60ce147082de}" FolderPath="properties\">
-      <Declaration><![CDATA[PROPERTY I_McAxis : array[1..MAX_MC_AXIS] of I_McAxis]]></Declaration>
-      <Set Name="Set" Id="{e6de66fc-f2cb-056d-13f9-082e04f922d9}">
-        <Declaration><![CDATA[]]></Declaration>
-      </Set>
-    </Property>
     <Property Name="ItpAxes" Id="{ba8fd14c-0428-0920-1b87-275b99a45ee4}" FolderPath="properties\">
-      <Declaration><![CDATA[(*
-===============================================================
-NCI-Group configured axes structure
-===============================================================
-*)
-PROPERTY ItpAxes : Tc2_NCI.NCI_EXT3DGROUP
+      <Declaration><![CDATA[PROPERTY ItpAxes : ST_3D_Group
 ]]></Declaration>
       <Get Name="Get" Id="{668d7f56-e2fb-08e2-0e04-0150c9456a17}">
         <Declaration><![CDATA[]]></Declaration>

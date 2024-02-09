@@ -3,14 +3,132 @@
   <POU Name="CAM" Id="{9788bdef-fe43-088d-22e7-ce2c54a5a9f7}" SpecialFunc="None">
     <Declaration><![CDATA[PROGRAM CAM
 VAR
+  bInit                     : BOOL;
+  eInit                     : E_PROGRESS;
+
+  nAxis,
+  nAxisInit                 : UINT;
+
+  stMsg                     : ST_Message;
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[IF NOT PLC_CONSTANT.CAM_ACTIVE THEN RETURN; END_IF
+      <ST><![CDATA[//-----------------------------------------------------------------------------------------------------------------
+// check if used
+//-----------------------------------------------------------------------------------------------------------------
+IF NOT PLC_CONSTANT.CAM_ACTIVE THEN eInit := E_PROGRESS.NOT_EXIST; RETURN; END_IF
+//-----------------------------------------------------------------------------------------------------------------
+// /assign dataflow
+//-----------------------------------------------------------------------------------------------------------------
+FOR nAxis := 1 TO PLC_CONSTANT.MAX_AXIS
+DO
+  GVL_CAM.Control[nAxis].AxisIndex                := nAxis;
+
+  GVL_CAM.Control[nAxis].AxisCtrl                 := ADR(GVL_CAM.Ctrl);          // command
+  GVL_CAM.Control[nAxis].AxisState                := ADR(GVL_CAM.State);         // state + result of command
+
+  GVL_CAM.Control[nAxis].Axes                     REF=   GVL_AXIS.AxisRef;        // All for one; coupling requires access across all axes
+
+  GVL_CAM.Control[nAxis].AxisInfo                 := ADR(GVL_CAM.Info);
+  GVL_CAM.Control[nAxis].AxisData                 := ADR(GVL_CAM.Data);
+END_FOR
+//-----------------------------------------------------------------------------------------------------------------
+// assign dataflow/
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+// /INIT
+//-----------------------------------------------------------------------------------------------------------------
+IF NOT bInit
+THEN
+  CASE eInit
+  OF
+    E_PROGRESS.INVALID,
+    E_PROGRESS.DONE:
+      nAxisInit                                   := 1;
+      eInit                                       := E_PROGRESS.INIT;
+
+
+    E_PROGRESS.INIT:
+      stMsg.eType                                 := E_MessageType.eMessageInfo;
+      stMsg.eDevice                               := e_Device.Camming;
+      stMsg.eSubdevice                            := e_SubDevice.fbAxis;
+      stMsg.iErrorNumber                          := nAxisInit;
+
+      stMsg.sText                                 := concat('CAM.eInit: ', TO_STRING(eInit));
+      f_MessageSet(stMsg);
+
+      GVL_CAM.Ctrl[nAxisInit].eCtrl               := E_AXIS_CTRL.AXIS_NULL;
+      eInit                                       := E_PROGRESS.BUSY;
+
+
+    E_PROGRESS.BUSY:
+      GVL_CAM.Ctrl[nAxisInit].eCtrl               := E_AXIS_CTRL.AXIS_INIT;
+
+      IF (GVL_CAM.State[nAxisInit].eState = E_AXIS_STATE.AXIS_INIT + E_PROGRESS.ERROR)
+      THEN
+        eInit                                     := E_PROGRESS.ERROR;
+
+        stMsg.eType                               := E_MessageType.eMessageError;
+        stMsg.eDevice                             := e_Device.Camming;
+        stMsg.eSubdevice                          := e_SubDevice.fbAxis;
+        stMsg.iErrorNumber                        := nAxisInit;
+
+        stMsg.sText                               := concat('CAM.eInit ERROR at Index: ', TO_STRING(nAxisInit));
+        f_MessageSet(stMsg);
+
+      ELSIF (GVL_CAM.State[nAxisInit].eState = E_AXIS_STATE.AXIS_INIT + E_PROGRESS.DONE)
+      THEN
+        eInit                                     := E_PROGRESS.READY;
+      END_IF
+
+
+    E_PROGRESS.READY:
+      IF (nAxisInit > PLC_CONSTANT.MAX_AXIS-1)
+      THEN
+        bInit                                     := TRUE;
+        eInit                                     := E_PROGRESS.DONE;
+
+        stMsg.eType                               := E_MessageType.eMessageInfo;
+        stMsg.eDevice                             := e_Device.Camming;
+        stMsg.eSubdevice                          := e_SubDevice.fbAxis;
+        stMsg.iErrorNumber                        := MAX_AXIS;
+
+        stMsg.sText                               := concat('CAM.eInit: ', TO_STRING(eInit));
+        f_MessageSet(stMsg);
+
+      ELSE
+        nAxisInit                                 := nAxisInit + 1;
+        eInit                                     := E_PROGRESS.INIT;
+      END_IF
+  END_CASE
+END_IF
+//-----------------------------------------------------------------------------------------------------------------
+// INIT
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+// /cyclic
+//-----------------------------------------------------------------------------------------------------------------
+IF (eInit <> E_PROGRESS.ERROR)
+THEN
+  FOR nAxis := 1 TO PLC_CONSTANT.MAX_AXIS
+  DO
+      GVL_CAM.Control[nAxis].Cycle();
+  END_FOR
+END_IF
+//-----------------------------------------------------------------------------------------------------------------
+// cyclic/
+//-----------------------------------------------------------------------------------------------------------------
+
 ]]></ST>
     </Implementation>
     <LineIds Name="CAM">
-      <LineId Id="5" Count="1" />
+      <LineId Id="19" Count="2" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="107" Count="13" />
+      <LineId Id="130" Count="3" />
+      <LineId Id="24" Count="82" />
+      <LineId Id="23" Count="0" />
+      <LineId Id="6" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>

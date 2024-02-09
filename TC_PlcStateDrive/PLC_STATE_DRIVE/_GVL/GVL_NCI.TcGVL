@@ -3,8 +3,6 @@
   <GVL Name="GVL_NCI" Id="{fb0ea162-1b4f-012e-0c6b-68867ef723da}">
     <Declaration><![CDATA[{attribute 'qualified_only'}
 VAR_GLOBAL
-
-  stAxisIndex                 : ARRAY[1..MAX_NCI_CH] OF ST_Index_Group;  // index of gstAxisCtontrl[]
   stAxisConfig                : ARRAY[1..MAX_NCI_CH] OF ST_3D_Group;     // NC Axis Id to build NCI group
 
   stChannelCtrl               : ARRAY[1..MAX_NCI_CH] OF ST_CTRL_NCI;
@@ -16,7 +14,7 @@ VAR_GLOBAL
   R_ParameterRead             : ARRAY[1..MAX_NCI_CH] OF ST_R_Parameter;
   R_ParameterWrite            : ARRAY[1..MAX_NCI_CH] OF ST_R_Parameter;
 
-  M_FunctionCyclic            : ST_NCI_M_FUNC; // scope variable for M function tests
+  M_FunctionCyclic            : ARRAY[1..MAX_NCI_CH] OF ST_NCI_M_FUNC; // scope variable for M function tests
 
 {IF defined (NCI)}
   fbNciCtrl                   : ARRAY[1..MAX_NCI_CH] OF FB_NciChannelCtrl;

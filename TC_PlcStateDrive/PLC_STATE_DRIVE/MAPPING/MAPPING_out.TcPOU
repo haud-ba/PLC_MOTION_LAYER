@@ -4,10 +4,9 @@
     <Declaration><![CDATA[PROGRAM MAPPING_out
 VAR CONSTANT
 {IF defined (AXIS_MAP)}
-  {info 'MAPPING_in - ACTIVE'}
+  {info 'MAPPING_out - ACTIVE'}
   bBypassMapping    : BOOL  := FALSE;
 {ELSE}
-  {info 'MAPPING_in - BY_PASS'}
   bBypassMapping    : BOOL  := TRUE;
 {END_IF}
 END_VAR

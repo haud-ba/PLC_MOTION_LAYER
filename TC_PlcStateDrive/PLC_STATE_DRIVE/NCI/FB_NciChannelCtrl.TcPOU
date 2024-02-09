@@ -125,14 +125,20 @@ END_VAR
       </Set>
     </Property>
     <Method Name="Cmd" Id="{d6479c6f-6d9b-03ad-2b7b-afdf9625f728}" FolderPath="methods\private\">
-      <Declaration><![CDATA[METHOD PRIVATE Cmd  : E_NCI_STATE
+      <Declaration><![CDATA[//
+//  Cmd
+//    - gets state for ctrl
+//    - prepare your commands here
+//    - init what you have to here
+//
+//-------------------------------------------------------------------------------------
+METHOD PRIVATE Cmd  : E_NCI_STATE
 VAR_INPUT
   eCmd      : E_NCI_CTRL;
 END_VAR
 VAR_INST
   _estate   : E_NCI_STATE;
   _stMsg    : ST_Message;
-  _sState   : STRING;
 END_VAR
 ]]></Declaration>
       <Implementation>
@@ -215,6 +221,8 @@ ELSE
       _stMsg.sText          := concat(_stMsg.sText, TO_STRING(eCmd));
       _stMsg.sText          := concat(_stMsg.sText, ': ');
       _stMsg.sText          := concat(_stMsg.sText, TO_STRING(_eResult));
+
+      f_MessageSet(_stMsg);
     END_IF
 END_CASE
 
@@ -1176,31 +1184,10 @@ Template_1 := _eState;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.Cmd">
-      <LineId Id="85" Count="0" />
-      <LineId Id="4" Count="2" />
-      <LineId Id="86" Count="0" />
-      <LineId Id="94" Count="0" />
-      <LineId Id="7" Count="2" />
-      <LineId Id="81" Count="0" />
-      <LineId Id="10" Count="0" />
-      <LineId Id="83" Count="0" />
-      <LineId Id="82" Count="0" />
-      <LineId Id="87" Count="0" />
-      <LineId Id="93" Count="0" />
-      <LineId Id="84" Count="0" />
-      <LineId Id="11" Count="45" />
-      <LineId Id="95" Count="1" />
-      <LineId Id="88" Count="1" />
-      <LineId Id="57" Count="0" />
-      <LineId Id="90" Count="1" />
-      <LineId Id="99" Count="5" />
-      <LineId Id="98" Count="0" />
-      <LineId Id="105" Count="0" />
+      <LineId Id="3" Count="78" />
       <LineId Id="97" Count="0" />
-      <LineId Id="106" Count="0" />
-      <LineId Id="92" Count="0" />
-      <LineId Id="58" Count="1" />
-      <LineId Id="70" Count="1" />
+      <LineId Id="96" Count="0" />
+      <LineId Id="82" Count="4" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.Ctrl_BuildGroup">
@@ -1252,37 +1239,7 @@ Template_1 := _eState;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.Cycle">
-      <LineId Id="3" Count="0" />
-      <LineId Id="92" Count="0" />
-      <LineId Id="4" Count="14" />
-      <LineId Id="20" Count="4" />
-      <LineId Id="93" Count="0" />
-      <LineId Id="25" Count="6" />
-      <LineId Id="36" Count="0" />
-      <LineId Id="111" Count="1" />
-      <LineId Id="37" Count="0" />
-      <LineId Id="113" Count="1" />
-      <LineId Id="38" Count="0" />
-      <LineId Id="115" Count="1" />
-      <LineId Id="41" Count="6" />
-      <LineId Id="117" Count="1" />
-      <LineId Id="48" Count="0" />
-      <LineId Id="119" Count="1" />
-      <LineId Id="49" Count="0" />
-      <LineId Id="121" Count="1" />
-      <LineId Id="50" Count="1" />
-      <LineId Id="123" Count="0" />
-      <LineId Id="52" Count="0" />
-      <LineId Id="124" Count="0" />
-      <LineId Id="53" Count="4" />
-      <LineId Id="125" Count="0" />
-      <LineId Id="61" Count="16" />
-      <LineId Id="94" Count="9" />
-      <LineId Id="105" Count="2" />
-      <LineId Id="109" Count="0" />
-      <LineId Id="79" Count="2" />
-      <LineId Id="83" Count="0" />
-      <LineId Id="85" Count="2" />
+      <LineId Id="3" Count="102" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.ItfChannel.Get">
@@ -1290,22 +1247,12 @@ Template_1 := _eState;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.LogControl">
-      <LineId Id="6" Count="10" />
-      <LineId Id="5" Count="0" />
+      <LineId Id="3" Count="10" />
+      <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.LogResult">
-      <LineId Id="7" Count="0" />
-      <LineId Id="9" Count="3" />
-      <LineId Id="22" Count="0" />
-      <LineId Id="21" Count="0" />
-      <LineId Id="23" Count="0" />
-      <LineId Id="31" Count="0" />
-      <LineId Id="33" Count="1" />
-      <LineId Id="20" Count="0" />
-      <LineId Id="13" Count="0" />
-      <LineId Id="35" Count="0" />
-      <LineId Id="15" Count="1" />
-      <LineId Id="5" Count="0" />
+      <LineId Id="3" Count="15" />
+      <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.M_FunctionScope.Set">
       <LineId Id="3" Count="0" />

@@ -975,7 +975,7 @@ END_VAR
 VAR_INST
   _eState           : E_PROGRESS;
   _rValue           : LREAL;
-  _nErr,
+  _nErr             : UDINT;
   _stMsg            : ST_Message;
 END_VAR
 ]]></Declaration>
@@ -2166,7 +2166,7 @@ VAR_INPUT
 END_VAR
 VAR_INST
   _estate   : E_AXIS_STATE;
-  _eres     : E_PROGRESS;
+  _stMsg    : ST_Message;
 END_VAR
 ]]></Declaration>
       <Implementation>
@@ -2175,80 +2175,80 @@ CASE eCmd
 OF
   //-------------------------------------------------------------------------------------
   E_AXIS_CTRL.AXIS_INIT:
-    _eInit                            := AxisInit(FALSE);
+    _eInit    := _eResult             := AxisInit(FALSE);
     _estate                           := E_AXIS_STATE.AXIS_INIT;
 ELSE
   IF (_eInit <> E_PROGRESS.DONE)
   THEN
+    _eResult                          := E_PROGRESS.INVALID;
     _estate                           := E_AXIS_STATE.AXIS_NO_INIT;
   ELSE
     CASE eCmd
     OF
       //---------------------------------------------------------------------------------
       E_AXIS_CTRL.AXIS_DISABLE:
-        _eres                         := AxisDisable(FALSE);
+        _eResult                      := AxisDisable(FALSE);
         _estate                       := E_AXIS_STATE.AXIS_DISABLE;
 
       //---------------------------------------------------------------------------------
       E_AXIS_CTRL.AXIS_ENABLE:
-        _eres                         := AxisEnable(FALSE);
+        _eResult                      := AxisEnable(FALSE);
         _estate                       := E_AXIS_STATE.AXIS_ENABLE;
 
       //---------------------------------------------------------------------------------
       E_AXIS_CTRL.AXIS_IDLE:
-        _eres                         := AxisIdle(FALSE);
+        _eResult                      := AxisIdle(FALSE);
         _estate                       := E_AXIS_STATE.AXIS_IDLE;
 
       //---------------------------------------------------------------------------------
       E_AXIS_CTRL.AXIS_HOME:
-        _eres                         := AxisHome(FALSE);
+        _eResult                      := AxisHome(FALSE);
         _estate                       := E_AXIS_STATE.AXIS_HOME;
 
       //---------------------------------------------------------------------------------
       E_AXIS_CTRL.AXIS_MOVE_POS:
-        _eres                         := AxisMoveToPosition(FALSE, _Data^[_nAxisIndex]);
+        _eResult                      := AxisMoveToPosition(FALSE, _Data^[_nAxisIndex]);
         _estate                       := E_AXIS_STATE.AXIS_MOVE_POS;
 
       //---------------------------------------------------------------------------------
       E_AXIS_CTRL.AXIS_MOVE_VELO:
-        _eres                         := AxisMoveVelocity(FALSE, _Data^[_nAxisIndex]);
+        _eResult                      := AxisMoveVelocity(FALSE, _Data^[_nAxisIndex]);
         _estate                       := E_AXIS_STATE.AXIS_MOVE_VELO;
 
       //---------------------------------------------------------------------------------
       E_AXIS_CTRL.AXIS_RESET:
         // OnChange clear error bit
         _Info^[_nAxisIndex].bError    := FALSE;
-        _eres                         := AxisReset(FALSE);
+        _eResult                      := AxisReset(FALSE);
         _estate                       := E_AXIS_STATE.AXIS_RESET;
 
       //---------------------------------------------------------------------------------
       E_AXIS_CTRL.AXIS_HALT:
-        _eres                         := AxisHalt(FALSE, _Data^[_nAxisIndex]);
+        _eResult                      := AxisHalt(FALSE, _Data^[_nAxisIndex]);
         _estate                       := E_AXIS_STATE.AXIS_HALT;
 
       //---------------------------------------------------------------------------------
       E_AXIS_CTRL.AXIS_STOP:
-        _eres                         := AxisStop(FALSE, _Data^[_nAxisIndex]);
+        _eResult                      := AxisStop(FALSE, _Data^[_nAxisIndex]);
         _estate                       := E_AXIS_STATE.AXIS_STOP;
 
 
       //---------------------------------------------------------------------------------
       E_AXIS_CTRL.AXIS_MOVE_BUFFER:
-        _eres                         := AxisBufferPos(FALSE, _Data^[_nAxisIndex]);
+        _eResult                      := AxisBufferPos(FALSE, _Data^[_nAxisIndex]);
         _estate                       := E_AXIS_STATE.AXIS_MOVE_BUFFER;
 
 
       //---------------------------------------------------------------------------------
       E_AXIS_CTRL.AXIS_MOVE_BUFFER_VELO:
-        _eres                         := AxisBufferVelo(FALSE, _Data^[_nAxisIndex]);
+        _eResult                      := AxisBufferVelo(FALSE, _Data^[_nAxisIndex]);
         _estate                       := E_AXIS_STATE.AXIS_MOVE_BUFFER_VELO;
 
 
       //---------------------------------------------------------------------------------
       E_AXIS_CTRL.AXIS_PARAMETER_READ:
-        _eParameterNrWrite            := _NcParameterWrt^[_nAxisIndex].ParameterNumber;
-        _eres                         := AxisParameterRead(FALSE, _eParameterNrWrite);
-
+        _eParameterNrRead             := _NcParameterRd^[_nAxisIndex].ParameterNumber;
+        _eResult                      := AxisParameterRead(FALSE, _eParameterNrRead);
         _estate                       := E_AXIS_STATE.AXIS_PARAMETER_READ;
 
 
@@ -2256,7 +2256,7 @@ ELSE
       E_AXIS_CTRL.AXIS_PARAMETER_WRITE:
         _eParameterNrWrite            := _NcParameterWrt^[_nAxisIndex].ParameterNumber;
         _rParameterWrtValue           := _NcParameterWrt^[_nAxisIndex].rValue;
-
+        _eResult                      := AxisParameterWrite(FALSE, _eParameterNrWrite);
         _estate                       := E_AXIS_STATE.AXIS_PARAMETER_WRITE;
 
 
@@ -2264,17 +2264,17 @@ ELSE
       E_AXIS_CTRL.AXIS_PARAMETER_WRITE_PERSISTENT:
         _eParameterNrWrite            := _NcParameterWrt^[_nAxisIndex].ParameterNumber;
         _rParameterWrtValue           := _NcParameterWrt^[_nAxisIndex].rValue;
-
+        _eResult                      := AxisParameterWritePersistent(FALSE, _eParameterNrWrite);
         _estate                       := E_AXIS_STATE.AXIS_PARAMETER_WRITE_PERSISTENT;
 
       //---------------------------------------------------------------------------------
       E_AXIS_CTRL.AXIS_GEAR_IN:
-        _eres                         := AxisGearIn(FALSE);
+        _eResult                      := AxisGearIn(FALSE);
         _estate                       := E_AXIS_STATE.AXIS_GEAR_IN;
 
       //---------------------------------------------------------------------------------    
       E_AXIS_CTRL.AXIS_GEAR_OUT:
-        _eres                         := AxisGearOut(FALSE);
+        _eResult                      := AxisGearOut(FALSE);
         _estate                       := E_AXIS_STATE.AXIS_GEAR_OUT;
 
       //---------------------------------------------------------------------------------
@@ -2284,22 +2284,34 @@ ELSE
         _fbGearInMultiMaster.Master3  := _MultiMasterDummyRef[3];
         _fbGearInMultiMaster.Master4  := _MultiMasterDummyRef[4];
 
-        _eres                         := AxisGearInMultiMaster(FALSE);
+        _eResult                      := AxisGearInMultiMaster(FALSE);
         _estate                       := E_AXIS_STATE.AXIS_GEAR_IN_MULTIMASTER;
 
     //-----------------------------------------------------------------------------------
     ELSE
-      _estate                         := eCmd;
-      _eres                           := E_PROGRESS.ERROR; // wrong note! wrong note!
+      _estate                         := E_AXIS_STATE.AXIS_NULL;
+
+      IF (eCmd = E_NCI_CTRL.NULL)
+      THEN
+        _eResult                      := E_PROGRESS.DONE;
+      ELSE
+        _eResult                      := E_PROGRESS.INVALID;
+  
+        _stMsg.eType                  := E_MessageType.eMessageError;
+        _stMsg.eDevice                := E_Device.Axis + TO_DINT(_Axes[_nAxisIndex].NcToPlc.AxisId);
+        _stMsg.eSubdevice             := e_Subdevice.AxisControl;
+        _stMsg.iErrorNumber           := 0;
+  
+        _stMsg.sText                  := 'E_AXIS_CTRL.';
+        _stMsg.sText                  := concat(_stMsg.sText, TO_STRING(eCmd));
+        _stMsg.sText                  := concat(_stMsg.sText, ': ');
+        _stMsg.sText                  := concat(_stMsg.sText, TO_STRING(_eResult));
+
+        f_MessageSet(_stMsg);
+      END_IF
     END_CASE
   END_IF // _eInit
 END_CASE
-
-IF NOT (_eres = E_PROGRESS.ERROR)
-THEN
-  // only get busy on valid command
-  _State^[_nAxisIndex].eState       := _eState + E_PROGRESS.BUSY;
-END_IF
 
 Cmd                                   := _estate;
 
@@ -3210,7 +3222,9 @@ END_VAR
       <LineId Id="84" Count="1" />
       <LineId Id="94" Count="0" />
       <LineId Id="86" Count="0" />
-      <LineId Id="100" Count="3" />
+      <LineId Id="100" Count="1" />
+      <LineId Id="242" Count="0" />
+      <LineId Id="102" Count="1" />
       <LineId Id="97" Count="1" />
       <LineId Id="200" Count="0" />
       <LineId Id="15" Count="0" />
@@ -3275,7 +3289,6 @@ END_VAR
       <LineId Id="45" Count="0" />
       <LineId Id="134" Count="0" />
       <LineId Id="143" Count="0" />
-      <LineId Id="186" Count="0" />
       <LineId Id="46" Count="0" />
       <LineId Id="187" Count="0" />
       <LineId Id="179" Count="0" />
@@ -3305,16 +3318,11 @@ END_VAR
       <LineId Id="171" Count="0" />
       <LineId Id="30" Count="0" />
       <LineId Id="202" Count="2" />
-      <LineId Id="28" Count="0" />
-      <LineId Id="26" Count="0" />
+      <LineId Id="243" Count="19" />
       <LineId Id="14" Count="0" />
       <LineId Id="104" Count="0" />
       <LineId Id="91" Count="0" />
-      <LineId Id="216" Count="2" />
-      <LineId Id="221" Count="0" />
-      <LineId Id="219" Count="0" />
-      <LineId Id="105" Count="0" />
-      <LineId Id="220" Count="0" />
+      <LineId Id="216" Count="0" />
       <LineId Id="22" Count="0" />
       <LineId Id="20" Count="0" />
       <LineId Id="5" Count="0" />

@@ -266,6 +266,9 @@
     <Compile Include="_MSG\types\E_MessageType.TcDUT">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="_MSG\types\E_MESSAGE_STATE.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="_MSG\types\e_Subdevice.TcDUT">
       <SubType>Code</SubType>
     </Compile>
@@ -365,6 +368,7 @@
       <DefaultResolution>Tc2_MC2_Camming, * (Beckhoff Automation GmbH)</DefaultResolution>
       <Namespace>Tc2_MC2_Camming</Namespace>
       <Optional>true</Optional>
+      <Condition>CAM</Condition>
     </PlaceholderReference>
     <PlaceholderReference Include="Tc2_MC2_Drive">
       <DefaultResolution>Tc2_MC2_Drive, * (Beckhoff Automation GmbH)</DefaultResolution>

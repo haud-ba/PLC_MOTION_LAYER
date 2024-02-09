@@ -12,7 +12,8 @@ VAR_GLOBAL
 
 
   Messages                        : ARRAY[1..PLC_CONSTANT.MAX_MESSAGE] OF ST_Message;
-  MessageIndex                    : INT := 1;
+  MessageIndex                    : INT := 1; // message index
+  MessageError                    : INT := 0; // error counter
 
   fbLocalTime                     : fb_LocalTime;
   dtLocalTime                     : DT;

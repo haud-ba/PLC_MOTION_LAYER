@@ -100,24 +100,15 @@ OF
         _stMsg.sText                := concat('CAM_IN: ', TO_STRING(_eState));
         f_MessageSet(_stMsg);
 
-      _fbCamInV2.Scaling.MasterOffset       := _stCamData.stCamScalingData.rMasterOffset;
-      _fbCamInV2.Scaling.MasterRelative     := _stCamData.stCamScalingData.bMasterRelative;
-      _fbCamInV2.Scaling.MasterScaling      := _stCamData.stCamScalingData.rMasterScaling;
-      _fbCamInV2.Scaling.MasterScalingMode  := _stCamData.stCamScalingData.nMasterScalingMode;
-
-      _fbCamInV2.Scaling.SlaveOffset        := _stCamData.stCamScalingData.rSlaveOffset;
-      _fbCamInV2.Scaling.SlaveRelative      := _stCamData.stCamScalingData.bSlaveRelative;
-      _fbCamInV2.Scaling.SlaveScaling       := _stCamData.stCamScalingData.rSlaveScaling;
-      _fbCamInV2.Scaling.SlaveScalingMode   := _stCamData.stCamScalingData.nSlaveScalingMode;
-
       _fbCamInV2(
           Master                    := _AxisMaster, 
           Slave                     := _AxisSlave, 
           Execute                   := FALSE, 
           ActivationMode            := _stCamData.nActivationMode, 
           ActivationPosition        := _stCamData.rActivationPosition, 
-          CamTableID                := _stCamData.nCamTableId, 
-          Options                   := _stCamData.stOptions);
+          CamTableID                := _stCamData.nCamTableId,
+          Scaling                   := CamScalingData,
+          Options                   := CamInOptions);
       END_IF
     END_IF
 END_CASE
@@ -130,8 +121,7 @@ OF
           Execute                   := TRUE, 
           ActivationMode            := _stCamData.nActivationMode, 
           ActivationPosition        := _stCamData.rActivationPosition, 
-          CamTableID                := _stCamData.nCamTableId, 
-          Options                   := _stCamData.stOptions);
+          CamTableID                := _stCamData.nCamTableId);
 
     IF (_fbCamInV2.Error)
     THEN
@@ -280,6 +270,23 @@ CamInfo                             := _eState;
 ]]></ST>
       </Implementation>
     </Method>
+    <Property Name="CamInOptions" Id="{8eb58abc-2d17-0f25-0bd0-03ec765cce3a}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY CamInOptions : ST_CamInOptions_V2]]></Declaration>
+      <Get Name="Get" Id="{49afe976-2b95-07a0-3bd1-8be5baed75a8}">
+        <Declaration><![CDATA[VAR
+  _CamInOptions   : ST_CamInOptions_V2;
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[
+_CamInOptions.CamOperationMode      := _stCamData.stOptions.nCamOperationMode;
+_CamInOptions.InterpolationType     := _stCamData.stOptions.nInterpolationType;
+_CamInOptions.ReferenceCamTableID   := _stCamData.stOptions.nReferenceCamTableId;
+
+]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
     <Method Name="CamOut" Id="{c7c73c9b-7354-0e7f-273f-a3f2a65193ca}" FolderPath="methods\">
       <Declaration><![CDATA[METHOD CamOut : E_PROGRESS
 VAR_INPUT
@@ -520,7 +527,7 @@ OF
     THEN
       memset(ADR(_mcMotionFunction),0,SIZEOF(_mcMotionFunction));
       memset(ADR(_stMsg),0,SIZEOF(_stMsg));
-      _nNumPointsRead               :=
+      _nNumPointsRead               := 0;
       _udiErr                       := 0;
       _rValue                       := 0;
       _eState                       := E_PROGRESS.BUSY;
@@ -627,7 +634,7 @@ OF
               CamTable              := _mcCamRef);
 END_CASE
 
-CamScaling                          := _eState;
+ReadMotionFunction                  := _eState;
 ]]></ST>
       </Implementation>
     </Method>
@@ -812,17 +819,12 @@ Template_1 := _eState;
       <LineId Id="1010" Count="0" />
       <LineId Id="1027" Count="0" />
       <LineId Id="1014" Count="6" />
-      <LineId Id="1100" Count="4" />
-      <LineId Id="1106" Count="0" />
-      <LineId Id="1105" Count="0" />
-      <LineId Id="1107" Count="0" />
-      <LineId Id="1109" Count="1" />
-      <LineId Id="1049" Count="7" />
-      <LineId Id="1058" Count="0" />
+      <LineId Id="1100" Count="0" />
+      <LineId Id="1050" Count="6" />
+      <LineId Id="1127" Count="1" />
       <LineId Id="1008" Count="0" />
       <LineId Id="918" Count="4" />
       <LineId Id="1039" Count="6" />
-      <LineId Id="1047" Count="0" />
       <LineId Id="930" Count="13" />
       <LineId Id="1059" Count="3" />
       <LineId Id="947" Count="3" />
@@ -869,6 +871,10 @@ Template_1 := _eState;
       <LineId Id="821" Count="0" />
       <LineId Id="762" Count="0" />
       <LineId Id="788" Count="1" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_CamAxis.CamInOptions.Get">
+      <LineId Id="6" Count="4" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_CamAxis.CamOut">

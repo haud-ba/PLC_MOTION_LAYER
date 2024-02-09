@@ -7,7 +7,7 @@ VAR_INPUT
 	bPowerFail		: BOOL;   // UPS switch
 	bWriteFile		: BOOL;   // manual write of list
 	bReset				: BOOL;
-	pList					: POINTER TO ARRAY[1..PLC_CONSTANT.MAX_MESSAGE] OF ST_Message;
+	pList					: POINTER TO ARRAY[1..PLC_CONSTANT.MAX_MESSAGE] OF ST_Message; // attach your list here
 	pLocalTime		: POINTER TO DT; 
 END_VAR
 VAR_OUTPUT
@@ -16,7 +16,7 @@ VAR_OUTPUT
 	VisuList		  : ARRAY[1..PLC_CONSTANT.MAX_MESSAGE] OF ST_Message;
 END_VAR
 VAR
-	nState 				: DINT;
+	eState 				: E_MESSAGE_STATE;
 
 	rtrigReset		: Tc2_Standard.R_TRIG;
 	aWriteList		: ARRAY[1..PLC_CONSTANT.MAX_MESSAGE] OF ST_Message;
@@ -43,183 +43,214 @@ VAR
   bErrorWrite   : BOOL;
   nErrorWrite   : UDINT;
   nStateWrite   : UINT;
-END_VAR
-VAR CONSTANT
-	MSG_WRITE_COUNT	: INT := 100;
-END_VAR
-]]></Declaration>
+END_VAR]]></Declaration>
     <Implementation>
-      <ST><![CDATA[(* pointer check *)
+      <ST><![CDATA[//-----------------------------------------------------------------------------
+// check pointers
+//-----------------------------------------------------------------------------
 IF NOT (pList <> 0) OR
    NOT (pLocalTime <> 0)
 THEN
+  eState                      := MSG_INVALID_POINTERS;
   RETURN;
 END_IF
-
+//-----------------------------------------------------------------------------
+// check date
+// new message file for a new day
+//-----------------------------------------------------------------------------
 IF (FolderDate(pLocalTime) <> sFolderDate)
 THEN
-  bFileCreated              := FALSE;
+  bFileCreated                := FALSE;
 END_IF
-
-
+//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------------- 
 rtrigReset(CLK:= bReset);
 IF rtrigReset.Q
 THEN
-  bReset                    := FALSE;
-  nState                    := 0;
+  bReset                      := FALSE;
+  eState                      := MSG_NULL;
 END_IF
-
-
-CASE nState OF
-  0:
-  bBusy                     := 
-  bDone                     := FALSE;
-  
-  IF (bWriteFile) OR
-     (bPowerFail) OR 
-     (GVL_MSG.MessageIndex > PLC_CONSTANT.MAX_MESSAGE-1)
-  THEN
-    nState                := 5;
-  END_IF
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+CASE eState OF
+  MSG_NULL:
+    bBusy                     := 
+    bDone                     := FALSE;
+    
+    IF (bWriteFile) OR
+       (bPowerFail) OR 
+       (GVL_MSG.MessageIndex > PLC_CONSTANT.MAX_MESSAGE-1)
+    THEN
+      eState                  := MSG_INIT;
+    END_IF
 END_CASE
-CASE nState OF
-  5:
+//-----------------------------------------------------------------------------
+CASE eState OF
+  MSG_INIT:
     WriteData(FALSE);
 
+    // clear intern list
     memset(ADR(aWriteList),     0, SIZEOF(aWriteList));
+
+    // copy from attached list to local
     memcpy(ADR(aWriteList), pList, SIZEOF(aWriteList));
+
+    // clear attached list
     memset(pList, 0, SIZEOF(aWriteList));
 
-    bBusy                   := TRUE;
-    iStart 	                := 1;
-    iEnd 		                := SEL((GVL_MSG.MessageIndex > PLC_CONSTANT.MAX_MESSAGE-1),
-                                    GVL_MSG.MessageIndex,
-                                    PLC_CONSTANT.MAX_MESSAGE);
-    GVL_MSG.MessageIndex    := 1;
-  
+    bBusy                     := TRUE;
+    iStart 	                  := 1;
+    iEnd 		                  := SEL((GVL_MSG.MessageIndex > PLC_CONSTANT.MAX_MESSAGE-1),
+                                      GVL_MSG.MessageIndex,
+                                      PLC_CONSTANT.MAX_MESSAGE);
+    GVL_MSG.MessageIndex      := 1;
+
     IF NOT bFileCreated
     THEN
-      nState                := 10;
+      IF (GVL_MSG.MessageError > 0) OR
+         (GVL_MSG.EnableLogging)
+      THEN
+        // folder and filename have to be created
+        eState                := MSG_ROOT;
+      ELSE
+        eState                := MSG_WRITE_FILE_DONE; 
+      END_IF
     ELSE
-      nState                := 200;
+      // folder and file already exist
+      eState                  := MSG_LINE_START;
     END_IF
 END_CASE
-CASE nState OF
-  10:
-  nState                    := 20;
-  fbCreateDir.sPathName     := left(PLC_CONSTANT.LOG_DIR,len(PLC_CONSTANT.LOG_DIR)-1);
-  fbCreateDir(
-          bExecute	        := FALSE);
-  
-  20:
-  (* create root folder *)
-  fbCreateDir(
-          bExecute	        := TRUE);
-  IF fbCreateDir.bBusy
-  THEN
-    nState                  := 30;
-  END_IF
-  
-  30:
-  fbCreateDir(
-          bExecute	        := TRUE);
-  IF NOT fbCreateDir.bBusy
-  THEN
-    nState                  := 40;
-    sFolderDate             := FolderDate(pLocalTime);
-    fbCreateDir.sPathName   := concat(PLC_CONSTANT.LOG_DIR, sFolderDate);
+//-----------------------------------------------------------------------------
+CASE eState OF
+  MSG_ROOT:
+    eState                    := MSG_ROOT_CREATE;
+    fbCreateDir.sPathName     := left(PLC_CONSTANT.LOG_DIR,len(PLC_CONSTANT.LOG_DIR)-1);
     fbCreateDir(
-            bExecute	      := FALSE);
-  END_IF
+            bExecute	        := FALSE);
   
-  40:
-  (* create active folder *)
-  fbCreateDir(
-          bExecute	        := TRUE);
-  IF fbCreateDir.bBusy
-  THEN
-    nState                  := 50;
-  END_IF
-  
-  50:
-  fbCreateDir(
-          bExecute	        := TRUE);
-  IF NOT fbCreateDir.bBusy
-  THEN
-    nState                  := 200;
-    bFileCreated            := TRUE;
-    // build complete file path
-    sTmp                    := concat(concat(PLC_CONSTANT.LOG_FILE, sFolderDate),'.txt');
-    sTmp                    := concat('\', sTmp);
-    sFilename               := concat(fbCreateDir.sPathName, sTmp);
+  MSG_ROOT_CREATE:
+    (* create root folder *)
     fbCreateDir(
-            bExecute	      := FALSE);
-  END_IF
-END_CASE
-CASE nState OF
-  200:
-  nState                    := 220;
-  iCount                    := iStart;
-  memset(ADR(sWriteData),0,SIZEOF(sWriteData));
-END_CASE
-CASE nState OF
-  220:
-  nState                    := 225;
-  IF (aWriteList[iCount].eType > 0)
-  THEN
-    IF (aWriteList[iCount].eType = E_MessageType.eMessageError) OR
-       (GVL_MSG.EnableLogging)
+            bExecute	        := TRUE);
+    IF fbCreateDir.bBusy
     THEN
-      sTmp                    := TO_STRING(aWriteList[iCount].eType);
-      sTmp                    := Tc2_Standard.CONCAT(sTmp, sTab);
-      sTmp                    := Tc2_Standard.CONCAT(sTmp, aWriteList[iCount].tTime);
-      sTmp                    := Tc2_Standard.CONCAT(sTmp, sTab);
-      sTmp                    := Tc2_Standard.CONCAT(sTmp, Device_To_String(aWriteList[iCount].eDevice));
-      sTmp                    := Tc2_Standard.CONCAT(sTmp, sTab);
-      sTmp                    := Tc2_Standard.CONCAT(sTmp, TO_STRING(aWriteList[iCount].eSubdevice));
-      sTmp                    := Tc2_Standard.CONCAT(sTmp, sTab);
-      sTmp                    := Tc2_Standard.CONCAT(sTmp, TO_STRING(aWriteList[iCount].iErrorNumber));
-      sTmp                    := Tc2_Standard.CONCAT(sTmp, sTab);
-      sTmp                    := Tc2_Standard.CONCAT(sTmp, aWriteList[iCount].sText);
-      sTmp                    := Tc2_Standard.CONCAT(sTmp, sNewLine);
-      Builder(ADR(sTmp), ADR(sWriteData), StringLen(ADR(sTmp)));
+      eState                  := MSG_ROOT_CREATE_BUSY;
     END_IF
-  END_IF
-  iCount                    := iCount + 1;
+  
+  MSG_ROOT_CREATE_BUSY:
+    fbCreateDir(
+            bExecute	        := TRUE);
+    IF NOT fbCreateDir.bBusy
+    THEN
+      eState                  := MSG_FOLDER;
+    END_IF
+  
+  MSG_FOLDER:
+    eState                    := MSG_FOLDER_CREATE;
+    sFolderDate               := FolderDate(pLocalTime);
+    fbCreateDir.sPathName     := concat(PLC_CONSTANT.LOG_DIR, sFolderDate);
+    fbCreateDir(
+            bExecute	        := FALSE);
+
+  MSG_FOLDER_CREATE:
+    (* create active folder *)
+    fbCreateDir(
+            bExecute	        := TRUE);
+    IF fbCreateDir.bBusy
+    THEN
+      eState                  := MSG_FOLDER_CREATE_BUSY;
+    END_IF
+  
+  MSG_FOLDER_CREATE_BUSY:
+    fbCreateDir(
+            bExecute	        := TRUE);
+    IF NOT fbCreateDir.bBusy
+    THEN
+      eState                  := MSG_FILE_CREATE_DONE;
+      fbCreateDir(
+              bExecute	      := FALSE);
+    END_IF
 END_CASE
-CASE nState OF
-  225:
+//-----------------------------------------------------------------------------
+CASE eState OF
+  MSG_FILE_CREATE_DONE:
+    eState                    := MSG_LINE_START;
+    bFileCreated              := TRUE;
+    // build complete file path
+    sTmp                      := concat(concat(PLC_CONSTANT.LOG_FILE, sFolderDate),'.txt');
+    sTmp                      := concat('\', sTmp);
+    sFilename                 := concat(fbCreateDir.sPathName, sTmp);
+END_CASE
+//-----------------------------------------------------------------------------
+CASE eState OF
+  MSG_LINE_START:
+    GVL_MSG.MessageError      := 0;
+    eState                    := MSG_LINE_BUILD;
+    iCount                    := iStart;
+    memset(ADR(sWriteData),0,SIZEOF(sWriteData));
+END_CASE
+//-----------------------------------------------------------------------------
+CASE eState OF
+  MSG_LINE_BUILD:
+    eState                    := MSG_LINE_CHECK;
+    IF (aWriteList[iCount].eType > E_MessageType.eMessageEmpty)
+    THEN
+      IF (aWriteList[iCount].eType = E_MessageType.eMessageError) OR
+         (GVL_MSG.EnableLogging)
+      THEN
+        sTmp                  := TO_STRING(aWriteList[iCount].eType);
+        sTmp                  := Tc2_Standard.CONCAT(sTmp, sTab);
+        sTmp                  := Tc2_Standard.CONCAT(sTmp, aWriteList[iCount].tTime);
+        sTmp                  := Tc2_Standard.CONCAT(sTmp, sTab);
+        sTmp                  := Tc2_Standard.CONCAT(sTmp, Device_To_String(aWriteList[iCount].eDevice));
+        sTmp                  := Tc2_Standard.CONCAT(sTmp, sTab);
+        sTmp                  := Tc2_Standard.CONCAT(sTmp, TO_STRING(aWriteList[iCount].eSubdevice));
+        sTmp                  := Tc2_Standard.CONCAT(sTmp, sTab);
+        sTmp                  := Tc2_Standard.CONCAT(sTmp, TO_STRING(aWriteList[iCount].iErrorNumber));
+        sTmp                  := Tc2_Standard.CONCAT(sTmp, sTab);
+        sTmp                  := Tc2_Standard.CONCAT(sTmp, aWriteList[iCount].sText);
+        sTmp                  := Tc2_Standard.CONCAT(sTmp, sNewLine);
+        Builder(ADR(sTmp), ADR(sWriteData), StringLen(ADR(sTmp)));
+      END_IF
+    END_IF
+    iCount                    := iCount + 1;
+END_CASE
+//-----------------------------------------------------------------------------
+CASE eState OF
+  MSG_LINE_CHECK:
   IF NOT (iCount > iEnd)
   THEN
-    nState                  := 220;
+    eState                    := MSG_LINE_BUILD;
   ELSE
     IF (StringLen(ADR(sWriteData)) > 0)
     THEN
-      nState                := 230;
+      eState                  := MSG_WRITE_FILE_BUSY;
     ELSE
-      nState                := 250;
+      eState                  := MSG_WRITE_FILE_DONE;
     END_IF
   END_IF
   
-  230:
+  MSG_WRITE_FILE_BUSY:
   IF WriteData(TRUE)
   THEN
-    nState                  := 240;
+    eState                    := MSG_WRITE_FILE_END;
   END_IF
   
-  240:
+  MSG_WRITE_FILE_END:
   WriteData(FALSE);
-  nState                    := 250;
+  eState                      := MSG_WRITE_FILE_DONE;
   
-  250:
-  bDone                     := TRUE;
+  MSG_WRITE_FILE_DONE:
+  bDone                       := TRUE;
   IF NOT (bWriteFile)
   THEN
-    nState                  := 0;
+    eState                    := MSG_NULL;
   END_IF
 END_CASE
-
-
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+// visu message list
+//-----------------------------------------------------------------------------
 memset(ADR(VisuList),0,SIZEOF(VisuList));
 
 IF (bActivate)
@@ -227,9 +258,10 @@ THEN
   // copy message list to visu message list
   FOR ivis := 1 TO GVL_MSG.MessageIndex
   DO
-    VisuList[ivis] := pList^[ivis];
+    VisuList[ivis]            := pList^[ivis];
   END_FOR
 END_IF
+//-----------------------------------------------------------------------------
 ]]></ST>
     </Implementation>
     <Method Name="Builder" Id="{e7f6a64d-5362-0a59-3bd9-ff631826ba13}">
@@ -520,78 +552,69 @@ bErrorWrite := fbFileOpen.bError OR fbFileWrite.bError;
       </Implementation>
     </Method>
     <LineIds Name="MessageData">
-      <LineId Id="2900" Count="23" />
-      <LineId Id="3287" Count="1" />
-      <LineId Id="2930" Count="0" />
-      <LineId Id="3362" Count="0" />
-      <LineId Id="3290" Count="0" />
-      <LineId Id="2932" Count="0" />
-      <LineId Id="2935" Count="0" />
-      <LineId Id="2937" Count="3" />
-      <LineId Id="3294" Count="1" />
-      <LineId Id="3241" Count="0" />
-      <LineId Id="2941" Count="1" />
-      <LineId Id="3291" Count="0" />
-      <LineId Id="2943" Count="2" />
-      <LineId Id="3292" Count="1" />
-      <LineId Id="2946" Count="0" />
-      <LineId Id="3144" Count="0" />
-      <LineId Id="2949" Count="8" />
-      <LineId Id="3297" Count="0" />
-      <LineId Id="2958" Count="0" />
-      <LineId Id="2960" Count="0" />
-      <LineId Id="3296" Count="0" />
-      <LineId Id="2961" Count="2" />
-      <LineId Id="3140" Count="0" />
-      <LineId Id="3298" Count="0" />
-      <LineId Id="2965" Count="5" />
-      <LineId Id="3142" Count="0" />
-      <LineId Id="3299" Count="0" />
-      <LineId Id="2971" Count="1" />
-      <LineId Id="3301" Count="0" />
-      <LineId Id="2973" Count="2" />
-      <LineId Id="3300" Count="0" />
-      <LineId Id="2977" Count="4" />
-      <LineId Id="3302" Count="0" />
-      <LineId Id="2982" Count="5" />
-      <LineId Id="3143" Count="0" />
-      <LineId Id="3303" Count="0" />
-      <LineId Id="2988" Count="1" />
-      <LineId Id="3306" Count="1" />
-      <LineId Id="2991" Count="3" />
-      <LineId Id="3304" Count="1" />
-      <LineId Id="2997" Count="0" />
-      <LineId Id="2999" Count="2" />
-      <LineId Id="3308" Count="1" />
-      <LineId Id="3002" Count="0" />
-      <LineId Id="3190" Count="1" />
-      <LineId Id="3006" Count="0" />
-      <LineId Id="3310" Count="0" />
-      <LineId Id="3007" Count="1" />
-      <LineId Id="3363" Count="2" />
-      <LineId Id="3009" Count="12" />
-      <LineId Id="3366" Count="0" />
-      <LineId Id="3022" Count="1" />
-      <LineId Id="3192" Count="1" />
-      <LineId Id="3311" Count="0" />
-      <LineId Id="3027" Count="1" />
-      <LineId Id="3194" Count="1" />
-      <LineId Id="3029" Count="5" />
-      <LineId Id="3037" Count="0" />
-      <LineId Id="3039" Count="1" />
-      <LineId Id="3042" Count="5" />
-      <LineId Id="3093" Count="0" />
-      <LineId Id="3051" Count="0" />
-      <LineId Id="3053" Count="1" />
-      <LineId Id="3086" Count="0" />
-      <LineId Id="3055" Count="5" />
-      <LineId Id="3068" Count="0" />
-      <LineId Id="3077" Count="0" />
-      <LineId Id="3313" Count="0" />
-      <LineId Id="3078" Count="0" />
-      <LineId Id="3314" Count="0" />
-      <LineId Id="3079" Count="5" />
+      <LineId Id="3663" Count="0" />
+      <LineId Id="3460" Count="0" />
+      <LineId Id="3664" Count="0" />
+      <LineId Id="3461" Count="2" />
+      <LineId Id="3676" Count="0" />
+      <LineId Id="3464" Count="1" />
+      <LineId Id="3660" Count="0" />
+      <LineId Id="3466" Count="0" />
+      <LineId Id="3661" Count="0" />
+      <LineId Id="3665" Count="0" />
+      <LineId Id="3467" Count="3" />
+      <LineId Id="3472" Count="0" />
+      <LineId Id="3662" Count="0" />
+      <LineId Id="3473" Count="6" />
+      <LineId Id="3666" Count="0" />
+      <LineId Id="3481" Count="11" />
+      <LineId Id="3667" Count="0" />
+      <LineId Id="3493" Count="2" />
+      <LineId Id="3688" Count="0" />
+      <LineId Id="3496" Count="1" />
+      <LineId Id="3689" Count="0" />
+      <LineId Id="3687" Count="0" />
+      <LineId Id="3498" Count="0" />
+      <LineId Id="3691" Count="0" />
+      <LineId Id="3690" Count="0" />
+      <LineId Id="3499" Count="10" />
+      <LineId Id="3678" Count="0" />
+      <LineId Id="3684" Count="0" />
+      <LineId Id="3679" Count="0" />
+      <LineId Id="3658" Count="0" />
+      <LineId Id="3510" Count="0" />
+      <LineId Id="3682" Count="1" />
+      <LineId Id="3680" Count="0" />
+      <LineId Id="3511" Count="0" />
+      <LineId Id="3659" Count="0" />
+      <LineId Id="3512" Count="2" />
+      <LineId Id="3668" Count="0" />
+      <LineId Id="3515" Count="21" />
+      <LineId Id="3541" Count="2" />
+      <LineId Id="3646" Count="0" />
+      <LineId Id="3642" Count="3" />
+      <LineId Id="3647" Count="0" />
+      <LineId Id="3641" Count="0" />
+      <LineId Id="3544" Count="13" />
+      <LineId Id="3563" Count="2" />
+      <LineId Id="3649" Count="0" />
+      <LineId Id="3669" Count="0" />
+      <LineId Id="3650" Count="1" />
+      <LineId Id="3657" Count="0" />
+      <LineId Id="3652" Count="4" />
+      <LineId Id="3566" Count="0" />
+      <LineId Id="3670" Count="0" />
+      <LineId Id="3567" Count="1" />
+      <LineId Id="3686" Count="0" />
+      <LineId Id="3569" Count="3" />
+      <LineId Id="3671" Count="0" />
+      <LineId Id="3573" Count="24" />
+      <LineId Id="3672" Count="0" />
+      <LineId Id="3598" Count="32" />
+      <LineId Id="3673" Count="1" />
+      <LineId Id="3631" Count="9" />
       <LineId Id="5" Count="0" />
+      <LineId Id="3675" Count="0" />
     </LineIds>
     <LineIds Name="MessageData.Builder">
       <LineId Id="16" Count="27" />

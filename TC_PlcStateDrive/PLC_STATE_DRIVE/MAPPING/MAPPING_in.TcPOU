@@ -7,7 +7,6 @@ VAR CONSTANT
   {info 'MAPPING_in - ACTIVE'}
   bBypassMapping    : BOOL  := FALSE;
 {ELSE}
-  {info 'MAPPING_in - BY_PASS'}
   bBypassMapping    : BOOL  := TRUE;
 {END_IF}
 END_VAR

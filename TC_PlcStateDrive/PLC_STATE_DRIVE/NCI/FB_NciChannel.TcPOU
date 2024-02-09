@@ -12,14 +12,7 @@ VAR
   _NciChannelRef        : POINTER TO ST_NciChannel_Ref;
 
 //Configured Group Axes
-  _stCfgAxes            : POINTER TO Tc2_NCI.NCI_EXT3DGROUP;
-
-//MCS-Axes
-  _ipMcsAxis            : ARRAY[1..MAX_MC_AXIS]  OF I_McAxis;
-
-//Aux-Axes
-  _ipAuxAxis            : ARRAY[1..MAX_AUX_AXIS] OF I_McAxis;
-
+  _stCfgAxes            : POINTER TO ST_3D_Group;
 
 //NCI-Group
   _fbBuildGroup         : Tc2_NCI.CfgBuildExt3DGroup;
@@ -138,8 +131,8 @@ OF
         _stMsg.eType                := E_MessageType.eMessageInfo;
         _stMsg.eDevice              := ChannelDevice;
         _stMsg.eSubdevice           := e_Subdevice.fbBuildGroup;
-        _stMsg.iErrorNumber         := _fbBuildGroup.nErrId;
-        _stMsg.sText                := concat('BuildGroup Done: ', TO_STRING(_fbBuildGroup.nErrId));
+        _stMsg.iErrorNumber         := _fbBuildGroup.nGroupId;
+        _stMsg.sText                := concat('BuildGroup Busy: ', TO_STRING(_fbBuildGroup.nGroupId));
         f_MessageSet(_stMsg);
       END_IF
     END_IF
@@ -166,36 +159,16 @@ OF
     ELSE
       IF NOT _fbBuildGroup.bBusy
       THEN
-        _eState                     := E_PROGRESS.PREPARE;
+        _eState                     := E_PROGRESS.DONE;
 
         _stMsg.eType                := E_MessageType.eMessageInfo;
         _stMsg.eDevice              := ChannelDevice;
         _stMsg.eSubdevice           := e_Subdevice.fbBuildGroup;
-        _stMsg.iErrorNumber         := _fbBuildGroup.nErrId;
-        _stMsg.sText                := concat('BuildGroup Done: ', TO_STRING(_fbBuildGroup.nErrId));
+        _stMsg.iErrorNumber         := _fbBuildGroup.nGroupId;
+        _stMsg.sText                := concat('BuildGroup Done: ', TO_STRING(_fbBuildGroup.nGroupId));
         f_MessageSet(_stMsg);
       END_IF
     END_IF
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.PREPARE:
-    _eState                         := E_PROGRESS.READY;
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.READY:
-    _eState                         := E_PROGRESS.WAITING;
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.WAITING:
-    _eState                         := E_PROGRESS.WORKING;
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.WORKING:
-    _eState                         := E_PROGRESS.DONE;
 END_CASE
 CASE _eState
 OF
@@ -217,7 +190,7 @@ BuilDGroup                          := _eState;
 NCI-Group configured axes structure
 ===============================================================
 *)
-PROPERTY CfgAxes : POINTER TO Tc2_NCI.NCI_EXT3DGROUP
+PROPERTY CfgAxes : POINTER TO ST_3D_Group
 ]]></Declaration>
       <Set Name="Set" Id="{3f21a688-4a65-0616-3362-9c84f2e67e36}">
         <Declaration><![CDATA[]]></Declaration>
@@ -866,6 +839,17 @@ GetItpState := _NciChannelRef^.NcToPlc.ItpState;
 ]]></ST>
       </Implementation>
     </Method>
+    <Method Name="GetLoadedProg" Id="{56f802bc-7a12-0ad2-136e-f8876ab00eda}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD GetLoadedProg : string
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[GetLoadedProg := _fbLoadProg.sPrg;
+
+]]></ST>
+      </Implementation>
+    </Method>
     <Property Name="HSK" Id="{c44fb810-a1ba-008d-0d5f-e9fee3235b7d}" FolderPath="properties\">
       <Declaration><![CDATA[(*
 ===============================================================
@@ -885,45 +869,12 @@ HSK :=  TO_BOOL(_NciChannelRef^.NcToPlc.HskMFuncReq);
         </Implementation>
       </Get>
     </Property>
-    <Property Name="I_AuxAxis" Id="{32758125-2b71-0bff-32fa-ea665a4e63b0}" FolderPath="properties\">
-      <Declaration><![CDATA[PROPERTY I_AuxAxis : ARRAY[1..MAX_AUX_AXIS] OF I_McAxis
-]]></Declaration>
-      <Set Name="Set" Id="{a18b5db1-9f74-04d5-0a3b-109b1529afff}">
-        <Declaration><![CDATA[VAR
-  idx : DINT;
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[_ipAuxAxis := I_AuxAxis;
-
-]]></ST>
-        </Implementation>
-      </Set>
-    </Property>
-    <Property Name="I_McAxis" Id="{e9553ea2-930d-0a79-2c0f-d65855a40180}" FolderPath="properties\">
-      <Declaration><![CDATA[PROPERTY I_McAxis : array[1..MAX_MC_AXIS] of I_McAxis]]></Declaration>
-      <Set Name="Set" Id="{2acbb6e9-6899-0c2c-32e3-538e7e384e94}">
-        <Declaration><![CDATA[VAR
-  idx : dint;
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[_ipMcsAxis := I_McAxis;
-]]></ST>
-        </Implementation>
-      </Set>
-    </Property>
     <Property Name="ItpAxes" Id="{2ef1133b-3cbf-0feb-0dde-ca5cc03c5cac}" FolderPath="properties\">
-      <Declaration><![CDATA[(*
-===============================================================
-NCI-Group configured axes structure
-===============================================================
-*)
-PROPERTY ItpAxes : Tc2_NCI.NCI_EXT3DGROUP
+      <Declaration><![CDATA[PROPERTY ItpAxes : ST_3D_Group
 ]]></Declaration>
       <Get Name="Get" Id="{67f22660-de01-0ef5-077d-64ed12435f0d}">
         <Declaration><![CDATA[VAR
-  stItpAxes     :Tc2_NCI.NCI_EXT3DGROUP;
+  stItpAxes     : ST_3D_Group;
 END_VAR
 ]]></Declaration>
         <Implementation>
@@ -2069,7 +2020,7 @@ WriteRParams                        := _eState;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.BuilDGroup">
-      <LineId Id="3" Count="123" />
+      <LineId Id="3" Count="103" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.CfgAxes.Set">
@@ -2116,16 +2067,12 @@ WriteRParams                        := _eState;
       <LineId Id="3" Count="1" />
       <LineId Id="2" Count="0" />
     </LineIds>
+    <LineIds Name="FB_NciChannel.GetLoadedProg">
+      <LineId Id="6" Count="1" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
     <LineIds Name="FB_NciChannel.HSK.Get">
       <LineId Id="3" Count="2" />
-      <LineId Id="2" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_NciChannel.I_AuxAxis.Set">
-      <LineId Id="3" Count="1" />
-      <LineId Id="2" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_NciChannel.I_McAxis.Set">
-      <LineId Id="3" Count="0" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.ItpAxes.Get">

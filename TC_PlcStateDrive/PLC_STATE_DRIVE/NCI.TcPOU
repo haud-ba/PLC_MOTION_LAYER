@@ -3,14 +3,96 @@
   <POU Name="NCI" Id="{da86f3fe-4721-09d7-2e2d-987f1b92458d}" SpecialFunc="None">
     <Declaration><![CDATA[PROGRAM NCI
 VAR
+  bInit                     : BOOL;
+  eInit                     : E_PROGRESS;
+
+  nChn,
+  nAxis,
+  nAxisInit                 : UINT;
+
+  stMsg                     : ST_Message;
+
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[IF NOT PLC_CONSTANT.NCI_ACTIVE THEN RETURN; END_IF
+      <ST><![CDATA[//-----------------------------------------------------------------------------------------------------------------
+// check if used
+//-----------------------------------------------------------------------------------------------------------------
+IF NOT PLC_CONSTANT.NCI_ACTIVE THEN eInit   := E_PROGRESS.NOT_EXIST; RETURN; END_IF
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+FOR nChn := 1 TO MAX_NCI_CH
+DO
+  IF NOT (GVL_NCI.stAxisConfig[nChn].nXAxisId > 0) OR
+     NOT (GVL_NCI.stAxisConfig[nChn].nYAxisId > 0) OR
+     NOT (GVL_NCI.stAxisConfig[nChn].nZAxisId > 0)
+  THEN
+    GVL_NCI.stChannelState[nChn].eState     := E_NCI_STATE.INIT + E_PROGRESS.NOT_EXIST; // no valid NC AxisId
+    RETURN;
+  END_IF
+END_FOR
+
+FOR nChn := 1 TO MAX_NCI_CH
+DO
+
+  // NCI axis configuration --> NC AxisId used
+  GVL_NCI.fbNciCtrl[nChn].ItfChannel.CfgAxes           := ADR(GVL_NCI.stAxisConfig[nChn]);
+
+  // R Parameter properties
+  GVL_NCI.fbNciCtrl[nChn].ItfChannel.R_ParameterRead   := ADR(GVL_NCI.R_ParameterRead[nChn]);
+  GVL_NCI.fbNciCtrl[nChn].ItfChannel.R_ParameterWrite  := ADR(GVL_NCI.R_ParameterWrite[nChn]);
+
+  // ProgName for channel
+  GVL_NCI.fbNciCtrl[nChn].ItfChannel.Prog              := GVL_NCI.sProgName[nChn];
+
+  // check REAL value to avoid exception
+  IF NOT IsFinite(F_Real(GVL_NCI.stChannelCtrl[nChn].rOverride))
+  THEN
+    GVL_NCI.fbNciCtrl[nChn].ItfChannel.Override        := 0.0;
+  ELSE
+    GVL_NCI.fbNciCtrl[nChn].ItfChannel.Override        := GVL_NCI.stChannelCtrl[nChn].rOverride;
+  END_IF
+
+  GVL_NCI.fbNciCtrl[nChn].ChnCtrl           := ADR(GVL_NCI.stChannelCtrl[nChn]);
+  GVL_NCI.fbNciCtrl[nChn].ChnState          := ADR(GVL_NCI.stChannelState[nChn]);
+
+  // call nci channel controller
+  GVL_NCI.fbNciCtrl[nChn].Cycle();
+
+  GVL_NCI.sProgNameActive[nChn]             := GVL_NCI.fbNciCtrl[nChn].ItfChannel.GetLoadedProg();
+  GVL_NCI.fbNciCtrl[nChn].M_FunctionScope   := ADR(GVL_NCI.M_FunctionCyclic[nChn]);
+END_FOR
+
+
 
 ]]></ST>
     </Implementation>
     <LineIds Name="NCI">
+      <LineId Id="12" Count="3" />
+      <LineId Id="11" Count="0" />
+      <LineId Id="165" Count="0" />
+      <LineId Id="37" Count="3" />
+      <LineId Id="169" Count="0" />
+      <LineId Id="42" Count="1" />
+      <LineId Id="46" Count="3" />
+      <LineId Id="67" Count="1" />
+      <LineId Id="180" Count="0" />
+      <LineId Id="69" Count="1" />
+      <LineId Id="72" Count="0" />
+      <LineId Id="128" Count="1" />
+      <LineId Id="133" Count="0" />
+      <LineId Id="172" Count="0" />
+      <LineId Id="134" Count="9" />
+      <LineId Id="174" Count="0" />
+      <LineId Id="144" Count="0" />
+      <LineId Id="175" Count="0" />
+      <LineId Id="173" Count="0" />
+      <LineId Id="147" Count="0" />
+      <LineId Id="149" Count="1" />
+      <LineId Id="162" Count="0" />
+      <LineId Id="176" Count="0" />
+      <LineId Id="164" Count="0" />
+      <LineId Id="24" Count="0" />
       <LineId Id="5" Count="0" />
       <LineId Id="7" Count="0" />
       <LineId Id="6" Count="0" />

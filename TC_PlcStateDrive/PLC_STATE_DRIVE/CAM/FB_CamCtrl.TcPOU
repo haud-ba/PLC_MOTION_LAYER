@@ -368,6 +368,18 @@ END_VAR
         </Implementation>
       </Set>
     </Property>
+    <Property Name="AxisState" Id="{35d0f3cc-d1bc-0b80-22ee-917a135dd617}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY AxisState : pointer to ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_CAM_STATE]]></Declaration>
+      <Set Name="Set" Id="{9450363e-26c8-0a28-3f15-35140db9cd54}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_State := AxisState;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
     <Method Name="CamInit" Id="{a1cd52de-82fd-08e9-19f2-ceb0d650d7cc}" FolderPath="methods\private\">
       <Declaration><![CDATA[METHOD PRIVATE CamInit : E_PROGRESS
 VAR_INPUT
@@ -466,7 +478,7 @@ OF
 
     _stMsg.eType                    := E_MessageType.eMessageInfo;
     _stMsg.eDevice                  := e_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
-    _stMsg.eSubdevice               := e_Subdevice.fbCamAxis;
+    _stMsg.eSubdevice               := e_Subdevice.CamControl;
     _stMsg.iErrorNumber             := 0;
     _stMsg.sText                    := concat('Camming Init: ', TO_STRING(_eState));
 
@@ -580,8 +592,8 @@ VAR_INPUT
 END_VAR
 VAR_INST
   _IdxMaster        : UINT;
+  _stMsg            : ST_Message;
   _estate           : E_AXIS_STATE;
-  _eres             : E_PROGRESS;
 END_VAR
 ]]></Declaration>
       <Implementation>
@@ -589,12 +601,12 @@ END_VAR
 OF
   //-------------------------------------------------------------------------------------
   E_AXIS_CTRL.CAM_INIT:
-    _eInit                            := CamInit(FALSE);
+    _eInit    := _eResult             := CamInit(FALSE);
     _estate                           := E_AXIS_STATE.CAM_INIT;
 ELSE
   IF (_eInit <> E_PROGRESS.DONE)
   THEN
-    _eres                             := E_PROGRESS.INVALID;
+    _eResult                          := E_PROGRESS.INVALID;
     _estate                           := E_AXIS_STATE.AXIS_NO_INIT;
   ELSE
     CASE eCmd
@@ -603,23 +615,23 @@ ELSE
       E_AXIS_CTRL.CAM_IN:
         _IdxMaster                    := _Data^[_nAxisIndex].nMasterIndex;
         _stCamData                    := _Data^[_nAxisIndex];
-        _eres                         := AxisCamIn(FALSE);
+        _eResult                      := AxisCamIn(FALSE);
         _estate                       := E_AXIS_STATE.CAM_IN;
 
       //---------------------------------------------------------------------------------
       E_AXIS_CTRL.CAM_OUT:
-        _eres                         := AxisCamOut(FALSE);
+        _eResult                      := AxisCamOut(FALSE);
         _estate                       := E_AXIS_STATE.CAM_OUT;
 
       //---------------------------------------------------------------------------------
       E_AXIS_CTRL.CAM_SCALING:
         _stCamData                    := _Data^[_nAxisIndex];
-        //_eres                         := 
-        _estate                       := E_AXIS_STATE.CAM_SCALING;
+        //_eResult                      :=
+        _eState                       := E_AXIS_STATE.CAM_SCALING;
 
       //---------------------------------------------------------------------------------
       E_AXIS_CTRL.CAM_INFO:
-        _eres                         := AxisCamInfo(FALSE);
+        _eResult                      := AxisCamInfo(FALSE);
         _estate                       := E_AXIS_STATE.CAM_INFO;
 
       //---------------------------------------------------------------------------------
@@ -644,17 +656,29 @@ ELSE
 
     //-----------------------------------------------------------------------------------
     ELSE
-      _estate                         := eCmd;
-      _eres                           := E_PROGRESS.ERROR; // wrong note! wrong note!
+      _estate                         := E_AXIS_STATE.AXIS_NULL;
+
+      IF (eCmd = E_AXIS_CTRL.AXIS_NULL)
+      THEN
+        _eResult                      := E_PROGRESS.DONE;
+      ELSE
+        _eResult                      := E_PROGRESS.INVALID;
+  
+        _stMsg.eType                  := E_MessageType.eMessageError;
+        _stMsg.eDevice                := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+        _stMsg.eSubdevice             := e_Subdevice.CamControl;
+        _stMsg.iErrorNumber           := 0;
+  
+        _stMsg.sText                  := 'E_AXIS_CTRL.';
+        _stMsg.sText                  := concat(_stMsg.sText, TO_STRING(eCmd));
+        _stMsg.sText                  := concat(_stMsg.sText, ': ');
+        _stMsg.sText                  := concat(_stMsg.sText, TO_STRING(_eResult));
+
+        f_MessageSet(_stMsg);
+      END_IF
     END_CASE
   END_IF // _eInit
 END_CASE
-
-IF NOT (_eres = E_PROGRESS.ERROR)
-THEN
-  // only get busy on valid command
-  _eResult                            := E_PROGRESS.BUSY;
-END_IF
 
 Cmd                                   := _estate;
 
@@ -733,6 +757,22 @@ ELSE
     _eResult                          := E_PROGRESS.INVALID;
   END_IF
 END_CASE
+
+CASE _eResult
+OF
+  E_PROGRESS.INVALID:
+    _State^[_nAxisIndex].eState       := E_PROGRESS.ERROR;
+
+  E_PROGRESS.ERROR:
+    _State^[_nAxisIndex].eState       := _eState + E_PROGRESS.ERROR;
+
+  E_PROGRESS.DONE:
+    _State^[_nAxisIndex].eState       := _eState + E_PROGRESS.DONE;
+
+ELSE
+    _State^[_nAxisIndex].eState       := _eState + _eResult;
+END_CASE
+
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //  OnChange of execution state result
@@ -747,7 +787,7 @@ END_IF
 //-----------------------------------------------------------------------------
 //  CAM couplingstate and TableId freom AXIS_REF
 //-----------------------------------------------------------------------------
-_Info^[_nAxisIndex].wCamCouplingState   := _AxisSlave.NcToPlc.CamCouplingState;
+_Info^[_nAxisIndex].wCamCouplingState   := TO_COUPLING_STATE(ADR(_AxisSlave.NcToPlc.CamCouplingState));
 _Info^[_nAxisIndex].nCamCouplingTableId := _AxisSlave.NcToPlc.CamCouplingTableID;
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -831,6 +871,32 @@ END_VAR
   _stMsg.sText               := concat(_sCtrl, ' ');
   _stMsg.sText               := concat(_sCtrl, _sResult);
   f_MessageSet(_stMsg);
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="TO_COUPLING_STATE" Id="{456a3006-f49a-0276-33cc-2c9e22bf4b34}" FolderPath="methods\private\">
+      <Declaration><![CDATA[METHOD TO_COUPLING_STATE : ARRAY[0..7] OF WORD
+VAR_INPUT
+  CouplingState    : POINTER TO ARRAY[0..7] OF WORD;
+END_VAR
+VAR
+  wtmp      : ARRAY[0..7] OF WORD;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT (CouplingState <> 0) THEN RETURN; END_IF
+
+memcpy(ADR(wtmp[0]) , ADR(CouplingState^[0]), 1);
+memcpy(ADR(wtmp[1]) , ADR(CouplingState^[1]), 1);
+memcpy(ADR(wtmp[2]) , ADR(CouplingState^[2]), 1);
+memcpy(ADR(wtmp[3]) , ADR(CouplingState^[3]), 1);
+memcpy(ADR(wtmp[4]) , ADR(CouplingState^[4]), 1);
+memcpy(ADR(wtmp[5]) , ADR(CouplingState^[5]), 1);
+memcpy(ADR(wtmp[6]) , ADR(CouplingState^[6]), 1);
+memcpy(ADR(wtmp[7]) , ADR(CouplingState^[7]), 1);
+
+TO_COUPLING_STATE := wtmp;
 
 ]]></ST>
       </Implementation>
@@ -982,6 +1048,10 @@ TO_ST_MOTION_FUNCTION := _stMf;
       <LineId Id="2" Count="0" />
       <LineId Id="5" Count="0" />
     </LineIds>
+    <LineIds Name="FB_CamCtrl.AxisState.Set">
+      <LineId Id="2" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
     <LineIds Name="FB_CamCtrl.CamInit">
       <LineId Id="289" Count="88" />
       <LineId Id="5" Count="0" />
@@ -1018,12 +1088,20 @@ TO_ST_MOTION_FUNCTION := _stMf;
       <LineId Id="477" Count="0" />
       <LineId Id="475" Count="1" />
       <LineId Id="407" Count="1" />
-      <LineId Id="499" Count="1" />
+      <LineId Id="499" Count="0" />
+      <LineId Id="541" Count="0" />
       <LineId Id="409" Count="0" />
       <LineId Id="478" Count="0" />
       <LineId Id="410" Count="1" />
       <LineId Id="471" Count="0" />
-      <LineId Id="412" Count="37" />
+      <LineId Id="412" Count="24" />
+      <LineId Id="522" Count="0" />
+      <LineId Id="524" Count="14" />
+      <LineId Id="543" Count="0" />
+      <LineId Id="542" Count="0" />
+      <LineId Id="539" Count="0" />
+      <LineId Id="438" Count="3" />
+      <LineId Id="448" Count="1" />
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_CamCtrl.Cycle">
@@ -1037,7 +1115,10 @@ TO_ST_MOTION_FUNCTION := _stMf;
       <LineId Id="110" Count="2" />
       <LineId Id="99" Count="0" />
       <LineId Id="81" Count="0" />
-      <LineId Id="24" Count="55" />
+      <LineId Id="24" Count="44" />
+      <LineId Id="134" Count="14" />
+      <LineId Id="133" Count="0" />
+      <LineId Id="69" Count="10" />
       <LineId Id="87" Count="1" />
       <LineId Id="90" Count="0" />
       <LineId Id="5" Count="0" />
@@ -1070,6 +1151,15 @@ TO_ST_MOTION_FUNCTION := _stMf;
       <LineId Id="35" Count="0" />
       <LineId Id="15" Count="1" />
       <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_CamCtrl.TO_COUPLING_STATE">
+      <LineId Id="5" Count="0" />
+      <LineId Id="11" Count="1" />
+      <LineId Id="16" Count="6" />
+      <LineId Id="15" Count="0" />
+      <LineId Id="14" Count="0" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="10" Count="0" />
     </LineIds>
     <LineIds Name="FB_CamCtrl.TO_ST_MOTION_FUNCTION">
       <LineId Id="5" Count="0" />
