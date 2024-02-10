@@ -11,6 +11,7 @@ TYPE e_Subdevice :
   fbAxis_StartupReset,
   fbAxis_Cycle,
   fbAxisEnable,
+  fbAxisDisable,
   fbCoeRead,
 
   // Motion Control FB Instances
@@ -21,6 +22,8 @@ TYPE e_Subdevice :
   fbStop,
   fbHome,
   fbJog,
+  fbMoveToPosition,
+  fbMoveVelo,
   fbMoveVelocity1,
   fbMoveVelocity2,
   fbMoveAbsolute1,

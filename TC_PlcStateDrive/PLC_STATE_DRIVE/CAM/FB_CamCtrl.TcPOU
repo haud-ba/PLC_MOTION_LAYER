@@ -101,7 +101,7 @@ OF
     _eState                         := E_PROGRESS.BUSY;
 
     _stMsg.eType                    := E_MessageType.eMessageInfo;
-    _stMsg.eDevice                  := e_Device.Axis + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+    _stMsg.eDevice                  := e_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
     _stMsg.eSubdevice               :=  e_SubDevice.AxisControl_Enable;
     _stMsg.iErrorNumber             := _nErrorId;
 
@@ -131,7 +131,7 @@ OF
       _nErrorId                     := _AxisSlave.NcToPlc.ErrorCode;
     
       _stMsg.eType                  := E_MessageType.eMessageError;
-      _stMsg.eDevice                := e_Device.Axis + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+      _stMsg.eDevice                := e_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
       _stMsg.eSubdevice             :=  e_SubDevice.AxisControl_Enable;
       _stMsg.iErrorNumber           := _nErrorId;
 
@@ -186,7 +186,7 @@ OF
         _stMsg.eSubdevice           := e_Subdevice.CamControl;
         _stMsg.iErrorNumber         := _stCamData.nMasterIndex;
   
-        _stMsg.sText                := concat('CAM_IN: ', TO_STRING(_eCk));
+        _stMsg.sText                := concat(' : ', TO_STRING(_eCk));
         f_MessageSet(_stMsg);
 
       ELSE
@@ -390,10 +390,6 @@ VAR_INST
   _eState           : E_PROGRESS;
   _rValue           : LREAL;
   _stMsg            : ST_Message;
-
-  // access to CoE register
-  _sDeviceName      : STRING(256) := 'NO NAME';
-  _fbCoeRead				: Tc2_MC2_Drive.FB_CoERead;
 END_VAR
 ]]></Declaration>
       <Implementation>
@@ -480,7 +476,7 @@ OF
     _stMsg.eDevice                  := e_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
     _stMsg.eSubdevice               := e_Subdevice.CamControl;
     _stMsg.iErrorNumber             := 0;
-    _stMsg.sText                    := concat('Camming Init: ', TO_STRING(_eState));
+    _stMsg.sText                    := concat('CamInit: ', TO_STRING(_eState));
 
     f_MessageSet(_stMsg);
 END_CASE
@@ -800,6 +796,18 @@ _State^[_nAxisIndex].eState             := _eState + _eResult;
 ]]></ST>
       </Implementation>
     </Method>
+    <Property Name="ItfMcAxes" Id="{825a6956-acba-0006-30ef-4798fedfd00f}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY ItfMcAxes : array[1..MAX_AXIS] of I_McAxis]]></Declaration>
+      <Set Name="Set" Id="{b0ca764f-d37f-01d0-159e-38b67f61d631}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_ItfMcAxis := ItfMcAxes;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
     <Method Name="LogCheck" Id="{07c28c51-a3c9-0ac7-05cc-9445042f78eb}" FolderPath="methods\private\">
       <Declaration><![CDATA[METHOD LogCheck
 VAR_INST
@@ -1129,6 +1137,10 @@ TO_ST_MOTION_FUNCTION := _stMf;
       <LineId Id="95" Count="0" />
       <LineId Id="92" Count="0" />
       <LineId Id="91" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_CamCtrl.ItfMcAxes.Set">
+      <LineId Id="2" Count="0" />
+      <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_CamCtrl.LogCheck">
       <LineId Id="29" Count="9" />

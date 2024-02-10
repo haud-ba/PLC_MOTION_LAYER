@@ -243,34 +243,6 @@ THEN
   RETURN;
 END_IF
 
-
-IF (_stCfgAxes^.nXAxisId <> 0)
-THEN
-  IF NOT (_ipMcsAxis[1] <> 0)
-  THEN
-    _eCheck                       := E_CHECK_STATE.NCI_MCS_AXIS_POINTER_INVALID;
-    RETURN;
-  END_IF
-END_IF
-
-IF (_stCfgAxes^.nYAxisId <> 0)
-THEN
-  IF NOT (_ipMcsAxis[2] <> 0)
-  THEN
-    _eCheck                       := E_CHECK_STATE.NCI_MCS_AXIS_POINTER_INVALID;
-    RETURN;
-  END_IF
-END_IF
-
-IF (_stCfgAxes^.nZAxisId <> 0)
-THEN
-  IF NOT (_ipMcsAxis[3] <> 0)
-  THEN
-    _eCheck                       := E_CHECK_STATE.NCI_MCS_AXIS_POINTER_INVALID;
-    RETURN;
-  END_IF
-END_IF
-
 IF NOT (_pParameterRead <> 0)
 THEN
   _eCheck                         := E_CHECK_STATE.NCI_R_PARAMETER_READ_POINTER_INVALID;
@@ -2032,7 +2004,8 @@ WriteRParams                        := _eState;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.Check">
-      <LineId Id="3" Count="67" />
+      <LineId Id="3" Count="23" />
+      <LineId Id="55" Count="15" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.ClearGroup">

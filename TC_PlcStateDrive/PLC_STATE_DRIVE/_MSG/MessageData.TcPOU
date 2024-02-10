@@ -195,7 +195,7 @@ CASE eState OF
     eState                    := MSG_LINE_CHECK;
     IF (aWriteList[iCount].eType > E_MessageType.eMessageEmpty)
     THEN
-      IF (aWriteList[iCount].eType = E_MessageType.eMessageError) OR
+      IF (aWriteList[iCount].eType > E_MessageType.eMessageInfo) OR
          (GVL_MSG.EnableLogging)
       THEN
         sTmp                  := TO_STRING(aWriteList[iCount].eType);

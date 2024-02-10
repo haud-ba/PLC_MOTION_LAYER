@@ -31,10 +31,8 @@ VAR_GLOBAL CONSTANT
   // NCI related limits and *.nc standard folder
   //-----------------------------------------------------------------------------
 {IF defined (WIN)}
-  {info 'WIN folders'}
   NCI_DIR               : STRING  := 'C:\TwinCAT\Mc\Nci\';
 {ELSE}
-  {info 'BSD folders'}
   NCI_DIR               : STRING  := '/usr/local/etc/TwinCAT/Mc/Nci/';
 {END_IF}
 

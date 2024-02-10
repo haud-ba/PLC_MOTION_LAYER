@@ -45,6 +45,9 @@
     <Compile Include="CAM\types\ST_CAM_INFO.TcDUT">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="CAM\types\ST_CAM_READ_VALUES_PARAMETER.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="CAM\types\ST_CAM_STATE.TcDUT">
       <SubType>Code</SubType>
     </Compile>
@@ -419,6 +422,7 @@
     <SubObject Include="FB_CamAxis.Template">
       <ExcludeFromBuild>true</ExcludeFromBuild>
     </SubObject>
+    <SubObject Include="FB_CamAxis.WriteMotionFunctionPoint" />
     <SubObject Include="FB_CamCtrl.AxisCamIn" />
     <SubObject Include="FB_McAxisCtrl.AxisGearInMultiMaster" />
     <SubObject Include="FB_McAxisCtrl.Template">
