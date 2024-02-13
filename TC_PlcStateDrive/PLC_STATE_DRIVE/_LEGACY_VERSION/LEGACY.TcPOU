@@ -216,7 +216,7 @@ END_CASE
 // put NC parameter on interface (read)
 //-------------------------------------------------------------------------------------------------------------------
   GVL_AXIS.NcParameterRd[nAxis].ParameterNumber                   := GVL_AXIS_CTRL.gstAxisParam[nAxis].ParameterNumber;               
-  GVL_AXIS_CTRL.gstAxisParam[nAxis].rValueRead                    := GVL_AXIS.NcParameterRd[nAxis].rValue;
+  GVL_AXIS_CTRL.gstAxisParam[nAxis].rValueRead                    := TO_REAL(GVL_AXIS.NcParameterRd[nAxis].rValue);
 //-------------------------------------------------------------------------------------------------------------------
 ]]></ST>
       </Implementation>

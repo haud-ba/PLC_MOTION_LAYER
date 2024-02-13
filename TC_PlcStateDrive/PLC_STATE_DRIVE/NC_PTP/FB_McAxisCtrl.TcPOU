@@ -2197,6 +2197,8 @@ ELSE
 
       //---------------------------------------------------------------------------------
       E_AXIS_CTRL.AXIS_IDLE:
+        _eResult                      := AxisBufferVelo(FALSE, _Data^[_nAxisIndex]);
+        _eResult                      := AxisBufferPos(FALSE, _Data^[_nAxisIndex]);
         _eResult                      := AxisIdle(FALSE);
         _estate                       := E_AXIS_STATE.AXIS_IDLE;
 
@@ -2291,7 +2293,7 @@ ELSE
     ELSE
       _estate                         := E_AXIS_STATE.AXIS_NULL;
 
-      IF (eCmd = E_NCI_CTRL.NULL)
+      IF (eCmd = E_AXIS_CTRL.AXIS_NULL)
       THEN
         _eResult                      := E_PROGRESS.DONE;
       ELSE
@@ -3238,6 +3240,8 @@ END_VAR
       <LineId Id="198" Count="0" />
       <LineId Id="29" Count="0" />
       <LineId Id="32" Count="0" />
+      <LineId Id="283" Count="0" />
+      <LineId Id="282" Count="0" />
       <LineId Id="83" Count="0" />
       <LineId Id="51" Count="0" />
       <LineId Id="197" Count="0" />

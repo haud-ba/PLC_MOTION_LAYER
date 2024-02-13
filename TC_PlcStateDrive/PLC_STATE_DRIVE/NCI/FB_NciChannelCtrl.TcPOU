@@ -971,7 +971,7 @@ END_CASE
 CASE _eResult
 OF
   E_PROGRESS.INVALID:
-    _State^.eState            := E_PROGRESS.ERROR;
+    _State^.eState            := TO_UINT(E_PROGRESS.ERROR);
 
   E_PROGRESS.ERROR:
     _State^.eState            := _eState + E_PROGRESS.ERROR;
@@ -1184,10 +1184,7 @@ Template_1 := _eState;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.Cmd">
-      <LineId Id="3" Count="78" />
-      <LineId Id="97" Count="0" />
-      <LineId Id="96" Count="0" />
-      <LineId Id="82" Count="4" />
+      <LineId Id="3" Count="85" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.Ctrl_BuildGroup">

@@ -222,7 +222,7 @@ CASE eState OF
   THEN
     eState                    := MSG_LINE_BUILD;
   ELSE
-    IF (StringLen(ADR(sWriteData)) > 0)
+    IF (StringLen(ADR(sWriteData)) > 1)
     THEN
       eState                  := MSG_WRITE_FILE_BUSY;
     ELSE

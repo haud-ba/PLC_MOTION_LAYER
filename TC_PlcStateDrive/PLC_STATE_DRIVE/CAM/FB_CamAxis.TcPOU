@@ -24,17 +24,14 @@ VAR
   _fbWriteMotionFunction        : Tc2_MC2_Camming.MC_WriteMotionFunction;
   _fbWriteMotionFunctionPoint   : Tc2_MC2_Camming.MC_WriteMotionFunctionPoint;
 
+  _stCamData                    : ST_CAM_DATA;  // camming parameters for function calls
 
-  _mcCamInfoData                : Tc2_MC2_Camming.MC_CamInfoData;
-  _stCamData                    : ST_CAM_DATA;
-  _stCamInfo                    : ST_CAM_INFO;
+  _mcCamInfoData                : Tc2_MC2_Camming.MC_CamInfoData; // read cam info from NC
 
   _mcCamRef                     : MC_CAM_REF;
   _mcMotionFunction             : ARRAY[1..MAX_MOTION_FUNCTION_POINTS] OF Tc2_MC2_Camming.MC_MotionFunctionPoint;
   _mcMotionFunctionPoint        : Tc2_MC2_Camming.MC_MotionFunctionPoint;
   _nMotionFunctionSize          : UINT;
-
-  _stMotionFunction             : ST_MOTION_FUNCTION;
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -271,6 +268,69 @@ CamInfo                             := _eState;
 ]]></ST>
       </Implementation>
     </Method>
+    <Property Name="CamInfoData" Id="{fbd4042e-c053-0028-116e-e1a242c3b1fe}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY CamInfoData : ST_CAM_INFO]]></Declaration>
+      <Get Name="Get" Id="{0308fbbd-9903-053f-08b0-bdff0dee5ab7}">
+        <Declaration><![CDATA[VAR
+  _stInfoData     : ST_CAM_INFO;
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[
+
+_stInfoData.bPeriodic                       := _mcCamInfoData.Periodic;
+_stInfoData.bMasterAbsolute                 := _mcCamInfoData.MasterAbsolute;
+_stInfoData.bSlaveAbsolute                  := _mcCamInfoData.SlaveAbsolute;
+_stInfoData.bScalingPending                 := _mcCamInfoData.ScalingPending;
+_stInfoData.bCamDataQueued                  := _mcCamInfoData.CamDataQueued;
+_stInfoData.bCamTableQueued                 := _mcCamInfoData.CamTableQueued;
+
+_stInfoData.nTableType                      := _mcCamInfoData.TableType;
+_stInfoData.nInterpolationType              := _mcCamInfoData.InterpolationType;
+_stInfoData.nNumberOfRows                   := TO_UINT(_mcCamInfoData.NumberOfRows);
+_stInfoData.nNumberOfColumns                := TO_UINT(_mcCamInfoData.NumberOfColumns);
+_stInfoData.nMasterAxisId                   := TO_UINT(_mcCamInfoData.MasterAxisId);
+_stInfoData.nSlaveAxisId                    := TO_UINT(_mcCamInfoData.SlaveAxisId);
+
+_stInfoData.rMasterCamStartPos              := _mcCamInfoData.MasterCamStartPos;
+_stInfoData.rSlaveCamStartPos               := _mcCamInfoData.SlaveCamStartPos;
+_stInfoData.rRawMasterPeriod                := _mcCamInfoData.RawMasterPeriod;
+_stInfoData.rRawSlaveStroke                 := _mcCamInfoData.RawSlaveStroke;
+_stInfoData.rMasterAxisCouplingPos          := _mcCamInfoData.MasterAxisCouplingPos;
+_stInfoData.rSlaveAxisCouplingPos           := _mcCamInfoData.SlaveAxisCouplingPos;
+
+_stInfoData.rMasterOffset                   := _mcCamInfoData.MasterOffset;
+_stInfoData.rSlaveOffset                    := _mcCamInfoData.SlaveOffset;
+_stInfoData.rMasterScaling                  := _mcCamInfoData.MasterScaling;
+_stInfoData.rSlaveScaling                   := _mcCamInfoData.SlaveScaling;
+_stInfoData.rSumOfSlaveStrokes              := _mcCamInfoData.SumOfSlaveStrokes;
+_stInfoData.rSumOfSuperpositionDistance     := _mcCamInfoData.SumOfSuperpositionDistance;
+_stInfoData.rActualMasterAxisPos            := _mcCamInfoData.ActualMasterAxisPos;
+_stInfoData.rActualSlaveAxisPos             := _mcCamInfoData.ActualSlaveAxisPos;
+_stInfoData.rActualMasterCamPos             := _mcCamInfoData.ActualMasterCamPos;
+_stInfoData.rActualSlaveCamPos              := _mcCamInfoData.ActualSlaveCamPos;
+_stInfoData.rActualPhaseShift               := _mcCamInfoData.ActualPhaseShift;
+
+_stInfoData.nScalingActivationMode          := _mcCamInfoData.ScalingActivationMode;
+_stInfoData.rScalingActivationPos           := _mcCamInfoData.ScalingActivationPos;
+_stInfoData.nScalingMasterScalingMode       := _mcCamInfoData.ScalingMasterScalingMode;
+_stInfoData.nScalingSlaveScalingMode        := _mcCamInfoData.ScalingSlaveScalingMode;
+
+_stInfoData.nOnlineChangeActivationMode     := _mcCamInfoData.OnlineChangeActivationMode;
+_stInfoData.rOnlineChangeActivationPos      := _mcCamInfoData.OnlineChangeActivationPos;
+_stInfoData.nOnlineChangeMasterScalingMode  := _mcCamInfoData.OnlineChangeMasterScalingMode;
+_stInfoData.nOnlineChangeSlaveScalingMode   := _mcCamInfoData.OnlineChangeSlaveScalingMode;
+
+_stInfoData.nCamExchangeCamTableID          := _mcCamInfoData.CamExchangeCamTableID;
+_stInfoData.nCamExchangeActivationMode      := _mcCamInfoData.CamExchangeActivationMode;
+_stInfoData.rCamExchangeActivationPos       := _mcCamInfoData.CamExchangeActivationPos;
+_stInfoData.nCamExchangeMasterScalingMode   := _mcCamInfoData.CamExchangeMasterScalingMode;
+_stInfoData.nCamExchangeSlaveScalingMode    := _mcCamInfoData.CamExchangeSlaveScalingMode;
+
+]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
     <Property Name="CamInOptions" Id="{8eb58abc-2d17-0f25-0bd0-03ec765cce3a}" FolderPath="properties\">
       <Declaration><![CDATA[PROPERTY CamInOptions : ST_CamInOptions_V2]]></Declaration>
       <Get Name="Get" Id="{49afe976-2b95-07a0-3bd1-8be5baed75a8}">
@@ -394,7 +454,8 @@ VAR_INST
   _udiErr           : UDINT;
   _stMsg            : ST_Message;
 
-
+  _stLastScalingData  : Tc2_MC2_Camming.ST_CamScalingData;
+  _nLastCamTableID    : UDINT;
 END_VAR
 ]]></Declaration>
       <Implementation>
@@ -431,6 +492,21 @@ END_CASE
 CASE _eState
 OF
   E_PROGRESS.BUSY:
+    _eState                         := E_PROGRESS.STARTUP;
+    _nLastCamTableID                := _stCamData.nCamTableId;
+    _stLastScalingData              := _fbScalingV2.Scaling;
+
+    _stMsg.eType                    := E_MessageType.eMessageInfo;
+    _stMsg.eDevice                  := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+    _stMsg.eSubdevice               := e_Subdevice.fbCamScalingV2;
+    _stMsg.iErrorNumber             := _nLastCamTableID;
+
+    _stMsg.sText                    := concat(' : ', TO_STRING(_eState));
+    f_MessageSet(_stMsg);
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.STARTUP:
       _fbScalingV2(
               Slave                 := _AxisSlave, 
               Execute               := TRUE, 
@@ -454,6 +530,23 @@ OF
       _fbScalingV2(
               Slave                 := _AxisSlave, 
               Execute               := FALSE); 
+
+    ELSIF (_fbScalingV2.CommandAborted)
+    THEN
+      _eState                       := E_PROGRESS.ERROR;
+      _udiErr                       := _fbScalingV2.ErrorID;
+
+      _stMsg.eType                  := E_MessageType.eMessageError;
+      _stMsg.eDevice                := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+      _stMsg.eSubdevice             := e_Subdevice.fbCamScalingV2;
+      _stMsg.iErrorNumber           := _udiErr;
+
+      _stMsg.sText                  := concat('command aborted : ', TO_STRING(_eState));
+      f_MessageSet(_stMsg);
+
+      _fbScalingV2(
+          Slave                     := _AxisSlave, 
+          Execute                   := FALSE); 
 
     ELSIF (_fbScalingV2.Done)
     THEN
@@ -646,6 +739,43 @@ ReadMotionFunction                  := _eState;
 ]]></ST>
       </Implementation>
     </Method>
+    <Property Name="ReadMotionFunctionData" Id="{58932b2a-b8fc-007f-138f-4227731d5136}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY ReadMotionFunctionData : ST_MOTION_FUNCTION]]></Declaration>
+      <Get Name="Get" Id="{9d3826f7-c404-01a6-2069-de2f92e0d691}">
+        <Declaration><![CDATA[VAR
+  _idx        : UINT;
+  _stMf       : ST_MOTION_FUNCTION;
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[
+_stMf.nMotionFunctionSize   := TO_UINT(_mcCamRef.ArraySize);
+_stMf.nPoints               := TO_UINT(_mcCamRef.NoOfRows);
+
+FOR _idx := 1 TO MAX_MOTION_FUNCTION_POINTS
+DO
+  IF NOT (_idx > _stMf.nPoints)
+  THEN
+    _stMf.stMotionFunction[_idx].nFunctionType      := TO_UINT(_mcMotionFunction[_idx].FunctionType);
+    _stMf.stMotionFunction[_idx].nPointIndex        := TO_UINT(_mcMotionFunction[_idx].PointIndex);
+    _stMf.stMotionFunction[_idx].nRelIndexNextPoint := TO_UINT(_mcMotionFunction[_idx].RelIndexNextPoint);
+
+    _stMf.stMotionFunction[_idx].wPointType         := TO_WORD(_mcMotionFunction[_idx].PointType);
+
+    _stMf.stMotionFunction[_idx].rMasterPos         := _mcMotionFunction[_idx].MasterPos;
+    _stMf.stMotionFunction[_idx].rSlavePos          := _mcMotionFunction[_idx].SlavePos;
+
+    _stMf.stMotionFunction[_idx].rSlaveVelo         := _mcMotionFunction[_idx].SlaveVelo;
+    _stMf.stMotionFunction[_idx].rSlaveAcc          := _mcMotionFunction[_idx].SlaveAcc;
+    _stMf.stMotionFunction[_idx].rSlaveJerk         := _mcMotionFunction[_idx].SlaveJerk;
+  END_IF
+END_FOR
+
+ReadMotionFunctionData := _stMf;
+]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
     <Method Name="ReadMotionFunctionPoint" Id="{999d15b4-f2e0-043e-2f3e-40e961b989ef}" FolderPath="methods\">
       <Declaration><![CDATA[METHOD ReadMotionFunctionPoint : E_PROGRESS
 VAR_INPUT
@@ -734,6 +864,31 @@ ReadMotionFunctionPoint             := _eState;
 ]]></ST>
       </Implementation>
     </Method>
+    <Property Name="ReadMotionFunctionPointData" Id="{8374e695-1a42-0464-2a28-a41a4ec3e0c6}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY ReadMotionFunctionPointData : ST_MOTION_FUNCTION_POINT]]></Declaration>
+      <Get Name="Get" Id="{641edac1-2819-0cb6-1240-12a7c9e025cb}">
+        <Declaration><![CDATA[VAR
+  _stTmp    : ST_MOTION_FUNCTION_POINT;
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[
+_stTmp.nFunctionType        := TO_UINT(_mcMotionFunctionPoint.FunctionType);
+_stTmp.nPointIndex          := TO_UINT(_mcMotionFunctionPoint.PointIndex);
+_stTmp.nRelIndexNextPoint   := TO_UINT(_mcMotionFunctionPoint.RelIndexNextPoint);
+_stTmp.wPointType           := TO_WORD(_mcMotionFunctionPoint.PointType);
+
+_stTmp.rMasterPos           := _mcMotionFunctionPoint.MasterPos;
+_stTmp.rSlavePos            := _mcMotionFunctionPoint.SlavePos;
+_stTmp.rSlaveAcc            := _mcMotionFunctionPoint.SlaveAcc;
+_stTmp.rSlaveJerk           := _mcMotionFunctionPoint.SlaveJerk;
+_stTmp.rSlaveVelo           := _mcMotionFunctionPoint.SlaveVelo;
+
+ReadMotionFunctionPointData := _stTmp;
+]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
     <Method Name="ReadMotionFunctionValues" Id="{9a86ea37-7ee2-0b50-25e4-e420d8a1c4f5}" FolderPath="methods\">
       <Declaration><![CDATA[METHOD ReadMotionFunctionValues : E_PROGRESS
 VAR_INPUT
@@ -1133,6 +1288,42 @@ WriteMotionFunction                 := _eState;
 ]]></ST>
       </Implementation>
     </Method>
+    <Property Name="WriteMotionFunctionData" Id="{08fc913f-5174-0594-2c84-9b7c8d81e951}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY WriteMotionFunctionData : ST_MOTION_FUNCTION]]></Declaration>
+      <Set Name="Set" Id="{ece7c7aa-70b7-040b-244d-e9dc41f6872f}">
+        <Declaration><![CDATA[VAR
+  _idx        : UINT;
+  _stMf       : ST_MOTION_FUNCTION;
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[
+_stMf                                           := WriteMotionFunctionData;
+memset(ADR(_mcMotionFunction), 0, SIZEOF(_mcMotionFunction));
+
+FOR _idx := 1 TO MAX_MOTION_FUNCTION_POINTS
+DO
+  IF NOT (_idx > _stMf.nPoints)
+  THEN
+    _mcMotionFunction[_idx].FunctionType        := TO_INT(_stMf.stMotionFunction[_idx].nFunctionType);
+    _mcMotionFunction[_idx].PointIndex          := _stMf.stMotionFunction[_idx].nPointIndex;
+    _mcMotionFunction[_idx].RelIndexNextPoint   := _stMf.stMotionFunction[_idx].nRelIndexNextPoint;
+
+    _mcMotionFunction[_idx].PointType           := to_int(_stMf.stMotionFunction[_idx].wPointType);
+
+    _mcMotionFunction[_idx].MasterPos           := _stMf.stMotionFunction[_idx].rMasterPos;
+    _mcMotionFunction[_idx].SlavePos            := _stMf.stMotionFunction[_idx].rSlavePos;
+
+    _mcMotionFunction[_idx].SlaveVelo           := _stMf.stMotionFunction[_idx].rSlaveVelo;
+    _mcMotionFunction[_idx].SlaveAcc            := _stMf.stMotionFunction[_idx].rSlaveAcc;
+    _mcMotionFunction[_idx].SlaveJerk           := _stMf.stMotionFunction[_idx].rSlaveJerk;
+  END_IF
+END_FOR
+
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
     <Method Name="WriteMotionFunctionPoint" Id="{224477dc-23a5-06ad-1915-09b35491021a}" FolderPath="methods\">
       <Declaration><![CDATA[METHOD WriteMotionFunctionPoint : E_PROGRESS
 VAR_INPUT
@@ -1274,6 +1465,35 @@ WriteMotionFunctionPoint            := _eState;
 ]]></ST>
       </Implementation>
     </Method>
+    <Property Name="WriteMotionFunctionPointData" Id="{c6d46237-43d8-0d3e-1fde-d29267013f5c}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY WriteMotionFunctionPointData : ST_MOTION_FUNCTION_POINT]]></Declaration>
+      <Set Name="Set" Id="{fded2bb5-a270-05b2-3afd-0136b75b2ab5}">
+        <Declaration><![CDATA[VAR
+  _idx        : UINT;
+  _stMf       : ST_MOTION_FUNCTION_POINT;
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[
+_stMf                                       := WriteMotionFunctionPointData;
+memset(ADR(_mcMotionFunctionPoint), 0, SIZEOF(_mcMotionFunctionPoint));
+
+_mcMotionFunctionPoint.FunctionType         := TO_INT(_stMf.nFunctionType);
+_mcMotionFunctionPoint.PointIndex           := _stMf.nPointIndex;
+_mcMotionFunctionPoint.RelIndexNextPoint    := _stMf.nRelIndexNextPoint;
+
+_mcMotionFunctionPoint.PointType            := TO_INT(_stMf.wPointType);
+
+_mcMotionFunctionPoint.MasterPos            := _stMf.rMasterPos;
+_mcMotionFunctionPoint.SlavePos             := _stMf.rSlavePos;
+
+_mcMotionFunctionPoint.SlaveVelo            := _stMf.rSlaveVelo;
+_mcMotionFunctionPoint.SlaveAcc             := _stMf.rSlaveAcc;
+_mcMotionFunctionPoint.SlaveJerk            := _stMf.rSlaveJerk;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
     <LineIds Name="FB_CamAxis">
       <LineId Id="9" Count="0" />
     </LineIds>
@@ -1351,6 +1571,17 @@ WriteMotionFunctionPoint            := _eState;
       <LineId Id="788" Count="1" />
       <LineId Id="2" Count="0" />
     </LineIds>
+    <LineIds Name="FB_CamAxis.CamInfoData.Get">
+      <LineId Id="6" Count="0" />
+      <LineId Id="8" Count="11" />
+      <LineId Id="53" Count="1" />
+      <LineId Id="20" Count="17" />
+      <LineId Id="55" Count="0" />
+      <LineId Id="38" Count="14" />
+      <LineId Id="7" Count="0" />
+      <LineId Id="56" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
     <LineIds Name="FB_CamAxis.CamInOptions.Get">
       <LineId Id="6" Count="4" />
       <LineId Id="2" Count="0" />
@@ -1388,11 +1619,15 @@ WriteMotionFunctionPoint            := _eState;
       <LineId Id="742" Count="4" />
       <LineId Id="749" Count="0" />
       <LineId Id="826" Count="0" />
-      <LineId Id="686" Count="4" />
+      <LineId Id="686" Count="1" />
+      <LineId Id="858" Count="13" />
+      <LineId Id="873" Count="0" />
+      <LineId Id="688" Count="2" />
       <LineId Id="751" Count="4" />
       <LineId Id="758" Count="0" />
       <LineId Id="761" Count="13" />
       <LineId Id="795" Count="2" />
+      <LineId Id="840" Count="16" />
       <LineId Id="778" Count="12" />
       <LineId Id="798" Count="2" />
       <LineId Id="794" Count="0" />
@@ -1461,6 +1696,11 @@ WriteMotionFunctionPoint            := _eState;
       <LineId Id="718" Count="1" />
       <LineId Id="2" Count="0" />
     </LineIds>
+    <LineIds Name="FB_CamAxis.ReadMotionFunctionData.Get">
+      <LineId Id="5" Count="21" />
+      <LineId Id="29" Count="1" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
     <LineIds Name="FB_CamAxis.ReadMotionFunctionPoint">
       <LineId Id="732" Count="0" />
       <LineId Id="675" Count="0" />
@@ -1484,6 +1724,14 @@ WriteMotionFunctionPoint            := _eState;
       <LineId Id="902" Count="0" />
       <LineId Id="718" Count="1" />
       <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_CamAxis.ReadMotionFunctionPointData.Get">
+      <LineId Id="6" Count="3" />
+      <LineId Id="11" Count="1" />
+      <LineId Id="2" Count="0" />
+      <LineId Id="13" Count="3" />
+      <LineId Id="18" Count="1" />
+      <LineId Id="17" Count="0" />
     </LineIds>
     <LineIds Name="FB_CamAxis.ReadMotionFunctionValues">
       <LineId Id="732" Count="0" />
@@ -1579,6 +1827,14 @@ WriteMotionFunctionPoint            := _eState;
       <LineId Id="813" Count="2" />
       <LineId Id="2" Count="0" />
     </LineIds>
+    <LineIds Name="FB_CamAxis.WriteMotionFunctionData.Set">
+      <LineId Id="32" Count="0" />
+      <LineId Id="8" Count="0" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="12" Count="18" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
     <LineIds Name="FB_CamAxis.WriteMotionFunctionPoint">
       <LineId Id="764" Count="17" />
       <LineId Id="820" Count="0" />
@@ -1627,6 +1883,14 @@ WriteMotionFunctionPoint            := _eState;
       <LineId Id="879" Count="7" />
       <LineId Id="813" Count="2" />
       <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_CamAxis.WriteMotionFunctionPointData.Set">
+      <LineId Id="32" Count="0" />
+      <LineId Id="8" Count="0" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="17" Count="11" />
+      <LineId Id="34" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>

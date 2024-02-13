@@ -4,11 +4,54 @@
     <Declaration><![CDATA[{attribute 'pack_mode' := '2'}
 TYPE ST_CAM_INFO :
 STRUCT
-  bError              : BIT;
-  wCamCouplingState   : ARRAY[0..7] OF WORD;
-  nCamCouplingTableId : ARRAY[0..7] OF UINT;
+  bPeriodic                     : BIT;
+  bMasterAbsolute               : BIT;
+  bSlaveAbsolute                : BIT;
+  bScalingPending               : BIT;
+  bCamDataQueued                : BIT;
+  bCamTableQueued               : BIT;
 
-  nNumPointsRead      : UDINT;
+  nTableType                    : INT;
+  nInterpolationType            : UINT;
+  nNumberOfRows                 : UINT;
+  nNumberOfColumns              : UINT;
+  nMasterAxisId                 : UINT;
+  nSlaveAxisId                  : UINT;
+
+  rMasterCamStartPos            : LREAL; (* Master pos. of the first cam table point (raw, unscaled cam table pos.) *)
+  rSlaveCamStartPos             : LREAL; (* Slave pos. of the first cam table point (raw, unscaled cam table pos.) *)
+  rRawMasterPeriod              : LREAL; (* raw, unscaled difference between last and first cam point *)
+  rRawSlaveStroke               : LREAL; (* raw, unscaled difference between last and first cam point *)
+  rMasterAxisCouplingPos        : LREAL; (* Master axis position when slave has been coupled *)
+  rSlaveAxisCouplingPos         : LREAL; (* Slave axis position when slave has been coupled *)
+
+  rMasterOffset                 : LREAL; (* total master offset *)
+  rSlaveOffset                  : LREAL; (* total slave offset *)
+  rMasterScaling                : LREAL; (* total master scaling factor *)
+  rSlaveScaling                 : LREAL; (* total slave scaling factor *)
+  rSumOfSlaveStrokes            : LREAL; (* sum of the slave strokes up to ActualMasterAxisPos *)
+  rSumOfSuperpositionDistance   : LREAL; (* sum of additional moves through MC_MoveSuperimposed *)
+  rActualMasterAxisPos          : LREAL; (* absolute set position of the master axis *)
+  rActualSlaveAxisPos           : LREAL; (* absolute set position of the slave axis *)
+  rActualMasterCamPos           : LREAL; (* raw, unscaled cam table position of the master *)
+  rActualSlaveCamPos            : LREAL; (* raw, unscaled cam table position of the slave *)
+  rActualPhaseShift             : LREAL;
+
+  nScalingActivationMode        : UINT;
+  rScalingActivationPos         : LREAL;
+  nScalingMasterScalingMode     : UINT;
+  nScalingSlaveScalingMode      : UINT;
+  
+  nOnlineChangeActivationMode   : UINT;
+  rOnlineChangeActivationPos    : LREAL;
+  nOnlineChangeMasterScalingMode: UINT;
+  nOnlineChangeSlaveScalingMode : UINT;
+  
+  nCamExchangeCamTableID        : UDINT;
+  nCamExchangeActivationMode    : UINT;
+  rCamExchangeActivationPos     : LREAL;
+  nCamExchangeMasterScalingMode : UINT;
+  nCamExchangeSlaveScalingMode  : UINT;
 END_STRUCT
 END_TYPE
 ]]></Declaration>

@@ -4,7 +4,14 @@
     <Declaration><![CDATA[{attribute 'pack_mode' := '2'}
 TYPE ST_CAM_STATE :
 STRUCT
-  eState            : E_AXIS_STATE; // mirror the requested command + E_PROGRESS
+  bError              : BIT;
+
+  eState              : E_AXIS_STATE; // mirror the requested command + E_PROGRESS
+
+  wCamCouplingState   : ARRAY[0..7] OF WORD;
+  nCamCouplingTableId : ARRAY[0..7] OF UINT;
+
+  nNumPointsRead      : UDINT;
 END_STRUCT
 END_TYPE
 ]]></Declaration>
