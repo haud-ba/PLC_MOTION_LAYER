@@ -8,7 +8,6 @@ VAR
 
   nAxis,
   nAxisInit                 : UINT;
-  ItfMcAxis                 : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF I_McAxis;
 
   stMsg                     : ST_Message;
 END_VAR
@@ -23,8 +22,7 @@ IF NOT PLC_CONSTANT.CAM_ACTIVE THEN eInit := E_PROGRESS.NOT_EXIST; RETURN; END_I
 //-----------------------------------------------------------------------------------------------------------------
 FOR nAxis := 1 TO PLC_CONSTANT.MAX_AXIS
 DO
-  ItfMcAxis[nAxis]                                := GVL_AXIS.Control[nAxis];
-  GVL_CAM.Control[nAxis].ItfMcAxes                := ItfMcAxis;
+  GVL_CAM.Control[nAxis].ItfMcAxes                := GVL_AXIS.ItfMcAxis[nAxis];
 
   GVL_CAM.Control[nAxis].AxisIndex                := nAxis;
 
@@ -35,6 +33,9 @@ DO
 
   GVL_CAM.Control[nAxis].AxisInfo                 := ADR(GVL_CAM.Info);
   GVL_CAM.Control[nAxis].AxisData                 := ADR(GVL_CAM.Data);
+
+  GVL_CAM.Control[nAxis].MotionFunction           := ADR(GVL_CAM.MotionFunction);
+  GVL_CAM.Control[nAxis].MotionFunctionPoint      := ADR(GVL_CAM.MotionFunctionPoint);
 END_FOR
 //-----------------------------------------------------------------------------------------------------------------
 // assign dataflow/
@@ -129,8 +130,11 @@ END_IF
       <LineId Id="19" Count="2" />
       <LineId Id="5" Count="0" />
       <LineId Id="107" Count="4" />
-      <LineId Id="145" Count="2" />
+      <LineId Id="146" Count="1" />
       <LineId Id="112" Count="8" />
+      <LineId Id="160" Count="0" />
+      <LineId Id="159" Count="0" />
+      <LineId Id="161" Count="0" />
       <LineId Id="130" Count="3" />
       <LineId Id="24" Count="82" />
       <LineId Id="23" Count="0" />

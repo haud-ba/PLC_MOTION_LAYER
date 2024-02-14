@@ -45,5 +45,24 @@
       <Declaration><![CDATA[METHOD Cycle  : e_progress
 ]]></Declaration>
     </Method>
+    <Property Name="ItfMcAxes" Id="{9c279bcc-d788-0eae-035d-8ae9b3fba035}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY ItfMcAxes : array[1..MAX_AXIS] of I_McAxis]]></Declaration>
+      <Set Name="Set" Id="{9f1667da-a83f-0010-2d1e-715bceceb278}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="MotionFunction" Id="{51497f92-2c5d-0340-36c3-d2c881e7309b}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY MotionFunction : POINTER TO ARRAY[1..MAX_AXIS] OF ST_MOTION_FUNCTION
+]]></Declaration>
+      <Set Name="Set" Id="{87417229-730c-082b-137d-28ee01332c1d}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="MotionFunctionPoint" Id="{3ccce8b0-462d-0c84-1a27-b7acfc79c954}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY MotionFunctionPoint : pointer to array[1..MAX_AXIS] of ST_MOTION_FUNCTION_POINT]]></Declaration>
+      <Set Name="Set" Id="{8a11a43b-80fd-00e4-0e64-27354f449965}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
   </Itf>
 </TcPlcObject>

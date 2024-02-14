@@ -3,7 +3,7 @@
   <GVL Name="PLC_VERSION" Id="{d2395695-97e2-030c-1191-ad6e09085440}">
     <Declaration><![CDATA[{attribute 'qualified_only'}
 VAR_GLOBAL CONSTANT
-  VERSION               : STRING := 'V 00.50.02';
+  VERSION               : STRING := 'V 00.50.03';
 
 
   //  2023 10 19
@@ -24,6 +24,12 @@ VAR_GLOBAL CONSTANT
   // start camming implementation (MC_CamIn_V2)
   // legacy namespace available for downward compatibility of ADS Symbol names
 
+  // 2024 01 17 HAUD
+  //
+  // V 00.50.03
+  //
+  // Building is done
+  // start of UnitTesting
 
 END_VAR]]></Declaration>
   </GVL>

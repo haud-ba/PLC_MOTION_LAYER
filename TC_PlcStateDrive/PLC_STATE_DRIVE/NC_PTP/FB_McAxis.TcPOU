@@ -709,7 +709,7 @@ OF
       _stMsg.eSubdevice             := e_SubDevice.fbMoveAbsolute1;
       _stMsg.iErrorNumber           := 0;
 
-      _stMsg.sText                  := concat('start MovePosBuffer: ', TO_STRING(Position));
+      _stMsg.sText                  := concat('start MovePosBuffer: ', TO_STRING(_rValue));
 
       f_MessageSet(_stMsg);
     END_IF
@@ -764,7 +764,7 @@ OF
 
     ELSIF (_fbMoveAbsolute[1].CommandAborted)
     THEN
-      _eState                       := E_PROGRESS.WAITING;
+      _eState                       := E_PROGRESS.PREPARE;
 
       _stMsg.eType                  := E_MessageType.eMessageInfo;
       _stMsg.eDevice                := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
@@ -777,7 +777,7 @@ OF
 
     ELSIF (_fbMoveAbsolute[1].Done)
     THEN
-      _eState                       := E_PROGRESS.WAITING;
+      _eState                       := E_PROGRESS.PREPARE;
 
       _stMsg.eType                  := E_MessageType.eMessageInfo;
       _stMsg.eDevice                := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
@@ -891,7 +891,7 @@ OF
       _fbMoveAbsolute[2](Axis       := _AxisRef,
                          Execute    := FALSE);
 
-      _eState                       := E_PROGRESS.BUSY;
+      _eState                       := E_PROGRESS.STARTUP;
 
       _stMsg.eType                  := E_MessageType.eMessageInfo;
       _stMsg.eDevice                := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);

@@ -834,6 +834,19 @@ THEN
   RETURN;
 END_IF
 
+IF NOT (_MotionFunction <> 0)
+THEN
+  _eCheck                 := E_CHECK_STATE.CAM_MOTION_FUNCTION_POINTER_INVALID;
+  RETURN;
+END_IF
+
+IF NOT (_MotionFunctionPoint <> 0)
+THEN
+  _eCheck                 := E_CHECK_STATE.CAM_MOTION_FUNCTION_POINT_POINTER_INVALID;
+  RETURN;
+END_IF
+
+
 //-----------------------------------------------------------------------------
 //  NaN INF check
 //-----------------------------------------------------------------------------
@@ -908,6 +921,11 @@ ELSE
     CASE eCmd
     OF
       //---------------------------------------------------------------------------------
+      E_AXIS_CTRL.AXIS_IDLE:
+        _eResult                      := AxisCamIdle(FALSE);
+        _estate                       := E_AXIS_STATE.AXIS_IDLE;
+
+      //---------------------------------------------------------------------------------
       E_AXIS_CTRL.CAM_IN:
         _IdxMaster                    := _Data^[_nAxisIndex].nMasterIndex;
         _stCamData                    := _Data^[_nAxisIndex];
@@ -932,11 +950,13 @@ ELSE
 
       //---------------------------------------------------------------------------------
       E_AXIS_CTRL.CAM_RD_MOTION_FUNCTION:
+        _eResult                      := AxisReadMotionFunction(FALSE);
         _stCamData                    := _Data^[_nAxisIndex];
         _estate                       := E_AXIS_STATE.CAM_RD_MOTION_FUNCTION;
 
       //---------------------------------------------------------------------------------
       E_AXIS_CTRL.CAM_RD_MOTION_FUNCTION_POINT:
+        _eResult                      := AxisReadMotionFunctionPoint(FALSE);
         _stCamData                    := _Data^[_nAxisIndex];
         _estate                       := E_AXIS_STATE.CAM_RD_MOTION_FUNCTION_POINT;
 
@@ -947,12 +967,14 @@ ELSE
 
       //---------------------------------------------------------------------------------
       E_AXIS_CTRL.CAM_WRT_MOTION_FUNCTION:
+        _eResult                      := AxisWriteMotionFunction(FALSE);
         _stCamData                    := _Data^[_nAxisIndex];
         WriteMotionFunctionData       := _MotionFunction^[_nAxisIndex];
         _estate                       := E_AXIS_STATE.CAM_WRT_MOTION_FUNCTION;
 
       //---------------------------------------------------------------------------------
       E_AXIS_CTRL.CAM_WRT_MOTION_FUNCTION_POINT:
+        _eResult                      := AxisWriteMotionFunctionPoint(FALSE);
         _stCamData                    := _Data^[_nAxisIndex];
         WriteMotionFunctionPointData  := _MotionFunctionPoint^[_nAxisIndex];
         _estate                       := E_AXIS_STATE.CAM_WRT_MOTION_FUNCTION_POINT;
@@ -1060,19 +1082,52 @@ END_IF
 //-----------------------------------------------------------------------------
 CASE _eState
 OF
+  //---------------------------------------------------------------------------
   E_AXIS_STATE.AXIS_INIT:
-    //-------------------------------------------------------------------------
     // axis always requires one init from outside world at startup
     // _eInit has to be valid for other commands to be accepted in Cmd(_eCtrl)
     _eInit := _eResult                := CamInit(TRUE);
 
+  //---------------------------------------------------------------------------
   E_AXIS_STATE.AXIS_NO_INIT:
-    //-------------------------------------------------------------------------
     // we are here because you sent a command before having done CAM_INIT
     _eResult                          := E_PROGRESS.ERROR;
 
+  //---------------------------------------------------------------------------
   E_AXIS_STATE.AXIS_IDLE:
     _eResult                          := AxisCamIdle(TRUE);
+
+  //---------------------------------------------------------------------------
+  E_AXIS_STATE.CAM_IN:
+    _eResult                          := AxisCamIn(TRUE);
+
+  //--------------------------------------------------------------------------
+  E_AXIS_STATE.CAM_OUT:
+    _eResult                          := AxisCamOut(TRUE);
+
+  //--------------------------------------------------------------------------
+  E_AXIS_STATE.CAM_SCALING:
+    _eResult                          := AxisCamScaling(TRUE);
+
+  //--------------------------------------------------------------------------
+  E_AXIS_STATE.CAM_INFO:
+    _eResult                          := AxisCamInfo(TRUE);
+
+  //--------------------------------------------------------------------------
+  E_AXIS_STATE.CAM_RD_MOTION_FUNCTION:
+    _eResult                          := AxisReadMotionFunction(TRUE);
+
+  //--------------------------------------------------------------------------
+  E_AXIS_STATE.CAM_RD_MOTION_FUNCTION_POINT:
+    _eResult                          := AxisReadMotionFunctionPoint(TRUE);
+
+  //--------------------------------------------------------------------------
+  E_AXIS_STATE.CAM_WRT_MOTION_FUNCTION:
+    _eResult                          := AxisWriteMotionFunction(TRUE);
+
+  //--------------------------------------------------------------------------
+  E_AXIS_STATE.CAM_WRT_MOTION_FUNCTION_POINT:
+    _eResult                          := AxisWriteMotionFunctionPoint(TRUE);
 
 ELSE
   IF (_eCtrl > E_AXIS_CTRL.AXIS_NULL)
@@ -1207,6 +1262,31 @@ END_VAR
 ]]></ST>
       </Implementation>
     </Method>
+    <Property Name="MotionFunction" Id="{c5781b5e-2b8d-0640-3fc2-e8ae6aff8b5c}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY MotionFunction : POINTER TO ARRAY[1..MAX_AXIS] OF ST_MOTION_FUNCTION
+]]></Declaration>
+      <Set Name="Set" Id="{01acc960-3227-0c67-128e-eb9c094e90c6}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_MotionFunction := MotionFunction;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="MotionFunctionPoint" Id="{cc8daba5-f7f0-0be5-3981-86e681a58800}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY MotionFunctionPoint : pointer to array[1..MAX_AXIS] of ST_MOTION_FUNCTION_POINT]]></Declaration>
+      <Set Name="Set" Id="{26b912a1-641a-025b-3fb4-bf8b205ee7c1}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_MotionFunctionPoint := MotionFunctionPoint;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
     <LineIds Name="FB_CamCtrl">
       <LineId Id="9" Count="0" />
     </LineIds>
@@ -1438,7 +1518,11 @@ END_VAR
       <LineId Id="19" Count="3" />
       <LineId Id="126" Count="5" />
       <LineId Id="38" Count="0" />
-      <LineId Id="55" Count="5" />
+      <LineId Id="55" Count="4" />
+      <LineId Id="186" Count="0" />
+      <LineId Id="188" Count="10" />
+      <LineId Id="187" Count="0" />
+      <LineId Id="60" Count="0" />
       <LineId Id="96" Count="0" />
       <LineId Id="98" Count="1" />
       <LineId Id="101" Count="23" />
@@ -1452,7 +1536,11 @@ END_VAR
     <LineIds Name="FB_CamCtrl.Cmd">
       <LineId Id="387" Count="8" />
       <LineId Id="450" Count="0" />
-      <LineId Id="396" Count="9" />
+      <LineId Id="396" Count="3" />
+      <LineId Id="591" Count="1" />
+      <LineId Id="594" Count="1" />
+      <LineId Id="593" Count="0" />
+      <LineId Id="400" Count="5" />
       <LineId Id="472" Count="2" />
       <LineId Id="477" Count="0" />
       <LineId Id="475" Count="1" />
@@ -1464,15 +1552,19 @@ END_VAR
       <LineId Id="410" Count="1" />
       <LineId Id="471" Count="0" />
       <LineId Id="412" Count="3" />
+      <LineId Id="596" Count="0" />
       <LineId Id="564" Count="0" />
       <LineId Id="416" Count="3" />
+      <LineId Id="597" Count="0" />
       <LineId Id="565" Count="0" />
       <LineId Id="420" Count="3" />
       <LineId Id="566" Count="0" />
       <LineId Id="424" Count="3" />
+      <LineId Id="598" Count="0" />
       <LineId Id="567" Count="0" />
       <LineId Id="589" Count="0" />
       <LineId Id="428" Count="3" />
+      <LineId Id="599" Count="0" />
       <LineId Id="568" Count="0" />
       <LineId Id="590" Count="0" />
       <LineId Id="432" Count="4" />
@@ -1500,7 +1592,27 @@ END_VAR
       <LineId Id="110" Count="2" />
       <LineId Id="99" Count="0" />
       <LineId Id="81" Count="0" />
-      <LineId Id="24" Count="44" />
+      <LineId Id="24" Count="21" />
+      <LineId Id="212" Count="0" />
+      <LineId Id="46" Count="0" />
+      <LineId Id="48" Count="2" />
+      <LineId Id="211" Count="0" />
+      <LineId Id="51" Count="1" />
+      <LineId Id="54" Count="1" />
+      <LineId Id="210" Count="0" />
+      <LineId Id="56" Count="2" />
+      <LineId Id="156" Count="2" />
+      <LineId Id="161" Count="0" />
+      <LineId Id="163" Count="3" />
+      <LineId Id="168" Count="2" />
+      <LineId Id="172" Count="0" />
+      <LineId Id="174" Count="3" />
+      <LineId Id="179" Count="3" />
+      <LineId Id="185" Count="3" />
+      <LineId Id="191" Count="0" />
+      <LineId Id="197" Count="2" />
+      <LineId Id="203" Count="3" />
+      <LineId Id="59" Count="9" />
       <LineId Id="134" Count="14" />
       <LineId Id="133" Count="0" />
       <LineId Id="69" Count="10" />
@@ -1535,6 +1647,14 @@ END_VAR
       <LineId Id="13" Count="0" />
       <LineId Id="35" Count="0" />
       <LineId Id="15" Count="1" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_CamCtrl.MotionFunction.Set">
+      <LineId Id="2" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_CamCtrl.MotionFunctionPoint.Set">
+      <LineId Id="2" Count="0" />
       <LineId Id="5" Count="0" />
     </LineIds>
   </POU>

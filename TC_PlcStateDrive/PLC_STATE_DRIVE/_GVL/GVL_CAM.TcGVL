@@ -22,10 +22,18 @@ VAR_GLOBAL
   Info                        : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_CAM_INFO;
   Data                        : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_CAM_DATA;
 
+
   //-----------------------------------------------------------------------------
-  // MotionFunction structure
-  //  - R/W parameter data fields
+  // R/W datafields
+  // - get your data here after read
+  // - put your data here before write
+  //
+  //    - Motion Function
+  //    - Motion Function Point
   //-----------------------------------------------------------------------------
+  MotionFunction              : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_MOTION_FUNCTION;
+  MotionFunctionPoint         : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_MOTION_FUNCTION_POINT;
+
 
   //-----------------------------------------------------------------------------
   // cyclic interface function block: FB_CamCtrl

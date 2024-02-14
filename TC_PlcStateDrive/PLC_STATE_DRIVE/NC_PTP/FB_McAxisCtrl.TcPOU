@@ -1554,7 +1554,9 @@ OF
     _stMsg.eDevice                  := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
     _stMsg.eSubdevice               := e_Subdevice.fbAxis_StartUp;
     _stMsg.iErrorNumber             := 0;
-    _stMsg.sText                    := concat('Axis Init: ', TO_STRING(_eState));
+    _stMsg.sText                    := concat('Axis Init: ', _sDeviceName);
+    _stMsg.sText                    := concat(_stMsg.sText, ' : ');
+    _stMsg.sText                    := concat(_stMsg.sText, TO_STRING(_eState));
 
     f_MessageSet(_stMsg);
 END_CASE
@@ -3064,6 +3066,7 @@ END_VAR
       <LineId Id="156" Count="3" />
       <LineId Id="155" Count="0" />
       <LineId Id="148" Count="4" />
+      <LineId Id="287" Count="1" />
       <LineId Id="242" Count="0" />
       <LineId Id="154" Count="0" />
       <LineId Id="60" Count="2" />
