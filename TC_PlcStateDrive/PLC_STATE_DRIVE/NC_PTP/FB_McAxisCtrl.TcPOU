@@ -319,7 +319,8 @@ CASE _eState
 OF
   E_PROGRESS.WORKING:
     _BufferMode     := _MotionOptions^[_nAxisIndex].eBufferMode;
-    _eres           := MovePosBuffer(
+    AxisBufferPos   := _eres  
+                    := MovePosBuffer(
                                   Enable      := TRUE, 
                                   Position    := Data.rSetPos, 
                                   Vel         := Data.rSetVelo, 
@@ -330,25 +331,17 @@ OF
     IF (_eres = E_PROGRESS.ERROR)
     THEN
       _eState       := E_PROGRESS.ERROR;
-                       MovePosBuffer(
-                                  Enable      := FALSE, 
-                                  Position    := Data.rSetPos, 
-                                  Vel         := Data.rSetVelo, 
-                                  Acc         := Data.rAcc, 
-                                  Dec         := Data.rDec, 
-                                  Jerk        := Data.rJerk, 
-                                  BufferMode  := _BufferMode);
 
     ELSIF (_Ctrl^[_nAxisIndex].eProgress = E_PROGRESS.DONE)
     THEN
       // when Ctrl decides to leave; make finishing move and be done
-      _eState       := E_PROGRESS.FINISHING;
+      _eState       := E_PROGRESS.DONE;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.FINISHING:
-    _eState         := E_PROGRESS.DONE;
+  E_PROGRESS.ERROR,
+  E_PROGRESS.DONE:
     _eres           := MovePosBuffer(
                                   Enable      := FALSE, 
                                   Position    := Data.rSetPos, 
@@ -357,9 +350,9 @@ OF
                                   Dec         := Data.rDec, 
                                   Jerk        := Data.rJerk, 
                                   BufferMode  := _BufferMode);
-END_CASE
 
-AxisBufferPos       := _eState;
+    AxisBufferPos   := _eState;
+END_CASE
 ]]></ST>
       </Implementation>
     </Method>
@@ -2674,16 +2667,20 @@ END_VAR
       <LineId Id="791" Count="0" />
       <LineId Id="762" Count="0" />
       <LineId Id="778" Count="2" />
-      <LineId Id="804" Count="11" />
-      <LineId Id="847" Count="7" />
+      <LineId Id="804" Count="1" />
+      <LineId Id="866" Count="0" />
+      <LineId Id="806" Count="9" />
       <LineId Id="832" Count="0" />
       <LineId Id="828" Count="3" />
       <LineId Id="816" Count="0" />
-      <LineId Id="834" Count="3" />
-      <LineId Id="846" Count="0" />
-      <LineId Id="838" Count="7" />
-      <LineId Id="782" Count="0" />
-      <LineId Id="788" Count="1" />
+      <LineId Id="834" Count="0" />
+      <LineId Id="867" Count="1" />
+      <LineId Id="876" Count="0" />
+      <LineId Id="869" Count="0" />
+      <LineId Id="879" Count="7" />
+      <LineId Id="878" Count="0" />
+      <LineId Id="870" Count="0" />
+      <LineId Id="789" Count="0" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.AxisBufferVelo">

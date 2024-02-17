@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
   <POU Name="FB_McPtpAxis" Id="{f3c5c8ba-2006-4413-9dba-e7093a448a41}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_McPtpAxis IMPLEMENTS I_McAxis
 VAR
@@ -967,21 +967,10 @@ CASE nState OF
       fUsedPos                      := Position;
 
       fbMoveAbsolute1(Axis          := _AxisRef, 
-                      Execute       := FALSE,
-                      Position      := fUsedPos, 
-                      Velocity      := fUsedVel, 
-                      Acceleration  := fUsedAcc, 
-                      Deceleration  := fUsedDec, 
-                      Jerk          := fUsedJrk, 
-                      BufferMode    := BufferMode);
+                      Execute       := FALSE);
 
       fbMoveAbsolute2(Axis          := _AxisRef, 
-                      Execute       := FALSE, 
-                      Velocity      := fUsedVel, 
-                      Acceleration  := fUsedAcc, 
-                      Deceleration  := fUsedDec, 
-                      Jerk          := fUsedJrk, 
-                      BufferMode    := BufferMode);
+                      Execute       := FALSE);
 
       nState                        := 10;
     END_IF
@@ -989,7 +978,8 @@ END_CASE
 CASE nState OF
   10:
     fbMoveAbsolute1(Axis            := _AxisRef, 
-                    Execute         := TRUE, 
+                    Execute         := TRUE,
+                    Position        := fUsedPos, 
                     Velocity        := fUsedVel, 
                     Acceleration    := fUsedAcc, 
                     Deceleration    := fUsedDec, 
@@ -997,12 +987,7 @@ CASE nState OF
                     BufferMode      := BufferMode);
 
     fbMoveAbsolute2(Axis            := _AxisRef, 
-                    Execute         := FALSE, 
-                    Velocity        := fUsedVel, 
-                    Acceleration    := fUsedAcc, 
-                    Deceleration    := fUsedDec, 
-                    Jerk            := fUsedJrk, 
-                    BufferMode      := BufferMode);
+                    Execute         := FALSE);
 
     IF fbMoveAbsolute1.Busy OR 
        fbMoveAbsolute1.Done
@@ -1047,6 +1032,10 @@ CASE nState OF
     ELSIF (Position <> fUsedPos)
     THEN
       fUsedPos                      := Position;
+
+      fbMoveAbsolute1(Axis          := _AxisRef, 
+                      Execute       := FALSE);
+
 
       fbMoveAbsolute2(Axis          := _AxisRef, 
                       Execute       := TRUE,
@@ -1109,22 +1098,8 @@ CASE nState OF
     THEN
       fUsedPos                      := Position;
 
-      fbMoveAbsolute1(Axis          := _AxisRef, 
-                      Execute       := FALSE,
-                      Position      := fUsedPos, 
-                      Velocity      := fUsedVel, 
-                      Acceleration  := fUsedAcc, 
-                      Deceleration  := fUsedDec, 
-                      Jerk          := fUsedJrk, 
-                      BufferMode    := BufferMode);
-
-      fbMoveAbsolute1(Axis          := _AxisRef, 
-                      Execute       := TRUE, 
-                      Velocity      := fUsedVel, 
-                      Acceleration  := fUsedAcc, 
-                      Deceleration  := fUsedDec, 
-                      Jerk          := fUsedJrk, 
-                      BufferMode    := BufferMode);
+      fbMoveAbsolute2(Axis          := _AxisRef, 
+                      Execute       := FALSE);
 
       nState                        := 10;
     END_IF
@@ -2413,24 +2388,23 @@ WriteParameter := res;]]></ST>
       <LineId Id="387" Count="0" />
       <LineId Id="627" Count="0" />
       <LineId Id="390" Count="0" />
-      <LineId Id="392" Count="0" />
-      <LineId Id="436" Count="0" />
-      <LineId Id="394" Count="4" />
       <LineId Id="628" Count="0" />
+      <LineId Id="764" Count="0" />
       <LineId Id="407" Count="0" />
-      <LineId Id="409" Count="0" />
-      <LineId Id="411" Count="4" />
       <LineId Id="629" Count="0" />
+      <LineId Id="765" Count="0" />
       <LineId Id="339" Count="0" />
       <LineId Id="338" Count="0" />
       <LineId Id="332" Count="0" />
       <LineId Id="383" Count="0" />
       <LineId Id="385" Count="0" />
       <LineId Id="419" Count="0" />
-      <LineId Id="421" Count="5" />
+      <LineId Id="421" Count="0" />
+      <LineId Id="766" Count="0" />
+      <LineId Id="422" Count="4" />
       <LineId Id="630" Count="0" />
       <LineId Id="427" Count="0" />
-      <LineId Id="429" Count="5" />
+      <LineId Id="434" Count="0" />
       <LineId Id="631" Count="0" />
       <LineId Id="435" Count="0" />
       <LineId Id="574" Count="0" />
@@ -2458,6 +2432,8 @@ WriteParameter := res;]]></ST>
       <LineId Id="701" Count="0" />
       <LineId Id="458" Count="1" />
       <LineId Id="470" Count="0" />
+      <LineId Id="760" Count="1" />
+      <LineId Id="758" Count="1" />
       <LineId Id="637" Count="0" />
       <LineId Id="461" Count="0" />
       <LineId Id="463" Count="0" />
@@ -2494,12 +2470,8 @@ WriteParameter := res;]]></ST>
       <LineId Id="642" Count="0" />
       <LineId Id="478" Count="2" />
       <LineId Id="643" Count="0" />
-      <LineId Id="481" Count="0" />
-      <LineId Id="483" Count="6" />
+      <LineId Id="762" Count="1" />
       <LineId Id="644" Count="0" />
-      <LineId Id="543" Count="0" />
-      <LineId Id="545" Count="5" />
-      <LineId Id="645" Count="0" />
       <LineId Id="490" Count="1" />
       <LineId Id="475" Count="0" />
       <LineId Id="495" Count="1" />
@@ -2919,6 +2891,10 @@ WriteParameter := res;]]></ST>
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_McPtpAxis.StartUpDone.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_McPtpAxis.StartUpError.Get">
+      <LineId Id="3" Count="0" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_McPtpAxis.Status.Get">

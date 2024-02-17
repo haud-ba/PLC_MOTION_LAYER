@@ -12,6 +12,15 @@ END_VAR
     <Implementation>
       <ST><![CDATA[stMessage.tTime                     := GVL_MSG.sLocalTime;
 
+IF (stMessage.eType = eMessageVerbose)
+THEN
+  IF NOT (GVL_MSG.VerboseMessages)
+  THEN
+    RETURN;
+  END_IF
+END_IF
+
+
 FOR _uiIndex := 1 TO PLC_CONSTANT.MAX_MESSAGE
 DO
   IF (GVL_MSG.Messages[_uiIndex].eType = e_MessageType.eMessageEmpty)
@@ -32,12 +41,15 @@ END_IF
     </Implementation>
     <LineIds Name="f_MessageSet">
       <LineId Id="104" Count="0" />
+      <LineId Id="180" Count="2" />
       <LineId Id="152" Count="0" />
+      <LineId Id="183" Count="4" />
+      <LineId Id="179" Count="0" />
       <LineId Id="130" Count="8" />
       <LineId Id="165" Count="2" />
       <LineId Id="170" Count="0" />
       <LineId Id="168" Count="1" />
-      <LineId Id="142" Count="0" />
+      <LineId Id="188" Count="0" />
       <LineId Id="7" Count="0" />
     </LineIds>
   </POU>

@@ -6,6 +6,7 @@
 TYPE E_MessageType :
 (
   eMessageEmpty,
+  eMessageVerbose,
   eMessageInfo,
   eMessageWarn,
   eMessageError

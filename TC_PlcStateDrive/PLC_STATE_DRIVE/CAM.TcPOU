@@ -22,7 +22,7 @@ IF NOT PLC_CONSTANT.CAM_ACTIVE THEN eInit := E_PROGRESS.NOT_EXIST; RETURN; END_I
 //-----------------------------------------------------------------------------------------------------------------
 FOR nAxis := 1 TO PLC_CONSTANT.MAX_AXIS
 DO
-  GVL_CAM.Control[nAxis].ItfMcAxes                := GVL_AXIS.ItfMcAxis[nAxis];
+  GVL_CAM.Control[nAxis].ItfMcAxes                := GVL_AXIS.ItfMcAxis;
 
   GVL_CAM.Control[nAxis].AxisIndex                := nAxis;
 

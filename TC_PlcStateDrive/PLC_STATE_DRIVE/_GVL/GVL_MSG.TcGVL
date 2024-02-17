@@ -22,8 +22,10 @@ VAR_GLOBAL
 {IF defined (AXIS_MAP)}
   {info 'TEST ST_AxisController'}
   EnableLogging                   : BOOL := TRUE;
+  VerboseMessages                 : BOOL := TRUE;
 {ELSE}
   EnableLogging                   : BOOL;
+  VerboseMessages                 : BOOL;
 {END_IF}
 
 END_VAR]]></Declaration>
