@@ -275,8 +275,21 @@ VAR_GLOBAL CONSTANT
 // redesign for modular use --> FB_AxisController does not host camming lib
 // interface implementation for downward compatibility
 
+// V00.48.93
+// HAUD
+// 15.02.2024
+// Buffered moves with additional info on ST_Out.rSetPos
 
-  Version           : STRING := 'V 00.50.1';
+// V00.50.2
+// HAUD
+// 07.03.2024
+// merge changes from field V 00.48.95
+// buffered move
+// message handling
+
+
+
+  Version           : STRING := 'V 00.50.2';
 END_VAR
 VAR_GLOBAL
 
@@ -315,6 +328,7 @@ VAR_GLOBAL
 
   gatMessages       : ARRAY[1..gciMaxMessage] OF ST_Message;
   giMsgIndex        : INT := 1;
+  giErrorIndex      : INT := 0;
 
   gfbLocalTime      : fb_LocalTime;
   gdtLocalTime      : DT;

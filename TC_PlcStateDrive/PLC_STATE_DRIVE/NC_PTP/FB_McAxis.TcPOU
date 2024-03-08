@@ -942,23 +942,26 @@ OF
 
     ELSIF (Position <> _rValue)
     THEN
-      _fbMoveAbsolute[2](Axis       := _AxisRef,
-                         Execute    := FALSE);
-
-      _eState                       := E_PROGRESS.STARTUP;
-
-      _stMsg.eType                  := E_MessageType.eMessageVerbose;
-      _stMsg.eDevice                := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
-      _stMsg.eSubdevice             :=  e_SubDevice.fbMoveAbsolute1;
-      _stMsg.iErrorNumber           := 0;
-
-      _stMsg.sText                  := concat('Position changed: ', TO_STRING(_rValue));
-      _stMsg.sText                  := concat(_stMsg.sText        , ' to ');
-      _stMsg.sText                  := concat(_stMsg.sText        , TO_STRING(Position));
-
-      f_MessageSet(_stMsg);
-
-      _rValue                       := Position;
+      IF _fbMoveAbsolute[2].Active
+      THEN
+        _fbMoveAbsolute[2](Axis       := _AxisRef,
+                           Execute    := FALSE);
+  
+        _eState                       := E_PROGRESS.STARTUP;
+  
+        _stMsg.eType                  := E_MessageType.eMessageVerbose;
+        _stMsg.eDevice                := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
+        _stMsg.eSubdevice             :=  e_SubDevice.fbMoveAbsolute1;
+        _stMsg.iErrorNumber           := 0;
+  
+        _stMsg.sText                  := concat('Position changed: ', TO_STRING(_rValue));
+        _stMsg.sText                  := concat(_stMsg.sText        , ' to ');
+        _stMsg.sText                  := concat(_stMsg.sText        , TO_STRING(Position));
+  
+        f_MessageSet(_stMsg);
+  
+        _rValue                       := Position;
+      END_IF
     END_IF
 END_CASE
 CASE _eState
@@ -2718,6 +2721,7 @@ WriteParameterPersistent            := _eState;
       <LineId Id="1420" Count="12" />
       <LineId Id="1419" Count="0" />
       <LineId Id="1117" Count="1" />
+      <LineId Id="1511" Count="1" />
       <LineId Id="1402" Count="1" />
       <LineId Id="1401" Count="0" />
       <LineId Id="1120" Count="0" />
@@ -2727,6 +2731,7 @@ WriteParameterPersistent            := _eState;
       <LineId Id="1254" Count="0" />
       <LineId Id="1358" Count="0" />
       <LineId Id="1357" Count="0" />
+      <LineId Id="1513" Count="0" />
       <LineId Id="1121" Count="1" />
       <LineId Id="1124" Count="1" />
       <LineId Id="1352" Count="0" />

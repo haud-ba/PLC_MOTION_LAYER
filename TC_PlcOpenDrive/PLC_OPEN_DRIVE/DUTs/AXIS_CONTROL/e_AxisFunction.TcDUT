@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+<TcPlcObject Version="1.1.0.1">
   <DUT Name="e_AxisFunction" Id="{469d7423-6ab3-4449-9f5a-03e5c5dcaec9}">
     <Declaration><![CDATA[{attribute 'to_string'}
 TYPE e_AxisFunction :
@@ -33,6 +33,7 @@ TYPE e_AxisFunction :
 
   AXIS_SS1_STOP   :=  99,
   AXIS_BUSY       := 100,
+  AXIS_ACK        := 300,
   AXIS_DONE       := 1000,
 
   ERROR           := 9000

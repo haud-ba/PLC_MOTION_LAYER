@@ -43,6 +43,9 @@ NCI implementation</Description>
     <Compile Include="DUTs\AXIS_CONTROL\ST_AxisController.TcDUT">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="DUTs\AXIS_CONTROL\ST_CamIn.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="DUTs\AXIS_CONTROL\ST_MotionOptions.TcDUT">
       <SubType>Code</SubType>
     </Compile>
@@ -143,15 +146,6 @@ NCI implementation</Description>
     <Compile Include="PlcTask.TcTTO">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\CAM\FB_Ctrl_Cam.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\CAM\I_Cam_Ctrl.TcIO">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\CAM\ST_CamIn.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="POUs\Functions\f_Builder.TcPOU">
       <SubType>Code</SubType>
     </Compile>
@@ -247,6 +241,18 @@ NCI implementation</Description>
     <Compile Include="POUs\P_CopleyWorkAround.TcPOU">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="POUs\_FunctionBlocks\cam\FB_CamIn_empty.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="POUs\_FunctionBlocks\cam\fb_Camming.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="POUs\_FunctionBlocks\cam\fb_Camming_Empty.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="POUs\_FunctionBlocks\cam\FB_CamOut_Empty.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="POUs\_FunctionBlocks\FB_AxisController.TcPOU">
       <SubType>Code</SubType>
     </Compile>
@@ -273,7 +279,6 @@ NCI implementation</Description>
     <Folder Include="DUTs\MESSAGE" />
     <Folder Include="GVLs" />
     <Folder Include="DOC" />
-    <Folder Include="POUs\CAM" />
     <Folder Include="POUs\Functions" />
     <Folder Include="POUs\NCI">
       <ExcludeFromBuild>false</ExcludeFromBuild>
@@ -282,6 +287,7 @@ NCI implementation</Description>
     <Folder Include="POUs\MSG" />
     <Folder Include="POUs\_FunctionBlocks" />
     <Folder Include="POUs" />
+    <Folder Include="POUs\_FunctionBlocks\cam" />
   </ItemGroup>
   <ItemGroup>
     <PlaceholderReference Include="System_VisuElemMeter">
@@ -383,14 +389,6 @@ NCI implementation</Description>
     <Content Include="POUs\NCI\Test_GST.nc">
       <SubType>Content</SubType>
     </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <SubObject Include="FB_AxisController.Axis_Cam_In">
-      <ExcludeFromBuild>true</ExcludeFromBuild>
-    </SubObject>
-    <SubObject Include="FB_AxisController.Axis_Cam_Out">
-      <ExcludeFromBuild>true</ExcludeFromBuild>
-    </SubObject>
   </ItemGroup>
   <ProjectExtensions>
     <PlcProjectOptions>

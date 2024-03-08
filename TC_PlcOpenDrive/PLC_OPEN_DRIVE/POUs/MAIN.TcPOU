@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
   <POU Name="MAIN" Id="{92364988-986c-4411-b611-3f16f7544e5f}" SpecialFunc="None">
     <Declaration><![CDATA[PROGRAM MAIN
 VAR
@@ -30,7 +30,8 @@ VAR
 	i						: INT;
 
 	rtrigWriteFile		: R_TRIG;
-
+  tonWriteFile      : TON;
+  tWriteFile        : time := t#5s;
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -170,27 +171,15 @@ DO
 
                                       stState					          => GVL_AXIS_CTRL.gstAxisControl[i].FromPlc  // global struct to read from
                                      );   
-
-
-  //-----------------------------------------------------------------------------------------------------------------
-  // logging
-  //-----------------------------------------------------------------------------------------------------------------
-	rtrigWriteFile(CLK:= (GVL_AXIS_CTRL.gfbAxisController[i].stState.uiAxisFunctionState = e_AxisFunction.AXIS_RESET + e_AxisFunction.AXIS_DONE));
-  IF rtrigWriteFile.Q
-  THEN
-    IF GVL_AXIS_CTRL.gbEnableLogging
-    THEN
-      p_Data.bWriteFile := TRUE;
-    ELSE
-      IF (GVL_AXIS_CTRL.giMsgIndex >= GVL_AXIS_CTRL.gciMaxMessage)
-      THEN
-        memset(ADR(GVL_AXIS_CTRL.gatMessages), 0, SIZEOF(GVL_AXIS_CTRL.gatMessages));
-      END_IF
-    END_IF
-  END_IF
 END_FOR
 
+tonWriteFile(IN := TRUE, PT := tWriteFile);
 
+IF tonWriteFile.Q
+THEN
+  p_Data.bWriteFile := TRUE;
+  tonWriteFile(IN:=FALSE);
+END_IF  
 
 //-----------------------------------------------------------------------------------------------------------------
 // write message list to file
@@ -198,6 +187,7 @@ END_FOR
 p_Data(pList			:= ADR(GVL_AXIS_CTRL.gatMessages),
 			 pLocalTime := ADR(GVL_AXIS_CTRL.gdtLocalTime), 
 			 bBusy=> );
+
 
 
 IF p_Data.bWriteFile AND
@@ -210,7 +200,8 @@ P_CopleyWorkAround();
 ]]></ST>
     </Implementation>
     <LineIds Name="MAIN">
-      <LineId Id="1357" Count="172" />
+      <LineId Id="1593" Count="135" />
+      <LineId Id="1742" Count="25" />
       <LineId Id="513" Count="0" />
     </LineIds>
   </POU>

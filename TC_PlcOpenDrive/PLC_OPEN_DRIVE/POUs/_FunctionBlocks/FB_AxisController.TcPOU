@@ -49,6 +49,18 @@ VAR
   _stGearIn             : st_GearIn;
   _stGearInMultiMaster  : st_GearInMultiMaster;	  
 
+{IF defined (CAM)}
+  {info 'CAMMING active'}
+  _bCamming             : BOOL := TRUE;
+  fbCamIn               : Tc2_MC2_Camming.MC_CamIn;
+  fbCamOut              : Tc2_MC2_Camming.MC_CamOut;
+{ELSE}
+  {info 'CAMMING NOT active'}
+  _bCamming             : BOOL := FALSE;
+  fbCamIn               : FB_CamIn_empty;
+  fbCamOut              : FB_CamOut_Empty;
+{END_IF}
+
 	_stCamIn              : st_CamIn;
 
 	sDriveType					  : STRING(256); // manufacturer device name CoE 16#1008
@@ -79,6 +91,8 @@ VAR
 	st_AxisREF_Dummy	    : Tc2_MC2.AXIS_REF;
  {attribute 'hide'}
   mcResetMaster         : Tc2_MC2.MC_Reset;
+
+  eBufferState          : e_AxisFunction;
 END_VAR
 VAR CONSTANT
 	sXenax			: STRING := 'XENAX Xvi';
@@ -232,6 +246,9 @@ THEN
     e_AxisFunction.AXIS_GEAR_OUT:
       Axis_Gear_Out();
 
+    e_AxisFunction.AXIS_CAM_OUT:
+      Axis_Cam_Out();
+
   END_CASE
 
 ELSE
@@ -285,6 +302,13 @@ ELSE
   
     e_AxisFunction.AXIS_GEAR_IN_MULTIMASTER:
       Axis_Gear_In_Multimaster();
+  
+    e_AxisFunction.AXIS_CAM_IN:
+      Axis_Cam_In();
+      
+  
+    e_AxisFunction.AXIS_CAM_OUT:
+      Axis_Cam_Out();
   
   ELSE
     // axis function is not available
@@ -1308,7 +1332,9 @@ END_CASE
                                                    Acceleration := stCtrl.rAcc, 
                                                    Deceleration := stCtrl.rDec, 
                                                    Jerk				  := 0, 
-                                                   BufferMode	  := stMotionOptions.eBufferMode);
+                                                   BufferMode	      := stMotionOptions.eBufferMode,
+                                                   fActivePosition  := stState.rSetPos,
+                                                   eState           := eBufferState);
 
     uiState                 := 10;
 END_CASE
@@ -1322,8 +1348,10 @@ CASE uiState OF
                                                    Velocity     := stCtrl.rSetVelo, 
                                                    Acceleration := stCtrl.rAcc, 
                                                    Deceleration := stCtrl.rDec, 
-                                                   Jerk         := 0, 
-                                                   BufferMode   := stMotionOptions.eBufferMode);
+                                                   Jerk         := 6000000, 
+                                                   BufferMode	      := stMotionOptions.eBufferMode,
+                                                   fActivePosition  := stState.rSetPos,
+                                                   eState           := eBufferState);
 
     IF stMcOut.Error
     THEN
@@ -1336,7 +1364,9 @@ CASE uiState OF
                                                    Acceleration := stCtrl.rAcc, 
                                                    Deceleration := stCtrl.rDec, 
                                                    Jerk				  := 0, 
-                                                   BufferMode	  := stMotionOptions.eBufferMode);
+                                                   BufferMode	      := stMotionOptions.eBufferMode,
+                                                   fActivePosition  := stState.rSetPos,
+                                                   eState           := eBufferState);
 
     END_IF
 END_CASE
@@ -1345,6 +1375,7 @@ CASE uiState OF
     stState.bError          := TRUE;
     stState.bBusy           := FALSE;
     eStateActive            := eState + e_AxisFunction.ERROR;
+    eBufferState            :=
     eStateExec	            := e_AxisFunction.ERROR;
 END_CASE
 ]]></ST>
@@ -1371,7 +1402,9 @@ CASE uiState OF
                                                    stCtrl.rDec,
                                                    100_000,
                                                    stCtrl.iDirection,
-                                                   BufferMode := Tc2_MC2.MC_BufferMode.MC_Aborting);
+                                                   BufferMode       := Tc2_MC2.MC_BufferMode.MC_Aborting,
+                                                   fActiveVelocity  := stState.rSetPos,
+                                                   eState           := eBufferState);
     uiState                 := 10;
 END_CASE
 CASE uiState OF
@@ -1385,7 +1418,9 @@ CASE uiState OF
                                                    stCtrl.rDec,
                                                    100_000,
                                                    stCtrl.iDirection,
-                                                   BufferMode := Tc2_MC2.MC_BufferMode.MC_Aborting);
+                                                   BufferMode       := Tc2_MC2.MC_BufferMode.MC_Aborting,
+                                                   fActiveVelocity  := stState.rSetPos,
+                                                   eState           := eBufferState);
 
     IF stMcOut.Error
     THEN
@@ -1395,7 +1430,9 @@ CASE uiState OF
                                                    stCtrl.rDec,
                                                    100_000,
                                                    stCtrl.iDirection,
-                                                   BufferMode := Tc2_MC2.MC_BufferMode.MC_Aborting);
+                                                   BufferMode       := Tc2_MC2.MC_BufferMode.MC_Aborting,
+                                                   fActiveVelocity  := stState.rSetPos,
+                                                   eState           := eBufferState);
 
       stState.uiErrorId		  := stMcOut.ErrorID;
 
@@ -1408,6 +1445,7 @@ CASE uiState OF
     stState.bError          := TRUE;
     stState.bBusy           := FALSE;
     eStateActive            := eState + e_AxisFunction.ERROR;
+    eBufferState            :=
     eStateExec	            := e_AxisFunction.ERROR;
 END_CASE
 ]]></ST>
@@ -1506,7 +1544,9 @@ CASE uiState OF
                                                    stCtrl.rDec,
                                                    100_000,
                                                    stCtrl.iDirection,
-                                                   BufferMode := Tc2_MC2.MC_BufferMode.MC_Aborting);
+                                                   BufferMode       := Tc2_MC2.MC_BufferMode.MC_Aborting,
+                                                   fActiveVelocity  := stState.rSetPos,
+                                                   eState           := eBufferState);
 
     uiState                 := 10;
 END_CASE
@@ -1521,7 +1561,9 @@ CASE uiState OF
                                                    stCtrl.rDec,
                                                    100_000,
                                                    stCtrl.iDirection,
-                                                   BufferMode := Tc2_MC2.MC_BufferMode.MC_Aborting);
+                                                   BufferMode       := Tc2_MC2.MC_BufferMode.MC_Aborting,
+                                                   fActiveVelocity  := stState.rSetPos,
+                                                   eState           := eBufferState);
 
     IF stMcOut.Error
     THEN
@@ -1531,7 +1573,9 @@ CASE uiState OF
                                                    stCtrl.rDec,
                                                    100_000,
                                                    stCtrl.iDirection,
-                                                   BufferMode := Tc2_MC2.MC_BufferMode.MC_Aborting);
+                                                   BufferMode       := Tc2_MC2.MC_BufferMode.MC_Aborting,
+                                                   fActiveVelocity  := stState.rSetPos,
+                                                   eState           := eBufferState);
 
       stState.uiErrorId     := stMcOut.ErrorID;
 
@@ -1545,7 +1589,9 @@ CASE uiState OF
                                                    stCtrl.rDec,
                                                    100_000,
                                                    stCtrl.iDirection,
-                                                   BufferMode := Tc2_MC2.MC_BufferMode.MC_Aborting);
+                                                   BufferMode       := Tc2_MC2.MC_BufferMode.MC_Aborting,
+                                                   fActiveVelocity  := stState.rSetPos,
+                                                   eState           := eBufferState);
 
       uiState               := 20;
     END_IF
@@ -2222,30 +2268,7 @@ END_IF]]></ST>
       </Set>
     </Property>
     <LineIds Name="FB_AxisController">
-      <LineId Id="11668" Count="130" />
-      <LineId Id="12139" Count="1" />
-      <LineId Id="12239" Count="0" />
-      <LineId Id="12134" Count="0" />
-      <LineId Id="12240" Count="0" />
-      <LineId Id="12242" Count="1" />
-      <LineId Id="12340" Count="2" />
-      <LineId Id="12435" Count="0" />
-      <LineId Id="12142" Count="1" />
-      <LineId Id="12235" Count="2" />
-      <LineId Id="12245" Count="0" />
-      <LineId Id="11801" Count="0" />
-      <LineId Id="12138" Count="0" />
-      <LineId Id="11802" Count="51" />
-      <LineId Id="11860" Count="42" />
-      <LineId Id="12628" Count="0" />
-      <LineId Id="11903" Count="0" />
-      <LineId Id="12629" Count="1" />
-      <LineId Id="11904" Count="13" />
-      <LineId Id="12533" Count="0" />
-      <LineId Id="12531" Count="1" />
-      <LineId Id="12534" Count="0" />
-      <LineId Id="12529" Count="0" />
-      <LineId Id="11918" Count="32" />
+      <LineId Id="12807" Count="310" />
       <LineId Id="9" Count="0" />
     </LineIds>
     <LineIds Name="FB_AxisController.Axis_Cam_In">
@@ -2456,36 +2479,11 @@ END_IF]]></ST>
       <LineId Id="1" Count="0" />
     </LineIds>
     <LineIds Name="FB_AxisController.Axis_Move_Buffer">
-      <LineId Id="2" Count="4" />
-      <LineId Id="42" Count="0" />
-      <LineId Id="7" Count="6" />
-      <LineId Id="43" Count="0" />
-      <LineId Id="14" Count="5" />
-      <LineId Id="44" Count="0" />
-      <LineId Id="20" Count="6" />
-      <LineId Id="45" Count="0" />
-      <LineId Id="27" Count="3" />
-      <LineId Id="54" Count="0" />
-      <LineId Id="47" Count="6" />
-      <LineId Id="46" Count="0" />
-      <LineId Id="31" Count="1" />
-      <LineId Id="34" Count="0" />
-      <LineId Id="36" Count="0" />
-      <LineId Id="41" Count="0" />
-      <LineId Id="37" Count="3" />
+      <LineId Id="55" Count="57" />
       <LineId Id="1" Count="0" />
     </LineIds>
     <LineIds Name="FB_AxisController.Axis_Move_Buffer_Velocity">
-      <LineId Id="110" Count="17" />
-      <LineId Id="129" Count="5" />
-      <LineId Id="136" Count="1" />
-      <LineId Id="185" Count="0" />
-      <LineId Id="138" Count="4" />
-      <LineId Id="144" Count="13" />
-      <LineId Id="186" Count="0" />
-      <LineId Id="158" Count="0" />
-      <LineId Id="170" Count="3" />
-      <LineId Id="179" Count="5" />
+      <LineId Id="187" Count="64" />
       <LineId Id="1" Count="0" />
     </LineIds>
     <LineIds Name="FB_AxisController.Axis_Move_Pos">
@@ -2505,18 +2503,7 @@ END_IF]]></ST>
       <LineId Id="1" Count="0" />
     </LineIds>
     <LineIds Name="FB_AxisController.Axis_Move_Velo">
-      <LineId Id="226" Count="17" />
-      <LineId Id="245" Count="1" />
-      <LineId Id="301" Count="0" />
-      <LineId Id="247" Count="3" />
-      <LineId Id="252" Count="1" />
-      <LineId Id="302" Count="0" />
-      <LineId Id="254" Count="4" />
-      <LineId Id="260" Count="13" />
-      <LineId Id="304" Count="0" />
-      <LineId Id="274" Count="10" />
-      <LineId Id="303" Count="0" />
-      <LineId Id="285" Count="15" />
+      <LineId Id="305" Count="83" />
       <LineId Id="1" Count="0" />
     </LineIds>
     <LineIds Name="FB_AxisController.Axis_Parameter">

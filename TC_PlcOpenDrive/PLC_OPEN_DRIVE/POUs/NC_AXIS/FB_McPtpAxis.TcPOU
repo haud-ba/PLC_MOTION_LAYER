@@ -936,7 +936,12 @@ VAR_INPUT
                     If the command is applied to a coupled slave axis used, the only available buffer mode is Aborting. '}
   BufferMode  : Tc2_MC2.MC_BufferMode;
 END_VAR
+VAR_IN_OUT
+  fActivePosition   : LREAL;
+  eState            : e_AxisFunction;
+END_VAR
 VAR_INST
+  bLog      : BOOL;
   res       : Tc2_MC2.ST_McOutputs;
   nState    : DINT;
   fUsedPos,
@@ -947,15 +952,10 @@ VAR_INST
 END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[// Select Default values of dynamic parameter if 0 is specified
-fUsedVel := SEL((Velocity = 0),     Velocity,       fDefaultVelocity);
-fUsedAcc := SEL((Acceleration = 0), Acceleration,   stDefaultAcceleration.fValue);
-fUsedDec := SEL((Deceleration = 0), Deceleration,   stDefaultDeceleration.fValue);
-fUsedJrk := SEL((Jerk = 0),         Jerk,           stDefaultJerk.fValue);
-
-
-fUsedVel := SEL((Velocity > stMaxVelocity.fValue),          Velocity,       stMaxVelocity.fValue);
-fUsedAcc := SEL((Acceleration > stMaxAcceleration.fValue),  Acceleration,   stMaxAcceleration.fValue);
-fUsedDec := SEL((Deceleration > stMaxDeceleration.fValue),  Deceleration,   stMaxDeceleration.fValue);
+fUsedVel := Velocity;
+fUsedAcc := Acceleration;
+fUsedDec := Deceleration;
+fUsedJrk := Jerk;
 
 
 CASE nState OF
@@ -973,46 +973,66 @@ CASE nState OF
                       Execute       := FALSE);
 
       nState                        := 10;
+
+        stMsg.eType                 := E_MessageType.eMessageInfo;
+        stMsg.eDevice               := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
+        stMsg.eSubdevice            :=  e_SubDevice.fbMoveAbsolute1;
+        stMsg.iErrorNumber          := nState;
+        stMsg.sText                 := concat('MoveBuffer start: ', TO_STRING(fUsedPos));
+        f_MessageSet(stMsg);
+        MsgAdd(stMsg);
     END_IF
 END_CASE
 CASE nState OF
   10:
+    eState                          := e_AxisFunction.AXIS_BUSY;
     fbMoveAbsolute1(Axis            := _AxisRef, 
-                    Execute         := TRUE,
-                    Position        := fUsedPos, 
+                    Execute         := TRUE, 
+                    Position        := fUsedPos,
                     Velocity        := fUsedVel, 
                     Acceleration    := fUsedAcc, 
                     Deceleration    := fUsedDec, 
                     Jerk            := fUsedJrk, 
                     BufferMode      := BufferMode);
 
-    fbMoveAbsolute2(Axis            := _AxisRef, 
-                    Execute         := FALSE);
+      fbMoveAbsolute2(Axis          := _AxisRef, 
+                      Execute       := FALSE);
 
-    IF fbMoveAbsolute1.Busy OR 
-       fbMoveAbsolute1.Done
+    IF fbMoveAbsolute1.Error
     THEN
-      nState                        := 20;
-    ELSE
-      IF fbMoveAbsolute1.Error
+      stMsg.eType                 := E_MessageType.eMessageError;
+      stMsg.eDevice               := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
+      stMsg.eSubdevice            :=  e_SubDevice.fbMoveAbsolute1;
+      stMsg.iErrorNumber          := fbMoveAbsolute1.ErrorID;
+      f_MessageSet(stMsg);
+      MsgAdd(stMsg);
+
+      res.ErrorID                 := fbMoveAbsolute1.ErrorID;
+
+      nState                      := 99;
+
+    ELSIF fbMoveAbsolute1.Busy OR 
+          fbMoveAbsolute1.Done
+    THEN
+      IF fbMoveAbsolute1.Active
       THEN
-        stMsg.eType                 := E_MessageType.eMessageError;
+        nState                      := 20;
+        stMsg.eType                 := E_MessageType.eMessageInfo;
         stMsg.eDevice               := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
         stMsg.eSubdevice            :=  e_SubDevice.fbMoveAbsolute1;
-        stMsg.iErrorNumber          := fbMoveAbsolute1.ErrorID;
+        stMsg.iErrorNumber          := nState;
+        stMsg.sText                 := concat('MoveBuffer work: ', TO_STRING(fUsedPos));
         f_MessageSet(stMsg);
         MsgAdd(stMsg);
-
-        res.ErrorID                 := fbMoveAbsolute1.ErrorID;
-
-        nState                      := 99;
       END_IF
     END_IF
 END_CASE
 CASE nState OF
   20:
     fbMoveAbsolute1(Axis            := _AxisRef);
-    fbMoveAbsolute2(Axis            := _AxisRef);
+
+    fbMoveAbsolute2(Axis            := _AxisRef, 
+                      Execute       := FALSE);
 
     res.Active                      := TRUE;
 
@@ -1031,13 +1051,29 @@ CASE nState OF
 
     ELSIF (Position <> fUsedPos)
     THEN
-      fUsedPos                      := Position;
-
       fbMoveAbsolute1(Axis          := _AxisRef, 
-                      Execute       := FALSE);
+                    Execute         := FALSE); 
 
+      nState                        := 30;
 
-      fbMoveAbsolute2(Axis          := _AxisRef, 
+      stMsg.eType                   := E_MessageType.eMessageInfo;
+      stMsg.eDevice                 := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
+      stMsg.eSubdevice              :=  e_SubDevice.fbMoveAbsolute2;
+      stMsg.iErrorNumber            := nState;
+      stMsg.sText                   := concat('Pos changed: ', TO_STRING(fUsedPos));
+      stMsg.sText                   := concat(stMsg.sText, ' to ');
+      stMsg.sText                   := concat(stMsg.sText, TO_STRING(Position));
+
+      f_MessageSet(stMsg);
+      MsgAdd(stMsg);
+
+      fUsedPos                      := Position;
+    END_IF
+END_CASE
+CASE nState OF
+  30:
+    eState                          := e_AxisFunction.AXIS_ACK;
+    fbMoveAbsolute2(  Axis          := _AxisRef, 
                       Execute       := TRUE,
                       Position      := fUsedPos, 
                       Velocity      := fUsedVel, 
@@ -1046,37 +1082,45 @@ CASE nState OF
                       Jerk          := fUsedJrk, 
                       BufferMode    := BufferMode);
 
-      nState                        := 30;
-    END_IF
-END_CASE
-CASE nState OF
-  30:
-    fbMoveAbsolute1(Axis            := _AxisRef);
-    fbMoveAbsolute2(Axis            := _AxisRef);
+      fbMoveAbsolute1(Axis          := _AxisRef, 
+                      Execute       := FALSE);
 
-    IF fbMoveAbsolute2.Busy OR
-       fbMoveAbsolute2.Done
+    IF fbMoveAbsolute2.Error
     THEN
-      nState                        := 40;
-    ELSE
-      IF fbMoveAbsolute2.Error
+      stMsg.eType                 := E_MessageType.eMessageError;
+      stMsg.eDevice               := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
+      stMsg.eSubdevice            :=  e_SubDevice.fbMoveAbsolute2;
+      stMsg.iErrorNumber          := fbMoveAbsolute2.ErrorID;
+      stMsg.sText                 := '';
+      f_MessageSet(stMsg);
+      MsgAdd(stMsg);
+
+      res.ErrorID                 := fbMoveAbsolute2.ErrorID;
+
+      nState                      := 99;
+
+
+    ELSIF fbMoveAbsolute2.Busy OR
+          fbMoveAbsolute2.Done
+    THEN
+      IF fbMoveAbsolute2.Active
       THEN
-        stMsg.eType                 := E_MessageType.eMessageError;
+        nState                      := 40;
+        stMsg.eType                 := E_MessageType.eMessageInfo;
         stMsg.eDevice               := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
         stMsg.eSubdevice            :=  e_SubDevice.fbMoveAbsolute2;
-        stMsg.iErrorNumber          := fbMoveAbsolute2.ErrorID;
+        stMsg.iErrorNumber          := nState;
+        stMsg.sText                 := concat('MoveBuffer work: ', TO_STRING(fUsedPos));
         f_MessageSet(stMsg);
         MsgAdd(stMsg);
-
-        res.ErrorID                 := fbMoveAbsolute2.ErrorID;
-
-        nState                      := 99;
       END_IF
     END_IF
 END_CASE
 CASE nState OF
   40:
-    fbMoveAbsolute1(Axis            := _AxisRef);
+    fbMoveAbsolute1(Axis            := _AxisRef, 
+                    Execute         := FALSE);
+
     fbMoveAbsolute2(Axis            := _AxisRef);
 
     res.Active                      := TRUE;
@@ -1087,6 +1131,7 @@ CASE nState OF
       stMsg.eDevice                 := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
       stMsg.eSubdevice              :=  e_SubDevice.fbMoveAbsolute2;
       stMsg.iErrorNumber            := fbMoveAbsolute2.ErrorID;
+      stMsg.sText                   := '';
       f_MessageSet(stMsg);
       MsgAdd(stMsg);
 
@@ -1096,22 +1141,39 @@ CASE nState OF
 
     ELSIF (Position <> fUsedPos)
     THEN
-      fUsedPos                      := Position;
-
       fbMoveAbsolute2(Axis          := _AxisRef, 
                       Execute       := FALSE);
 
       nState                        := 10;
+
+      stMsg.eType                   := E_MessageType.eMessageInfo;
+      stMsg.eDevice                 := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
+      stMsg.eSubdevice              :=  e_SubDevice.fbMoveAbsolute1;
+      stMsg.iErrorNumber            := nState;
+      stMsg.sText                   := concat('Pos changed: ', TO_STRING(fUsedPos));
+      stMsg.sText                   := concat(stMsg.sText, ' to ');
+      stMsg.sText                   := concat(stMsg.sText, TO_STRING(Position));
+      f_MessageSet(stMsg);
+      MsgAdd(stMsg);
+
+      fUsedPos                      := Position;
     END_IF
 END_CASE
 CASE nState OF
   99:
     res.Busy                        := FALSE;
     res.Error                       := TRUE;
+    fbMoveAbsolute1(Axis            := _AxisRef, 
+                    Execute         := FALSE);
+  
+    fbMoveAbsolute2(Axis            := _AxisRef, 
+                    Execute         := FALSE);
 END_CASE
 
 IF NOT Enable
 THEN
+  eState                        := e_AxisFunction.AXIS_DISABLE;
+  fUsedPos                      := 0.0;
   memset(ADR(res),0,SIZEOF(res));
 
   fbMoveAbsolute1(Axis          := _AxisRef, 
@@ -1119,11 +1181,12 @@ THEN
 
   fbMoveAbsolute2(Axis          := _AxisRef, 
                   Execute       := FALSE);
- 
+
   nState                        := 0;
 END_IF
 
-MoveAbsolute := res;
+fActivePosition                 := fUsedPos;
+MoveAbsolute                    := res;
 ]]></ST>
       </Implementation>
     </Method>
@@ -1388,6 +1451,10 @@ VAR_INPUT
                     If the command is applied to a coupled slave axis used, the only available buffer mode is Aborting. '}
   BufferMode  : Tc2_MC2.MC_BufferMode;
 END_VAR
+VAR_IN_OUT
+  fActiveVelocity   : LREAL;
+  eState            : e_AxisFunction;
+END_VAR
 VAR_INST
   res       : Tc2_MC2.ST_McOutputs;
   nState    : DINT;
@@ -1399,9 +1466,10 @@ VAR_INST
 END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[// Select Default values of dynamic parameter if 0 is specified
-fUsedAcc := SEL((Acceleration = 0), Acceleration,   stDefaultAcceleration.fValue);
-fUsedDec := SEL((Deceleration = 0), Deceleration,   stDefaultDeceleration.fValue);
-fUsedJrk := SEL((Jerk = 0),         Jerk,           stDefaultJerk.fValue);
+fUsedVel := Velocity;
+fUsedAcc := Acceleration;
+fUsedDec := Deceleration;
+fUsedJrk := Jerk;
 
 CASE nState OF
   0:
@@ -1435,6 +1503,7 @@ CASE nState OF
 END_CASE
 CASE nState OF
   10:
+    eState                          := AXIS_BUSY;
     fbMoveVelocity1(Axis            := _AxisRef, 
                     Execute         := TRUE, 
                     Velocity        := fUsedVel, 
@@ -1458,7 +1527,7 @@ CASE nState OF
 
       nState                        := 99;
 
-    ELSIF fbMoveVelocity1.InVelocity
+    ELSIF fbMoveVelocity1.Active
     THEN
       res.Active                    := TRUE;
       nState                        := 20;
@@ -1491,6 +1560,9 @@ CASE nState OF
 
       fUsedVel                      := SEL((Velocity < 0.01),Velocity, fDefaultVelocity);
 
+    fbMoveVelocity1(Axis            := _AxisRef, 
+                    Execute         := FALSE);
+
       fbMoveVelocity2(Axis          := _AxisRef, 
                       Execute       := TRUE, 
                       Velocity      := fUsedVel, 
@@ -1505,6 +1577,7 @@ CASE nState OF
 END_CASE
 CASE nState OF
   30:
+    eState                          := AXIS_ACK;
     fbMoveVelocity1(Axis            := _AxisRef);
     fbMoveVelocity2(Axis            := _AxisRef);
 
@@ -1553,6 +1626,8 @@ CASE nState OF
     ELSIF (Velocity <> fUsedVel)
     THEN
       nState                        := 10;
+      fbMoveVelocity2(Axis          := _AxisRef, 
+                    Execute         := FALSE);
     END_IF
 END_CASE
 
@@ -1566,6 +1641,8 @@ END_CASE
 
 IF NOT Enable
 THEN
+  eState                            := AXIS_DISABLE;
+  fUsedVel                          := 0.0;
   memset(ADR(res),0,SIZEOF(res));
   fbMoveVelocity1(Axis              := _AxisRef, 
                   Execute           := FALSE);
@@ -1576,6 +1653,7 @@ THEN
   nState                            := 0;
 END_IF
 
+fActiveVelocity := fUsedVel;
 MoveVelocity := res;
 ]]></ST>
       </Implementation>
@@ -2274,7 +2352,7 @@ WriteParameter := res;]]></ST>
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_McPtpAxis.ErrorReset">
-      <LineId Id="257" Count="67" />
+      <LineId Id="335" Count="67" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_McPtpAxis.FeedEnable_Negative.Get">
@@ -2376,115 +2454,81 @@ WriteParameter := res;]]></ST>
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_McPtpAxis.MoveAbsolute">
-      <LineId Id="312" Count="4" />
-      <LineId Id="322" Count="0" />
-      <LineId Id="626" Count="0" />
-      <LineId Id="323" Count="2" />
-      <LineId Id="625" Count="0" />
-      <LineId Id="326" Count="1" />
-      <LineId Id="333" Count="0" />
-      <LineId Id="336" Count="1" />
-      <LineId Id="340" Count="1" />
-      <LineId Id="387" Count="0" />
-      <LineId Id="627" Count="0" />
-      <LineId Id="390" Count="0" />
-      <LineId Id="628" Count="0" />
-      <LineId Id="764" Count="0" />
-      <LineId Id="407" Count="0" />
-      <LineId Id="629" Count="0" />
-      <LineId Id="765" Count="0" />
-      <LineId Id="339" Count="0" />
-      <LineId Id="338" Count="0" />
-      <LineId Id="332" Count="0" />
-      <LineId Id="383" Count="0" />
-      <LineId Id="385" Count="0" />
-      <LineId Id="419" Count="0" />
-      <LineId Id="421" Count="0" />
-      <LineId Id="766" Count="0" />
-      <LineId Id="422" Count="4" />
-      <LineId Id="630" Count="0" />
-      <LineId Id="427" Count="0" />
-      <LineId Id="434" Count="0" />
-      <LineId Id="631" Count="0" />
-      <LineId Id="435" Count="0" />
-      <LineId Id="574" Count="0" />
-      <LineId Id="437" Count="2" />
-      <LineId Id="441" Count="1" />
-      <LineId Id="447" Count="3" />
-      <LineId Id="452" Count="1" />
-      <LineId Id="713" Count="0" />
-      <LineId Id="712" Count="0" />
-      <LineId Id="635" Count="0" />
-      <LineId Id="454" Count="0" />
-      <LineId Id="443" Count="0" />
-      <LineId Id="440" Count="0" />
-      <LineId Id="384" Count="0" />
-      <LineId Id="455" Count="0" />
-      <LineId Id="457" Count="0" />
-      <LineId Id="578" Count="1" />
-      <LineId Id="647" Count="0" />
-      <LineId Id="473" Count="0" />
-      <LineId Id="636" Count="0" />
-      <LineId Id="702" Count="7" />
-      <LineId Id="715" Count="0" />
-      <LineId Id="714" Count="0" />
-      <LineId Id="710" Count="1" />
-      <LineId Id="701" Count="0" />
-      <LineId Id="458" Count="1" />
-      <LineId Id="470" Count="0" />
-      <LineId Id="760" Count="1" />
-      <LineId Id="758" Count="1" />
-      <LineId Id="637" Count="0" />
-      <LineId Id="461" Count="0" />
-      <LineId Id="463" Count="0" />
-      <LineId Id="469" Count="0" />
-      <LineId Id="464" Count="3" />
-      <LineId Id="541" Count="0" />
-      <LineId Id="638" Count="0" />
-      <LineId Id="471" Count="1" />
-      <LineId Id="456" Count="0" />
-      <LineId Id="474" Count="0" />
-      <LineId Id="492" Count="0" />
-      <LineId Id="575" Count="1" />
-      <LineId Id="639" Count="0" />
-      <LineId Id="552" Count="0" />
-      <LineId Id="580" Count="1" />
-      <LineId Id="554" Count="3" />
-      <LineId Id="560" Count="5" />
-      <LineId Id="716" Count="1" />
-      <LineId Id="640" Count="0" />
-      <LineId Id="566" Count="2" />
-      <LineId Id="586" Count="0" />
-      <LineId Id="571" Count="0" />
-      <LineId Id="551" Count="0" />
-      <LineId Id="572" Count="1" />
-      <LineId Id="641" Count="0" />
-      <LineId Id="477" Count="0" />
-      <LineId Id="690" Count="0" />
-      <LineId Id="689" Count="0" />
-      <LineId Id="691" Count="0" />
-      <LineId Id="693" Count="5" />
-      <LineId Id="719" Count="0" />
-      <LineId Id="718" Count="0" />
-      <LineId Id="699" Count="1" />
-      <LineId Id="642" Count="0" />
-      <LineId Id="478" Count="2" />
-      <LineId Id="643" Count="0" />
-      <LineId Id="762" Count="1" />
-      <LineId Id="644" Count="0" />
-      <LineId Id="490" Count="1" />
-      <LineId Id="475" Count="0" />
-      <LineId Id="495" Count="1" />
-      <LineId Id="633" Count="1" />
-      <LineId Id="342" Count="0" />
-      <LineId Id="521" Count="3" />
-      <LineId Id="650" Count="0" />
-      <LineId Id="525" Count="1" />
-      <LineId Id="648" Count="0" />
-      <LineId Id="527" Count="1" />
-      <LineId Id="649" Count="0" />
-      <LineId Id="529" Count="2" />
-      <LineId Id="519" Count="0" />
+      <LineId Id="797" Count="6" />
+      <LineId Id="809" Count="8" />
+      <LineId Id="825" Count="0" />
+      <LineId Id="1117" Count="2" />
+      <LineId Id="1183" Count="0" />
+      <LineId Id="834" Count="1" />
+      <LineId Id="838" Count="6" />
+      <LineId Id="846" Count="3" />
+      <LineId Id="1154" Count="0" />
+      <LineId Id="850" Count="1" />
+      <LineId Id="1115" Count="0" />
+      <LineId Id="852" Count="4" />
+      <LineId Id="1266" Count="3" />
+      <LineId Id="1158" Count="11" />
+      <LineId Id="857" Count="0" />
+      <LineId Id="866" Count="2" />
+      <LineId Id="1307" Count="1" />
+      <LineId Id="869" Count="0" />
+      <LineId Id="872" Count="6" />
+      <LineId Id="1309" Count="0" />
+      <LineId Id="894" Count="4" />
+      <LineId Id="1273" Count="2" />
+      <LineId Id="900" Count="17" />
+      <LineId Id="1111" Count="1" />
+      <LineId Id="1110" Count="0" />
+      <LineId Id="929" Count="0" />
+      <LineId Id="1400" Count="0" />
+      <LineId Id="932" Count="3" />
+      <LineId Id="1097" Count="0" />
+      <LineId Id="1114" Count="0" />
+      <LineId Id="1098" Count="0" />
+      <LineId Id="1096" Count="0" />
+      <LineId Id="937" Count="1" />
+      <LineId Id="1401" Count="0" />
+      <LineId Id="1100" Count="0" />
+      <LineId Id="940" Count="3" />
+      <LineId Id="1155" Count="0" />
+      <LineId Id="1102" Count="7" />
+      <LineId Id="1279" Count="3" />
+      <LineId Id="1171" Count="5" />
+      <LineId Id="1285" Count="0" />
+      <LineId Id="1177" Count="5" />
+      <LineId Id="1140" Count="0" />
+      <LineId Id="1101" Count="0" />
+      <LineId Id="947" Count="2" />
+      <LineId Id="1354" Count="1" />
+      <LineId Id="950" Count="0" />
+      <LineId Id="953" Count="6" />
+      <LineId Id="1356" Count="0" />
+      <LineId Id="975" Count="3" />
+      <LineId Id="1403" Count="1" />
+      <LineId Id="1402" Count="0" />
+      <LineId Id="980" Count="9" />
+      <LineId Id="1264" Count="0" />
+      <LineId Id="990" Count="8" />
+      <LineId Id="1086" Count="1" />
+      <LineId Id="1085" Count="0" />
+      <LineId Id="1010" Count="0" />
+      <LineId Id="1406" Count="0" />
+      <LineId Id="1013" Count="4" />
+      <LineId Id="1113" Count="0" />
+      <LineId Id="1089" Count="0" />
+      <LineId Id="1018" Count="1" />
+      <LineId Id="1405" Count="0" />
+      <LineId Id="1088" Count="0" />
+      <LineId Id="1021" Count="5" />
+      <LineId Id="1091" Count="4" />
+      <LineId Id="1027" Count="3" />
+      <LineId Id="1153" Count="0" />
+      <LineId Id="1151" Count="0" />
+      <LineId Id="1031" Count="6" />
+      <LineId Id="1304" Count="0" />
+      <LineId Id="1039" Count="1" />
+      <LineId Id="1150" Count="0" />
+      <LineId Id="1041" Count="1" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_McPtpAxis.MoveEndless">
@@ -2594,98 +2638,21 @@ WriteParameter := res;]]></ST>
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_McPtpAxis.MoveVelocity">
-      <LineId Id="274" Count="0" />
-      <LineId Id="276" Count="4" />
-      <LineId Id="283" Count="0" />
-      <LineId Id="285" Count="2" />
-      <LineId Id="550" Count="0" />
-      <LineId Id="288" Count="0" />
-      <LineId Id="551" Count="0" />
-      <LineId Id="316" Count="0" />
-      <LineId Id="552" Count="0" />
-      <LineId Id="289" Count="0" />
-      <LineId Id="291" Count="6" />
-      <LineId Id="553" Count="0" />
-      <LineId Id="307" Count="0" />
-      <LineId Id="309" Count="0" />
-      <LineId Id="311" Count="4" />
-      <LineId Id="554" Count="0" />
-      <LineId Id="282" Count="0" />
-      <LineId Id="298" Count="0" />
-      <LineId Id="281" Count="0" />
-      <LineId Id="299" Count="0" />
-      <LineId Id="301" Count="0" />
-      <LineId Id="317" Count="0" />
-      <LineId Id="319" Count="6" />
-      <LineId Id="497" Count="0" />
-      <LineId Id="342" Count="1" />
-      <LineId Id="346" Count="3" />
-      <LineId Id="555" Count="0" />
-      <LineId Id="350" Count="1" />
-      <LineId Id="611" Count="1" />
-      <LineId Id="556" Count="0" />
-      <LineId Id="352" Count="0" />
-      <LineId Id="604" Count="1" />
-      <LineId Id="607" Count="3" />
-      <LineId Id="24" Count="0" />
-      <LineId Id="303" Count="0" />
-      <LineId Id="355" Count="0" />
-      <LineId Id="358" Count="0" />
-      <LineId Id="357" Count="0" />
-      <LineId Id="503" Count="0" />
-      <LineId Id="359" Count="0" />
-      <LineId Id="613" Count="0" />
-      <LineId Id="615" Count="12" />
-      <LineId Id="614" Count="0" />
-      <LineId Id="502" Count="0" />
-      <LineId Id="360" Count="0" />
-      <LineId Id="363" Count="0" />
-      <LineId Id="558" Count="0" />
-      <LineId Id="364" Count="0" />
-      <LineId Id="557" Count="0" />
-      <LineId Id="366" Count="0" />
-      <LineId Id="368" Count="6" />
-      <LineId Id="559" Count="0" />
-      <LineId Id="375" Count="1" />
-      <LineId Id="354" Count="0" />
-      <LineId Id="377" Count="0" />
-      <LineId Id="379" Count="0" />
-      <LineId Id="381" Count="1" />
-      <LineId Id="505" Count="0" />
-      <LineId Id="383" Count="0" />
-      <LineId Id="506" Count="0" />
-      <LineId Id="391" Count="1" />
-      <LineId Id="396" Count="3" />
-      <LineId Id="560" Count="0" />
-      <LineId Id="400" Count="1" />
-      <LineId Id="635" Count="0" />
-      <LineId Id="561" Count="0" />
-      <LineId Id="636" Count="0" />
-      <LineId Id="402" Count="0" />
-      <LineId Id="634" Count="0" />
-      <LineId Id="629" Count="0" />
-      <LineId Id="631" Count="2" />
-      <LineId Id="378" Count="0" />
-      <LineId Id="404" Count="3" />
-      <LineId Id="511" Count="0" />
-      <LineId Id="408" Count="0" />
-      <LineId Id="637" Count="0" />
-      <LineId Id="639" Count="12" />
-      <LineId Id="510" Count="0" />
-      <LineId Id="409" Count="1" />
-      <LineId Id="421" Count="1" />
-      <LineId Id="304" Count="0" />
-      <LineId Id="434" Count="2" />
-      <LineId Id="498" Count="2" />
-      <LineId Id="433" Count="0" />
-      <LineId Id="448" Count="0" />
-      <LineId Id="504" Count="0" />
-      <LineId Id="449" Count="4" />
-      <LineId Id="562" Count="0" />
-      <LineId Id="454" Count="1" />
-      <LineId Id="563" Count="0" />
-      <LineId Id="456" Count="2" />
-      <LineId Id="447" Count="0" />
+      <LineId Id="736" Count="0" />
+      <LineId Id="926" Count="3" />
+      <LineId Id="740" Count="32" />
+      <LineId Id="919" Count="0" />
+      <LineId Id="773" Count="54" />
+      <LineId Id="922" Count="1" />
+      <LineId Id="921" Count="0" />
+      <LineId Id="828" Count="14" />
+      <LineId Id="920" Count="0" />
+      <LineId Id="843" Count="47" />
+      <LineId Id="925" Count="0" />
+      <LineId Id="924" Count="0" />
+      <LineId Id="891" Count="12" />
+      <LineId Id="918" Count="0" />
+      <LineId Id="904" Count="12" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_McPtpAxis.MsgAdd">

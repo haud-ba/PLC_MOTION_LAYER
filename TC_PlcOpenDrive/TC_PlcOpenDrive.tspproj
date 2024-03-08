@@ -2,7 +2,7 @@
 <TcSmProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.beckhoff.com/schemas/2012/07/TcSmProject" TcSmVersion="1.0" TcVersion="3.1.4024.53">
 	<Project ProjectGUID="{368BB218-2711-4976-B429-449CBEEE0E2A}" TargetNetId="5.36.135.86.1.1" Target64Bit="true" ShowHideConfigurations="#x306">
 		<Plc>
-			<Project GUID="{9A466D1B-8AFD-4609-BC47-2BC8BB136E79}" Name="PLC_OPEN_DRIVE" PrjFilePath="PLC_OPEN_DRIVE\PLC_OPEN_DRIVE.plcproj" TmcFilePath="PLC_OPEN_DRIVE\PLC_OPEN_DRIVE.tmc" ReloadTmc="true" AmsPort="851" FileArchiveSettings="#x0002"/>
+			<Project GUID="{9A466D1B-8AFD-4609-BC47-2BC8BB136E79}" Name="PLC_OPEN_DRIVE" PrjFilePath="PLC_OPEN_DRIVE\PLC_OPEN_DRIVE.plcproj" TmcFilePath="PLC_OPEN_DRIVE\PLC_OPEN_DRIVE.tmc" CompilerDefines="CAM, NCI" ReloadTmc="true" AmsPort="851" FileArchiveSettings="#x0002"/>
 		</Plc>
 	</Project>
 </TcSmProject>

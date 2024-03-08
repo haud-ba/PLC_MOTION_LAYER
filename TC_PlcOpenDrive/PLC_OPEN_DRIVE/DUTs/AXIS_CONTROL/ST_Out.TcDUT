@@ -25,6 +25,8 @@ STRUCT
   rActVelo            : LREAL;
   rPosDiff            : LREAL;
 
+  rSetPos             : LREAL;
+
   // HAUD
   // 2023 04 05
   dwCoupleState       : DWORD;   // cyclic information about axis couple state
