@@ -1,0 +1,58 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="MAPPING_in" Id="{673206f5-850b-0895-171f-da3d29a7713d}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM MAPPING_in
+VAR CONSTANT
+{IF defined (AXIS_MAP)}
+  {info 'MAPPING_in - ACTIVE'}
+  bBypassMapping    : BOOL  := FALSE;
+{ELSE}
+  bBypassMapping    : BOOL  := TRUE;
+{END_IF}
+END_VAR
+VAR
+  AxisCTrl              : U_AXIS_CTRL;
+  AxisMotionOptions     : U_AXIS_MOTION_OPTIONS;
+
+  AxisGearInData        : U_AXIS_GEAR_IN;
+  AxisGearInMultiMaster : U_AXIS_GEAR_IN_MULTIMASTER;
+  AxisHoming            : U_AXIS_HOMING;
+  AxisParameterWrt      : U_AXIS_NC_PARAMETER;
+
+  nAxis                 : INT;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF bBypassMapping THEN RETURN; END_IF
+
+
+FOR nAxis := 1 TO GVL_AXIS_CTRL.gciMaxAxis
+DO
+  memcpy(ADR(GVL_AXIS_CTRL.gstAxisControl[nAxis].ToPlc),  ADR(AxisCtrl.stCtrl[nAxis]),          SIZEOF(ST_In));
+  memcpy(ADR(GVL_AXIS_CTRL.gstMotionOptions[nAxis]),      ADR(AxisMotionOptions.stCtrl[nAxis]), SIZEOF(ST_MotionOptions));
+  memcpy(ADR(GVL_AXIS_CTRL.gstAxisGearParam[nAxis]),      ADR(AxisGearInData.stCtrl[nAxis]),    SIZEOF(ST_GearIn));
+  memcpy(ADR(GVL_AXIS_CTRL.gstHomeParam[nAxis]),          ADR(AxisHoming.stCtrl[nAxis]),        SIZEOF(ST_HomeParams));
+
+  GVL_AXIS_CTRL.gstAxisParam[nAxis].bRead             := AxisParameterWrt.stState[nAxis].bRead;
+  GVL_AXIS_CTRL.gstAxisParam[nAxis].bWrite            := AxisParameterWrt.stState[nAxis].bWrite;
+  GVL_AXIS_CTRL.gstAxisParam[nAxis].ParameterNumber   := AxisParameterWrt.stState[nAxis].ParameterNumber;
+  GVL_AXIS_CTRL.gstAxisParam[nAxis].rValueWrite       := AxisParameterWrt.stState[nAxis].rValueWrite;
+END_FOR
+]]></ST>
+    </Implementation>
+    <LineIds Name="MAPPING_in">
+      <LineId Id="5" Count="0" />
+      <LineId Id="54" Count="0" />
+      <LineId Id="104" Count="2" />
+      <LineId Id="108" Count="0" />
+      <LineId Id="116" Count="1" />
+      <LineId Id="119" Count="0" />
+      <LineId Id="125" Count="0" />
+      <LineId Id="123" Count="0" />
+      <LineId Id="109" Count="1" />
+      <LineId Id="112" Count="0" />
+      <LineId Id="107" Count="0" />
+      <LineId Id="13" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

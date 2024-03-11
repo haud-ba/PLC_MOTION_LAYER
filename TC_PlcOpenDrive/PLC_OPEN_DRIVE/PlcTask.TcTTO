@@ -1,14 +1,20 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.9">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
   <Task Name="PlcTask" Id="{2056b239-578c-4212-83ad-51951cc1bead}">
     <!--CycleTime in micro seconds.-->
     <CycleTime>1000</CycleTime>
     <Priority>20</Priority>
     <PouCall>
+      <Name>MAPPING_in</Name>
+    </PouCall>
+    <PouCall>
       <Name>MAIN</Name>
     </PouCall>
     <PouCall>
       <Name>NCI</Name>
+    </PouCall>
+    <PouCall>
+      <Name>MAPPING_out</Name>
     </PouCall>
     <TaskFBGuid>{4b1e985f-bf5d-42bd-8a7b-ac895c325e26}</TaskFBGuid>
     <Fb_init>{40f7c5a5-b0ff-43ec-bf2b-bebb3c7ccc92}</Fb_init>

@@ -18,9 +18,9 @@
     <LibraryReferences>{ff26b307-1ac0-40be-ba24-df54548edd9a}</LibraryReferences>
     <Released>false</Released>
     <Title>PLC_STATE_DRIVE</Title>
-    <ProjectVersion>00.01.01</ProjectVersion>
+    <ProjectVersion>01.00.01</ProjectVersion>
     <Author>D. Hauer</Author>
-    <Description>MCPtP, NCI, Camming execution layer</Description>
+    <Description>MC-PtP, NCI, Camming execution layer</Description>
     <CompilerDefines />
   </PropertyGroup>
   <ItemGroup>

@@ -16,7 +16,7 @@
     <CombineIds>true</CombineIds>
     <Released>false</Released>
     <Title>PlcOpenDrive</Title>
-    <ProjectVersion>00.34</ProjectVersion>
+    <ProjectVersion>00.50.3</ProjectVersion>
     <DeploymentEvents>
       <Events xmlns="">
         <Event>
@@ -29,7 +29,7 @@
     </DeploymentEvents>
     <CompilerVersion>3.1.4024.0</CompilerVersion>
     <Author>D.Hauer</Author>
-    <Description>Achs Controller für externe Ansteuerung
+    <Description>MotionControl Achs Controller für externe Ansteuerung; 
 NCI implementation</Description>
     <CompilerDefines />
   </PropertyGroup>
@@ -71,6 +71,30 @@ NCI implementation</Description>
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="DUTs\AXIS_CONTROL\ST_Out.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DUTs\MAPPING\U_AXIS_CTRL.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DUTs\MAPPING\U_AXIS_GEAR_IN.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DUTs\MAPPING\U_AXIS_GEAR_IN_MULTIMASTER.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DUTs\MAPPING\U_AXIS_HOMING.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DUTs\MAPPING\U_AXIS_INFO.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DUTs\MAPPING\U_AXIS_MOTION_OPTIONS.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DUTs\MAPPING\U_AXIS_NC_PARAMETER.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DUTs\MAPPING\U_AXIS_STATE.TcDUT">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="DUTs\MESSAGE\e_Device.TcDUT">
@@ -165,6 +189,12 @@ NCI implementation</Description>
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="POUs\MAIN.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="POUs\MAPPING\MAPPING_in.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="POUs\MAPPING\MAPPING_out.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="POUs\MSG\fb_WriteData.TcPOU">
@@ -277,6 +307,7 @@ NCI implementation</Description>
     <Folder Include="DUTs\NC_AXIS" />
     <Folder Include="DUTs\AXIS_CONTROL" />
     <Folder Include="DUTs\MESSAGE" />
+    <Folder Include="DUTs\MAPPING" />
     <Folder Include="GVLs" />
     <Folder Include="DOC" />
     <Folder Include="POUs\Functions" />
@@ -285,6 +316,7 @@ NCI implementation</Description>
     </Folder>
     <Folder Include="POUs\NC_AXIS" />
     <Folder Include="POUs\MSG" />
+    <Folder Include="POUs\MAPPING" />
     <Folder Include="POUs\_FunctionBlocks" />
     <Folder Include="POUs" />
     <Folder Include="POUs\_FunctionBlocks\cam" />

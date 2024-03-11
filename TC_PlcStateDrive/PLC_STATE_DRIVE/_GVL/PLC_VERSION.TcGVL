@@ -3,7 +3,20 @@
   <GVL Name="PLC_VERSION" Id="{d2395695-97e2-030c-1191-ad6e09085440}">
     <Declaration><![CDATA[{attribute 'qualified_only'}
 VAR_GLOBAL CONSTANT
-  VERSION               : STRING := 'V 00.50.04';
+  VERSION               : STRING := 'V 01.00.01';
+
+  // 2024 03 09 HAUD
+  // 
+  // V 01.00.01
+  // MC PtP - execution layer with optional mapping
+  // NCI    - execution layer with optional mapping
+  // CAM    . execution layer with optional mapping
+  // precompiler defines: 
+  //  - WIN: windows file system is used else Tc-BSD file system is used
+  //  - NCI: NCI libraries are linked in project
+  //  - CAM: Camming libraries are linked in project
+  //  - AXIS_MAP: mapping is used
+
 
   // 2024 02 15 HAUD
   // 

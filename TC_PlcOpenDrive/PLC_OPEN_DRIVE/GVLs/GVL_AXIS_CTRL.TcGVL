@@ -287,9 +287,14 @@ VAR_GLOBAL CONSTANT
 // buffered move
 // message handling
 
+// V00.50.3
+// HAUD
+// 11.03.2024
+// AXIS_MAP pragma through dedicated PRG (in/out)
 
 
-  Version           : STRING := 'V 00.50.2';
+
+  Version           : STRING := 'V 00.50.3';
 END_VAR
 VAR_GLOBAL
 
@@ -297,26 +302,14 @@ VAR_GLOBAL
   gstAxisControl    : ARRAY[1..gciMaxAxis] OF ST_AxisController;  // structure for cyclic interface
 
 
-{IF defined (AXIS_MAP)}
-  {info 'TEST ST_AxisController'}
-  gstAxisParam                 AT %I* : ARRAY[1..gciMaxAxis] OF ST_NcParam;         // R/W struct for a single parameter
-  gstHomeParam                 AT %I* : ARRAY[1..gciMaxAxis] OF ST_HomeParams;      // homing parameter for each axis
+  gstAxisParam                  : ARRAY[1..gciMaxAxis] OF ST_NcParam;         // R/W struct for a single parameter
+  gstHomeParam                  : ARRAY[1..gciMaxAxis] OF ST_HomeParams;      // homing parameter for each axis
 
-  gstAxisCamParam              AT %I* : ARRAY[1..gciMaxAxis] OF ST_CamIn;
-  gstAxisGearParam             AT %I* : ARRAY[1..gciMaxAxis] OF ST_GearIn;
-  gstAxisGearMultiMasterParam  AT %I* : ARRAY[1..gciMaxAxis] OF ST_GearInMultiMaster;
+  gstAxisCamParam               : ARRAY[1..gciMaxAxis] OF ST_CamIn;
+  gstAxisGearParam              : ARRAY[1..gciMaxAxis] OF ST_GearIn;
+  gstAxisGearMultiMasterParam   : ARRAY[1..gciMaxAxis] OF ST_GearInMultiMaster;
 
-  gstMotionOptions             AT %I* : ARRAY[1..gciMaxAxis] OF ST_MotionOptions;
-{ELSE}
-  gstAxisParam                        : ARRAY[1..gciMaxAxis] OF ST_NcParam;         // R/W struct for a single parameter
-  gstHomeParam                        : ARRAY[1..gciMaxAxis] OF ST_HomeParams;      // homing parameter for each axis
-
-  gstAxisCamParam                     : ARRAY[1..gciMaxAxis] OF ST_CamIn;
-  gstAxisGearParam                    : ARRAY[1..gciMaxAxis] OF ST_GearIn;
-  gstAxisGearMultiMasterParam         : ARRAY[1..gciMaxAxis] OF ST_GearInMultiMaster;
-
-  gstMotionOptions                    : ARRAY[1..gciMaxAxis] OF ST_MotionOptions;
-{END_IF}
+  gstMotionOptions              : ARRAY[1..gciMaxAxis] OF ST_MotionOptions;
 
   // diag data
   gbyAxisIdxGearIn              : ARRAY[1..gciMaxAxis]      OF BYTE; // diag for Axis gear in
@@ -324,7 +317,6 @@ VAR_GLOBAL
   gbyAxisIdxGearInMultiMaster   : ARRAY[1..gciMaxAxis,1..4] OF BYTE; // diag for Axis gear in multi master
   
   gbyAxisIdxCamIn               : ARRAY[1..gciMaxAxis]      OF BYTE; // diag for Axis cam in
-
 
   gatMessages       : ARRAY[1..gciMaxMessage] OF ST_Message;
   giMsgIndex        : INT := 1;

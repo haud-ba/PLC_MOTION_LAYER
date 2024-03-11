@@ -1348,7 +1348,7 @@ CASE uiState OF
                                                    Velocity     := stCtrl.rSetVelo, 
                                                    Acceleration := stCtrl.rAcc, 
                                                    Deceleration := stCtrl.rDec, 
-                                                   Jerk         := 6000000, 
+                                                   Jerk         := 0, 
                                                    BufferMode	      := stMotionOptions.eBufferMode,
                                                    fActivePosition  := stState.rSetPos,
                                                    eState           := eBufferState);
