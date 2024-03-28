@@ -98,8 +98,12 @@ THEN
 
 
     E_PROGRESS.READY:
-      IF (nAxisInit > PLC_CONSTANT.MAX_AXIS-1)
+      IF NOT (nAxisInit > PLC_CONSTANT.MAX_AXIS-1)
       THEN
+        nAxisInit                             := nAxisInit + 1;
+        eInit                                 := E_PROGRESS.INIT;
+
+      ELSE
         bInit                                 := TRUE;
         eInit                                 := E_PROGRESS.DONE;
 
@@ -110,10 +114,6 @@ THEN
 
         stMsg.sText                           := concat('MAIN.eInit: ', TO_STRING(eInit));
         f_MessageSet(stMsg);
-
-      ELSE
-        nAxisInit                             := nAxisInit + 1;
-        eInit                                 := E_PROGRESS.INIT;
       END_IF
   END_CASE
 END_IF
@@ -223,12 +223,12 @@ END_IF
       <LineId Id="188" Count="0" />
       <LineId Id="209" Count="0" />
       <LineId Id="187" Count="0" />
-      <LineId Id="189" Count="3" />
-      <LineId Id="260" Count="7" />
+      <LineId Id="189" Count="1" />
+      <LineId Id="335" Count="1" />
       <LineId Id="258" Count="0" />
       <LineId Id="193" Count="0" />
-      <LineId Id="207" Count="0" />
-      <LineId Id="194" Count="1" />
+      <LineId Id="324" Count="9" />
+      <LineId Id="195" Count="0" />
       <LineId Id="160" Count="0" />
       <LineId Id="162" Count="0" />
       <LineId Id="164" Count="2" />

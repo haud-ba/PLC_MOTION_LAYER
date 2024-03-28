@@ -823,27 +823,28 @@ OF
 
     ELSIF (Position <> _rValue)
     THEN
-      _fbMoveAbsolute[1](
+      IF _fbMoveAbsolute[1].Active
+      THEN
+        _fbMoveAbsolute[1](
                     Axis            := _AxisRef, 
                     Execute         := FALSE);
-
-      _eState                       := E_PROGRESS.READY;
-
-      _stMsg.eType                  := E_MessageType.eMessageVerbose;
-      _stMsg.eDevice                := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
-      _stMsg.eSubdevice             :=  e_SubDevice.fbMoveAbsolute2;
-      _stMsg.iErrorNumber           := 0;
-
-      _stMsg.sText                  := concat('Position changed: ', TO_STRING(_rValue));
-      _stMsg.sText                  := concat(_stMsg.sText        , ' to ');
-      _stMsg.sText                  := concat(_stMsg.sText        , TO_STRING(Position));
-
-      f_MessageSet(_stMsg);
-
-      _rValue                       := Position;
+  
+        _eState                       := E_PROGRESS.READY;
+  
+        _stMsg.eType                  := E_MessageType.eMessageVerbose;
+        _stMsg.eDevice                := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
+        _stMsg.eSubdevice             :=  e_SubDevice.fbMoveAbsolute2;
+        _stMsg.iErrorNumber           := 0;
+  
+        _stMsg.sText                  := concat('Position changed: ', TO_STRING(_rValue));
+        _stMsg.sText                  := concat(_stMsg.sText        , ' to ');
+        _stMsg.sText                  := concat(_stMsg.sText        , TO_STRING(Position));
+  
+        f_MessageSet(_stMsg);
+  
+        _rValue                       := Position;
+      END_IF
     END_IF
-
-
 END_CASE
 CASE _eState
 OF
@@ -2688,16 +2689,11 @@ WriteParameterPersistent            := _eState;
       <LineId Id="1453" Count="0" />
       <LineId Id="1436" Count="13" />
       <LineId Id="1080" Count="1" />
-      <LineId Id="1341" Count="2" />
-      <LineId Id="1340" Count="0" />
-      <LineId Id="1083" Count="0" />
-      <LineId Id="1221" Count="6" />
-      <LineId Id="1273" Count="1" />
-      <LineId Id="1252" Count="0" />
-      <LineId Id="1220" Count="0" />
-      <LineId Id="1356" Count="0" />
-      <LineId Id="1355" Count="0" />
-      <LineId Id="1084" Count="6" />
+      <LineId Id="1530" Count="1" />
+      <LineId Id="1550" Count="2" />
+      <LineId Id="1534" Count="15" />
+      <LineId Id="1084" Count="0" />
+      <LineId Id="1087" Count="3" />
       <LineId Id="1483" Count="2" />
       <LineId Id="1482" Count="0" />
       <LineId Id="1100" Count="8" />

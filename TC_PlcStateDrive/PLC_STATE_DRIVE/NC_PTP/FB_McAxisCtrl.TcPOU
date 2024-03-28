@@ -1182,11 +1182,11 @@ CASE _eState
 OF
   E_PROGRESS.BUSY:
     _eState                 := E_PROGRESS.STARTUP;
-    _eres                   := Home(Execute   := FALSE,
+    _eres                   := Home(
+                                    Execute   := FALSE,
                                     Position  := _HomeParameter^[_nAxisIndex].stHomingParam.Position,
                                     HomingMode:= Tc2_MC2.MC_HomingMode.MC_ResetCalibration,
                                     Options   := _HomeParameter^[_nAxisIndex].stHomingParam.Options);
-
 END_CASE
 CASE _eState
 OF
@@ -2919,8 +2919,10 @@ END_VAR
       <LineId Id="740" Count="2" />
       <LineId Id="686" Count="4" />
       <LineId Id="737" Count="0" />
-      <LineId Id="733" Count="3" />
-      <LineId Id="691" Count="4" />
+      <LineId Id="733" Count="0" />
+      <LineId Id="848" Count="0" />
+      <LineId Id="734" Count="2" />
+      <LineId Id="692" Count="3" />
       <LineId Id="760" Count="1" />
       <LineId Id="746" Count="0" />
       <LineId Id="758" Count="0" />
