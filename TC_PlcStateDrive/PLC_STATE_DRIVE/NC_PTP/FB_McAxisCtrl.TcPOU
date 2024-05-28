@@ -97,80 +97,128 @@ THEN
 END_IF
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-//  execution state for command
+// Check AxisInit
 //-----------------------------------------------------------------------------
-CASE _eState
+IF NOT (_eInit = E_PROGRESS.DONE)
+THEN
+  _Info^[_nAxisIndex].bReady        := FALSE;
+ELSE
+  _Info^[_nAxisIndex].bReady        := _AxisRef.Status.ControlLoopClosed AND
+                                       (NOT _AxisRef.Status.Error)       AND 
+                                       (NOT _AxisRef.Status.Moving);
+END_IF
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//  _eAxisCycle := Cycle() is called at the top; checks MC_Power.bError
+//  MC_Power.bError requires e_AXIS_CTRL.AXIS_RESET in order to clear
+//-----------------------------------------------------------------------------
+CASE _eAxisCycle
 OF
-  E_AXIS_STATE.AXIS_INIT:
-    //-------------------------------------------------------------------------
-    // axis always requires one init from outside world at startup
-    // _eInit has to be valid for other commands to be accepted in Cmd(_eCtrl)
-    _eInit := _eResult              := AxisInit(TRUE);
+  E_PROGRESS.ERROR:
+    _eResult                        := _eAxisCycle;
+END_CASE
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//  execution result
+//-----------------------------------------------------------------------------
+CASE _eResult
+OF
+  E_PROGRESS.INVALID:
+    _State^[_nAxisIndex].eState     := TO_UINT(E_PROGRESS.ERROR);
 
-  E_AXIS_STATE.AXIS_NO_INIT:
-    //-------------------------------------------------------------------------
-    // we are here because you sent a command before having done AXIS_INIT
-    _eResult                        := E_PROGRESS.ERROR;
+  E_PROGRESS.ERROR:
+    _Info^[_nAxisIndex].bReady      := FALSE;
+    _Info^[_nAxisIndex].bError      := TRUE;
+    _Info^[_nAxisIndex].nErrorId    := ErrorId;
 
-  E_AXIS_STATE.AXIS_DISABLE:
-    _eResult                        := AxisDisable(TRUE);
+    _State^[_nAxisIndex].eState     := _eState + E_PROGRESS.ERROR;
 
-  E_AXIS_STATE.AXIS_ENABLE:
-    _eResult                        := AxisEnable(TRUE);
-
-  E_AXIS_STATE.AXIS_IDLE:
-    _eResult                        := AxisIdle(TRUE);
-
-  E_AXIS_STATE.AXIS_HOME:
-    _eResult                        := AxisHome(TRUE);
-
-  E_AXIS_STATE.AXIS_MOVE_POS:
-    _eResult                        := AxisMoveToPosition(TRUE, _Data^[_nAxisIndex]);
-
-  E_AXIS_STATE.AXIS_MOVE_VELO:
-    _eResult                        := AxisMoveVelocity(TRUE, _Data^[_nAxisIndex]);
-
-  E_AXIS_STATE.AXIS_RESET:
-    _eResult                        := AxisReset(TRUE);
-
-  E_AXIS_STATE.AXIS_HALT:
-    _eResult                        := AxisHalt(TRUE, _Data^[_nAxisIndex]);
-
-  E_AXIS_STATE.AXIS_STOP:
-    _eResult                        := AxisStop(TRUE, _Data^[_nAxisIndex]);
-
-  E_AXIS_STATE.AXIS_MOVE_BUFFER:
-    _eResult                        := AxisBufferPos(TRUE, _Data^[_nAxisIndex]);
-
-  E_AXIS_STATE.AXIS_MOVE_BUFFER_VELO:
-    _eResult                        := AxisBufferVelo(TRUE, _Data^[_nAxisIndex]);
-
-  E_AXIS_STATE.AXIS_PARAMETER_READ:
-    _eResult                        := AxisParameterRead(TRUE, _NcParameterRd^[_nAxisIndex].ParameterNumber);
-
-  E_AXIS_STATE.AXIS_PARAMETER_WRITE:
-    _eResult                        := AxisParameterWrite(TRUE, _NcParameterWrt^[_nAxisIndex].ParameterNumber);
-
-  E_AXIS_STATE.AXIS_PARAMETER_WRITE_PERSISTENT:
-    _eResult                        := AxisParameterWritePersistent(TRUE, _NcParameterWrt^[_nAxisIndex].ParameterNumber);
-
-  E_AXIS_STATE.AXIS_GEAR_IN:
-    _eResult                        := AxisGearIn(TRUE);
-
-  E_AXIS_STATE.AXIS_GEAR_OUT:
-    _eResult                        := AxisGearOut(TRUE);
-
-  E_AXIS_STATE.AXIS_GEAR_IN_MULTIMASTER:
-    _eResult                        := AxisGearInMultiMaster(TRUE);
+  E_PROGRESS.DONE:
+    _State^[_nAxisIndex].eState     := _eState + E_PROGRESS.DONE;
 
 ELSE
-  IF (_eCtrl > E_AXIS_CTRL.AXIS_NULL)
-  THEN
-    _eResult                          := E_PROGRESS.NOT_EXIST;
-    _Info^[_nAxisIndex].bError        := TRUE;
+  //-----------------------------------------------------------------------------
+  // execution state result to interface
+  //-----------------------------------------------------------------------------
+  _State^[_nAxisIndex].eState       := _eState + _eResult;
+
+  //-----------------------------------------------------------------------------
+  //-----------------------------------------------------------------------------
+  //  execution state for command
+  //-----------------------------------------------------------------------------
+  CASE _eState
+  OF
+    E_AXIS_STATE.AXIS_INIT:
+      //-------------------------------------------------------------------------
+      // axis always requires one init from outside world at startup
+      // _eInit has to be valid for other commands to be accepted in Cmd(_eCtrl)
+      _eInit := _eResult            := AxisInit(TRUE);
+  
+    E_AXIS_STATE.AXIS_NO_INIT:
+      //-------------------------------------------------------------------------
+      // we are here because you sent a command before having done AXIS_INIT
+      _eResult                      := E_PROGRESS.ERROR;
+  
+    E_AXIS_STATE.AXIS_DISABLE:
+      _eResult                      := AxisDisable(TRUE);
+  
+    E_AXIS_STATE.AXIS_ENABLE:
+      _eResult                      := AxisEnable(TRUE);
+  
+    E_AXIS_STATE.AXIS_IDLE:
+      _eResult                      := AxisIdle(TRUE);
+  
+    E_AXIS_STATE.AXIS_HOME:
+      _eResult                      := AxisHome(TRUE);
+  
+    E_AXIS_STATE.AXIS_MOVE_POS:
+      _eResult                      := AxisMoveToPosition(TRUE, _Data^[_nAxisIndex]);
+  
+    E_AXIS_STATE.AXIS_MOVE_VELO:
+      _eResult                      := AxisMoveVelocity(TRUE, _Data^[_nAxisIndex]);
+  
+    E_AXIS_STATE.AXIS_RESET:
+      _eResult                      := AxisReset(TRUE);
+  
+    E_AXIS_STATE.AXIS_HALT:
+      _eResult                      := AxisHalt(TRUE, _Data^[_nAxisIndex]);
+  
+    E_AXIS_STATE.AXIS_STOP:
+      _eResult                      := AxisStop(TRUE, _Data^[_nAxisIndex]);
+  
+    E_AXIS_STATE.AXIS_MOVE_BUFFER:
+      _eResult                      := AxisBufferPos(TRUE, _Data^[_nAxisIndex]);
+  
+    E_AXIS_STATE.AXIS_MOVE_BUFFER_VELO:
+      _eResult                      := AxisBufferVelo(TRUE, _Data^[_nAxisIndex]);
+  
+    E_AXIS_STATE.AXIS_PARAMETER_READ:
+      _eResult                      := AxisParameterRead(TRUE, _NcParameterRd^[_nAxisIndex].ParameterNumber);
+  
+    E_AXIS_STATE.AXIS_PARAMETER_WRITE:
+      _eResult                      := AxisParameterWrite(TRUE, _NcParameterWrt^[_nAxisIndex].ParameterNumber);
+  
+    E_AXIS_STATE.AXIS_PARAMETER_WRITE_PERSISTENT:
+      _eResult                      := AxisParameterWritePersistent(TRUE, _NcParameterWrt^[_nAxisIndex].ParameterNumber);
+  
+    E_AXIS_STATE.AXIS_GEAR_IN:
+      _eResult                      := AxisGearIn(TRUE);
+  
+    E_AXIS_STATE.AXIS_GEAR_OUT:
+      _eResult                      := AxisGearOut(TRUE);
+  
+    E_AXIS_STATE.AXIS_GEAR_IN_MULTIMASTER:
+      _eResult                      := AxisGearInMultiMaster(TRUE);
+  
   ELSE
-    _eResult                          := E_PROGRESS.INVALID;
-  END_IF
+    IF (_eCtrl > E_AXIS_CTRL.AXIS_NULL)
+    THEN
+      _eResult                      := E_PROGRESS.NOT_EXIST;
+      _Info^[_nAxisIndex].bError    := TRUE;
+    ELSE
+      _eResult                      := E_PROGRESS.INVALID;
+    END_IF
+  END_CASE
 END_CASE
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -184,47 +232,9 @@ THEN
   _eResultOld                       := _eResult;
 END_IF
 //-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-// Check AxisInit
-//-----------------------------------------------------------------------------
-IF NOT (_eInit = E_PROGRESS.DONE)
-THEN
-  _Info^[_nAxisIndex].bReady        := FALSE;
-ELSE
-  _Info^[_nAxisIndex].bReady        := _AxisRef.Status.ControlLoopClosed AND
-                                       (NOT _AxisRef.Status.Error)       AND 
-                                       (NOT _AxisRef.Status.Moving);
-END_IF
-//-----------------------------------------------------------------------------
-//  execution state result error
-//-----------------------------------------------------------------------------
-CASE _eResult
-OF
-  E_PROGRESS.ERROR:
-    _Info^[_nAxisIndex].bReady      := FALSE;
-    _Info^[_nAxisIndex].bError      := TRUE;
-    _Info^[_nAxisIndex].nErrorId    := ErrorId;
-END_CASE
-//-----------------------------------------------------------------------------
-// execution state result to interface
-//-----------------------------------------------------------------------------
-_State^[_nAxisIndex].eState       := _eState + _eResult;
-//-----------------------------------------------------------------------------
 // encoder type (enum)
 //-----------------------------------------------------------------------------
-_State^[_nAxisIndex].eAxisEncoder := EncoderType;
-//-----------------------------------------------------------------------------
-// _stState.[nAxisIndex].eState is overridden by MC_Power.bError
-//  _eAxisCycle := Cycle() is called at the top; checks MC_Power.bError
-//  MC_Power.bError requires e_AXIS_CTRL.AXIS_RESET in order to clear
-//-----------------------------------------------------------------------------
-CASE _eAxisCycle
-OF
-  E_PROGRESS.ERROR:
-    _Info^[_nAxisIndex].bReady      := FALSE;
-    _Info^[_nAxisIndex].bError      := TRUE;
-    _State^[_nAxisIndex].eState   := _eState + _eAxisCycle;
-END_CASE
+_State^[_nAxisIndex].eAxisEncoder   := EncoderType;
 //-----------------------------------------------------------------------------
 // Check ControlLoop
 //-----------------------------------------------------------------------------
@@ -2175,7 +2185,7 @@ OF
 ELSE
   IF (_eInit <> E_PROGRESS.DONE)
   THEN
-    _eResult                          := E_PROGRESS.INVALID;
+    _eResult                          := E_PROGRESS.INIT;
     _estate                           := E_AXIS_STATE.AXIS_NO_INIT;
   ELSE
     CASE eCmd
@@ -2652,7 +2662,28 @@ END_VAR
       </Set>
     </Property>
     <LineIds Name="FB_McAxisCtrl">
-      <LineId Id="4106" Count="193" />
+      <LineId Id="4106" Count="29" />
+      <LineId Id="4224" Count="11" />
+      <LineId Id="4474" Count="0" />
+      <LineId Id="4383" Count="0" />
+      <LineId Id="4385" Count="5" />
+      <LineId Id="4473" Count="0" />
+      <LineId Id="4394" Count="0" />
+      <LineId Id="4475" Count="0" />
+      <LineId Id="4236" Count="4" />
+      <LineId Id="4364" Count="2" />
+      <LineId Id="4373" Count="3" />
+      <LineId Id="4372" Count="0" />
+      <LineId Id="4368" Count="3" />
+      <LineId Id="4377" Count="0" />
+      <LineId Id="4363" Count="0" />
+      <LineId Id="4378" Count="3" />
+      <LineId Id="4362" Count="0" />
+      <LineId Id="4396" Count="76" />
+      <LineId Id="4245" Count="0" />
+      <LineId Id="4476" Count="10" />
+      <LineId Id="4250" Count="3" />
+      <LineId Id="4266" Count="33" />
       <LineId Id="17" Count="0" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.Axes.Set">

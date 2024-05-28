@@ -900,26 +900,34 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN Cycle := _eCycle := _eResult := E_PROGRESS.ERROR; RETURN; END_IF
+        <ST><![CDATA[
+IF NOT Check() THEN Cycle := _eCycle := _eResult := E_PROGRESS.ERROR; RETURN; END_IF
 
 ChannelDevice := e_Device.NciChannel + TO_UINT(ChnId);
-
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // cyclic data for M func from NCI interface
+//-----------------------------------------------------------------------------
 _MFuncScope^.FastMFuncMask    := _NciChannelRef^.NcToPlc.FastMFuncMask;
 _MFuncScope^.HskMFuncNo       := _NciChannelRef^.NcToPlc.HskMFuncNo;
 _MFuncScope^.HskMFuncReq      := _NciChannelRef^.NcToPlc.HskMFuncReq;
 _MFuncScope^.HFuncValue       := _NciChannelRef^.NcToPlc.HFuncValue;
 _MFuncScope^.MFuncGranted     := _NciChannelRef^.PlcToNc.MFuncGranted;
-
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // M-Func to catch
+//-----------------------------------------------------------------------------
 IF HSK 
 THEN
   _nMFunc := MFunc;
 END_IF
-
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 _eCtrl                         := _Ctrl^.eCmd;
-
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // cmd change
+//-----------------------------------------------------------------------------
 IF (_eCtrl <> _eCtrlOld)
 THEN
   LogControl();
@@ -927,9 +935,23 @@ THEN
   _eCtrlOld                   := _eCtrl;
   _eResult                    := E_PROGRESS.BUSY;
 END_IF
-
-CASE _eState
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+CASE _eResult
 OF
+  E_PROGRESS.INVALID:
+    _State^.eState            := TO_UINT(E_PROGRESS.ERROR);
+
+  E_PROGRESS.ERROR:
+    _State^.eState            := _eState + E_PROGRESS.ERROR;
+
+  E_PROGRESS.DONE:
+    _State^.eState            := _eState + E_PROGRESS.DONE;
+
+ELSE
+    _State^.eState            := _eState + _eResult;
+  CASE _eState
+  OF
   E_NCI_STATE.IDLE:
     _eResult                  := Ctrl_Idle(TRUE);
 
@@ -965,22 +987,7 @@ OF
 
   E_NCI_STATE.WRITE_R_PARA:
     _eResult                  := Ctrl_R_Parameter_Wrt(TRUE);
-END_CASE
-
-
-CASE _eResult
-OF
-  E_PROGRESS.INVALID:
-    _State^.eState            := TO_UINT(E_PROGRESS.ERROR);
-
-  E_PROGRESS.ERROR:
-    _State^.eState            := _eState + E_PROGRESS.ERROR;
-
-  E_PROGRESS.DONE:
-    _State^.eState            := _eState + E_PROGRESS.DONE;
-
-ELSE
-    _State^.eState            := _eState + _eResult;
+  END_CASE
 END_CASE
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -1236,7 +1243,26 @@ Template_1 := _eState;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.Cycle">
-      <LineId Id="3" Count="102" />
+      <LineId Id="149" Count="0" />
+      <LineId Id="3" Count="2" />
+      <LineId Id="150" Count="1" />
+      <LineId Id="7" Count="0" />
+      <LineId Id="161" Count="0" />
+      <LineId Id="8" Count="4" />
+      <LineId Id="152" Count="1" />
+      <LineId Id="14" Count="0" />
+      <LineId Id="163" Count="0" />
+      <LineId Id="15" Count="3" />
+      <LineId Id="154" Count="1" />
+      <LineId Id="20" Count="0" />
+      <LineId Id="156" Count="1" />
+      <LineId Id="22" Count="0" />
+      <LineId Id="165" Count="0" />
+      <LineId Id="23" Count="6" />
+      <LineId Id="158" Count="1" />
+      <LineId Id="71" Count="12" />
+      <LineId Id="111" Count="37" />
+      <LineId Id="84" Count="21" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.ItfChannel.Get">

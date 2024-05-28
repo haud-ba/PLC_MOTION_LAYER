@@ -1051,20 +1051,18 @@ IF NOT Check() THEN Cycle := _eCycle := _eResult := E_PROGRESS.ERROR; END_IF
 IF (_eCheck <> _eCheckOld)
 THEN
   LogCheck();
-  _eCheckOld                          := _eCheck;
+  _eCheckOld                        := _eCheck;
 END_IF
-
+//-----------------------------------------------------------------------------
 IF NOT (_eCheck = E_CHECK_STATE.CHECK_DONE)
 THEN
   RETURN;
 END_IF
-
-
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 // get command from outside world
 //-----------------------------------------------------------------------------
-_eCtrl                                := _Ctrl^[_nAxisIndex].eCtrl;
+_eCtrl                              := _Ctrl^[_nAxisIndex].eCtrl;
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //  OnChange react to command
@@ -1072,88 +1070,90 @@ _eCtrl                                := _Ctrl^[_nAxisIndex].eCtrl;
 IF (_eCtrl <> _eCtrlOld)
 THEN
   // get busy
-  _eState                             := Cmd(_eCtrl); // get execution state for command
-  _eCtrlOld                           := _eCtrl;
+  _eState                           := Cmd(_eCtrl); // get execution state for command
+  _eCtrlOld                         := _eCtrl;
   LogControl();
 END_IF
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-//  execution state for command
+//  execution result
 //-----------------------------------------------------------------------------
-CASE _eState
-OF
-  //---------------------------------------------------------------------------
-  E_AXIS_STATE.AXIS_INIT:
-    // axis always requires one init from outside world at startup
-    // _eInit has to be valid for other commands to be accepted in Cmd(_eCtrl)
-    _eInit := _eResult                := CamInit(TRUE);
-
-  //---------------------------------------------------------------------------
-  E_AXIS_STATE.AXIS_NO_INIT:
-    // we are here because you sent a command before having done CAM_INIT
-    _eResult                          := E_PROGRESS.ERROR;
-
-  //---------------------------------------------------------------------------
-  E_AXIS_STATE.AXIS_IDLE:
-    _eResult                          := AxisCamIdle(TRUE);
-
-  //---------------------------------------------------------------------------
-  E_AXIS_STATE.CAM_IN:
-    _eResult                          := AxisCamIn(TRUE);
-
-  //--------------------------------------------------------------------------
-  E_AXIS_STATE.CAM_OUT:
-    _eResult                          := AxisCamOut(TRUE);
-
-  //--------------------------------------------------------------------------
-  E_AXIS_STATE.CAM_SCALING:
-    _eResult                          := AxisCamScaling(TRUE);
-
-  //--------------------------------------------------------------------------
-  E_AXIS_STATE.CAM_INFO:
-    _eResult                          := AxisCamInfo(TRUE);
-
-  //--------------------------------------------------------------------------
-  E_AXIS_STATE.CAM_RD_MOTION_FUNCTION:
-    _eResult                          := AxisReadMotionFunction(TRUE);
-
-  //--------------------------------------------------------------------------
-  E_AXIS_STATE.CAM_RD_MOTION_FUNCTION_POINT:
-    _eResult                          := AxisReadMotionFunctionPoint(TRUE);
-
-  //--------------------------------------------------------------------------
-  E_AXIS_STATE.CAM_WRT_MOTION_FUNCTION:
-    _eResult                          := AxisWriteMotionFunction(TRUE);
-
-  //--------------------------------------------------------------------------
-  E_AXIS_STATE.CAM_WRT_MOTION_FUNCTION_POINT:
-    _eResult                          := AxisWriteMotionFunctionPoint(TRUE);
-
-ELSE
-  IF (_eCtrl > E_AXIS_CTRL.AXIS_NULL)
-  THEN
-    _eResult                          := E_PROGRESS.NOT_EXIST;
-    _State^[_nAxisIndex].bError       := TRUE;
-  ELSE
-    _eResult                          := E_PROGRESS.INVALID;
-  END_IF
-END_CASE
-
 CASE _eResult
 OF
   E_PROGRESS.INVALID:
-    _State^[_nAxisIndex].eState       := TO_UINT(E_PROGRESS.ERROR);
+    _State^[_nAxisIndex].eState     := TO_UINT(E_PROGRESS.ERROR);
 
   E_PROGRESS.ERROR:
-    _State^[_nAxisIndex].eState       := _eState + E_PROGRESS.ERROR;
+    _State^[_nAxisIndex].eState     := _eState + E_PROGRESS.ERROR;
 
   E_PROGRESS.DONE:
-    _State^[_nAxisIndex].eState       := _eState + E_PROGRESS.DONE;
+    _State^[_nAxisIndex].eState     := _eState + E_PROGRESS.DONE;
 
 ELSE
-    _State^[_nAxisIndex].eState       := _eState + _eResult;
+    _State^[_nAxisIndex].eState     := _eState + _eResult;
+  //-----------------------------------------------------------------------------
+  //-----------------------------------------------------------------------------
+  //  execution state for command
+  //-----------------------------------------------------------------------------
+  CASE _eState
+  OF
+    //---------------------------------------------------------------------------
+    E_AXIS_STATE.AXIS_INIT:
+      // axis always requires one init from outside world at startup
+      // _eInit has to be valid for other commands to be accepted in Cmd(_eCtrl)
+      _eInit := _eResult            := CamInit(TRUE);
+  
+    //---------------------------------------------------------------------------
+    E_AXIS_STATE.AXIS_NO_INIT:
+      // we are here because you sent a command before having done CAM_INIT
+      _eResult                      := E_PROGRESS.ERROR;
+  
+    //---------------------------------------------------------------------------
+    E_AXIS_STATE.AXIS_IDLE:
+      _eResult                      := AxisCamIdle(TRUE);
+  
+    //---------------------------------------------------------------------------
+    E_AXIS_STATE.CAM_IN:
+      _eResult                      := AxisCamIn(TRUE);
+  
+    //--------------------------------------------------------------------------
+    E_AXIS_STATE.CAM_OUT:
+      _eResult                      := AxisCamOut(TRUE);
+  
+    //--------------------------------------------------------------------------
+    E_AXIS_STATE.CAM_SCALING:
+      _eResult                      := AxisCamScaling(TRUE);
+  
+    //--------------------------------------------------------------------------
+    E_AXIS_STATE.CAM_INFO:
+      _eResult                      := AxisCamInfo(TRUE);
+  
+    //--------------------------------------------------------------------------
+    E_AXIS_STATE.CAM_RD_MOTION_FUNCTION:
+      _eResult                      := AxisReadMotionFunction(TRUE);
+  
+    //--------------------------------------------------------------------------
+    E_AXIS_STATE.CAM_RD_MOTION_FUNCTION_POINT:
+      _eResult                      := AxisReadMotionFunctionPoint(TRUE);
+  
+    //--------------------------------------------------------------------------
+    E_AXIS_STATE.CAM_WRT_MOTION_FUNCTION:
+      _eResult                      := AxisWriteMotionFunction(TRUE);
+  
+    //--------------------------------------------------------------------------
+    E_AXIS_STATE.CAM_WRT_MOTION_FUNCTION_POINT:
+      _eResult                      := AxisWriteMotionFunctionPoint(TRUE);
+  
+  ELSE
+    IF (_eCtrl > E_AXIS_CTRL.AXIS_NULL)
+    THEN
+      _eResult                      := E_PROGRESS.NOT_EXIST;
+      _State^[_nAxisIndex].bError   := TRUE;
+    ELSE
+      _eResult                      := E_PROGRESS.INVALID;
+    END_IF
+  END_CASE
 END_CASE
-
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //  OnChange of execution state result
@@ -1162,7 +1162,7 @@ END_CASE
 IF (_eResult <> _eResultOld)
 THEN
   LogResult();
-  _eResultOld                         := _eResult;
+  _eResultOld                       := _eResult;
 END_IF
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -1590,31 +1590,11 @@ END_VAR
       <LineId Id="109" Count="0" />
       <LineId Id="108" Count="0" />
       <LineId Id="110" Count="2" />
-      <LineId Id="99" Count="0" />
-      <LineId Id="81" Count="0" />
-      <LineId Id="24" Count="21" />
-      <LineId Id="212" Count="0" />
-      <LineId Id="46" Count="0" />
-      <LineId Id="48" Count="2" />
-      <LineId Id="211" Count="0" />
-      <LineId Id="51" Count="1" />
-      <LineId Id="54" Count="1" />
-      <LineId Id="210" Count="0" />
-      <LineId Id="56" Count="2" />
-      <LineId Id="156" Count="2" />
-      <LineId Id="161" Count="0" />
-      <LineId Id="163" Count="3" />
-      <LineId Id="168" Count="2" />
-      <LineId Id="172" Count="0" />
-      <LineId Id="174" Count="3" />
-      <LineId Id="179" Count="3" />
-      <LineId Id="185" Count="3" />
-      <LineId Id="191" Count="0" />
-      <LineId Id="197" Count="2" />
-      <LineId Id="203" Count="3" />
-      <LineId Id="59" Count="9" />
-      <LineId Id="134" Count="14" />
-      <LineId Id="133" Count="0" />
+      <LineId Id="24" Count="15" />
+      <LineId Id="282" Count="3" />
+      <LineId Id="135" Count="12" />
+      <LineId Id="220" Count="61" />
+      <LineId Id="148" Count="0" />
       <LineId Id="69" Count="10" />
       <LineId Id="87" Count="1" />
       <LineId Id="90" Count="0" />
