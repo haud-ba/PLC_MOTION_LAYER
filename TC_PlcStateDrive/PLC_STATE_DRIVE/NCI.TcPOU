@@ -58,6 +58,7 @@ DO
 
   // call nci channel controller
   GVL_NCI.fbNciCtrl[nChn].Cycle();
+  GVL_NCI.fbNciCtrl[nChn].MessageLevel      := GVL_MSG.MessageLevelNciChn[nChn];
 
   GVL_NCI.sProgNameActive[nChn]             := GVL_NCI.fbNciCtrl[nChn].ItfChannel.GetLoadedProg();
   GVL_NCI.fbNciCtrl[nChn].M_FunctionScope   := ADR(GVL_NCI.M_FunctionCyclic[nChn]);
@@ -88,7 +89,9 @@ END_FOR
       <LineId Id="175" Count="0" />
       <LineId Id="173" Count="0" />
       <LineId Id="147" Count="0" />
-      <LineId Id="149" Count="1" />
+      <LineId Id="149" Count="0" />
+      <LineId Id="193" Count="0" />
+      <LineId Id="150" Count="0" />
       <LineId Id="162" Count="0" />
       <LineId Id="176" Count="0" />
       <LineId Id="164" Count="0" />

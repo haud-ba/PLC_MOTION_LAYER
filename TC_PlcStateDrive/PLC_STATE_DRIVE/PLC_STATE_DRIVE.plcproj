@@ -278,10 +278,6 @@
     <Compile Include="_MSG\types\ST_Message.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="_MSG\T_MESSAGE_LIST.TcVIS">
-      <SubType>Code</SubType>
-      <DependentUpon>Visualization Manager.TcVMO</DependentUpon>
-    </Compile>
     <Compile Include="PlcTask.TcTTO">
       <SubType>Code</SubType>
     </Compile>
@@ -306,6 +302,10 @@
     </Compile>
     <Compile Include="_LEGACY_VERSION\ST_NcParam.TcDUT">
       <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_MSG\T_MESSAGE_LIST.TcVIS">
+      <SubType>Code</SubType>
+      <DependentUpon>Visualization Manager.TcVMO</DependentUpon>
     </Compile>
     <Compile Include="_UML\CD_AXIS_ACCESS.TcCD">
       <SubType>Code</SubType>

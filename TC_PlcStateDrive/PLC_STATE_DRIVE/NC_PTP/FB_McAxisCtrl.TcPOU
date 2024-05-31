@@ -1318,7 +1318,7 @@ OF
 
     _stMsg.eType                    := E_MessageType.eMessageInfo;
     _stMsg.eDevice                  := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
-    _stMsg.eSubdevice               :=  e_SubDevice.AxisControl_Enable;
+    _stMsg.eSubdevice               :=  e_SubDevice.AxisIdle;
     _stMsg.iErrorNumber             := _nErrorId;
 
     _stMsg.sText                    := concat(TO_STRING(_eCtrl), ' retry: ');
@@ -1348,7 +1348,7 @@ OF
     
       _stMsg.eType                  := E_MessageType.eMessageError;
       _stMsg.eDevice                := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
-      _stMsg.eSubdevice             :=  e_SubDevice.AxisControl_Enable;
+      _stMsg.eSubdevice             :=  e_SubDevice.AxisIdle;
       _stMsg.iErrorNumber           := _nErrorId;
 
       _stMsg.sText                  := concat(TO_STRING(_eCtrl), ' error axis enable: ');
@@ -1438,7 +1438,7 @@ OF
 
       _stMsg.eType                  := E_MessageType.eMessageError;
       _stMsg.eDevice                := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
-      _stMsg.eSubdevice             := e_Subdevice.fbAxis_StartUp;
+      _stMsg.eSubdevice             := e_Subdevice.AxisStartUp;
       _stMsg.iErrorNumber := _nErrorId  := 6666;
 
       _stMsg.sText                  := TO_STRING(_eState);
@@ -1471,7 +1471,7 @@ OF
 
       _stMsg.eType                  := E_MessageType.eMessageError;
       _stMsg.eDevice                := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
-      _stMsg.eSubdevice             := e_Subdevice.fbAxis_StartupReset;
+      _stMsg.eSubdevice             := e_Subdevice.AxisStartUp;
       _stMsg.iErrorNumber           := ErrorId;
 
       _stMsg.sText                  := TO_STRING(_eState);
@@ -1555,13 +1555,16 @@ OF
 
     _stMsg.eType                    := E_MessageType.eMessageInfo;
     _stMsg.eDevice                  := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
-    _stMsg.eSubdevice               := e_Subdevice.fbAxis_StartUp;
+    _stMsg.eSubdevice               := e_Subdevice.AxisStartUp;
     _stMsg.iErrorNumber             := 0;
     _stMsg.sText                    := concat('Axis Init: ', _sDeviceName);
     _stMsg.sText                    := concat(_stMsg.sText, ' : ');
     _stMsg.sText                    := concat(_stMsg.sText, TO_STRING(_eState));
 
+  IF (_MessageLevel < E_MessageType.eMessageError)
+  THEN
     f_MessageSet(_stMsg);
+  END_IF
 END_CASE
 
 AxisInit                            := _eState;
@@ -2388,7 +2391,16 @@ END_VAR
   _sCtrl                     := concat(_sCtrl, TO_STRING(_eCtrl));
 
   _stMsg.sText               := concat('new command: ', _sCtrl);
-  f_MessageSet(_stMsg);
+
+  IF (_MessageLevel < E_MessageType.eMessageError)
+  THEN
+    f_MessageSet(_stMsg);
+  ELSE
+    IF (_stMsg.eType = E_MessageType.eMessageError)
+    THEN
+      f_MessageSet(_stMsg);
+    END_IF
+  END_IF
 
 ]]></ST>
       </Implementation>
@@ -2417,8 +2429,16 @@ END_VAR
 
   _stMsg.sText               := concat(_sCtrl, ' ');
   _stMsg.sText               := concat(_sCtrl, _sResult);
-  f_MessageSet(_stMsg);
 
+  IF (_MessageLevel < E_MessageType.eMessageError)
+  THEN
+    f_MessageSet(_stMsg);
+  ELSE
+    IF (_stMsg.eType = E_MessageType.eMessageError)
+    THEN
+      f_MessageSet(_stMsg);
+    END_IF
+  END_IF
 ]]></ST>
       </Implementation>
     </Method>
@@ -3098,6 +3118,7 @@ END_VAR
       <LineId Id="148" Count="4" />
       <LineId Id="287" Count="1" />
       <LineId Id="242" Count="0" />
+      <LineId Id="303" Count="2" />
       <LineId Id="154" Count="0" />
       <LineId Id="60" Count="2" />
       <LineId Id="5" Count="0" />
@@ -3374,7 +3395,9 @@ END_VAR
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.LogControl">
-      <LineId Id="35" Count="10" />
+      <LineId Id="35" Count="8" />
+      <LineId Id="53" Count="9" />
+      <LineId Id="45" Count="0" />
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.LogResult">
@@ -3388,7 +3411,7 @@ END_VAR
       <LineId Id="20" Count="0" />
       <LineId Id="13" Count="0" />
       <LineId Id="35" Count="0" />
-      <LineId Id="15" Count="1" />
+      <LineId Id="43" Count="9" />
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.MotionOptions.Set">

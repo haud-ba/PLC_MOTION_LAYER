@@ -5,17 +5,10 @@
 {attribute 'to_string'}
 TYPE e_Subdevice :
 (
-  // sub device for message system
-  fbAxis          := 0,
-  fbAxis_StartUp,
-  fbAxis_StartupReset,
-  fbAxis_Cycle,
-  fbAxisEnable,
-  fbAxisDisable,
-  fbCoeRead,
-
+  SubDevice_Null,
   // Motion Control FB Instances
-  fbPower           := 10,
+  fbPowerOn               := 10,
+  fbPowerOff,
   fbReset,
   fbResetSercos,
   fbHalt,
@@ -31,12 +24,28 @@ TYPE e_Subdevice :
   fbMoveEndless,
   fbMovePtP,
 
-  fbGearIn          := 50,
+
+  // CA CollisionAvoidance FB instances
+  // CA group fb instances
+  fbCaGroup             := 30,
+  fbMoveToPosCa,
+  fbSendToAbsPosCa,
+  fbSendToModuloPosCa,
+  fbGearInPosCa,
+  fbGroupAddAxis,
+  fbGroupRemoveAxis,
+  fbGroupDisable,
+  fbGroupEnable,
+  fbGroupErrorRead,
+  fbGroupStatusRead,
+  fbGroupReset,
+  fbGroupStop,
+
+  fbGearIn              := 50,
   fbGearOut,
   fbGearInMultiMaster,
 
-  CamControl        := 60,
-  fbCamOut,
+  fbCamOut              := 80,
   fbCamInV2,
   fbCamScalingV2,
   fbCamInfoV2,
@@ -47,14 +56,15 @@ TYPE e_Subdevice :
   fbWriteMotionFunctionPoint,
   fbSetOnlineChangeMode,
 
-
-  fbReadParameter   := 100,
+  fbReadParameter       := 100,
   fbReadBoolParameter,
   fbWriteParameter,
   fbWriteBoolParameter,
   fbWriteParameterPersistent,
 
-	fbBuildGroup      := 200,
+
+
+	fbBuildGroup          := 200,
 	fbClearGroup,
 	fbLoadProg,
 	fbResetItp,
@@ -68,17 +78,39 @@ TYPE e_Subdevice :
 	fbReadLine,
   fbItpReadRParams,
   fbItpWriteRParams,
-
   Get_ItpState,
   Get_Error,
 
-  AxisControl      := 1000,
-  AxisControl_Enable,
-  AxisControl_Idle,
-  AxisControl_GearOut,
+  AxisControl           := 1000,
+  AxisStartUp,
+  AxisCycle,
+  AxisIdle,
 
+  Ctrl_Nci_Cmd          := 2000,
 
-  Ctrl_Nci_Cmd  := 2000
+  StationLinkedList     := 3000,
+  StationInitList,
+  StationAddHead,
+  StationAddTail,
+  StationGetHead,
+  StationRemoveHeadValue,
+
+  StationControl        := 4000,
+  StationState, 
+
+  Xpu_fbEnvironment     := 5000,
+  Xpu_fbProcessingUnit,
+  Xpu_fbXpuPart,
+  Xpu_fbXpuTrack,
+  Xpu_fbMc2CaGroup,
+
+  Xpu_fbPartModules     := 5500,
+
+  Xpu_fbMoverXpu        := 6000,
+
+  CamControl            := 8000,
+  CamStartUp,
+  CamCycle
 )DINT;
 END_TYPE
 ]]></Declaration>

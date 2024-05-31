@@ -88,13 +88,16 @@ OF
 
     _stMsg.eType                    := E_MessageType.eMessageInfo;
     _stMsg.eDevice                  := e_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
-    _stMsg.eSubdevice               :=  e_SubDevice.AxisControl_Enable;
+    _stMsg.eSubdevice               :=  e_SubDevice.fbPowerOn;
     _stMsg.iErrorNumber             := _nErrorId;
 
     _stMsg.sText                    := concat(TO_STRING(_eCtrl), ' retry: ');
     _stMsg.sText                    := concat(_stMsg.sText, TO_STRING(_nRetry));
 
-    f_MessageSet(_stMsg);
+    IF (_MessageLevel < E_MessageType.eMessageError)
+    THEN
+      f_MessageSet(_stMsg);
+    END_IF
 END_CASE
 CASE _eState
 OF
@@ -135,7 +138,7 @@ OF
     
       _stMsg.eType                  := E_MessageType.eMessageError;
       _stMsg.eDevice                := e_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
-      _stMsg.eSubdevice             :=  e_SubDevice.AxisControl_Enable;
+      _stMsg.eSubdevice             :=  e_SubDevice.fbPowerOn;
       _stMsg.iErrorNumber           := _nErrorId;
 
       _stMsg.sText                  := concat(TO_STRING(_eCtrl), ' error axis enable: ');
@@ -283,7 +286,11 @@ OF
     _stMsg.iErrorNumber             := 0;
 
     _stMsg.sText                    := concat('CamInfoData : ', TO_STRING(_eState));
-    f_MessageSet(_stMsg);
+
+    IF (_MessageLevel < E_MessageType.eMessageError)
+    THEN
+      f_MessageSet(_stMsg);
+    END_IF
 
     _eState                         := E_PROGRESS.DONE;
 END_CASE
@@ -729,7 +736,7 @@ OF
 
       _stMsg.eType                  := E_MessageType.eMessageError;
       _stMsg.eDevice                := e_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
-      _stMsg.eSubdevice             := e_Subdevice.fbAxis_StartUp;
+      _stMsg.eSubdevice             := e_Subdevice.CamStartUp;
       _stMsg.iErrorNumber := _nErrorId  := 6666;
 
       _stMsg.sText                  := TO_STRING(_eState);
@@ -748,8 +755,8 @@ OF
       _eState                       := _eResult;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
-      _stMsg.eDevice                := e_Device.Axis + TO_DINT(_AxisSlave.NcToPlc.AxisId);
-      _stMsg.eSubdevice             := e_Subdevice.fbAxis_StartupReset;
+      _stMsg.eDevice                := e_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+      _stMsg.eSubdevice             := e_Subdevice.fbReset;
       _stMsg.iErrorNumber           := _AxisSlave.Status.ErrorID;
 
       _stMsg.sText                  := TO_STRING(_eState);
@@ -778,7 +785,10 @@ OF
     _stMsg.iErrorNumber             := 0;
     _stMsg.sText                    := concat('CamInit: ', TO_STRING(_eState));
 
-    f_MessageSet(_stMsg);
+    IF (_MessageLevel < E_MessageType.eMessageError)
+    THEN
+      f_MessageSet(_stMsg);
+    END_IF
 END_CASE
 
 CamInit                            := _eState;
@@ -1205,7 +1215,16 @@ END_VAR
   _sChck                     := concat(_sChck, TO_STRING(_eCheck));
 
   _stMsg.sText               := concat('cyclic check: ', _sChck);
-  f_MessageSet(_stMsg);
+
+  IF (_MessageLevel < E_MessageType.eMessageError)
+  THEN
+    f_MessageSet(_stMsg);
+  ELSE
+    IF (_stMsg.eType = E_MessageType.eMessageError)
+    THEN
+      f_MessageSet(_stMsg);
+    END_IF
+  END_IF
 ]]></ST>
       </Implementation>
     </Method>
@@ -1228,8 +1247,16 @@ END_VAR
   _sCtrl                     := concat(_sCtrl, TO_STRING(_eCtrl));
 
   _stMsg.sText               := concat('new command: ', _sCtrl);
-  f_MessageSet(_stMsg);
 
+  IF (_MessageLevel < E_MessageType.eMessageError)
+  THEN
+    f_MessageSet(_stMsg);
+  ELSE
+    IF (_stMsg.eType = E_MessageType.eMessageError)
+    THEN
+      f_MessageSet(_stMsg);
+    END_IF
+  END_IF
 ]]></ST>
       </Implementation>
     </Method>
@@ -1257,8 +1284,16 @@ END_VAR
 
   _stMsg.sText               := concat(_sCtrl, ' ');
   _stMsg.sText               := concat(_sCtrl, _sResult);
-  f_MessageSet(_stMsg);
 
+  IF (_MessageLevel < E_MessageType.eMessageError)
+  THEN
+    f_MessageSet(_stMsg);
+  ELSE
+    IF (_stMsg.eType = E_MessageType.eMessageError)
+    THEN
+      f_MessageSet(_stMsg);
+    END_IF
+  END_IF
 ]]></ST>
       </Implementation>
     </Method>
@@ -1300,7 +1335,9 @@ END_VAR
       <LineId Id="827" Count="10" />
       <LineId Id="919" Count="2" />
       <LineId Id="947" Count="0" />
-      <LineId Id="922" Count="14" />
+      <LineId Id="922" Count="12" />
+      <LineId Id="958" Count="3" />
+      <LineId Id="936" Count="0" />
       <LineId Id="838" Count="6" />
       <LineId Id="846" Count="9" />
       <LineId Id="874" Count="32" />
@@ -1359,7 +1396,10 @@ END_VAR
       <LineId Id="1092" Count="0" />
       <LineId Id="964" Count="0" />
       <LineId Id="1112" Count="4" />
-      <LineId Id="1118" Count="8" />
+      <LineId Id="1118" Count="6" />
+      <LineId Id="1145" Count="0" />
+      <LineId Id="1141" Count="3" />
+      <LineId Id="1126" Count="0" />
       <LineId Id="1117" Count="0" />
       <LineId Id="1086" Count="0" />
       <LineId Id="1093" Count="0" />
@@ -1502,7 +1542,9 @@ END_VAR
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_CamCtrl.CamInit">
-      <LineId Id="289" Count="88" />
+      <LineId Id="289" Count="84" />
+      <LineId Id="388" Count="3" />
+      <LineId Id="375" Count="2" />
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_CamCtrl.Check">
@@ -1608,11 +1650,18 @@ END_VAR
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_CamCtrl.LogCheck">
-      <LineId Id="29" Count="9" />
+      <LineId Id="29" Count="8" />
+      <LineId Id="50" Count="0" />
+      <LineId Id="46" Count="2" />
+      <LineId Id="51" Count="2" />
+      <LineId Id="55" Count="0" />
+      <LineId Id="54" Count="0" />
+      <LineId Id="49" Count="0" />
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_CamCtrl.LogControl">
-      <LineId Id="35" Count="10" />
+      <LineId Id="35" Count="8" />
+      <LineId Id="53" Count="9" />
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_CamCtrl.LogResult">
@@ -1626,7 +1675,7 @@ END_VAR
       <LineId Id="20" Count="0" />
       <LineId Id="13" Count="0" />
       <LineId Id="35" Count="0" />
-      <LineId Id="15" Count="1" />
+      <LineId Id="44" Count="9" />
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_CamCtrl.MotionFunction.Set">

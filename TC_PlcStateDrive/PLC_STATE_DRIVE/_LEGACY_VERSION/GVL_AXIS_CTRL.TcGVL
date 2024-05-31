@@ -259,7 +259,7 @@ VAR_GLOBAL CONSTANT
 
   // legacy version of ADS symbols is used
   // data is mapped onto current version structs
-  bUseLegacyInterface                 : BOOL    := TRUE;
+  bUseLegacyInterface                 : BOOL    := FALSE;
 END_VAR
 VAR_GLOBAL
   gstAxisControl                      : ARRAY[1..MAX_AXIS] OF ST_AxisController;  // structure for cyclic interface

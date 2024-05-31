@@ -6,6 +6,8 @@ VAR
   _eCheck                       : E_CHECK_STATE;
   _nErrorId                     : UDINT; // datafield for error
 
+  _MessageLevel                 : E_MessageType;
+
   _AxisSlave                    : REFERENCE TO AXIS_REF;
   _AxisMaster                   : REFERENCE TO AXIS_REF;
 
@@ -90,13 +92,16 @@ OF
         _eState                     := E_PROGRESS.BUSY;
         _eCk                        := E_CHECK_STATE.CHECK_DONE;
 
-        _stMsg.eType                := E_MessageType.eMessageInfo;
-        _stMsg.eDevice              := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
-        _stMsg.eSubdevice           := e_Subdevice.fbCamInfoV2;
-        _stMsg.iErrorNumber         := 0;
-  
-        _stMsg.sText                := concat(' : ', TO_STRING(_eState));
-        f_MessageSet(_stMsg);
+        IF (_MessageLevel = E_MessageType.eMessageVerbose)
+        THEN
+          _stMsg.eType              := E_MessageType.eMessageVerbose;
+          _stMsg.eDevice            := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+          _stMsg.eSubdevice         := e_Subdevice.fbCamInfoV2;
+          _stMsg.iErrorNumber       := 0;
+    
+          _stMsg.sText              := concat(' : ', TO_STRING(_eState));
+          f_MessageSet(_stMsg);
+        END_IF
 
       _fbCamInV2(
           Master                    := _AxisMaster, 
@@ -143,13 +148,16 @@ OF
     THEN
       _eState                       := E_PROGRESS.DONE;
 
-      _stMsg.eType                  := E_MessageType.eMessageInfo;
-      _stMsg.eDevice                := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
-      _stMsg.eSubdevice             := e_Subdevice.fbCamInV2;
-      _stMsg.iErrorNumber           := 0;
-
-      _stMsg.sText                  := concat(' : ', TO_STRING(_eState));
-      f_MessageSet(_stMsg);
+      IF (_MessageLevel < E_MessageType.eMessageError)
+      THEN
+        _stMsg.eType                := E_MessageType.eMessageInfo;
+        _stMsg.eDevice              := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+        _stMsg.eSubdevice           := e_Subdevice.fbCamInV2;
+        _stMsg.iErrorNumber         := 0;
+  
+        _stMsg.sText                := concat(' : ', TO_STRING(_eState));
+        f_MessageSet(_stMsg);
+      END_IF
 
       _fbCamInV2(
           Master                    := _AxisMaster, 
@@ -208,13 +216,16 @@ OF
               MasterPosition        := MasterPosition,
               CamInfo               => _mcCamInfoData);
 
-      _stMsg.eType                  := E_MessageType.eMessageInfo;
-      _stMsg.eDevice                := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
-      _stMsg.eSubdevice             := e_Subdevice.fbCamInfoV2;
-      _stMsg.iErrorNumber           := 0;
-
-      _stMsg.sText                  := concat(' : ', TO_STRING(_eState));
-      f_MessageSet(_stMsg);
+      IF (_MessageLevel = E_MessageType.eMessageVerbose)
+      THEN
+        _stMsg.eType                := E_MessageType.eMessageVerbose;
+        _stMsg.eDevice              := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+        _stMsg.eSubdevice           := e_Subdevice.fbCamInfoV2;
+        _stMsg.iErrorNumber         := 0;
+  
+        _stMsg.sText                := concat(' : ', TO_STRING(_eState));
+        f_MessageSet(_stMsg);
+      END_IF
     END_IF
 END_CASE
 CASE _eState
@@ -250,14 +261,16 @@ OF
       _eState                       := E_PROGRESS.DONE;
       _stCID                        := _fbCamInfoV2.CamInfo;
 
-      _stMsg.eType                  := E_MessageType.eMessageInfo;
-      _stMsg.eDevice                := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
-      _stMsg.eSubdevice             := e_Subdevice.fbCamInfoV2;
-      _stMsg.iErrorNumber           := 0;
-
-      _stMsg.sText                  := concat(' : ', TO_STRING(_eState));
-      f_MessageSet(_stMsg);
-
+      IF (_MessageLevel < E_MessageType.eMessageError)
+      THEN
+        _stMsg.eType                := E_MessageType.eMessageInfo;
+        _stMsg.eDevice              := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+        _stMsg.eSubdevice           := e_Subdevice.fbCamInfoV2;
+        _stMsg.iErrorNumber         := 0;
+  
+        _stMsg.sText                := concat(' : ', TO_STRING(_eState));
+        f_MessageSet(_stMsg);
+      END_IF
       _fbCamInfoV2(
               Slave                 := _AxisSlave, 
               Execute               := FALSE);
@@ -384,14 +397,16 @@ OF
 
       _eState                       := E_PROGRESS.BUSY;
 
-      _stMsg.eType                  := E_MessageType.eMessageInfo;
-      _stMsg.eDevice                := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
-      _stMsg.eSubdevice             := e_Subdevice.fbCamOut;
-      _stMsg.iErrorNumber           := 0;
-
-      _stMsg.sText                  := concat(' : ', TO_STRING(_eState));
-      f_MessageSet(_stMsg);
-
+      IF (_MessageLevel = E_MessageType.eMessageVerbose)
+      THEN
+        _stMsg.eType                := E_MessageType.eMessageInfo;
+        _stMsg.eDevice              := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+        _stMsg.eSubdevice           := e_Subdevice.fbCamOut;
+        _stMsg.iErrorNumber         := 0;
+  
+        _stMsg.sText                := concat(' : ', TO_STRING(_eState));
+        f_MessageSet(_stMsg);
+      END_IF
       _fbCamOut(
                 Slave               := _AxisSlave, 
                 Execute             := FALSE);
@@ -425,14 +440,16 @@ OF
     THEN
       _eState                       := E_PROGRESS.DONE;
 
-      _stMsg.eType                  := E_MessageType.eMessageInfo;
-      _stMsg.eDevice                := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
-      _stMsg.eSubdevice             := e_Subdevice.fbCamOut;
-      _stMsg.iErrorNumber           := 0;
-
-      _stMsg.sText                  := concat(' : ', TO_STRING(_eState));
-      f_MessageSet(_stMsg);
-
+      IF (_MessageLevel < E_MessageType.eMessageError)
+      THEN
+        _stMsg.eType                := E_MessageType.eMessageInfo;
+        _stMsg.eDevice              := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+        _stMsg.eSubdevice           := e_Subdevice.fbCamOut;
+        _stMsg.iErrorNumber         := 0;
+  
+        _stMsg.sText                := concat(' : ', TO_STRING(_eState));
+        f_MessageSet(_stMsg);
+      END_IF
       _fbCamOut(
                 Slave               := _AxisSlave, 
                 Execute             := FALSE);
@@ -496,13 +513,16 @@ OF
     _nLastCamTableID                := _stCamData.nCamTableId;
     _stLastScalingData              := _fbScalingV2.Scaling;
 
-    _stMsg.eType                    := E_MessageType.eMessageInfo;
-    _stMsg.eDevice                  := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
-    _stMsg.eSubdevice               := e_Subdevice.fbCamScalingV2;
-    _stMsg.iErrorNumber             := _nLastCamTableID;
+    IF (_MessageLevel = E_MessageType.eMessageVerbose)
+    THEN
+      _stMsg.eType                  := E_MessageType.eMessageInfo;
+      _stMsg.eDevice                := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+      _stMsg.eSubdevice             := e_Subdevice.fbCamScalingV2;
+      _stMsg.iErrorNumber           := _nLastCamTableID;
 
-    _stMsg.sText                    := concat(' : ', TO_STRING(_eState));
-    f_MessageSet(_stMsg);
+      _stMsg.sText                  := concat(' : ', TO_STRING(_eState));
+      f_MessageSet(_stMsg);
+    END_IF
 END_CASE
 CASE _eState
 OF
@@ -552,14 +572,16 @@ OF
     THEN
       _eState                       := E_PROGRESS.DONE;
 
-      _stMsg.eType                  := E_MessageType.eMessageInfo;
-      _stMsg.eDevice                := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
-      _stMsg.eSubdevice             := e_Subdevice.fbCamScalingV2;
-      _stMsg.iErrorNumber           := 0;
-
-      _stMsg.sText                  := concat(' : ', TO_STRING(_eState));
-      f_MessageSet(_stMsg);
-
+      IF (_MessageLevel < E_MessageType.eMessageError)
+      THEN
+        _stMsg.eType                := E_MessageType.eMessageInfo;
+        _stMsg.eDevice              := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+        _stMsg.eSubdevice           := e_Subdevice.fbCamScalingV2;
+        _stMsg.iErrorNumber         := 0;
+  
+        _stMsg.sText                := concat(' : ', TO_STRING(_eState));
+        f_MessageSet(_stMsg);
+      END_IF
       _fbScalingV2(
               Slave                 := _AxisSlave, 
               Execute               := FALSE); 
@@ -593,6 +615,18 @@ CamScalingData                := _ScaleData;
 ]]></ST>
         </Implementation>
       </Get>
+    </Property>
+    <Property Name="MessageLevel" Id="{1f9f38b1-45ae-0c83-0857-f2fd57945a1f}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY MessageLevel : E_MessageType]]></Declaration>
+      <Set Name="Set" Id="{b015279a-84f1-0264-0b24-a0fbc45aacc3}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_MessageLevel := MessageLevel;
+]]></ST>
+        </Implementation>
+      </Set>
     </Property>
     <Method Name="ReadMotionFunction" Id="{bcde6133-6541-0668-2025-0cd96cd12fcc}" FolderPath="methods\">
       <Declaration><![CDATA[METHOD ReadMotionFunction : E_PROGRESS
@@ -675,14 +709,16 @@ OF
     THEN
       _eState                       := E_PROGRESS.WORKING;
 
-      _stMsg.eType                  := E_MessageType.eMessageInfo;
-      _stMsg.eDevice                := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
-      _stMsg.eSubdevice             := e_Subdevice.fbReadMotionFunction;
-      _stMsg.iErrorNumber           := 0;
-
-      _stMsg.sText                  := concat(' : ', TO_STRING(_eState));
-      f_MessageSet(_stMsg);
-
+      IF (_MessageLevel < E_MessageType.eMessageError)
+      THEN
+        _stMsg.eType                := E_MessageType.eMessageInfo;
+        _stMsg.eDevice              := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+        _stMsg.eSubdevice           := e_Subdevice.fbReadMotionFunction;
+        _stMsg.iErrorNumber         := 0;
+  
+        _stMsg.sText                := concat(' : ', TO_STRING(_eState));
+        f_MessageSet(_stMsg);
+      END_IF
     END_IF
 END_CASE
 CASE _eState
@@ -705,13 +741,17 @@ OF
     _stMsg.iErrorNumber             := _nMotionFunctionSize;
 
     _stMsg.sText                    := concat(' : ', TO_STRING(_eState));
-    f_MessageSet(_stMsg);
+
+    IF (_MessageLevel < E_MessageType.eMessageError)
+    THEN
+      f_MessageSet(_stMsg);
+    END_IF
 
 END_CASE
 CASE _eState
 OF
   E_PROGRESS.FINISHING:
-    _eState                               := E_PROGRESS.DONE;
+    _eState                         := E_PROGRESS.DONE;
 
 (*
     _stMotionFunction.stMotionFunction    := _mcMotionFunction;
@@ -719,13 +759,16 @@ OF
     _stMotionFunction.nPoints             := TO_UINT(_fbReadMotionFunction.NumPointsRead);
 *)
 
-    _stMsg.eType                    := E_MessageType.eMessageInfo;
-    _stMsg.eDevice                  := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
-    _stMsg.eSubdevice               := e_Subdevice.fbReadMotionFunction;
-    _stMsg.iErrorNumber             := 0;
-
-    _stMsg.sText                    := concat(' : ', TO_STRING(_eState));
-    f_MessageSet(_stMsg);
+    IF (_MessageLevel < E_MessageType.eMessageError)
+    THEN
+      _stMsg.eType                  := E_MessageType.eMessageInfo;
+      _stMsg.eDevice                := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+      _stMsg.eSubdevice             := e_Subdevice.fbReadMotionFunction;
+      _stMsg.iErrorNumber           := 0;
+  
+      _stMsg.sText                  := concat(' : ', TO_STRING(_eState));
+      f_MessageSet(_stMsg);
+    END_IF
 
     _fbReadMotionFunction(
               Execute               := FALSE, 
@@ -849,7 +892,11 @@ OF
         _stMsg.iErrorNumber         := 0;
   
         _stMsg.sText                := concat(' : ', TO_STRING(_eState));
-        f_MessageSet(_stMsg);
+
+        IF (_MessageLevel < E_MessageType.eMessageError)
+        THEN
+          f_MessageSet(_stMsg);
+        END_IF
 
         _fbReadMotionFunctionPoint(
               Execute               := FALSE, 
@@ -977,8 +1024,11 @@ OF
         _stMsg.iErrorNumber         := 0;
   
         _stMsg.sText                := concat(' : ', TO_STRING(_eState));
-        f_MessageSet(_stMsg);
 
+        IF (_MessageLevel < E_MessageType.eMessageError)
+        THEN
+          f_MessageSet(_stMsg);
+        END_IF
         _fbReadMotionFunctionValues(
               Execute               := FALSE, 
               CamTableID            := _stCamData.nCamTableId, 
@@ -1071,7 +1121,11 @@ OF
       _stMsg.iErrorNumber           := 0;
 
       _stMsg.sText                  := concat(' : ', TO_STRING(_eState));
-      f_MessageSet(_stMsg);
+
+      IF (_MessageLevel < E_MessageType.eMessageError)
+      THEN
+        f_MessageSet(_stMsg);
+      END_IF
 
       _fbSetCamOnlineChangeMode(
               Execute               := FALSE); 
@@ -1281,7 +1335,11 @@ OF
     _stMsg.iErrorNumber             := 0;
 
     _stMsg.sText                    := concat(' : ', TO_STRING(_eState));
-    f_MessageSet(_stMsg);
+
+    IF (_MessageLevel < E_MessageType.eMessageError)
+    THEN
+      f_MessageSet(_stMsg);
+    END_IF
 END_CASE
 
 WriteMotionFunction                 := _eState;
@@ -1458,7 +1516,11 @@ OF
     _stMsg.iErrorNumber             := 0;
 
     _stMsg.sText                    := concat(' : ', TO_STRING(_eState));
-    f_MessageSet(_stMsg);
+
+    IF (_MessageLevel < E_MessageType.eMessageError)
+    THEN
+      f_MessageSet(_stMsg);
+    END_IF
 END_CASE
 
 WriteMotionFunctionPoint            := _eState;
@@ -1515,9 +1577,12 @@ _mcMotionFunctionPoint.SlaveJerk            := _stMf.rSlaveJerk;
       <LineId Id="1009" Count="0" />
       <LineId Id="1021" Count="0" />
       <LineId Id="1010" Count="0" />
+      <LineId Id="1141" Count="0" />
       <LineId Id="1027" Count="0" />
+      <LineId Id="1142" Count="0" />
       <LineId Id="1014" Count="6" />
       <LineId Id="1100" Count="0" />
+      <LineId Id="1143" Count="0" />
       <LineId Id="1050" Count="6" />
       <LineId Id="1127" Count="1" />
       <LineId Id="1008" Count="0" />
@@ -1526,7 +1591,11 @@ _mcMotionFunctionPoint.SlaveJerk            := _stMf.rSlaveJerk;
       <LineId Id="930" Count="13" />
       <LineId Id="1059" Count="3" />
       <LineId Id="947" Count="3" />
-      <LineId Id="952" Count="8" />
+      <LineId Id="1144" Count="0" />
+      <LineId Id="952" Count="0" />
+      <LineId Id="1145" Count="0" />
+      <LineId Id="953" Count="7" />
+      <LineId Id="1146" Count="0" />
       <LineId Id="1063" Count="3" />
       <LineId Id="964" Count="3" />
       <LineId Id="2" Count="0" />
@@ -1544,7 +1613,11 @@ _mcMotionFunctionPoint.SlaveJerk            := _stMf.rSlaveJerk;
       <LineId Id="794" Count="5" />
       <LineId Id="804" Count="0" />
       <LineId Id="793" Count="0" />
-      <LineId Id="857" Count="7" />
+      <LineId Id="912" Count="0" />
+      <LineId Id="857" Count="0" />
+      <LineId Id="913" Count="0" />
+      <LineId Id="858" Count="6" />
+      <LineId Id="914" Count="0" />
       <LineId Id="756" Count="4" />
       <LineId Id="809" Count="9" />
       <LineId Id="835" Count="0" />
@@ -1560,6 +1633,7 @@ _mcMotionFunctionPoint.SlaveJerk            := _stMf.rSlaveJerk;
       <LineId Id="761" Count="0" />
       <LineId Id="837" Count="0" />
       <LineId Id="855" Count="0" />
+      <LineId Id="915" Count="1" />
       <LineId Id="838" Count="3" />
       <LineId Id="844" Count="0" />
       <LineId Id="843" Count="0" />
@@ -1595,7 +1669,9 @@ _mcMotionFunctionPoint.SlaveJerk            := _stMf.rSlaveJerk;
       <LineId Id="117" Count="0" />
       <LineId Id="28" Count="0" />
       <LineId Id="43" Count="0" />
-      <LineId Id="45" Count="7" />
+      <LineId Id="45" Count="0" />
+      <LineId Id="165" Count="1" />
+      <LineId Id="46" Count="6" />
       <LineId Id="132" Count="2" />
       <LineId Id="131" Count="0" />
       <LineId Id="64" Count="4" />
@@ -1605,7 +1681,9 @@ _mcMotionFunctionPoint.SlaveJerk            := _stMf.rSlaveJerk;
       <LineId Id="139" Count="0" />
       <LineId Id="81" Count="10" />
       <LineId Id="140" Count="2" />
-      <LineId Id="96" Count="12" />
+      <LineId Id="96" Count="4" />
+      <LineId Id="167" Count="1" />
+      <LineId Id="101" Count="7" />
       <LineId Id="143" Count="2" />
       <LineId Id="113" Count="3" />
       <LineId Id="5" Count="0" />
@@ -1620,7 +1698,13 @@ _mcMotionFunctionPoint.SlaveJerk            := _stMf.rSlaveJerk;
       <LineId Id="749" Count="0" />
       <LineId Id="826" Count="0" />
       <LineId Id="686" Count="1" />
-      <LineId Id="858" Count="13" />
+      <LineId Id="858" Count="6" />
+      <LineId Id="887" Count="1" />
+      <LineId Id="865" Count="3" />
+      <LineId Id="890" Count="0" />
+      <LineId Id="869" Count="0" />
+      <LineId Id="871" Count="0" />
+      <LineId Id="889" Count="0" />
       <LineId Id="873" Count="0" />
       <LineId Id="688" Count="2" />
       <LineId Id="751" Count="4" />
@@ -1628,7 +1712,9 @@ _mcMotionFunctionPoint.SlaveJerk            := _stMf.rSlaveJerk;
       <LineId Id="761" Count="13" />
       <LineId Id="795" Count="2" />
       <LineId Id="840" Count="16" />
-      <LineId Id="778" Count="12" />
+      <LineId Id="778" Count="4" />
+      <LineId Id="891" Count="1" />
+      <LineId Id="783" Count="7" />
       <LineId Id="798" Count="2" />
       <LineId Id="794" Count="0" />
       <LineId Id="692" Count="0" />
@@ -1640,6 +1726,10 @@ _mcMotionFunctionPoint.SlaveJerk            := _stMf.rSlaveJerk;
       <LineId Id="8" Count="9" />
       <LineId Id="7" Count="0" />
       <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_CamAxis.MessageLevel.Set">
+      <LineId Id="2" Count="0" />
+      <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_CamAxis.ReadMotionFunction">
       <LineId Id="732" Count="0" />
@@ -1667,7 +1757,9 @@ _mcMotionFunctionPoint.SlaveJerk            := _stMf.rSlaveJerk;
       <LineId Id="876" Count="0" />
       <LineId Id="761" Count="13" />
       <LineId Id="877" Count="5" />
-      <LineId Id="778" Count="12" />
+      <LineId Id="778" Count="4" />
+      <LineId Id="975" Count="1" />
+      <LineId Id="783" Count="7" />
       <LineId Id="794" Count="0" />
       <LineId Id="902" Count="3" />
       <LineId Id="921" Count="0" />
@@ -1680,7 +1772,11 @@ _mcMotionFunctionPoint.SlaveJerk            := _stMf.rSlaveJerk;
       <LineId Id="930" Count="1" />
       <LineId Id="923" Count="0" />
       <LineId Id="932" Count="0" />
-      <LineId Id="924" Count="5" />
+      <LineId Id="924" Count="4" />
+      <LineId Id="984" Count="0" />
+      <LineId Id="981" Count="1" />
+      <LineId Id="929" Count="0" />
+      <LineId Id="983" Count="0" />
       <LineId Id="907" Count="0" />
       <LineId Id="890" Count="3" />
       <LineId Id="900" Count="0" />
@@ -1689,8 +1785,10 @@ _mcMotionFunctionPoint.SlaveJerk            := _stMf.rSlaveJerk;
       <LineId Id="955" Count="0" />
       <LineId Id="960" Count="0" />
       <LineId Id="959" Count="0" />
+      <LineId Id="977" Count="1" />
       <LineId Id="914" Count="6" />
       <LineId Id="913" Count="0" />
+      <LineId Id="979" Count="0" />
       <LineId Id="894" Count="5" />
       <LineId Id="692" Count="0" />
       <LineId Id="718" Count="1" />
@@ -1717,7 +1815,11 @@ _mcMotionFunctionPoint.SlaveJerk            := _stMf.rSlaveJerk;
       <LineId Id="985" Count="4" />
       <LineId Id="761" Count="13" />
       <LineId Id="990" Count="4" />
-      <LineId Id="778" Count="11" />
+      <LineId Id="778" Count="10" />
+      <LineId Id="1021" Count="0" />
+      <LineId Id="1018" Count="1" />
+      <LineId Id="789" Count="0" />
+      <LineId Id="1020" Count="0" />
       <LineId Id="1001" Count="5" />
       <LineId Id="790" Count="0" />
       <LineId Id="794" Count="0" />
@@ -1751,7 +1853,10 @@ _mcMotionFunctionPoint.SlaveJerk            := _stMf.rSlaveJerk;
       <LineId Id="1044" Count="0" />
       <LineId Id="762" Count="12" />
       <LineId Id="1053" Count="7" />
-      <LineId Id="778" Count="11" />
+      <LineId Id="778" Count="10" />
+      <LineId Id="1074" Count="0" />
+      <LineId Id="1072" Count="1" />
+      <LineId Id="789" Count="0" />
       <LineId Id="1001" Count="0" />
       <LineId Id="1045" Count="7" />
       <LineId Id="790" Count="0" />
@@ -1774,7 +1879,12 @@ _mcMotionFunctionPoint.SlaveJerk            := _stMf.rSlaveJerk;
       <LineId Id="761" Count="13" />
       <LineId Id="889" Count="1" />
       <LineId Id="778" Count="5" />
-      <LineId Id="891" Count="8" />
+      <LineId Id="891" Count="4" />
+      <LineId Id="917" Count="0" />
+      <LineId Id="914" Count="1" />
+      <LineId Id="896" Count="0" />
+      <LineId Id="916" Count="0" />
+      <LineId Id="897" Count="2" />
       <LineId Id="794" Count="0" />
       <LineId Id="692" Count="0" />
       <LineId Id="718" Count="1" />
@@ -1823,7 +1933,11 @@ _mcMotionFunctionPoint.SlaveJerk            := _stMf.rSlaveJerk;
       <LineId Id="862" Count="0" />
       <LineId Id="798" Count="0" />
       <LineId Id="809" Count="3" />
-      <LineId Id="879" Count="7" />
+      <LineId Id="879" Count="6" />
+      <LineId Id="921" Count="0" />
+      <LineId Id="918" Count="1" />
+      <LineId Id="886" Count="0" />
+      <LineId Id="920" Count="0" />
       <LineId Id="813" Count="2" />
       <LineId Id="2" Count="0" />
     </LineIds>
@@ -1880,7 +1994,9 @@ _mcMotionFunctionPoint.SlaveJerk            := _stMf.rSlaveJerk;
       <LineId Id="862" Count="0" />
       <LineId Id="798" Count="0" />
       <LineId Id="809" Count="3" />
-      <LineId Id="879" Count="7" />
+      <LineId Id="879" Count="6" />
+      <LineId Id="982" Count="0" />
+      <LineId Id="978" Count="3" />
       <LineId Id="813" Count="2" />
       <LineId Id="2" Count="0" />
     </LineIds>

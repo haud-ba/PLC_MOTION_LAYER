@@ -29,6 +29,7 @@ GVL_MSG.fbLocalTime(
 FOR nAxis := 1 TO PLC_CONSTANT.MAX_AXIS
 DO
   GVL_AXIS.Control[nAxis].AxisIndex           := nAxis;
+  GVL_AXIS.Control[nAxis].MessageLevel        := GVL_MSG.MessageLevelAxisPtp[nAxis];
 
   GVL_AXIS.Control[nAxis].AxisCtrl            := ADR(GVL_AXIS.Ctrl);          // command
   GVL_AXIS.Control[nAxis].AxisState           := ADR(GVL_AXIS.State);         // state + result of command
@@ -66,11 +67,16 @@ THEN
     E_PROGRESS.INIT:
       stMsg.eType                             := E_MessageType.eMessageInfo;
       stMsg.eDevice                           := e_Device.General;
-      stMsg.eSubdevice                        := e_SubDevice.fbAxis;
+      stMsg.eSubdevice                        := e_SubDevice.AxisStartUp;
       stMsg.iErrorNumber                      := nAxisInit;
 
       stMsg.sText                             := concat('MAIN.eInit: ', TO_STRING(eInit));
-      f_MessageSet(stMsg);
+
+      IF (GVL_MSG.MessageLevel < E_MessageType.eMessageError)
+      THEN
+        f_MessageSet(stMsg);
+      END_IF
+
 
       GVL_AXIS.Ctrl[nAxisInit].eCtrl          := E_AXIS_CTRL.AXIS_NULL;
       eInit                                   := E_PROGRESS.BUSY;
@@ -85,7 +91,7 @@ THEN
 
         stMsg.eType                           := E_MessageType.eMessageError;
         stMsg.eDevice                         := e_Device.General;
-        stMsg.eSubdevice                      := e_SubDevice.fbAxis;
+        stMsg.eSubdevice                      := e_SubDevice.AxisStartUp;
         stMsg.iErrorNumber                    := GVL_AXIS.Control[nAxisInit].ErrorId;
 
         stMsg.sText                           := concat('MAIN.eInit ERROR at Index: ', TO_STRING(nAxisInit));
@@ -109,7 +115,7 @@ THEN
 
         stMsg.eType                           := E_MessageType.eMessageInfo;
         stMsg.eDevice                         := e_Device.General;
-        stMsg.eSubdevice                      := e_SubDevice.fbAxis;
+        stMsg.eSubdevice                      := e_SubDevice.AxisStartUp;
         stMsg.iErrorNumber                    := MAX_AXIS;
 
         stMsg.sText                           := concat('MAIN.eInit: ', TO_STRING(eInit));
@@ -176,7 +182,9 @@ END_IF
       <LineId Id="77" Count="2" />
       <LineId Id="33" Count="0" />
       <LineId Id="36" Count="0" />
-      <LineId Id="102" Count="1" />
+      <LineId Id="102" Count="0" />
+      <LineId Id="355" Count="0" />
+      <LineId Id="103" Count="0" />
       <LineId Id="6" Count="0" />
       <LineId Id="95" Count="0" />
       <LineId Id="257" Count="0" />
@@ -199,7 +207,11 @@ END_IF
       <LineId Id="175" Count="0" />
       <LineId Id="211" Count="0" />
       <LineId Id="174" Count="0" />
-      <LineId Id="269" Count="6" />
+      <LineId Id="269" Count="5" />
+      <LineId Id="354" Count="0" />
+      <LineId Id="351" Count="2" />
+      <LineId Id="350" Count="0" />
+      <LineId Id="275" Count="0" />
       <LineId Id="268" Count="0" />
       <LineId Id="171" Count="0" />
       <LineId Id="176" Count="1" />

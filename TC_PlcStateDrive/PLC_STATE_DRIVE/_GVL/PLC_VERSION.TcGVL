@@ -3,7 +3,15 @@
   <GVL Name="PLC_VERSION" Id="{d2395695-97e2-030c-1191-ad6e09085440}">
     <Declaration><![CDATA[{attribute 'qualified_only'}
 VAR_GLOBAL CONSTANT
-  VERSION               : STRING := 'V 01.00.01';
+  VERSION               : STRING := 'V 01.00.02';
+
+  // 2024 05 31 HAUD
+  // 
+  // V 01.00.02
+  // precompiler defines: 
+  //  - BSD: Tc-BSD file system is used else Windows file system is used
+  //  - GVL_MSG.MessageLevel
+  //    - Axis, Cam, Nci have individual message levels now
 
   // 2024 03 09 HAUD
   // 

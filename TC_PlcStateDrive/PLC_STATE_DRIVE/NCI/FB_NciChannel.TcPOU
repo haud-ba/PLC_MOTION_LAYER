@@ -8,6 +8,8 @@ VAR
 // 2nd result of Check()
   _eCheck               : E_CHECK_STATE;
 
+  _MessageLevel         : E_MessageType;
+
 //NCI-Channel reference
   _NciChannelRef        : POINTER TO ST_NciChannel_Ref;
 
@@ -133,7 +135,11 @@ OF
         _stMsg.eSubdevice           := e_Subdevice.fbBuildGroup;
         _stMsg.iErrorNumber         := _fbBuildGroup.nGroupId;
         _stMsg.sText                := concat('BuildGroup Busy: ', TO_STRING(_fbBuildGroup.nGroupId));
-        f_MessageSet(_stMsg);
+
+        IF (_MessageLevel < E_MessageType.eMessageError)
+        THEN
+          f_MessageSet(_stMsg);
+        END_IF
       END_IF
     END_IF
 END_CASE
@@ -166,7 +172,11 @@ OF
         _stMsg.eSubdevice           := e_Subdevice.fbBuildGroup;
         _stMsg.iErrorNumber         := _fbBuildGroup.nGroupId;
         _stMsg.sText                := concat('BuildGroup Done: ', TO_STRING(_fbBuildGroup.nGroupId));
-        f_MessageSet(_stMsg);
+
+        IF (_MessageLevel < E_MessageType.eMessageError)
+        THEN
+          f_MessageSet(_stMsg);
+        END_IF
       END_IF
     END_IF
 END_CASE
@@ -322,7 +332,11 @@ OF
         _stMsg.eSubdevice           := e_Subdevice.fbClearGroup;
         _stMsg.iErrorNumber         := _fbClearGroup.nErrId;
         _stMsg.sText                := concat('BuildGroup Busy: ', TO_STRING(_fbClearGroup.nErrId));
-        f_MessageSet(_stMsg);
+
+        IF (_MessageLevel < E_MessageType.eMessageError)
+        THEN
+          f_MessageSet(_stMsg);
+        END_IF
       END_IF
     END_IF
 END_CASE
@@ -355,7 +369,11 @@ OF
         _stMsg.eSubdevice           := e_Subdevice.fbClearGroup;
         _stMsg.iErrorNumber         := _fbClearGroup.nErrId;
         _stMsg.sText                := concat('BuildGroup Done: ', TO_STRING(_fbClearGroup.nErrId));
-        f_MessageSet(_stMsg);
+
+        IF (_MessageLevel < E_MessageType.eMessageError)
+        THEN
+          f_MessageSet(_stMsg);
+        END_IF
       END_IF
     END_IF
 END_CASE
@@ -438,7 +456,10 @@ OF
         _stMsg.iErrorNumber                   := _NciChannelRef^.NcToPlc.HskMFuncNo;
         _stMsg.sText                          := concat('M Func check: ', 
                                                  TO_STRING(_NciChannelRef^.NcToPlc.HskMFuncNo));
-        f_MessageSet(_stMsg);
+        IF (_MessageLevel < E_MessageType.eMessageError)
+        THEN
+          f_MessageSet(_stMsg);
+        END_IF
       END_IF
     END_IF
 END_CASE
@@ -458,7 +479,10 @@ OF
       _stMsg.iErrorNumber                     := _NciChannelRef^.NcToPlc.HskMFuncNo;
       _stMsg.sText                            := concat('M Func gone: ', 
                                                TO_STRING(_NciChannelRef^.NcToPlc.HskMFuncNo));
-      f_MessageSet(_stMsg);
+      IF (_MessageLevel < E_MessageType.eMessageError)
+      THEN
+        f_MessageSet(_stMsg);
+      END_IF
     END_IF
 END_CASE
 CASE _eState
@@ -547,7 +571,11 @@ OF
         _stMsg.eSubdevice           := e_Subdevice.fbDelDtgItp;
         _stMsg.iErrorNumber         := _fbItpDelDtg.nErrId;
         _stMsg.sText                := concat('Delete DistanceToGo Busy: ', TO_STRING(_fbItpDelDtg.nErrId));
-        f_MessageSet(_stMsg);
+
+        IF (_MessageLevel < E_MessageType.eMessageError)
+        THEN
+          f_MessageSet(_stMsg);
+        END_IF
       END_IF
     END_IF
 END_CASE
@@ -718,7 +746,11 @@ OF
         _stMsg.eSubdevice           := e_Subdevice.fbEStopItp;
         _stMsg.iErrorNumber         := _fbEStop.nErrId;
         _stMsg.sText                := concat('E-StopItp Busy: ', TO_STRING(_fbEStop.nErrId));
-        f_MessageSet(_stMsg);
+
+        IF (_MessageLevel < E_MessageType.eMessageError)
+        THEN
+          f_MessageSet(_stMsg);
+        END_IF
       END_IF
     END_IF
 END_CASE
@@ -927,7 +959,11 @@ OF
         _stMsg.eSubdevice           := e_Subdevice.fbResetItp;
         _stMsg.iErrorNumber         := _fbReset.nErrId;
         _stMsg.sText                := concat('ResetItp Busy: ', TO_STRING(_fbReset.nErrId));
-        f_MessageSet(_stMsg);
+
+        IF (_MessageLevel < E_MessageType.eMessageError)
+        THEN
+          f_MessageSet(_stMsg);
+        END_IF
       END_IF
 //    END_IF
 END_CASE
@@ -1065,7 +1101,11 @@ OF
         _stMsg.eSubdevice           := e_Subdevice.fbLoadProg;
         _stMsg.iErrorNumber         := _fbLoadProg.nErrId;
         _stMsg.sText                := concat('LoadProg Busy: ', TO_STRING(_fbLoadProg.nErrId));
-        f_MessageSet(_stMsg);
+
+        IF (_MessageLevel < E_MessageType.eMessageError)
+        THEN
+          f_MessageSet(_stMsg);
+        END_IF
       END_IF
     END_IF
 END_CASE
@@ -1100,7 +1140,11 @@ OF
         _stMsg.eSubdevice           := e_Subdevice.fbLoadProg;
         _stMsg.iErrorNumber         := _fbLoadProg.nErrId;
         _stMsg.sText                := concat('Load Prog Done: ', TO_STRING(_fbLoadProg.nErrId));
-        f_MessageSet(_stMsg);
+
+        IF (_MessageLevel < E_MessageType.eMessageError)
+        THEN
+          f_MessageSet(_stMsg);
+        END_IF
       END_IF
     END_IF
 END_CASE
@@ -1165,6 +1209,18 @@ END_VAR
 ]]></ST>
         </Implementation>
       </Get>
+    </Property>
+    <Property Name="MessageLevel" Id="{ac200170-62d6-0c34-2d34-af22f3e75ce4}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY MessageLevel : E_MessageType]]></Declaration>
+      <Set Name="Set" Id="{dc0ef0a4-f9d4-0d7f-35d4-1ba5109648ae}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_MessageLevel := MessageLevel;
+]]></ST>
+        </Implementation>
+      </Set>
     </Property>
     <Property Name="MFunc" Id="{eef8001b-c1c5-07ab-1a61-aed038458c5a}" FolderPath="properties\">
       <Declaration><![CDATA[(*
@@ -1348,7 +1404,11 @@ OF
         _stMsg.eSubdevice           := e_Subdevice.fbReadLine;
         _stMsg.iErrorNumber         := _fbReadLine.ERRID;
         _stMsg.sText                := concat('ReadLine Busy: ', TO_STRING(_fbReadLine.ERRID));
-        f_MessageSet(_stMsg);
+
+        IF (_MessageLevel < E_MessageType.eMessageError)
+        THEN
+          f_MessageSet(_stMsg);
+        END_IF
       END_IF
     END_IF
 END_CASE
@@ -1386,7 +1446,11 @@ OF
         _stMsg.eSubdevice           := e_Subdevice.fbReadLine;
         _stMsg.iErrorNumber         := _fbReadLine.ERRID;
         _stMsg.sText                := concat('ReadLine Done: ', TO_STRING(_fbReadLine.ERRID));
-        f_MessageSet(_stMsg);
+
+        IF (_MessageLevel < E_MessageType.eMessageError)
+        THEN
+          f_MessageSet(_stMsg);
+        END_IF
       END_IF
     END_IF
 END_CASE
@@ -1499,7 +1563,10 @@ OF
         _stMsg.eSubdevice           := e_Subdevice.fbItpReadRParams;
         _stMsg.iErrorNumber         := _fbItpReadRParams.nErrId;
         _stMsg.sText                := concat('Read R Parameter Busy: ', TO_STRING(_fbItpReadRParams.nErrId));
-        f_MessageSet(_stMsg);
+        IF (_MessageLevel < E_MessageType.eMessageError)
+        THEN
+          f_MessageSet(_stMsg);
+        END_IF
       END_IF
     END_IF
 END_CASE
@@ -1535,7 +1602,10 @@ OF
         _stMsg.eSubdevice           := e_Subdevice.fbItpReadRParams;
         _stMsg.iErrorNumber         := _fbItpReadRParams.nErrId;
         _stMsg.sText                := concat('Read R Parameter Done: ', TO_STRING(_fbItpReadRParams.nErrId));
-        f_MessageSet(_stMsg);
+        IF (_MessageLevel < E_MessageType.eMessageError)
+        THEN
+          f_MessageSet(_stMsg);
+        END_IF
       END_IF
     END_IF
 END_CASE
@@ -1629,7 +1699,10 @@ OF
         _stMsg.eSubdevice           := e_Subdevice.fbStartStopItp;
         _stMsg.iErrorNumber         := _fbStartStop.nErrId;
         _stMsg.sText                := concat('StartStop Itp Busy: ', TO_STRING(_fbStartStop.nErrId));
-        f_MessageSet(_stMsg);
+        IF (_MessageLevel < E_MessageType.eMessageError)
+        THEN
+          f_MessageSet(_stMsg);
+        END_IF
       END_IF
     END_IF
 END_CASE
@@ -1663,7 +1736,10 @@ OF
         _stMsg.eSubdevice           := e_Subdevice.fbStartStopItp;
         _stMsg.iErrorNumber         := _fbStartStop.nErrId;
         _stMsg.sText                := concat('StartStop Itp Done: ', TO_STRING(_fbStartStop.nErrId));
-        f_MessageSet(_stMsg);
+        IF (_MessageLevel < E_MessageType.eMessageError)
+        THEN
+          f_MessageSet(_stMsg);
+        END_IF
       END_IF
     END_IF
 END_CASE
@@ -1762,7 +1838,10 @@ OF
         _stMsg.eSubdevice           := e_Subdevice.fbStepOnAfterEStopItp;
         _stMsg.iErrorNumber         := _fbStepOnAfterEStop.nErrId;
         _stMsg.sText                := concat('StepOn Itp Busy: ', TO_STRING(_fbStepOnAfterEStop.nErrId));
-        f_MessageSet(_stMsg);
+        IF (_MessageLevel < E_MessageType.eMessageError)
+        THEN
+          f_MessageSet(_stMsg);
+        END_IF
       END_IF
     END_IF
 END_CASE
@@ -1795,7 +1874,10 @@ OF
         _stMsg.eSubdevice           := e_Subdevice.fbStepOnAfterEStopItp;
         _stMsg.iErrorNumber         := _fbStepOnAfterEStop.nErrId;
         _stMsg.sText                := concat('StepOn Itp Busy: ', TO_STRING(_fbStepOnAfterEStop.nErrId));
-        f_MessageSet(_stMsg);
+        IF (_MessageLevel < E_MessageType.eMessageError)
+        THEN
+          f_MessageSet(_stMsg);
+        END_IF
       END_IF
     END_IF
 END_CASE
@@ -1906,7 +1988,10 @@ OF
         _stMsg.eSubdevice           := e_Subdevice.fbItpWriteRParams;
         _stMsg.iErrorNumber         := _fbItpWriteRParams.nErrId;
         _stMsg.sText                := concat('Wriet R Parameter Busy: ', TO_STRING(_fbItpWriteRParams.nErrId));
-        f_MessageSet(_stMsg);
+        IF (_MessageLevel < E_MessageType.eMessageError)
+        THEN
+          f_MessageSet(_stMsg);
+        END_IF
       END_IF
     END_IF
 END_CASE
@@ -1942,7 +2027,10 @@ OF
         _stMsg.eSubdevice           := e_Subdevice.fbItpWriteRParams;
         _stMsg.iErrorNumber         := _fbItpWriteRParams.nErrId;
         _stMsg.sText                := concat('Wriet R Parameter Done: ', TO_STRING(_fbItpWriteRParams.nErrId));
-        f_MessageSet(_stMsg);
+        IF (_MessageLevel < E_MessageType.eMessageError)
+        THEN
+          f_MessageSet(_stMsg);
+        END_IF
       END_IF
     END_IF
 END_CASE
@@ -1992,7 +2080,13 @@ WriteRParams                        := _eState;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.BuilDGroup">
-      <LineId Id="3" Count="103" />
+      <LineId Id="3" Count="55" />
+      <LineId Id="118" Count="3" />
+      <LineId Id="127" Count="0" />
+      <LineId Id="60" Count="31" />
+      <LineId Id="132" Count="0" />
+      <LineId Id="128" Count="3" />
+      <LineId Id="93" Count="13" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.CfgAxes.Set">
@@ -2004,20 +2098,31 @@ WriteRParams                        := _eState;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.Check">
-      <LineId Id="3" Count="23" />
-      <LineId Id="55" Count="15" />
+      <LineId Id="3" Count="39" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.ClearGroup">
-      <LineId Id="3" Count="114" />
+      <LineId Id="3" Count="46" />
+      <LineId Id="132" Count="0" />
+      <LineId Id="128" Count="3" />
+      <LineId Id="51" Count="32" />
+      <LineId Id="133" Count="3" />
+      <LineId Id="84" Count="33" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.ConfirmHSK">
-      <LineId Id="3" Count="77" />
+      <LineId Id="3" Count="31" />
+      <LineId Id="91" Count="3" />
+      <LineId Id="36" Count="18" />
+      <LineId Id="95" Count="3" />
+      <LineId Id="56" Count="24" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.DeleteDistanceToGo">
-      <LineId Id="3" Count="114" />
+      <LineId Id="3" Count="46" />
+      <LineId Id="132" Count="0" />
+      <LineId Id="128" Count="3" />
+      <LineId Id="51" Count="66" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.Error.Get">
@@ -2029,7 +2134,10 @@ WriteRParams                        := _eState;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.EStop">
-      <LineId Id="3" Count="114" />
+      <LineId Id="3" Count="46" />
+      <LineId Id="131" Count="0" />
+      <LineId Id="128" Count="2" />
+      <LineId Id="50" Count="67" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.GetChannelOverride">
@@ -2041,8 +2149,8 @@ WriteRParams                        := _eState;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.GetLoadedProg">
-      <LineId Id="6" Count="1" />
-      <LineId Id="5" Count="0" />
+      <LineId Id="3" Count="1" />
+      <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.HSK.Get">
       <LineId Id="3" Count="2" />
@@ -2053,16 +2161,32 @@ WriteRParams                        := _eState;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.ItpReset">
-      <LineId Id="3" Count="119" />
+      <LineId Id="3" Count="49" />
+      <LineId Id="133" Count="2" />
+      <LineId Id="53" Count="0" />
+      <LineId Id="136" Count="0" />
+      <LineId Id="54" Count="68" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.LoadProg">
-      <LineId Id="3" Count="136" />
+      <LineId Id="3" Count="51" />
+      <LineId Id="150" Count="2" />
+      <LineId Id="55" Count="0" />
+      <LineId Id="153" Count="0" />
+      <LineId Id="56" Count="33" />
+      <LineId Id="154" Count="2" />
+      <LineId Id="90" Count="0" />
+      <LineId Id="157" Count="0" />
+      <LineId Id="91" Count="48" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.M_FuncReq.Get">
       <LineId Id="3" Count="0" />
       <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannel.MessageLevel.Set">
+      <LineId Id="2" Count="0" />
+      <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.MFunc.Get">
       <LineId Id="3" Count="1" />
@@ -2097,23 +2221,45 @@ WriteRParams                        := _eState;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.ReadLine">
-      <LineId Id="3" Count="131" />
+      <LineId Id="3" Count="54" />
+      <LineId Id="155" Count="0" />
+      <LineId Id="152" Count="2" />
+      <LineId Id="58" Count="37" />
+      <LineId Id="159" Count="0" />
+      <LineId Id="156" Count="2" />
+      <LineId Id="96" Count="38" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.ReadRParams">
-      <LineId Id="3" Count="116" />
+      <LineId Id="3" Count="53" />
+      <LineId Id="134" Count="2" />
+      <LineId Id="57" Count="35" />
+      <LineId Id="137" Count="2" />
+      <LineId Id="93" Count="26" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.StartStop">
-      <LineId Id="3" Count="118" />
+      <LineId Id="3" Count="48" />
+      <LineId Id="134" Count="2" />
+      <LineId Id="52" Count="33" />
+      <LineId Id="137" Count="2" />
+      <LineId Id="86" Count="35" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.StepOnAfterEStop">
-      <LineId Id="3" Count="114" />
+      <LineId Id="3" Count="46" />
+      <LineId Id="128" Count="2" />
+      <LineId Id="50" Count="32" />
+      <LineId Id="131" Count="2" />
+      <LineId Id="83" Count="34" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.WriteRParams">
-      <LineId Id="3" Count="116" />
+      <LineId Id="3" Count="55" />
+      <LineId Id="134" Count="2" />
+      <LineId Id="59" Count="35" />
+      <LineId Id="137" Count="2" />
+      <LineId Id="95" Count="24" />
       <LineId Id="2" Count="0" />
     </LineIds>
   </POU>

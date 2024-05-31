@@ -4,21 +4,26 @@
     <Declaration><![CDATA[{attribute 'to_string'}
 TYPE e_Device :
 (
-  General         := 0,
+  Device_Null,
+  General           :=   100,
 
-  // first NC Axis, all other Axis are incremented
-  Axis            := 1000,
+  CaGroup           :=   200,
+  Xpu               :=   300,
+  XpuCtrl           :=   400,
 
-  // NCI channel control instance
-  NciChannelCtrl  := 2000,
+  Mover             :=   500,
+  MoverCtrl         :=   600,
 
-  // NCI channel
-  NciChannel      := 3000,
+  XtsTransportUnit  :=   700,
 
-  Camming         := 6000,
+  XtsStation        :=  1000,
 
-  // message function blocks
-  Data            := 10000
+
+  Camming           :=  3000,
+  NciChannel        :=  4000,
+  NciChannelCtrl    :=  5000,
+  Axis              :=  7000,
+  Data              := 10000
 )DINT;
 END_TYPE
 ]]></Declaration>

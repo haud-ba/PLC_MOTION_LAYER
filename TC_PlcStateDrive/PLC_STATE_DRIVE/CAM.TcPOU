@@ -23,6 +23,7 @@ IF NOT PLC_CONSTANT.CAM_ACTIVE THEN eInit := E_PROGRESS.NOT_EXIST; RETURN; END_I
 FOR nAxis := 1 TO PLC_CONSTANT.MAX_AXIS
 DO
   GVL_CAM.Control[nAxis].ItfMcAxes                := GVL_AXIS.ItfMcAxis;
+  GVL_CAM.Control[nAxis].MessageLevel             := GVL_MSG.MessageLevelAxisCam[nAxis];
 
   GVL_CAM.Control[nAxis].AxisIndex                := nAxis;
 
@@ -56,7 +57,7 @@ THEN
     E_PROGRESS.INIT:
       stMsg.eType                                 := E_MessageType.eMessageInfo;
       stMsg.eDevice                               := e_Device.Camming;
-      stMsg.eSubdevice                            := e_SubDevice.fbAxis;
+      stMsg.eSubdevice                            := e_SubDevice.CamStartUp;
       stMsg.iErrorNumber                          := nAxisInit;
 
       stMsg.sText                                 := concat('CAM.eInit: ', TO_STRING(eInit));
@@ -75,7 +76,7 @@ THEN
 
         stMsg.eType                               := E_MessageType.eMessageError;
         stMsg.eDevice                             := e_Device.Camming;
-        stMsg.eSubdevice                          := e_SubDevice.fbAxis;
+        stMsg.eSubdevice                          := e_SubDevice.CamStartUp;
         stMsg.iErrorNumber                        := nAxisInit;
 
         stMsg.sText                               := concat('CAM.eInit ERROR at Index: ', TO_STRING(nAxisInit));
@@ -95,7 +96,7 @@ THEN
 
         stMsg.eType                               := E_MessageType.eMessageInfo;
         stMsg.eDevice                             := e_Device.Camming;
-        stMsg.eSubdevice                          := e_SubDevice.fbAxis;
+        stMsg.eSubdevice                          := e_SubDevice.CamStartUp;
         stMsg.iErrorNumber                        := MAX_AXIS;
 
         stMsg.sText                               := concat('CAM.eInit: ', TO_STRING(eInit));
@@ -130,7 +131,9 @@ END_IF
       <LineId Id="19" Count="2" />
       <LineId Id="5" Count="0" />
       <LineId Id="107" Count="4" />
-      <LineId Id="146" Count="1" />
+      <LineId Id="146" Count="0" />
+      <LineId Id="172" Count="0" />
+      <LineId Id="147" Count="0" />
       <LineId Id="112" Count="8" />
       <LineId Id="160" Count="0" />
       <LineId Id="159" Count="0" />
