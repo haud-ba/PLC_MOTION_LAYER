@@ -86,7 +86,10 @@ TYPE e_Subdevice :
   AxisCycle,
   AxisIdle,
 
-  Ctrl_Nci_Cmd          := 2000,
+  NciControl           := 2000,
+  NciStartUp,
+  NciCycle,
+  NciIdle,
 
   StationLinkedList     := 3000,
   StationInitList,

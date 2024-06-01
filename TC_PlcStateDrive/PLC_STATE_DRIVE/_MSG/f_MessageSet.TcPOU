@@ -6,7 +6,7 @@ VAR_INPUT
   stMessage   : ST_Message;
 END_VAR
 VAR
-  _uiIndex   : INT;
+  _uiIndex   : uINT;
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -34,7 +34,7 @@ DO
   IF (GVL_MSG.Messages[_uiIndex].eType = e_MessageType.eMessageEmpty)
   THEN
     GVL_MSG.Messages[_uiIndex]      := stMessage;
-    GVL_MSG.MessageIndex             := _uiIndex;
+    GVL_MSG.MessageIndex            := _uiIndex;
     EXIT;
   END_IF
 END_FOR

@@ -124,6 +124,12 @@ END_VAR
         <Declaration><![CDATA[]]></Declaration>
       </Get>
     </Property>
+    <Property Name="MessageLevel" Id="{09df7ffb-d51a-0a46-1af6-e3742a983dbf}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY MessageLevel : E_MessageType]]></Declaration>
+      <Set Name="Set" Id="{da76445c-8d7c-07d5-2697-cc99925b3ad7}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
     <Property Name="MFunc" Id="{e6813d63-ef99-0544-3d58-efdd02a6e34a}" FolderPath="properties\">
       <Declaration><![CDATA[(*
 ===============================================================

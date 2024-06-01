@@ -51,6 +51,12 @@
         <Declaration><![CDATA[]]></Declaration>
       </Set>
     </Property>
+    <Property Name="MessageLevel" Id="{fd50ea6d-ea07-021c-1a8b-ab91ef8e6039}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY MessageLevel : E_MessageType]]></Declaration>
+      <Set Name="Set" Id="{d67756da-c6a8-0d9e-1c52-24998f70935d}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
     <Property Name="MotionFunction" Id="{51497f92-2c5d-0340-36c3-d2c881e7309b}" FolderPath="properties\">
       <Declaration><![CDATA[PROPERTY MotionFunction : POINTER TO ARRAY[1..MAX_AXIS] OF ST_MOTION_FUNCTION
 ]]></Declaration>

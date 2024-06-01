@@ -17,7 +17,7 @@ VAR_GLOBAL CONSTANT
 
   LOG_FILE              : STRING  := 'MSG_PLCSD_';
 
-  MAX_MESSAGE           : INT     := 200; // max entry in message list
+  MAX_MESSAGE           : UINT     := 200; // max entry in message list
 END_VAR
 VAR_GLOBAL
 
@@ -30,8 +30,8 @@ VAR_GLOBAL
 
 
   Messages                        : ARRAY[1..MAX_MESSAGE] OF ST_Message;
-  MessageIndex                    : INT := 1; // message index
-  MessageError                    : INT := 0; // error counter
+  MessageIndex                    : UINT := 1; // message index
+  MessageError                    : UINT := 0; // error counter
 
   fbLocalTime                     : fb_LocalTime;
   dtLocalTime                     : DT;

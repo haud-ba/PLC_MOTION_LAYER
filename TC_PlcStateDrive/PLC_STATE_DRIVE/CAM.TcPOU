@@ -18,6 +18,9 @@ END_VAR
 //-----------------------------------------------------------------------------------------------------------------
 IF NOT PLC_CONSTANT.CAM_ACTIVE THEN eInit := E_PROGRESS.NOT_EXIST; RETURN; END_IF
 //-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
 // /assign dataflow
 //-----------------------------------------------------------------------------------------------------------------
 FOR nAxis := 1 TO PLC_CONSTANT.MAX_AXIS
@@ -50,17 +53,22 @@ THEN
   OF
     E_PROGRESS.INVALID,
     E_PROGRESS.DONE:
+      FOR nAxis := 1 TO MAX_AXIS
+      DO
+        GVL_CAM.Control[nAxis].MessageLevel       := GVL_MSG.MessageLevel;
+      END_FOR 
       nAxisInit                                   := 1;
       eInit                                       := E_PROGRESS.INIT;
 
 
     E_PROGRESS.INIT:
-      stMsg.eType                                 := E_MessageType.eMessageInfo;
+      stMsg.eType                                 := E_MessageType.eMessageVerbose;
       stMsg.eDevice                               := e_Device.Camming;
       stMsg.eSubdevice                            := e_SubDevice.CamStartUp;
       stMsg.iErrorNumber                          := nAxisInit;
 
       stMsg.sText                                 := concat('CAM.eInit: ', TO_STRING(eInit));
+
       f_MessageSet(stMsg);
 
       GVL_CAM.Ctrl[nAxisInit].eCtrl               := E_AXIS_CTRL.AXIS_NULL;
@@ -130,7 +138,9 @@ END_IF
     <LineIds Name="CAM">
       <LineId Id="19" Count="2" />
       <LineId Id="5" Count="0" />
-      <LineId Id="107" Count="4" />
+      <LineId Id="107" Count="0" />
+      <LineId Id="178" Count="2" />
+      <LineId Id="108" Count="3" />
       <LineId Id="146" Count="0" />
       <LineId Id="172" Count="0" />
       <LineId Id="147" Count="0" />
@@ -139,7 +149,11 @@ END_IF
       <LineId Id="159" Count="0" />
       <LineId Id="161" Count="0" />
       <LineId Id="130" Count="3" />
-      <LineId Id="24" Count="82" />
+      <LineId Id="24" Count="8" />
+      <LineId Id="174" Count="3" />
+      <LineId Id="33" Count="10" />
+      <LineId Id="182" Count="0" />
+      <LineId Id="44" Count="62" />
       <LineId Id="23" Count="0" />
       <LineId Id="6" Count="0" />
     </LineIds>

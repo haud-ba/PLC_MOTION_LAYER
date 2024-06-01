@@ -28,6 +28,7 @@ VAR
 
   _eState               : E_NCI_STATE;
 
+  _eInit,
   _eResult,
   _eResultOld           : E_PROGRESS;
 
@@ -146,84 +147,104 @@ END_VAR
 CASE eCmd
 OF
   E_NCI_CTRL.INIT:
-    // nothing implemented yet
-    _eResult                := E_PROGRESS.NOT_EXIST;
+    // check axis configuration, clear group, reset Itp
+    _eInit := _eResult      := Ctrl_Init(FALSE);
     _eState                 := E_NCI_STATE.INIT;
-
-  E_NCI_CTRL.IDLE:
-    _eResult                := Ctrl_Idle(FALSE);
-    _eState                 := E_NCI_STATE.IDLE;
-
-  E_NCI_CTRL.FEED_TABLE:
-    // nothing implemented yet
-    _eResult                := E_PROGRESS.NOT_EXIST;
-    _eState                 := E_NCI_STATE.FEED_TABLE;
-
-  E_NCI_CTRL.RESET:
-    _eResult                := Ctrl_Reset(FALSE);
-    _eState                 := E_NCI_STATE.RESET;
-
-  E_NCI_CTRL.LOAD_PROG:
-    _eResult                := Ctrl_LoadProg(FALSE);
-    _eState                 := E_NCI_STATE.LOAD_PROG;
-
-  E_NCI_CTRL.BUILD_GROUP:
-    _eResult                := Ctrl_BuildGroup(FALSE);
-    _eState                 := E_NCI_STATE.BUILD_GROUP;
-
-  E_NCI_CTRL.CLEAR_GROUP:
-    _eResult                := Ctrl_ClearGroup(FALSE);
-    _eState                 := E_NCI_STATE.CLEAR_GROUP;
-
-  E_NCI_CTRL.START:
-    _eResult                := Ctrl_Start(FALSE);
-    _eState                 := E_NCI_STATE.START;
-
-  E_NCI_CTRL.STOP:
-    _eResult                := Ctrl_Stop(FALSE);
-    _eState                 := E_NCI_STATE.STOP;
-
-  E_NCI_CTRL.STO_STOP:
-    _eResult                := Ctrl_Stop_STO(FALSE);
-    _eState                 := E_NCI_STATE.STO_STOP;
-
-  E_NCI_CTRL.RESTART_STEP_ON:
-    _eResult                := Ctrl_Restart(FALSE);
-    _eState                 := E_NCI_STATE.RESTART_STEP_ON;
-
-  E_NCI_CTRL.M_FUNC_QUIT:
-    _eResult                := Ctrl_ConfirmHsk(FALSE);
-    _eState                 := E_NCI_STATE.M_FUNC_QUIT;
-
-  E_NCI_CTRL.READ_R_PARA:
-    _eResult                := Ctrl_R_Parameter_Rd(FALSE);
-    _eState                 := E_NCI_STATE.READ_R_PARA;
-
-  E_NCI_CTRL.WRITE_R_PARA:
-    _eResult                := Ctrl_R_Parameter_Wrt(FALSE);
-    _eState                 := E_NCI_STATE.WRITE_R_PARA;
-
 ELSE
-    _eState                 := E_NCI_STATE.NULL;
+  IF NOT (_eInit = E_PROGRESS.DONE)
+  THEN
+    _eResult                := E_PROGRESS.ERROR;
+  
+    _stMsg.eType            := E_MessageType.eMessageError;
+    _stMsg.eDevice          := E_Device.NciChannelCtrl + TO_DINT(ChnId);
+    _stMsg.eSubdevice       := e_Subdevice.NciControl;
+    _stMsg.iErrorNumber     := -1;
+  
+    _stMsg.sText          := 'eInit:';
+    _stMsg.sText          := concat(_stMsg.sText, TO_STRING(_eInit));
+    _stMsg.sText          := concat(_stMsg.sText, ': ');
+    _stMsg.sText          := concat(_stMsg.sText, TO_STRING(_eResult));
 
-    IF (eCmd = E_NCI_CTRL.NULL)
-    THEN
-      _eResult              := E_PROGRESS.DONE;
+    f_MessageSet(_stMsg);
+
+  ELSE
+    CASE eCmd
+    OF
+      E_NCI_CTRL.IDLE:
+        _eResult                := Ctrl_Idle(FALSE);
+        _eState                 := E_NCI_STATE.IDLE;
+    
+      E_NCI_CTRL.FEED_TABLE:
+        // nothing implemented yet
+        _eResult                := E_PROGRESS.NOT_EXIST;
+        _eState                 := E_NCI_STATE.FEED_TABLE;
+    
+      E_NCI_CTRL.RESET:
+        _eResult                := Ctrl_Reset(FALSE);
+        _eState                 := E_NCI_STATE.RESET;
+    
+      E_NCI_CTRL.LOAD_PROG:
+        _eResult                := Ctrl_LoadProg(FALSE);
+        _eState                 := E_NCI_STATE.LOAD_PROG;
+    
+      E_NCI_CTRL.BUILD_GROUP:
+        _eResult                := Ctrl_BuildGroup(FALSE);
+        _eState                 := E_NCI_STATE.BUILD_GROUP;
+    
+      E_NCI_CTRL.CLEAR_GROUP:
+        _eResult                := Ctrl_ClearGroup(FALSE);
+        _eState                 := E_NCI_STATE.CLEAR_GROUP;
+    
+      E_NCI_CTRL.START:
+        _eResult                := Ctrl_Start(FALSE);
+        _eState                 := E_NCI_STATE.START;
+    
+      E_NCI_CTRL.STOP:
+        _eResult                := Ctrl_Stop(FALSE);
+        _eState                 := E_NCI_STATE.STOP;
+    
+      E_NCI_CTRL.STO_STOP:
+        _eResult                := Ctrl_Stop_STO(FALSE);
+        _eState                 := E_NCI_STATE.STO_STOP;
+    
+      E_NCI_CTRL.RESTART_STEP_ON:
+        _eResult                := Ctrl_Restart(FALSE);
+        _eState                 := E_NCI_STATE.RESTART_STEP_ON;
+    
+      E_NCI_CTRL.M_FUNC_QUIT:
+        _eResult                := Ctrl_ConfirmHsk(FALSE);
+        _eState                 := E_NCI_STATE.M_FUNC_QUIT;
+    
+      E_NCI_CTRL.READ_R_PARA:
+        _eResult                := Ctrl_R_Parameter_Rd(FALSE);
+        _eState                 := E_NCI_STATE.READ_R_PARA;
+    
+      E_NCI_CTRL.WRITE_R_PARA:
+        _eResult                := Ctrl_R_Parameter_Wrt(FALSE);
+        _eState                 := E_NCI_STATE.WRITE_R_PARA;
     ELSE
-      _eResult              := E_PROGRESS.INVALID;
-
-      _stMsg.eType          := E_MessageType.eMessageError;
-      _stMsg.eDevice        := E_Device.NciChannelCtrl + TO_DINT(ChnId);
-      _stMsg.eSubdevice     := e_Subdevice.Ctrl_Nci_Cmd;
-      _stMsg.iErrorNumber   := 0;
-
-      _stMsg.sText          := 'E_NCI_CTRL.';
-      _stMsg.sText          := concat(_stMsg.sText, TO_STRING(eCmd));
-      _stMsg.sText          := concat(_stMsg.sText, ': ');
-      _stMsg.sText          := concat(_stMsg.sText, TO_STRING(_eResult));
-
-      f_MessageSet(_stMsg);
-    END_IF
+      _eState                 := E_NCI_STATE.NULL;
+  
+      IF (eCmd = E_NCI_CTRL.NULL)
+      THEN
+        _eResult              := E_PROGRESS.DONE;
+      ELSE
+        _eResult              := E_PROGRESS.INVALID;
+  
+        _stMsg.eType          := E_MessageType.eMessageError;
+        _stMsg.eDevice        := E_Device.NciChannelCtrl + TO_DINT(ChnId);
+        _stMsg.eSubdevice     := e_Subdevice.NciControl;
+        _stMsg.iErrorNumber   := 0;
+  
+        _stMsg.sText          := 'E_NCI_CTRL.';
+        _stMsg.sText          := concat(_stMsg.sText, TO_STRING(eCmd));
+        _stMsg.sText          := concat(_stMsg.sText, ': ');
+        _stMsg.sText          := concat(_stMsg.sText, TO_STRING(_eResult));
+  
+        f_MessageSet(_stMsg);
+      END_IF
+    END_CASE
+  END_IF
 END_CASE
 
 
@@ -433,6 +454,8 @@ VAR_INST
 
   _nErr             : DWORD;
   _NciAxisIds       : ARRAY[1..8] OF DWORD;
+
+  _stMsg            : ST_Message;
 END_VAR
 ]]></Declaration>
       <Implementation>
@@ -489,13 +512,142 @@ OF
 
     IF (_NciChannelRef^.NcToPlc.HskMFuncReq = 0)
     THEN
-      _eState                             := E_PROGRESS.DONE;
+      IF (_nErr <> 0)
+      THEN
+        _eState                           := E_PROGRESS.ERROR;
+        _stMsg.eType                      := E_MessageType.eMessageError;
+        _stMsg.eDevice                    := ChannelDevice;
+        _stMsg.eSubdevice                 := e_Subdevice.NciIdle;
+        _stMsg.iErrorNumber               := _nErr;
+        _stMsg.sText                      := concat('ItpGetGroupAxisIds Error: ', TO_STRING(_nErr));
+
+        f_MessageSet(_stMsg);
+      ELSE
+        _eState                           := E_PROGRESS.DONE;
+      END_IF
     ELSE
       _eState                             := E_PROGRESS.STARTUP;
     END_IF
 END_CASE
 
 Ctrl_Idle                                := _eState;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Ctrl_Init" Id="{c27e6288-4940-0e32-3d0b-35ae99193b99}" FolderPath="methods\private\">
+      <Declaration><![CDATA[METHOD Ctrl_Init : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+END_VAR
+VAR_INST
+  _eJobResult,
+  _eState           : E_PROGRESS;
+  _rValue           : LREAL;
+  _udiErr           : UDINT;
+
+  _nErr             : DWORD;
+  _NciAxisIds       : ARRAY[1..8] OF DWORD;
+
+  _stMsg            : ST_Message;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT Check() THEN _eState := E_PROGRESS.ERROR; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+
+CASE _eState
+OF
+  E_PROGRESS.INIT:
+    IF Execute 
+    THEN
+      memset(ADR(_stMsg),0,SIZEOF(_stMsg));
+      _udiErr                       := 0;
+      _rValue                       := 0;
+      _eState                       := E_PROGRESS.BUSY;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.BUSY:
+    IF NOT (_stCfgAxes^.nXAxisId > 0) OR
+       NOT (_stCfgAxes^.nYAxisId > 0) OR
+       NOT (_stCfgAxes^.nZAxisId > 0)
+    THEN
+      _eState                       := E_PROGRESS.WAITING;
+
+      _stMsg.eType                  := E_MessageType.eMessageWarn;
+      _stMsg.eDevice                := ChannelDevice;
+      _stMsg.eSubdevice             := e_Subdevice.NciStartUp;
+      _stMsg.iErrorNumber           := _eState;
+      _stMsg.sText                  := concat('Init NCI channel AxisConfig: ', TO_STRING(_eState));
+
+      f_MessageSet(_stMsg);
+    ELSE
+      _eJobResult                   := ItpReset(FALSE);
+      _eState                       := E_PROGRESS.STARTUP;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.STARTUP:
+    _eJobResult                     := ItpReset(TRUE);
+    IF (_eJobResult = E_PROGRESS.ERROR)
+    THEN
+      _eState                       := E_PROGRESS.ERROR;
+    ELSIF (_eJobResult = E_PROGRESS.DONE)
+    THEN
+      _eJobResult                   := ItpReset  (FALSE);
+      _eJobResult                   := ClearGroup(FALSE);
+      _eState                       := E_PROGRESS.PREPARE;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PREPARE:
+    _eJobResult                     := ClearGroup(TRUE);
+    IF (_eJobResult = E_PROGRESS.ERROR)
+    THEN
+      _eState                       := E_PROGRESS.ERROR;
+    ELSIF (_eJobResult = E_PROGRESS.DONE)
+    THEN
+      _eJobResult                   := ClearGroup(FALSE);
+      _eState                       := E_PROGRESS.READY;
+    END_IF
+
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.READY:
+    _eState                         := E_PROGRESS.WORKING;
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.WAITING:
+    IF (_stCfgAxes^.nXAxisId > 0) AND
+       (_stCfgAxes^.nYAxisId > 0) AND
+       (_stCfgAxes^.nZAxisId > 0)
+    THEN
+      _eState                       := E_PROGRESS.STARTUP;
+
+      _stMsg.eType                  := E_MessageType.eMessageInfo;
+      _stMsg.eDevice                := ChannelDevice;
+      _stMsg.eSubdevice             := e_Subdevice.NciStartUp;
+      _stMsg.iErrorNumber           := _eState;
+      _stMsg.sText                  := concat('Init NCI channel AxisConfig: ', TO_STRING(_eState));
+
+      IF (_MessageLevel < E_MessageType.eMessageError)
+      THEN
+        f_MessageSet(_stMsg);
+      END_IF
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.WORKING:
+    _eState                         := E_PROGRESS.DONE;
+END_CASE
+
+Ctrl_Init                           := _eState;
 ]]></ST>
       </Implementation>
     </Method>
@@ -933,7 +1085,6 @@ THEN
   LogControl();
   _eState                     := Cmd(_eCtrl);
   _eCtrlOld                   := _eCtrl;
-  _eResult                    := E_PROGRESS.BUSY;
 END_IF
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -952,6 +1103,9 @@ ELSE
     _State^.eState            := _eState + _eResult;
   CASE _eState
   OF
+  E_NCI_STATE.INIT:
+    _eResult      := _eInit   := Ctrl_Init(TRUE);
+
   E_NCI_STATE.IDLE:
     _eResult                  := Ctrl_Idle(TRUE);
 
@@ -1037,7 +1191,7 @@ END_VAR
       <Implementation>
         <ST><![CDATA[  _stMsg.eType               := E_MessageType.eMessageInfo;
   _stMsg.eDevice             := E_Device.NciChannelCtrl + TO_UINT(ChnId);
-  _stMsg.eSubdevice          := e_Subdevice.Ctrl_Nci_Cmd;
+  _stMsg.eSubdevice          := e_Subdevice.NciControl;
   _stMsg.iErrorNumber        := 0;
 
   _sCtrl                     := concat('E_NCI_CTRL', '.');
@@ -1071,7 +1225,7 @@ END_VAR
         <ST><![CDATA[
   _stMsg.eType               := E_MessageType.eMessageInfo;
   _stMsg.eDevice             := E_Device.NciChannelCtrl + TO_UINT(ChnId);
-  _stMsg.eSubdevice          := e_Subdevice.Ctrl_Nci_Cmd;
+  _stMsg.eSubdevice          := e_Subdevice.NciControl;
   _stMsg.iErrorNumber        := 0;
 
   _sCtrl                     := concat('E_NCI_CTRL', '.');
@@ -1209,7 +1363,19 @@ Template_1 := _eState;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.Cmd">
-      <LineId Id="3" Count="85" />
+      <LineId Id="274" Count="0" />
+      <LineId Id="189" Count="6" />
+      <LineId Id="275" Count="1" />
+      <LineId Id="284" Count="12" />
+      <LineId Id="278" Count="0" />
+      <LineId Id="277" Count="0" />
+      <LineId Id="280" Count="1" />
+      <LineId Id="301" Count="51" />
+      <LineId Id="354" Count="19" />
+      <LineId Id="300" Count="0" />
+      <LineId Id="282" Count="0" />
+      <LineId Id="279" Count="0" />
+      <LineId Id="270" Count="3" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.Ctrl_BuildGroup">
@@ -1225,8 +1391,50 @@ Template_1 := _eState;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.Ctrl_Idle">
-      <LineId Id="3" Count="59" />
+      <LineId Id="3" Count="52" />
+      <LineId Id="74" Count="2" />
+      <LineId Id="82" Count="4" />
+      <LineId Id="88" Count="0" />
+      <LineId Id="87" Count="0" />
+      <LineId Id="77" Count="0" />
+      <LineId Id="56" Count="0" />
+      <LineId Id="78" Count="0" />
+      <LineId Id="57" Count="5" />
       <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NciChannelCtrl.Ctrl_Init">
+      <LineId Id="18" Count="16" />
+      <LineId Id="70" Count="3" />
+      <LineId Id="80" Count="0" />
+      <LineId Id="110" Count="7" />
+      <LineId Id="78" Count="0" />
+      <LineId Id="89" Count="0" />
+      <LineId Id="79" Count="0" />
+      <LineId Id="76" Count="0" />
+      <LineId Id="36" Count="3" />
+      <LineId Id="90" Count="0" />
+      <LineId Id="95" Count="1" />
+      <LineId Id="94" Count="0" />
+      <LineId Id="91" Count="1" />
+      <LineId Id="108" Count="0" />
+      <LineId Id="97" Count="0" />
+      <LineId Id="40" Count="0" />
+      <LineId Id="93" Count="0" />
+      <LineId Id="41" Count="3" />
+      <LineId Id="99" Count="8" />
+      <LineId Id="98" Count="0" />
+      <LineId Id="46" Count="8" />
+      <LineId Id="81" Count="4" />
+      <LineId Id="126" Count="0" />
+      <LineId Id="119" Count="4" />
+      <LineId Id="127" Count="0" />
+      <LineId Id="124" Count="0" />
+      <LineId Id="128" Count="0" />
+      <LineId Id="125" Count="0" />
+      <LineId Id="129" Count="0" />
+      <LineId Id="88" Count="0" />
+      <LineId Id="56" Count="7" />
+      <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.Ctrl_LoadProg">
       <LineId Id="3" Count="28" />
@@ -1261,7 +1469,11 @@ Template_1 := _eState;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.Cycle">
-      <LineId Id="3" Count="109" />
+      <LineId Id="3" Count="32" />
+      <LineId Id="37" Count="17" />
+      <LineId Id="118" Count="1" />
+      <LineId Id="117" Count="0" />
+      <LineId Id="55" Count="57" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.ItfChannel.Get">

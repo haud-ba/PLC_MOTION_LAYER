@@ -320,7 +320,7 @@ OF
       _stMsg.eDevice                := ChannelDevice;
       _stMsg.eSubdevice             := e_Subdevice.fbClearGroup;
       _stMsg.iErrorNumber           := _fbClearGroup.nErrId;
-      _stMsg.sText                  := concat('BuildGroup Error: ', TO_STRING(_fbClearGroup.nErrId));
+      _stMsg.sText                  := concat('ClearGroup Error: ', TO_STRING(_fbClearGroup.nErrId));
       f_MessageSet(_stMsg);
 
     ELSE
@@ -331,7 +331,7 @@ OF
         _stMsg.eDevice              := ChannelDevice;
         _stMsg.eSubdevice           := e_Subdevice.fbClearGroup;
         _stMsg.iErrorNumber         := _fbClearGroup.nErrId;
-        _stMsg.sText                := concat('BuildGroup Busy: ', TO_STRING(_fbClearGroup.nErrId));
+        _stMsg.sText                := concat('ClearGroup Busy: ', TO_STRING(_fbClearGroup.nErrId));
 
         IF (_MessageLevel < E_MessageType.eMessageError)
         THEN
@@ -356,7 +356,7 @@ OF
       _stMsg.eDevice                := ChannelDevice;
       _stMsg.eSubdevice             := e_Subdevice.fbClearGroup;
       _stMsg.iErrorNumber           := _fbClearGroup.nErrId;
-      _stMsg.sText                  := concat('BuildGroup Error: ', TO_STRING(_fbClearGroup.nErrId));
+      _stMsg.sText                  := concat('ClearGroup Error: ', TO_STRING(_fbClearGroup.nErrId));
       f_MessageSet(_stMsg);
 
     ELSE
@@ -368,7 +368,7 @@ OF
         _stMsg.eDevice              := ChannelDevice;
         _stMsg.eSubdevice           := e_Subdevice.fbClearGroup;
         _stMsg.iErrorNumber         := _fbClearGroup.nErrId;
-        _stMsg.sText                := concat('BuildGroup Done: ', TO_STRING(_fbClearGroup.nErrId));
+        _stMsg.sText                := concat('ClearGroup Done: ', TO_STRING(_fbClearGroup.nErrId));
 
         IF (_MessageLevel < E_MessageType.eMessageError)
         THEN
