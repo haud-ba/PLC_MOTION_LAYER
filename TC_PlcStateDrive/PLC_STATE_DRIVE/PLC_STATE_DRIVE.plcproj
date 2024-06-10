@@ -18,9 +18,9 @@
     <LibraryReferences>{ff26b307-1ac0-40be-ba24-df54548edd9a}</LibraryReferences>
     <Released>false</Released>
     <Title>PLC_STATE_DRIVE</Title>
-    <ProjectVersion>01.00.01</ProjectVersion>
+    <ProjectVersion>01.00.10</ProjectVersion>
     <Author>D. Hauer</Author>
-    <Description>MC-PtP, NCI, Camming execution layer</Description>
+    <Description>MC-PtP, NCI, Camming cyclic execution layer for motion commands</Description>
     <CompilerDefines />
   </PropertyGroup>
   <ItemGroup>
@@ -242,18 +242,6 @@
       <SubType>Code</SubType>
       <LinkAlways>true</LinkAlways>
     </Compile>
-    <Compile Include="_LEGACY_VERSION\GetIndexOfAxisId.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="_LEGACY_VERSION\LEGACY.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="_LEGACY_VERSION\ST_In.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="_LEGACY_VERSION\ST_Out.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="_MSG\fb_LocalTime.TcPOU">
       <SubType>Code</SubType>
     </Compile>
@@ -284,25 +272,6 @@
     <Compile Include="Visualization Manager.TcVMO">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="_LEGACY_VERSION\GVL_AXIS_CTRL.TcGVL">
-      <SubType>Code</SubType>
-      <LinkAlways>true</LinkAlways>
-    </Compile>
-    <Compile Include="_LEGACY_VERSION\ST_AxisController.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="_LEGACY_VERSION\ST_GearIn.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="_LEGACY_VERSION\ST_GearInMultiMaster.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="_LEGACY_VERSION\ST_MotionOptions.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="_LEGACY_VERSION\ST_NcParam.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="_MSG\T_MESSAGE_LIST.TcVIS">
       <SubType>Code</SubType>
       <DependentUpon>Visualization Manager.TcVMO</DependentUpon>
@@ -312,10 +281,6 @@
       <ExcludeFromBuild>true</ExcludeFromBuild>
     </Compile>
     <Compile Include="_UML\CD_CAM_ACCESS.TcCD">
-      <SubType>Code</SubType>
-      <ExcludeFromBuild>true</ExcludeFromBuild>
-    </Compile>
-    <Compile Include="_UML\CD_LEGACY_AXIS.TcCD">
       <SubType>Code</SubType>
       <ExcludeFromBuild>true</ExcludeFromBuild>
     </Compile>
@@ -407,7 +372,6 @@
     <Folder Include="NC_PTP\types\axis" />
     <Folder Include="MAPPING" />
     <Folder Include="_UML" />
-    <Folder Include="_LEGACY_VERSION" />
     <Folder Include="_MSG\types" />
     <Folder Include="NC_PTP" />
     <Folder Include="NCI" />

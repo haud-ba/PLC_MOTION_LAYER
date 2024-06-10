@@ -17,7 +17,8 @@ END_VAR
 ]]></Declaration>
     <Implementation>
       <ST><![CDATA[//-----------------------------------------------------------------------------------------------------------------
-// check if used
+// check if compiler define is present [PLC_STATE_DRIVE/CompilerDefines/Manual: NCI]
+// see PLC_CONSTANT for conditional pragma
 //-----------------------------------------------------------------------------------------------------------------
 IF NOT PLC_CONSTANT.NCI_ACTIVE THEN eInit   := E_PROGRESS.NOT_EXIST; RETURN; END_IF
 //-----------------------------------------------------------------------------------------------------------------
@@ -148,7 +149,9 @@ END_FOR
 ]]></ST>
     </Implementation>
     <LineIds Name="NCI">
-      <LineId Id="12" Count="3" />
+      <LineId Id="12" Count="1" />
+      <LineId Id="345" Count="0" />
+      <LineId Id="14" Count="1" />
       <LineId Id="11" Count="0" />
       <LineId Id="165" Count="0" />
       <LineId Id="299" Count="5" />

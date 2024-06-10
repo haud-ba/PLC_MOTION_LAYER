@@ -14,7 +14,8 @@ END_VAR
 ]]></Declaration>
     <Implementation>
       <ST><![CDATA[//-----------------------------------------------------------------------------------------------------------------
-// check if used
+// check if compiler define is present [PLC_STATE_DRIVE/CompilerDefines/Manual: CAM]
+// see PLC_CONSTANT for conditional pragma
 //-----------------------------------------------------------------------------------------------------------------
 IF NOT PLC_CONSTANT.CAM_ACTIVE THEN eInit := E_PROGRESS.NOT_EXIST; RETURN; END_IF
 //-----------------------------------------------------------------------------------------------------------------
@@ -136,7 +137,9 @@ END_IF
 ]]></ST>
     </Implementation>
     <LineIds Name="CAM">
-      <LineId Id="19" Count="2" />
+      <LineId Id="19" Count="1" />
+      <LineId Id="183" Count="0" />
+      <LineId Id="21" Count="0" />
       <LineId Id="5" Count="0" />
       <LineId Id="107" Count="0" />
       <LineId Id="178" Count="2" />

@@ -515,7 +515,7 @@ OF
 
     IF (_MessageLevel = E_MessageType.eMessageVerbose)
     THEN
-      _stMsg.eType                  := E_MessageType.eMessageInfo;
+      _stMsg.eType                  := E_MessageType.eMessageVerbose;
       _stMsg.eDevice                := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
       _stMsg.eSubdevice             := e_Subdevice.fbCamScalingV2;
       _stMsg.iErrorNumber           := _nLastCamTableID;

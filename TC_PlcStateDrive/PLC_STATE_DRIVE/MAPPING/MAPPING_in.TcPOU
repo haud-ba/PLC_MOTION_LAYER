@@ -29,29 +29,69 @@ VAR
   AxisHoming        : BYTE;
   AxisParameterWrt  : BYTE;
 {END_IF}
+
+  szAxisPara,
+  szAxisHoming,
+  szAxisGearData,
+  szAxisMotionOptions,
+  szAxisMoveData,
+  szAxisCtrl        : ARRAY[1..2] OF UDINT;
+
+
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[IF bBypassMapping THEN RETURN; END_IF
+      <ST><![CDATA[
+szAxisCtrl[1]           := SIZEOF(AxisCTrl);
+szAxisCtrl[2]           := SIZEOF(GVL_AXIS.Ctrl);
+
+szAxisMoveData [1]      := SIZEOF(AxisMoveData);
+szAxisMoveData [2]      := SIZEOF(GVL_AXIS.Data);
+
+szAxisMotionOptions [1] := SIZEOF(AxisMotionOptions);
+szAxisMotionOptions [2] := SIZEOF(GVL_AXIS.MotionOptions);
+
+szAxisGearData [1]      := SIZEOF(AxisGearInData);
+szAxisGearData [2]      := SIZEOF(GVL_AXIS.GearInParameter);
+
+szAxisHoming [1]        := SIZEOF(AxisHoming);
+szAxisHoming [2]        := SIZEOF(GVL_AXIS.HomeParameter);
+
+szAxisPara [1]          := SIZEOF(AxisParameterWrt);
+szAxisPara [2]          := SIZEOF(GVL_AXIS.NcParameterWrt);
 
 
-memcpy(ADR(GVL_AXIS.Ctrl),            ADR(AxisCtrl),           SIZEOF(GVL_AXIS.Ctrl));
-memcpy(ADR(GVL_AXIS.Data),            ADR(AxisMoveData),       SIZEOF(GVL_AXIS.Data));
-memcpy(ADR(GVL_AXIS.MotionOptions),   ADR(AxisMotionOptions),  SIZEOF(GVL_AXIS.MotionOptions));
 
-memcpy(ADR(GVL_AXIS.GearInParameter), ADR(AxisGearInData),     SIZEOF(GVL_AXIS.GearInParameter));
-memcpy(ADR(GVL_AXIS.HomeParameter),   ADR(AxisHoming),         SIZEOF(GVL_AXIS.HomeParameter));
-memcpy(ADR(GVL_AXIS.NcParameterWrt),  ADR(AxisParameterWrt),   SIZEOF(GVL_AXIS.NcParameterWrt));
+IF bBypassMapping 
+THEN 
+  RETURN; 
+END_IF
+
+
+memcpy(ADR(GVL_AXIS.Ctrl),            ADR(AxisCtrl),           SIZEOF(AxisCTrl));
+memcpy(ADR(GVL_AXIS.Data),            ADR(AxisMoveData),       SIZEOF(AxisMoveData));
+memcpy(ADR(GVL_AXIS.MotionOptions),   ADR(AxisMotionOptions),  SIZEOF(AxisMotionOptions));
+
+memcpy(ADR(GVL_AXIS.GearInParameter), ADR(AxisGearInData),     SIZEOF(AxisGearInData));
+memcpy(ADR(GVL_AXIS.HomeParameter),   ADR(AxisHoming),         SIZEOF(AxisHoming));
+memcpy(ADR(GVL_AXIS.NcParameterWrt),  ADR(AxisParameterWrt),   SIZEOF(AxisParameterWrt));
+
 ]]></ST>
     </Implementation>
     <LineIds Name="MAPPING_in">
+      <LineId Id="120" Count="17" />
+      <LineId Id="119" Count="0" />
+      <LineId Id="102" Count="0" />
+      <LineId Id="101" Count="0" />
       <LineId Id="5" Count="0" />
+      <LineId Id="116" Count="2" />
       <LineId Id="54" Count="1" />
       <LineId Id="33" Count="0" />
       <LineId Id="66" Count="1" />
       <LineId Id="69" Count="0" />
       <LineId Id="68" Count="0" />
       <LineId Id="70" Count="1" />
+      <LineId Id="138" Count="0" />
       <LineId Id="13" Count="0" />
     </LineIds>
   </POU>

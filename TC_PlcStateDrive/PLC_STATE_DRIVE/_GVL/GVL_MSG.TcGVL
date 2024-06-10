@@ -30,7 +30,7 @@ VAR_GLOBAL
 
 
   Messages                        : ARRAY[1..MAX_MESSAGE] OF ST_Message;
-  MessageIndex                    : UINT := 1; // message index
+  MessageIndex                    : UINT := 0; // message index
   MessageError                    : UINT := 0; // error counter
 
   fbLocalTime                     : fb_LocalTime;

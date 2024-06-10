@@ -20,18 +20,44 @@ VAR
   AxisInfo          : BYTE;
   AxisParameterRd   : BYTE;
 {END_IF}
+
+  szAxisPara,
+  szAxisInfo,
+  szAxisState       : ARRAY[1..2] OF UDINT;
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[IF bBypassMapping THEN RETURN; END_IF
+      <ST><![CDATA[
+szAxisState[1]      := SIZEOF(AxisState);
+szAxisState[2]      := SIZEOF(GVL_AXIS.State);
 
-memcpy(ADR(AxisState),         ADR(GVL_AXIS.State),             SIZEOF(GVL_AXIS.State));
-memcpy(ADR(AxisInfo),          ADR(GVL_AXIS.Info),              SIZEOF(GVL_AXIS.Info));
-memcpy(ADR(AxisParameterRd),   ADR(GVL_AXIS.NcParameterRd),     SIZEOF(GVL_AXIS.NcParameterRd));
+szAxisInfo [1]      := SIZEOF(AxisInfo);
+szAxisInfo [2]      := SIZEOF(GVL_AXIS.Info);
+
+szAxisPara [1]      := SIZEOF(AxisParameterRd);
+szAxisPara [2]      := SIZEOF(GVL_AXIS.NcParameterRd);
+
+IF bBypassMapping 
+THEN 
+  RETURN; 
+END_IF
+
+memcpy(ADR(AxisState),         ADR(GVL_AXIS.State),             SIZEOF(AxisState));
+memcpy(ADR(AxisInfo),          ADR(GVL_AXIS.Info),              SIZEOF(AxisInfo));
+memcpy(ADR(AxisParameterRd),   ADR(GVL_AXIS.NcParameterRd),     SIZEOF(AxisParameterRd));
 ]]></ST>
     </Implementation>
     <LineIds Name="MAPPING_out">
+      <LineId Id="78" Count="0" />
+      <LineId Id="74" Count="0" />
+      <LineId Id="79" Count="0" />
+      <LineId Id="85" Count="0" />
+      <LineId Id="80" Count="1" />
+      <LineId Id="84" Count="0" />
+      <LineId Id="82" Count="1" />
+      <LineId Id="73" Count="0" />
       <LineId Id="5" Count="0" />
+      <LineId Id="75" Count="2" />
       <LineId Id="44" Count="3" />
       <LineId Id="43" Count="0" />
     </LineIds>
