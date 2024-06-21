@@ -92,7 +92,7 @@ IF (_eCmd <> _eCmdOld)
 THEN
   // get busy
   _eState                           := Cmd(_eCmd); // get execution state for command
-  _eCmdOld                         := _eCmd;
+  _eCmdOld                          := _eCmd;
   LogControl();
 END_IF
 //-----------------------------------------------------------------------------
