@@ -7,21 +7,18 @@
 TYPE E_PROGRESS :
 (
   // progress is used in project to mirror state of requested command/function
-  INVALID,
-  INIT,
-	BUSY          :=  100,
-  STARTUP       :=  200,
-  PREPARE       :=  300,
-  READY         :=  400,
-  WAITING       :=  500,
-  WORKING       :=  600,
-  FINISHING     :=  700,
-
-  DONE          := 1000,
-
-  NOT_EXIST     := 6000,
-  ERROR         := 9000
-
+  PROGRESS_INVALID,
+  PROGRESS_NOT_EXIST      :=   100,
+  PROGRESS_INIT           :=  1000,
+	PROGRESS_BUSY           :=  2000,
+  PROGRESS_PREPARE        :=  3000,
+  PROGRESS_STARTUP        :=  4000,
+  PROGRESS_CHECK          :=  5000,
+  PROGRESS_OCCUPIED       :=  6000,
+  PROGRESS_WORKING        :=  7000,
+  PROGRESS_STILL_WORKING  :=  8000,
+  PROGRESS_ERROR          :=  9000,
+  PROGRESS_DONE           := 10000
 )UINT;
 END_TYPE
 ]]></Declaration>

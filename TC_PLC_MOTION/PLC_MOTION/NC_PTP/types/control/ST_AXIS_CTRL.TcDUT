@@ -4,7 +4,7 @@
     <Declaration><![CDATA[{attribute 'pack_mode' := '2'}
 TYPE ST_AXIS_CTRL :
 STRUCT
-  eCtrl               : E_AXIS_CTRL;    // commanded axis function
+  eCmd                : E_AXIS_CTRL;    // commanded axis function
   eProgress           : E_PROGRESS;     // progress command for synced functions
 END_STRUCT
 END_TYPE

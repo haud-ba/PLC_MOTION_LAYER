@@ -56,20 +56,19 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[
-IF NOT __ISVALIDREF(_AxisSlave)
+        <ST><![CDATA[IF NOT __ISVALIDREF(_AxisSlave)
 THEN
   _eCheck                     := E_CHECK_STATE.CAM_SLAVE_AXIS_REF_INVALID;
-  CamIn                       := E_PROGRESS.ERROR;
+  CamIn                       := E_PROGRESS.PROGRESS_ERROR;
   RETURN;
 END_IF
 
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
 
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     IF Execute 
     THEN
       memset(ADR(_stMsg),0,SIZEOF(_stMsg));
@@ -77,7 +76,7 @@ OF
 
       IF NOT (nMasterIndex = _stCamData.nMasterIndex)
       THEN
-        _eState                     := E_PROGRESS.ERROR;
+        _eState                     := E_PROGRESS.PROGRESS_ERROR;
         _eCk                        := E_CHECK_STATE.CAM_MASTER_AXIS_REF_INVALID;
 
         _stMsg.eType                := E_MessageType.eMessageError;
@@ -89,7 +88,7 @@ OF
         f_MessageSet(_stMsg);
 
       ELSE
-        _eState                     := E_PROGRESS.BUSY;
+        _eState                     := E_PROGRESS.PROGRESS_BUSY;
         _eCk                        := E_CHECK_STATE.CHECK_DONE;
 
         IF (_MessageLevel = E_MessageType.eMessageVerbose)
@@ -117,7 +116,7 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.BUSY:
+  E_PROGRESS.PROGRESS_BUSY:
     _fbCamInV2(
           Master                    := _AxisMaster, 
           Slave                     := _AxisSlave, 
@@ -128,7 +127,7 @@ OF
 
     IF (_fbCamInV2.Error)
     THEN
-      _eState                       := E_PROGRESS.ERROR;
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
       _udiErr                       := _fbCamInV2.ErrorID;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
@@ -146,7 +145,7 @@ OF
 
     ELSIF (_fbCamInV2.InSync)
     THEN
-      _eState                       := E_PROGRESS.DONE;
+      _eState                       := E_PROGRESS.PROGRESS_DONE;
 
       IF (_MessageLevel < E_MessageType.eMessageError)
       THEN
@@ -191,22 +190,22 @@ END_VAR
 IF NOT __ISVALIDREF(_AxisSlave)
 THEN
   _eCheck                     := E_CHECK_STATE.CAM_SLAVE_AXIS_REF_INVALID;
-  CamInfo                     := E_PROGRESS.ERROR;
+  CamInfo                     := E_PROGRESS.PROGRESS_ERROR;
   RETURN;
 END_IF
 
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     IF Execute 
     THEN
       memset(ADR(_stMsg),0,SIZEOF(_stMsg));
       memset(ADR(_stCID),0,SIZEOF(_stCID));
 
       _udiErr                       := 0;
-      _eState                       := E_PROGRESS.BUSY;
+      _eState                       := E_PROGRESS.PROGRESS_BUSY;
 
       _fbCamInfoV2(
               Slave                 := _AxisSlave, 
@@ -230,7 +229,7 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.BUSY:
+  E_PROGRESS.PROGRESS_BUSY:
     _fbCamInfoV2(
               Slave                 := _AxisSlave, 
               Execute               := TRUE, 
@@ -241,7 +240,7 @@ OF
 
     IF (_fbCamInfoV2.Error)
     THEN
-      _eState                       := E_PROGRESS.ERROR;
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
       _udiErr                       := _fbCamInfoV2.ErrorID;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
@@ -258,7 +257,7 @@ OF
 
     ELSIF (_fbCamInfoV2.Done)
     THEN
-      _eState                       := E_PROGRESS.DONE;
+      _eState                       := E_PROGRESS.PROGRESS_DONE;
       _stCID                        := _fbCamInfoV2.CamInfo;
 
       IF (_MessageLevel < E_MessageType.eMessageError)
@@ -379,23 +378,23 @@ END_VAR
 IF NOT __ISVALIDREF(_AxisSlave)
 THEN
   _eCheck                     := E_CHECK_STATE.CAM_SLAVE_AXIS_REF_INVALID;
-  CamOut                      := E_PROGRESS.ERROR;
+  CamOut                      := E_PROGRESS.PROGRESS_ERROR;
   RETURN;
 END_IF
 
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
 
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     IF Execute 
     THEN
       memset(ADR(_stMsg),0,SIZEOF(_stMsg));
       _udiErr                       := 0;
       _dwCoupleState                := _AxisSlave.NcToPlc.CoupleState;
 
-      _eState                       := E_PROGRESS.BUSY;
+      _eState                       := E_PROGRESS.PROGRESS_BUSY;
 
       IF (_MessageLevel = E_MessageType.eMessageVerbose)
       THEN
@@ -414,14 +413,14 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.BUSY:
+  E_PROGRESS.PROGRESS_BUSY:
     _fbCamOut(
               Slave                 := _AxisSlave, 
               Execute               := TRUE);
 
     IF (_fbCamOut.Error)
     THEN
-      _eState                       := E_PROGRESS.ERROR;
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
       _udiErr                       := _fbCamOut.ErrorID;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
@@ -438,7 +437,7 @@ OF
 
     ELSIF (_fbCamOut.Done)
     THEN
-      _eState                       := E_PROGRESS.DONE;
+      _eState                       := E_PROGRESS.PROGRESS_DONE;
 
       IF (_MessageLevel < E_MessageType.eMessageError)
       THEN
@@ -476,26 +475,25 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[
-IF NOT __ISVALIDREF(_AxisSlave)
+        <ST><![CDATA[IF NOT __ISVALIDREF(_AxisSlave)
 THEN
   _eCheck                     := E_CHECK_STATE.CAM_SLAVE_AXIS_REF_INVALID;
-  CamScaling                  := E_PROGRESS.ERROR;
+  CamScaling                  := E_PROGRESS.PROGRESS_ERROR;
   RETURN;
 END_IF
 
-IF NOT Execute THEN _eState   := E_PROGRESS.INIT; END_IF
+IF NOT Execute THEN _eState   := E_PROGRESS.PROGRESS_INIT; END_IF
 
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     IF Execute 
     THEN
       memset(ADR(_stMsg),0,SIZEOF(_stMsg));
       _udiErr                       := 0;
       _rValue                       := 0;
-      _eState                       := E_PROGRESS.BUSY;
+      _eState                       := E_PROGRESS.PROGRESS_BUSY;
 
       _fbScalingV2(
               Slave                 := _AxisSlave, 
@@ -508,8 +506,8 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.BUSY:
-    _eState                         := E_PROGRESS.STARTUP;
+  E_PROGRESS.PROGRESS_BUSY:
+    _eState                         := E_PROGRESS.PROGRESS_STARTUP;
     _nLastCamTableID                := _stCamData.nCamTableId;
     _stLastScalingData              := _fbScalingV2.Scaling;
 
@@ -526,7 +524,7 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.STARTUP:
+  E_PROGRESS.PROGRESS_STARTUP:
       _fbScalingV2(
               Slave                 := _AxisSlave, 
               Execute               := TRUE, 
@@ -536,7 +534,7 @@ OF
 
     IF (_fbScalingV2.Error)
     THEN
-      _eState                       := E_PROGRESS.ERROR;
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
       _udiErr                       := _fbScalingV2.ErrorID;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
@@ -553,7 +551,7 @@ OF
 
     ELSIF (_fbScalingV2.CommandAborted)
     THEN
-      _eState                       := E_PROGRESS.ERROR;
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
       _udiErr                       := _fbScalingV2.ErrorID;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
@@ -570,7 +568,7 @@ OF
 
     ELSIF (_fbScalingV2.Done)
     THEN
-      _eState                       := E_PROGRESS.DONE;
+      _eState                       := E_PROGRESS.PROGRESS_DONE;
 
       IF (_MessageLevel < E_MessageType.eMessageError)
       THEN
@@ -644,13 +642,12 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[
-IF NOT Execute THEN _eState   := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT Execute THEN _eState   := E_PROGRESS.PROGRESS_INIT; END_IF
 
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     IF Execute 
     THEN
       memset(ADR(_mcMotionFunction),0,SIZEOF(_mcMotionFunction));
@@ -658,7 +655,7 @@ OF
       _nNumPointsRead               := 0;
       _udiErr                       := 0;
       _rValue                       := 0;
-      _eState                       := E_PROGRESS.BUSY;
+      _eState                       := E_PROGRESS.PROGRESS_BUSY;
 
       _mcCamRef.pArray              := ADR(_mcMotionFunction);
       _mcCamRef.ArraySize           := SIZEOF(_mcMotionFunction);
@@ -677,7 +674,7 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.BUSY:
+  E_PROGRESS.PROGRESS_BUSY:
     _fbReadMotionFunction(
               Execute               := TRUE, 
               CamTableID            := _stCamData.nCamTableId,  // ID of the loaded table
@@ -687,7 +684,7 @@ OF
 
     IF (_fbReadMotionFunction.Error)
     THEN
-      _eState                       := E_PROGRESS.ERROR;
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
       _udiErr                       := _fbReadMotionFunction.ErrorID;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
@@ -707,7 +704,7 @@ OF
 
     ELSIF (_fbReadMotionFunction.Done)
     THEN
-      _eState                       := E_PROGRESS.WORKING;
+      _eState                       := E_PROGRESS.PROGRESS_WORKING;
 
       IF (_MessageLevel < E_MessageType.eMessageError)
       THEN
@@ -723,8 +720,8 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.WORKING:
-    _eState                         := E_PROGRESS.FINISHING;
+  E_PROGRESS.PROGRESS_WORKING:
+    _eState                         := E_PROGRESS.PROGRESS_STILL_WORKING;
     _nNumPointsRead                 := TO_UINT(_fbReadMotionFunction.NumPointsRead);
     _nMotionFunctionSize            := SEL((TO_UINT(_mcCamRef.ArraySize) > MAX_MOTION_FUNCTION_POINTS),
                                             TO_UINT(_mcCamRef.ArraySize),
@@ -750,8 +747,8 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.FINISHING:
-    _eState                         := E_PROGRESS.DONE;
+  E_PROGRESS.PROGRESS_STILL_WORKING:
+    _eState                         := E_PROGRESS.PROGRESS_DONE;
 
 (*
     _stMotionFunction.stMotionFunction    := _mcMotionFunction;
@@ -833,19 +830,19 @@ END_VAR
 ]]></Declaration>
       <Implementation>
         <ST><![CDATA[
-IF NOT Execute THEN _eState   := E_PROGRESS.INIT; END_IF
+IF NOT Execute THEN _eState   := E_PROGRESS.PROGRESS_INIT; END_IF
 
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     IF Execute 
     THEN
       memset(ADR(_mcMotionFunctionPoint),0,SIZEOF(_mcMotionFunctionPoint));
       memset(ADR(_stMsg),0,SIZEOF(_stMsg));
       _udiErr                       := 0;
       _rValue                       := 0;
-      _eState                       := E_PROGRESS.BUSY;
+      _eState                       := E_PROGRESS.PROGRESS_BUSY;
 
       _fbReadMotionFunctionPoint(
               Execute               := FALSE, 
@@ -856,7 +853,7 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.BUSY:
+  E_PROGRESS.PROGRESS_BUSY:
     _fbReadMotionFunctionPoint(
               Execute               := TRUE, 
               CamTableID            := _stCamData.nCamTableId, 
@@ -865,7 +862,7 @@ OF
 
     IF (_fbReadMotionFunctionPoint.Error)
     THEN
-      _eState                       := E_PROGRESS.ERROR;
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
       _udiErr                       := _fbReadMotionFunctionPoint.ErrorID;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
@@ -884,7 +881,7 @@ OF
     ELSE
       IF (_fbReadMotionFunctionPoint.Done)
       THEN
-        _eState                     := E_PROGRESS.DONE;
+        _eState                     := E_PROGRESS.PROGRESS_DONE;
   
         _stMsg.eType                := E_MessageType.eMessageInfo;
         _stMsg.eDevice              := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
@@ -950,19 +947,19 @@ END_VAR
 ]]></Declaration>
       <Implementation>
         <ST><![CDATA[
-IF NOT Execute THEN _eState   := E_PROGRESS.INIT; END_IF
+IF NOT Execute THEN _eState   := E_PROGRESS.PROGRESS_INIT; END_IF
 
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     IF Execute 
     THEN
       memset(ADR(_mcMotionFunction),0,SIZEOF(_mcMotionFunction));
       memset(ADR(_stMsg),0,SIZEOF(_stMsg));
       _udiErr                       := 0;
       _rValue                       := 0;
-      _eState                       := E_PROGRESS.BUSY;
+      _eState                       := E_PROGRESS.PROGRESS_BUSY;
 
       _mcCamRef.pArray              := ADR(_mcMotionFunction);
       _mcCamRef.ArraySize           := SIZEOF(_mcMotionFunction);
@@ -982,7 +979,7 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.BUSY:
+  E_PROGRESS.PROGRESS_BUSY:
     _fbReadMotionFunctionValues(
               Execute               := TRUE, 
               CamTableID            := _stCamData.nCamTableId, 
@@ -994,7 +991,7 @@ OF
 
     IF (_fbReadMotionFunctionValues.Error)
     THEN
-      _eState                       := E_PROGRESS.ERROR;
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
       _udiErr                       := _fbReadMotionFunctionValues.ErrorID;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
@@ -1016,7 +1013,7 @@ OF
     ELSE
       IF (_fbReadMotionFunctionValues.Done)
       THEN
-        _eState                     := E_PROGRESS.DONE;
+        _eState                     := E_PROGRESS.PROGRESS_DONE;
   
         _stMsg.eType                := E_MessageType.eMessageInfo;
         _stMsg.eDevice              := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
@@ -1062,18 +1059,18 @@ END_VAR
 ]]></Declaration>
       <Implementation>
         <ST><![CDATA[
-IF NOT Execute THEN _eState   := E_PROGRESS.INIT; END_IF
+IF NOT Execute THEN _eState   := E_PROGRESS.PROGRESS_INIT; END_IF
 
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     IF Execute 
     THEN
       memset(ADR(_stMsg),0,SIZEOF(_stMsg));
       _udiErr                       := 0;
       _rValue                       := 0;
-      _eState                       := E_PROGRESS.BUSY;
+      _eState                       := E_PROGRESS.PROGRESS_BUSY;
 
       _fbSetCamOnlineChangeMode(
               Execute               := FALSE, 
@@ -1086,7 +1083,7 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.BUSY:
+  E_PROGRESS.PROGRESS_BUSY:
     _fbSetCamOnlineChangeMode(
               Execute               := TRUE, 
               ActivationMode        := _stCamData.nActivationMode, 
@@ -1097,7 +1094,7 @@ OF
 
     IF (_fbSetCamOnlineChangeMode.Error)
     THEN
-      _eState                       := E_PROGRESS.ERROR;
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
       _udiErr                       := _fbSetCamOnlineChangeMode.ErrorID;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
@@ -1113,7 +1110,7 @@ OF
 
     ELSIF (_fbSetCamOnlineChangeMode.Done)
     THEN
-      _eState                       := E_PROGRESS.DONE;
+      _eState                       := E_PROGRESS.PROGRESS_DONE;
 
       _stMsg.eType                  := E_MessageType.eMessageInfo;
       _stMsg.eDevice                := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
@@ -1226,37 +1223,37 @@ END_VAR
         <ST><![CDATA[IF NOT __ISVALIDREF(_AxisSlave)
 THEN
   _eCheck                     := E_CHECK_STATE.CAM_SLAVE_AXIS_REF_INVALID;
-  WriteMotionFunction         := E_PROGRESS.ERROR;
+  WriteMotionFunction         := E_PROGRESS.PROGRESS_ERROR;
   RETURN;
 END_IF
 
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     IF Execute 
     THEN
       memset(ADR(_stMsg),0,SIZEOF(_stMsg));
       _udiErr                       := 0;
       _rValue                       := 0;
-      _eState                       := E_PROGRESS.BUSY;
+      _eState                       := E_PROGRESS.PROGRESS_BUSY;
       _eResult                      := SetOnLineChangeMode(FALSE);
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.BUSY:
+  E_PROGRESS.PROGRESS_BUSY:
     _eResult                        := SetOnLineChangeMode(TRUE);
-    IF (_eResult = E_PROGRESS.ERROR)
+    IF (_eResult = E_PROGRESS.PROGRESS_ERROR)
     THEN
       SetOnLineChangeMode(FALSE);
-      _eState                       := E_PROGRESS.ERROR;
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
     ELSE
-      IF (_eResult = E_PROGRESS.DONE)
+      IF (_eResult = E_PROGRESS.PROGRESS_DONE)
       THEN
         SetOnLineChangeMode(FALSE);
-        _eState                     := E_PROGRESS.STARTUP;
+        _eState                     := E_PROGRESS.PROGRESS_STARTUP;
 (*
         _mcMotionFunction           := _stMotionFunction.stMotionFunction;
 *)
@@ -1265,8 +1262,8 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.STARTUP:
-    _eState                         := E_PROGRESS.WORKING;
+  E_PROGRESS.PROGRESS_STARTUP:
+    _eState                         := E_PROGRESS.PROGRESS_WORKING;
 
     _mcCamRef.pArray                := ADR(_mcMotionFunction);
     _mcCamRef.ArraySize             := SIZEOF(_mcMotionFunction);
@@ -1284,7 +1281,7 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.WORKING:
+  E_PROGRESS.PROGRESS_WORKING:
     _fbWriteMotionFunction(
                     Execute         := TRUE, 
                     CamTableID      := _stCamData.nCamTableId, 
@@ -1294,7 +1291,7 @@ OF
 
     IF (_fbWriteMotionFunction.Error)
     THEN
-      _eState                       := E_PROGRESS.ERROR;
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
       _udiErr                       := _fbWriteMotionFunction.ErrorID;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
@@ -1314,7 +1311,7 @@ OF
     ELSE
       IF (_fbWriteMotionFunction.Done)
       THEN
-        _eState                     := E_PROGRESS.FINISHING;
+        _eState                     := E_PROGRESS.PROGRESS_STILL_WORKING;
         _fbWriteMotionFunction(
                     Execute         := FALSE, 
                     CamTableID      := _stCamData.nCamTableId, 
@@ -1326,8 +1323,8 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.FINISHING:
-    _eState                         := E_PROGRESS.DONE;
+  E_PROGRESS.PROGRESS_STILL_WORKING:
+    _eState                         := E_PROGRESS.PROGRESS_DONE;
 
     _stMsg.eType                    := E_MessageType.eMessageInfo;
     _stMsg.eDevice                  := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
@@ -1401,27 +1398,27 @@ END_VAR
         <ST><![CDATA[IF NOT __ISVALIDREF(_AxisSlave)
 THEN
   _eCheck                     := E_CHECK_STATE.CAM_SLAVE_AXIS_REF_INVALID;
-  WriteMotionFunctionPoint    := E_PROGRESS.ERROR;
+  WriteMotionFunctionPoint    := E_PROGRESS.PROGRESS_ERROR;
   RETURN;
 END_IF
 
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     IF Execute 
     THEN
       memset(ADR(_stMsg),0,SIZEOF(_stMsg));
       _udiErr                       := 0;
       _rValue                       := 0;
-      _eState                       := E_PROGRESS.BUSY;
+      _eState                       := E_PROGRESS.PROGRESS_BUSY;
       _eResult                      := SetOnLineChangeMode(FALSE);
 
       IF (_stCamData.nPointIndex < 1) OR
          (_stCamData.nPointIndex > MAX_MOTION_FUNCTION_POINTS)
       THEN
-        _eState                     := E_PROGRESS.ERROR;
+        _eState                     := E_PROGRESS.PROGRESS_ERROR;
         _udiErr                     := _stCamData.nPointIndex;
   
         _stMsg.eType                := E_MessageType.eMessageError;
@@ -1437,17 +1434,17 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.BUSY:
+  E_PROGRESS.PROGRESS_BUSY:
     _eResult                        := SetOnLineChangeMode(TRUE);
-    IF (_eResult = E_PROGRESS.ERROR)
+    IF (_eResult = E_PROGRESS.PROGRESS_ERROR)
     THEN
       SetOnLineChangeMode(FALSE);
-      _eState                       := E_PROGRESS.ERROR;
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
     ELSE
-      IF (_eResult = E_PROGRESS.DONE)
+      IF (_eResult = E_PROGRESS.PROGRESS_DONE)
       THEN
         SetOnLineChangeMode(FALSE);
-        _eState                     := E_PROGRESS.STARTUP;
+        _eState                     := E_PROGRESS.PROGRESS_STARTUP;
 (*
         _mcMotionFunction           := _stMotionFunction.stMotionFunction;
 *)
@@ -1457,8 +1454,8 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.STARTUP:
-    _eState                         := E_PROGRESS.WORKING;
+  E_PROGRESS.PROGRESS_STARTUP:
+    _eState                         := E_PROGRESS.PROGRESS_WORKING;
     _fbWriteMotionFunctionPoint(
                       Execute       := FALSE, 
                       CamTableID    := _stCamData.nCamTableId, 
@@ -1467,7 +1464,7 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.WORKING:
+  E_PROGRESS.PROGRESS_WORKING:
     _fbWriteMotionFunctionPoint(
                       Execute       := TRUE, 
                       CamTableID    := _stCamData.nCamTableId, 
@@ -1476,7 +1473,7 @@ OF
 
     IF (_fbWriteMotionFunctionPoint.Error)
     THEN
-      _eState                       := E_PROGRESS.ERROR;
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
       _udiErr                       := _fbWriteMotionFunctionPoint.ErrorID;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
@@ -1496,7 +1493,7 @@ OF
     ELSE
       IF (_fbWriteMotionFunctionPoint.Done)
       THEN
-        _eState                     := E_PROGRESS.FINISHING;
+        _eState                     := E_PROGRESS.PROGRESS_STILL_WORKING;
         _fbWriteMotionFunctionPoint(
                       Execute       := FALSE, 
                       CamTableID    := _stCamData.nCamTableId, 
@@ -1507,8 +1504,8 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.FINISHING:
-    _eState                         := E_PROGRESS.DONE;
+  E_PROGRESS.PROGRESS_STILL_WORKING:
+    _eState                         := E_PROGRESS.PROGRESS_DONE;
 
     _stMsg.eType                    := E_MessageType.eMessageInfo;
     _stMsg.eDevice                  := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
@@ -1560,44 +1557,7 @@ _mcMotionFunctionPoint.SlaveJerk            := _stMf.rSlaveJerk;
       <LineId Id="9" Count="0" />
     </LineIds>
     <LineIds Name="FB_CamAxis.CamIn">
-      <LineId Id="1081" Count="3" />
-      <LineId Id="1087" Count="0" />
-      <LineId Id="1085" Count="1" />
-      <LineId Id="1080" Count="0" />
-      <LineId Id="983" Count="0" />
-      <LineId Id="890" Count="7" />
-      <LineId Id="900" Count="0" />
-      <LineId Id="1038" Count="0" />
-      <LineId Id="1003" Count="0" />
-      <LineId Id="1005" Count="0" />
-      <LineId Id="1007" Count="0" />
-      <LineId Id="1022" Count="0" />
-      <LineId Id="1029" Count="7" />
-      <LineId Id="1023" Count="0" />
-      <LineId Id="1009" Count="0" />
-      <LineId Id="1021" Count="0" />
-      <LineId Id="1010" Count="0" />
-      <LineId Id="1141" Count="0" />
-      <LineId Id="1027" Count="0" />
-      <LineId Id="1142" Count="0" />
-      <LineId Id="1014" Count="6" />
-      <LineId Id="1100" Count="0" />
-      <LineId Id="1143" Count="0" />
-      <LineId Id="1050" Count="6" />
-      <LineId Id="1127" Count="1" />
-      <LineId Id="1008" Count="0" />
-      <LineId Id="918" Count="4" />
-      <LineId Id="1039" Count="6" />
-      <LineId Id="930" Count="13" />
-      <LineId Id="1059" Count="3" />
-      <LineId Id="947" Count="3" />
-      <LineId Id="1144" Count="0" />
-      <LineId Id="952" Count="0" />
-      <LineId Id="1145" Count="0" />
-      <LineId Id="953" Count="7" />
-      <LineId Id="1146" Count="0" />
-      <LineId Id="1063" Count="3" />
-      <LineId Id="964" Count="3" />
+      <LineId Id="1489" Count="109" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_CamAxis.CamInfo">
@@ -1689,36 +1649,7 @@ _mcMotionFunctionPoint.SlaveJerk            := _stMf.rSlaveJerk;
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_CamAxis.CamScaling">
-      <LineId Id="732" Count="6" />
-      <LineId Id="674" Count="1" />
-      <LineId Id="825" Count="0" />
-      <LineId Id="676" Count="9" />
-      <LineId Id="813" Count="0" />
-      <LineId Id="742" Count="4" />
-      <LineId Id="749" Count="0" />
-      <LineId Id="826" Count="0" />
-      <LineId Id="686" Count="1" />
-      <LineId Id="858" Count="6" />
-      <LineId Id="887" Count="1" />
-      <LineId Id="865" Count="3" />
-      <LineId Id="890" Count="0" />
-      <LineId Id="869" Count="0" />
-      <LineId Id="871" Count="0" />
-      <LineId Id="889" Count="0" />
-      <LineId Id="873" Count="0" />
-      <LineId Id="688" Count="2" />
-      <LineId Id="751" Count="4" />
-      <LineId Id="758" Count="0" />
-      <LineId Id="761" Count="13" />
-      <LineId Id="795" Count="2" />
-      <LineId Id="840" Count="16" />
-      <LineId Id="778" Count="4" />
-      <LineId Id="891" Count="1" />
-      <LineId Id="783" Count="7" />
-      <LineId Id="798" Count="2" />
-      <LineId Id="794" Count="0" />
-      <LineId Id="692" Count="0" />
-      <LineId Id="718" Count="1" />
+      <LineId Id="906" Count="111" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_CamAxis.CamScalingData.Get">
@@ -1732,66 +1663,7 @@ _mcMotionFunctionPoint.SlaveJerk            := _stMf.rSlaveJerk;
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_CamAxis.ReadMotionFunction">
-      <LineId Id="732" Count="0" />
-      <LineId Id="675" Count="0" />
-      <LineId Id="825" Count="0" />
-      <LineId Id="676" Count="5" />
-      <LineId Id="912" Count="0" />
-      <LineId Id="682" Count="0" />
-      <LineId Id="870" Count="0" />
-      <LineId Id="683" Count="2" />
-      <LineId Id="934" Count="0" />
-      <LineId Id="933" Count="0" />
-      <LineId Id="935" Count="0" />
-      <LineId Id="937" Count="0" />
-      <LineId Id="936" Count="0" />
-      <LineId Id="938" Count="0" />
-      <LineId Id="857" Count="4" />
-      <LineId Id="867" Count="0" />
-      <LineId Id="856" Count="0" />
-      <LineId Id="843" Count="0" />
-      <LineId Id="686" Count="0" />
-      <LineId Id="839" Count="3" />
-      <LineId Id="871" Count="1" />
-      <LineId Id="939" Count="2" />
-      <LineId Id="876" Count="0" />
-      <LineId Id="761" Count="13" />
-      <LineId Id="877" Count="5" />
-      <LineId Id="778" Count="4" />
-      <LineId Id="975" Count="1" />
-      <LineId Id="783" Count="7" />
-      <LineId Id="794" Count="0" />
-      <LineId Id="902" Count="3" />
-      <LineId Id="921" Count="0" />
-      <LineId Id="901" Count="0" />
-      <LineId Id="906" Count="0" />
-      <LineId Id="910" Count="1" />
-      <LineId Id="909" Count="0" />
-      <LineId Id="908" Count="0" />
-      <LineId Id="922" Count="0" />
-      <LineId Id="930" Count="1" />
-      <LineId Id="923" Count="0" />
-      <LineId Id="932" Count="0" />
-      <LineId Id="924" Count="4" />
-      <LineId Id="984" Count="0" />
-      <LineId Id="981" Count="1" />
-      <LineId Id="929" Count="0" />
-      <LineId Id="983" Count="0" />
-      <LineId Id="907" Count="0" />
-      <LineId Id="890" Count="3" />
-      <LineId Id="900" Count="0" />
-      <LineId Id="961" Count="0" />
-      <LineId Id="956" Count="2" />
-      <LineId Id="955" Count="0" />
-      <LineId Id="960" Count="0" />
-      <LineId Id="959" Count="0" />
-      <LineId Id="977" Count="1" />
-      <LineId Id="914" Count="6" />
-      <LineId Id="913" Count="0" />
-      <LineId Id="979" Count="0" />
-      <LineId Id="894" Count="5" />
-      <LineId Id="692" Count="0" />
-      <LineId Id="718" Count="1" />
+      <LineId Id="1132" Count="133" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_CamAxis.ReadMotionFunctionData.Get">

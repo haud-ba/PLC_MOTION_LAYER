@@ -30,8 +30,8 @@ VAR
 
 
   // local copies of command
-  _eCtrl,
-  _eCtrlOld                       : E_AXIS_CTRL;
+  _eCmd,
+  _eCmdOld                       : E_AXIS_CTRL;
 
   // Last handled NC Axis parameter to write
   _eParameterNrWrite              : Tc2_MC2.MC_AxisParameter;
@@ -83,23 +83,23 @@ _eAxisCycle                         := Cycle();
 //-----------------------------------------------------------------------------
 // get command from outside world
 //-----------------------------------------------------------------------------
-_eCtrl                              := _Ctrl^[_nAxisIndex].eCtrl;
+_eCmd                               := _Ctrl^[_nAxisIndex].eCmd;
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //  OnChange react to command
 //-----------------------------------------------------------------------------
-IF (_eCtrl <> _eCtrlOld)
+IF (_eCmd <> _eCmdOld)
 THEN
   // get busy
-  _eState                           := Cmd(_eCtrl); // get execution state for command
-  _eCtrlOld                         := _eCtrl;
+  _eState                           := Cmd(_eCmd); // get execution state for command
+  _eCmdOld                         := _eCmd;
   LogControl();
 END_IF
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 // Check AxisInit
 //-----------------------------------------------------------------------------
-IF NOT (_eInit = E_PROGRESS.DONE)
+IF NOT (_eInit = E_PROGRESS.PROGRESS_DONE)
 THEN
   _Info^[_nAxisIndex].bReady        := FALSE;
 ELSE
@@ -114,7 +114,7 @@ END_IF
 //-----------------------------------------------------------------------------
 CASE _eAxisCycle
 OF
-  E_PROGRESS.ERROR:
+  E_PROGRESS.PROGRESS_ERROR:
     _eResult                        := _eAxisCycle;
 END_CASE
 //-----------------------------------------------------------------------------
@@ -123,18 +123,18 @@ END_CASE
 //-----------------------------------------------------------------------------
 CASE _eResult
 OF
-  E_PROGRESS.INVALID:
-    _State^[_nAxisIndex].eState     := TO_UINT(E_PROGRESS.ERROR);
+  E_PROGRESS.PROGRESS_INVALID:
+    _State^[_nAxisIndex].eState     := TO_UINT(E_PROGRESS.PROGRESS_ERROR);
 
-  E_PROGRESS.ERROR:
+  E_PROGRESS.PROGRESS_ERROR:
     _Info^[_nAxisIndex].bReady      := FALSE;
     _Info^[_nAxisIndex].bError      := TRUE;
     _Info^[_nAxisIndex].nErrorId    := ErrorId;
 
-    _State^[_nAxisIndex].eState     := _eState + E_PROGRESS.ERROR;
+    _State^[_nAxisIndex].eState     := _eState + E_PROGRESS.PROGRESS_ERROR;
 
-  E_PROGRESS.DONE:
-    _State^[_nAxisIndex].eState     := _eState + E_PROGRESS.DONE;
+  E_PROGRESS.PROGRESS_DONE:
+    _State^[_nAxisIndex].eState     := _eState + E_PROGRESS.PROGRESS_DONE;
 
 ELSE
   //-----------------------------------------------------------------------------
@@ -157,7 +157,7 @@ ELSE
     E_AXIS_STATE.AXIS_NO_INIT:
       //-------------------------------------------------------------------------
       // we are here because you sent a command before having done AXIS_INIT
-      _eResult                      := E_PROGRESS.ERROR;
+      _eResult                      := E_PROGRESS.PROGRESS_ERROR;
   
     E_AXIS_STATE.AXIS_DISABLE:
       _eResult                      := AxisDisable(TRUE);
@@ -211,12 +211,12 @@ ELSE
       _eResult                      := AxisGearInMultiMaster(TRUE);
   
   ELSE
-    IF (_eCtrl > E_AXIS_CTRL.AXIS_NULL)
+    IF (_eCmd > E_AXIS_CTRL.AXIS_NULL)
     THEN
-      _eResult                      := E_PROGRESS.NOT_EXIST;
+      _eResult                      := E_PROGRESS.PROGRESS_NOT_EXIST;
       _Info^[_nAxisIndex].bError    := TRUE;
     ELSE
-      _eResult                      := E_PROGRESS.INVALID;
+      _eResult                      := E_PROGRESS.PROGRESS_INVALID;
     END_IF
   END_CASE
 END_CASE
@@ -300,21 +300,21 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN AxisBufferPos := E_PROGRESS.ERROR; RETURN; END_IF
-IF NOT Enable THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT Check() THEN AxisBufferPos := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Enable THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     IF Enable 
     THEN
-      _eState       := E_PROGRESS.BUSY;
+      _eState       := E_PROGRESS.PROGRESS_BUSY;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.BUSY:
-    _eState         := E_PROGRESS.WORKING;
+  E_PROGRESS.PROGRESS_BUSY:
+    _eState         := E_PROGRESS.PROGRESS_WORKING;
     _BufferMode     := _MotionOptions^[_nAxisIndex].eBufferMode;
     _eres           := MovePosBuffer(
                                   Enable      := FALSE, 
@@ -327,7 +327,7 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.WORKING:
+  E_PROGRESS.PROGRESS_WORKING:
     _BufferMode     := _MotionOptions^[_nAxisIndex].eBufferMode;
     AxisBufferPos   := _eres  
                     := MovePosBuffer(
@@ -338,20 +338,20 @@ OF
                                   Dec         := Data.rDec, 
                                   Jerk        := Data.rJerk, 
                                   BufferMode  := _BufferMode);
-    IF (_eres = E_PROGRESS.ERROR)
+    IF (_eres = E_PROGRESS.PROGRESS_ERROR)
     THEN
-      _eState       := E_PROGRESS.ERROR;
+      _eState       := E_PROGRESS.PROGRESS_ERROR;
 
-    ELSIF (_Ctrl^[_nAxisIndex].eProgress = E_PROGRESS.DONE)
+    ELSIF (_Ctrl^[_nAxisIndex].eProgress = E_PROGRESS.PROGRESS_DONE)
     THEN
       // when Ctrl decides to leave; make finishing move and be done
-      _eState       := E_PROGRESS.DONE;
+      _eState       := E_PROGRESS.PROGRESS_DONE;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.ERROR,
-  E_PROGRESS.DONE:
+  E_PROGRESS.PROGRESS_ERROR,
+  E_PROGRESS.PROGRESS_DONE:
     _eres           := MovePosBuffer(
                                   Enable      := FALSE, 
                                   Position    := Data.rSetPos, 
@@ -379,21 +379,21 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN AxisBufferVelo := E_PROGRESS.ERROR; RETURN; END_IF
-IF NOT Enable THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT Check() THEN AxisBufferVelo := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Enable THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     IF Enable 
     THEN
-      _eState       := E_PROGRESS.BUSY;
+      _eState       := E_PROGRESS.PROGRESS_BUSY;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.BUSY:
-    _eState         := E_PROGRESS.WORKING;
+  E_PROGRESS.PROGRESS_BUSY:
+    _eState         := E_PROGRESS.PROGRESS_WORKING;
     _BufferMode     := _MotionOptions^[_nAxisIndex].eBufferMode;
     _eres           := MoveVeloBuffer(
                                   Enable      := FALSE, 
@@ -406,7 +406,7 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.WORKING:
+  E_PROGRESS.PROGRESS_WORKING:
     _BufferMode     := _MotionOptions^[_nAxisIndex].eBufferMode;
     _eres           := MoveVeloBuffer(
                                   Enable      := TRUE, 
@@ -415,9 +415,9 @@ OF
                                   Dec         := Data.rDec, 
                                   Jerk        := Data.rJerk, 
                                   BufferMode  := _BufferMode);
-    IF (_eres = E_PROGRESS.ERROR)
+    IF (_eres = E_PROGRESS.PROGRESS_ERROR)
     THEN
-      _eState := E_PROGRESS.ERROR;
+      _eState := E_PROGRESS.PROGRESS_ERROR;
                        MoveVeloBuffer(
                                   Enable      := FALSE, 
                                   Velocity    := Data.rSetVelo, 
@@ -426,16 +426,16 @@ OF
                                   Jerk        := Data.rJerk, 
                                   BufferMode  := _BufferMode);
 
-    ELSIF (_Ctrl^[_nAxisIndex].eProgress = E_PROGRESS.DONE)
+    ELSIF (_Ctrl^[_nAxisIndex].eProgress = E_PROGRESS.PROGRESS_DONE)
     THEN
       // when Ctrl decides to leave; make finishing move and be done
-      _eState       := E_PROGRESS.FINISHING;
+      _eState       := E_PROGRESS.PROGRESS_STILL_WORKING;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.FINISHING:
-    _eState         := E_PROGRESS.DONE;
+  E_PROGRESS.PROGRESS_STILL_WORKING:
+    _eState         := E_PROGRESS.PROGRESS_DONE;
     _eres           := MoveVeloBuffer(
                                   Enable      := FALSE, 
                                   Velocity    := Data.rSetVelo, 
@@ -489,40 +489,40 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN AxisDisable := E_PROGRESS.ERROR; RETURN; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT Check() THEN AxisDisable := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     IF Execute 
     THEN
       memset(ADR(_stMsg),0,SIZEOF(_stMsg));
       _udiErr                       := 0;
       _rValue                       := 0;
-      _eState                       := E_PROGRESS.BUSY;
+      _eState                       := E_PROGRESS.PROGRESS_BUSY;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.BUSY:
+  E_PROGRESS.PROGRESS_BUSY:
     _eResult                        := Disable(FALSE);
-    _eState                         := E_PROGRESS.WAITING;
+    _eState                         := E_PROGRESS.PROGRESS_OCCUPIED;
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.WAITING:
+  E_PROGRESS.PROGRESS_OCCUPIED:
     _eResult                        := Disable(TRUE);
 
-    IF (_eResult = E_PROGRESS.DONE)
+    IF (_eResult = E_PROGRESS.PROGRESS_DONE)
     THEN
-      _eState                       := E_PROGRESS.WORKING;
+      _eState                       := E_PROGRESS.PROGRESS_WORKING;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.WORKING:
-    _eState                         := E_PROGRESS.DONE;
+  E_PROGRESS.PROGRESS_WORKING:
+    _eState                         := E_PROGRESS.PROGRESS_DONE;
 END_CASE
 
 AxisDisable := _eState;
@@ -545,40 +545,40 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN AxisEnable := E_PROGRESS.ERROR; RETURN; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT Check() THEN AxisEnable := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     IF Execute 
     THEN
       memset(ADR(_stMsg),0,SIZEOF(_stMsg));
       _udiErr                       := 0;
       _rValue                       := 0;
-      _eState                       := E_PROGRESS.BUSY;
+      _eState                       := E_PROGRESS.PROGRESS_BUSY;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.BUSY:
+  E_PROGRESS.PROGRESS_BUSY:
     _eResult                        := Enable(FALSE);
-    _eState                         := E_PROGRESS.WAITING;
+    _eState                         := E_PROGRESS.PROGRESS_OCCUPIED;
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.WAITING:
+  E_PROGRESS.PROGRESS_OCCUPIED:
     _eResult                        := Enable(TRUE);
 
-    IF (_eResult = E_PROGRESS.DONE)
+    IF (_eResult = E_PROGRESS.PROGRESS_DONE)
     THEN
-      _eState                       := E_PROGRESS.WORKING;
+      _eState                       := E_PROGRESS.PROGRESS_WORKING;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.WORKING:
-    _eState                         := E_PROGRESS.DONE;
+  E_PROGRESS.PROGRESS_WORKING:
+    _eState                         := E_PROGRESS.PROGRESS_DONE;
 END_CASE
 
 AxisEnable := _eState;
@@ -602,12 +602,12 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN AxisGearIn := E_PROGRESS.ERROR; RETURN; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT Check() THEN AxisGearIn := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     IF Execute 
     THEN
       memset(ADR(_stMsg),0,SIZEOF(_stMsg));
@@ -633,10 +633,10 @@ OF
 
         f_MessageSet(_stMsg);
 
-        _eState                     := E_PROGRESS.ERROR;
+        _eState                     := E_PROGRESS.PROGRESS_ERROR;
 
       ELSE
-        _eState                     := E_PROGRESS.BUSY;
+        _eState                     := E_PROGRESS.PROGRESS_BUSY;
 
         _nMasterIndex               := _GearInParameter^[_nAxisIndex].nAxisIndexMaster[1];
         _nMasterNcId                := _Info^[_nMasterIndex].nNcAxisId;
@@ -653,8 +653,8 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.BUSY:
-    _eState                         := E_PROGRESS.STARTUP;
+  E_PROGRESS.PROGRESS_BUSY:
+    _eState                         := E_PROGRESS.PROGRESS_STARTUP;
     _fbGearIn(
               Master                := _Axes[_nMasterIndex], 
               Slave                 := _AxisRef, 
@@ -667,7 +667,7 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.STARTUP:
+  E_PROGRESS.PROGRESS_STARTUP:
     _fbGearIn(
               Master                := _Axes[_nMasterIndex], 
               Slave                 := _AxisRef, 
@@ -689,17 +689,17 @@ OF
 
       _stMsg.sText                  := concat('GearIn ERROR: ', TO_STRING(_nMasterIndex));
       f_MessageSet(_stMsg);
-      _eState                       := E_PROGRESS.ERROR;
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
 
     ELSIF (_fbGearIn.InGear)
     THEN
-      _eState                       := E_PROGRESS.READY;
+      _eState                       := E_PROGRESS.PROGRESS_CHECK;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.READY:
-    _eState                         := E_PROGRESS.DONE;
+  E_PROGRESS.PROGRESS_CHECK:
+    _eState                         := E_PROGRESS.PROGRESS_DONE;
 
     _stMsg.eType                    := E_MessageType.eMessageInfo;
     _stMsg.eDevice                  := e_Device.Axis + TO_UINT(_AxisRef.NcToPlc.AxisId);
@@ -711,8 +711,8 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.DONE,
-  E_PROGRESS.ERROR:
+  E_PROGRESS.PROGRESS_DONE,
+  E_PROGRESS.PROGRESS_ERROR:
     _fbGearIn(
               Master                := _Axes[_nMasterIndex], 
               Slave                 := _AxisRef, 
@@ -746,12 +746,12 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN AxisGearInMultiMaster := E_PROGRESS.ERROR; RETURN; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT Check() THEN AxisGearInMultiMaster := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     IF Execute 
     THEN
       memset(ADR(_stMsg),0,SIZEOF(_stMsg));
@@ -777,10 +777,10 @@ OF
         _stMsg.sText                  := concat(_stMsg.sText, TO_STRING(_nMasterIndex[1]));
         f_MessageSet(_stMsg);
 
-        _eState                       := E_PROGRESS.ERROR;
+        _eState                       := E_PROGRESS.PROGRESS_ERROR;
 
       ELSE
-        _eState                       := E_PROGRESS.BUSY;
+        _eState                       := E_PROGRESS.PROGRESS_BUSY;
 
         _stOptions.AdvancedSlaveDynamics  := _GearInParameter^[_nAxisIndex].bAdvancedSlaveDynamics;
         _nSyncMode                        := _GearInParameter^[_nAxisIndex].nMultiMasterSyncMode;
@@ -807,15 +807,15 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.BUSY:
+  E_PROGRESS.PROGRESS_BUSY:
     IF NOT (_GearInParameter^[_nAxisIndex].nAxisIndexMaster[_nAx] > 0) OR
        NOT (_GearInParameter^[_nAxisIndex].nAxisIndexMaster[_nAx] < MAX_AXIS+1)
     THEN
       // next entry not valid
       // Master1 is already checked --> let's get ready
-      _eState                         := E_PROGRESS.READY;
+      _eState                         := E_PROGRESS.PROGRESS_CHECK;
     ELSE
-      _eState                         := E_PROGRESS.STARTUP;
+      _eState                         := E_PROGRESS.PROGRESS_STARTUP;
 
       _nMasterIndex[_nAx]             := _GearInParameter^[_nAxisIndex].nAxisIndexMaster[_nAx];
       _nMasterNcId [_nAx]             := _Info^[_nMasterIndex[_nAx]].nNcAxisId;
@@ -845,30 +845,30 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.STARTUP:
+  E_PROGRESS.PROGRESS_STARTUP:
     CASE _nAx
     OF
       2:
         _nAx                          := _nAx + 1;
-        _eState                       := E_PROGRESS.BUSY;
+        _eState                       := E_PROGRESS.PROGRESS_BUSY;
         _fbGearInMultiMaster.Master2  := _Axes[_nMasterIndex[2]];   // assign AXIS_REF of master
 
       3:
         _nAx                          := _nAx + 1;
-        _eState                       := E_PROGRESS.BUSY;
+        _eState                       := E_PROGRESS.PROGRESS_BUSY;
         _fbGearInMultiMaster.Master3  := _Axes[_nMasterIndex[3]];   // assign AXIS_REF of master
 
       4:
         _nAx                          := _nAx + 1;
-        _eState                       := E_PROGRESS.BUSY;
+        _eState                       := E_PROGRESS.PROGRESS_BUSY;
         _fbGearInMultiMaster.Master4  := _Axes[_nMasterIndex[4]];   // assign AXIS_REF of master
     ELSE
-      _eState                         := E_PROGRESS.READY;
+      _eState                         := E_PROGRESS.PROGRESS_CHECK;
     END_CASE
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.READY:
+  E_PROGRESS.PROGRESS_CHECK:
     _fbGearInMultiMaster(
                       Slave           := _AxisRef, 
                       Enable          := TRUE, 
@@ -888,22 +888,22 @@ OF
       _stMsg.eSubdevice               := e_Subdevice.fbGearInMultiMaster;
       _stMsg.iErrorNumber             := _nErr;
 
-      _stMsg.sText                    := concat(TO_STRING(_eCtrl),'[');
+      _stMsg.sText                    := concat(TO_STRING(_eCmd),'[');
       _stMsg.sText                    := concat(_stMsg.sText, TO_STRING(_nAxisIndex));
       _stMsg.sText                    := concat(_stMsg.sText, ']');
       _stMsg.sText                    := concat('fbGearInMultiMaster error: ', TO_STRING(_nErr));
       f_MessageSet(_stMsg);
-      _eState                         := E_PROGRESS.ERROR;
+      _eState                         := E_PROGRESS.PROGRESS_ERROR;
 
     ELSIF (_fbGearIn.InGear)
     THEN
-      _eState                         := E_PROGRESS.WORKING;
+      _eState                         := E_PROGRESS.PROGRESS_WORKING;
     END_IF
 
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.WORKING:
+  E_PROGRESS.PROGRESS_WORKING:
     // now GearRatio[x] can be altered from outside
     // axis function waits here for further instructions from outside world
     // _stCtrl[_nAxisIndex].eProgress = e_Progress.DONE must be used to leave this axis function
@@ -926,30 +926,30 @@ OF
       _stMsg.eSubdevice               := e_Subdevice.fbGearInMultiMaster;
       _stMsg.iErrorNumber             := _nErr;
 
-      _stMsg.sText                    := concat(TO_STRING(_eCtrl),'[');
+      _stMsg.sText                    := concat(TO_STRING(_eCmd),'[');
       _stMsg.sText                    := concat(_stMsg.sText, TO_STRING(_nAxisIndex));
       _stMsg.sText                    := concat(_stMsg.sText, ']');
       _stMsg.sText                    := concat('fbGearInMultiMaster error: ', TO_STRING(_nErr));
       f_MessageSet(_stMsg);
-      _eState                         := E_PROGRESS.ERROR;
+      _eState                         := E_PROGRESS.PROGRESS_ERROR;
 
-    ELSIF (_Ctrl^[_nAxisIndex].eProgress = E_PROGRESS.DONE)
+    ELSIF (_Ctrl^[_nAxisIndex].eProgress = E_PROGRESS.PROGRESS_DONE)
     THEN
       // when Ctrl decides to leave; make finishing move and be done
-      _eState                         := E_PROGRESS.FINISHING;
+      _eState                         := E_PROGRESS.PROGRESS_STILL_WORKING;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.FINISHING:
-    _eState                           := E_PROGRESS.DONE;
+  E_PROGRESS.PROGRESS_STILL_WORKING:
+    _eState                           := E_PROGRESS.PROGRESS_DONE;
 
     _stMsg.eType                      := E_MessageType.eMessageInfo;
     _stMsg.eDevice                    := e_Device.Axis + TO_UINT(_AxisRef.NcToPlc.AxisId);
     _stMsg.eSubdevice                 := e_Subdevice.fbGearInMultiMaster;
     _stMsg.iErrorNumber               := _eState;
 
-    _stMsg.sText                      := concat(TO_STRING(_eCtrl), ': ');
+    _stMsg.sText                      := concat(TO_STRING(_eCmd), ': ');
     _stMsg.sText                      := concat(_stMsg.sText, TO_STRING(_eState));
     f_MessageSet(_stMsg);
 END_CASE
@@ -983,12 +983,12 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN AxisGearOut := E_PROGRESS.ERROR; RETURN; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT Check() THEN AxisGearOut := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     IF Execute 
     THEN
       memset(ADR(_stMsg),0,SIZEOF(_stMsg));
@@ -1001,9 +1001,9 @@ OF
 
       IF (_AxisRef.NcToPlc.CoupleState < 2)
       THEN
-        _eState                   := E_PROGRESS.DONE;
+        _eState                   := E_PROGRESS.PROGRESS_DONE;
       ELSE
-        _eState                   := E_PROGRESS.BUSY;
+        _eState                   := E_PROGRESS.PROGRESS_BUSY;
 
         _stMsg.eType              := E_MessageType.eMessageInfo;
         _stMsg.eDevice            := e_Device.Axis + TO_UINT(_AxisRef.NcToPlc.AxisId);
@@ -1017,7 +1017,7 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.BUSY:
+  E_PROGRESS.PROGRESS_BUSY:
     _fbGearOut(
             Slave                 := _AxisRef, 
             Execute               := TRUE);
@@ -1033,7 +1033,7 @@ OF
 
       _stMsg.sText                := concat('GearOut ERROR: ', TO_STRING(_nAxisIndex));
       f_MessageSet(_stMsg);
-      _eState                     := E_PROGRESS.ERROR;
+      _eState                     := E_PROGRESS.PROGRESS_ERROR;
 
     ELSIF (_fbGearOut.Done)
     THEN
@@ -1047,16 +1047,16 @@ OF
 
       IF (_AxisRef.NcToPlc.CoupleState < 2)
       THEN
-        _eState                   := E_PROGRESS.DONE;
+        _eState                   := E_PROGRESS.PROGRESS_DONE;
       ELSE
-        _eState                   := E_PROGRESS.STARTUP;
+        _eState                   := E_PROGRESS.PROGRESS_STARTUP;
       END_IF
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.STARTUP:
-    _eState                       := E_PROGRESS.BUSY;
+  E_PROGRESS.PROGRESS_STARTUP:
+    _eState                       := E_PROGRESS.PROGRESS_BUSY;
     _fbGearOut(
           Slave                   := _AxisRef, 
           Execute                 := FALSE);
@@ -1071,8 +1071,8 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.DONE,
-  E_PROGRESS.ERROR:
+  E_PROGRESS.PROGRESS_DONE,
+  E_PROGRESS.PROGRESS_ERROR:
     _fbGearOut(
             Slave                 := _AxisRef, 
             Execute               := FALSE);
@@ -1099,24 +1099,24 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN AxisHalt := E_PROGRESS.ERROR; RETURN; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT Check() THEN AxisHalt := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     IF Execute 
     THEN
       memset(ADR(_stMsg),0,SIZEOF(_stMsg));
       _udiErr       := 0;
       _rValue       := 0;
-      _eState       := E_PROGRESS.BUSY;
+      _eState       := E_PROGRESS.PROGRESS_BUSY;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.BUSY:
-    _eState         := E_PROGRESS.WAITING;
+  E_PROGRESS.PROGRESS_BUSY:
+    _eState         := E_PROGRESS.PROGRESS_OCCUPIED;
     _eres           := Halt(
                             Execute := FALSE, 
                             Dec     := Data.rDec, 
@@ -1124,24 +1124,24 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.WAITING:
+  E_PROGRESS.PROGRESS_OCCUPIED:
     _eres           := Halt(
                             Execute := TRUE, 
                             Dec     := Data.rDec, 
                             Jerk    := Data.rJerk);
 
-    IF (_eres = E_PROGRESS.ERROR)
+    IF (_eres = E_PROGRESS.PROGRESS_ERROR)
     THEN
-        _eState     := E_PROGRESS.ERROR;
-    ELSIF (_eres = E_PROGRESS.DONE)
+        _eState     := E_PROGRESS.PROGRESS_ERROR;
+    ELSIF (_eres = E_PROGRESS.PROGRESS_DONE)
     THEN 
-      _eState       := E_PROGRESS.WORKING;
+      _eState       := E_PROGRESS.PROGRESS_WORKING;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.WORKING:
-    _eState         := E_PROGRESS.DONE;
+  E_PROGRESS.PROGRESS_WORKING:
+    _eState         := E_PROGRESS.PROGRESS_DONE;
     _eres           := Halt(
                             Execute := FALSE, 
                             Dec     := Data.rDec, 
@@ -1168,12 +1168,12 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN AxisHome := E_PROGRESS.ERROR; RETURN; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT Check() THEN AxisHome := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     IF Execute 
     THEN
       memset(ADR(_stMsg),0,SIZEOF(_stMsg));
@@ -1182,16 +1182,16 @@ OF
 
       IF (_AxisRef.Status.Homed)
       THEN
-        _eState             := E_PROGRESS.BUSY;
+        _eState             := E_PROGRESS.PROGRESS_BUSY;
       ELSE
-        _eState             := E_PROGRESS.PREPARE;
+        _eState             := E_PROGRESS.PROGRESS_PREPARE;
       END_IF
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.BUSY:
-    _eState                 := E_PROGRESS.STARTUP;
+  E_PROGRESS.PROGRESS_BUSY:
+    _eState                 := E_PROGRESS.PROGRESS_STARTUP;
     _eres                   := Home(
                                     Execute   := FALSE,
                                     Position  := _HomeParameter^[_nAxisIndex].stHomingParam.Position,
@@ -1200,7 +1200,7 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.STARTUP:
+  E_PROGRESS.PROGRESS_STARTUP:
     _Info^[_nAxisIndex].bReferenced   := FALSE;
 
     _eres                   := Home(
@@ -1208,15 +1208,15 @@ OF
                                     Position  := _HomeParameter^[_nAxisIndex].stHomingParam.Position,
                                     HomingMode:= Tc2_MC2.MC_HomingMode.MC_ResetCalibration,
                                     Options   := _HomeParameter^[_nAxisIndex].stHomingParam.Options);
-    IF (_eres = E_PROGRESS.DONE)
+    IF (_eres = E_PROGRESS.PROGRESS_DONE)
     THEN
-      _eState               := E_PROGRESS.PREPARE;
+      _eState               := E_PROGRESS.PROGRESS_PREPARE;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.PREPARE:
-      _eState               := E_PROGRESS.READY;
+  E_PROGRESS.PROGRESS_PREPARE:
+      _eState               := E_PROGRESS.PROGRESS_CHECK;
 
       _eres                 := Home(
                                     Execute   := FALSE,
@@ -1226,31 +1226,31 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.READY:
-    _eState                 := E_PROGRESS.WAITING;
+  E_PROGRESS.PROGRESS_CHECK:
+    _eState                 := E_PROGRESS.PROGRESS_OCCUPIED;
 
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.WAITING:
+  E_PROGRESS.PROGRESS_OCCUPIED:
     _eres                   := Home(
                                     Execute   := TRUE,
                                     Position  := _HomeParameter^[_nAxisIndex].stHomingParam.Position,
                                     HomingMode:= _HomeParameter^[_nAxisIndex].stHomingParam.HomingMode,
                                     Options   := _HomeParameter^[_nAxisIndex].stHomingParam.Options);
 
-    IF (_eres = E_PROGRESS.ERROR)
+    IF (_eres = E_PROGRESS.PROGRESS_ERROR)
     THEN
-      _eState               := E_PROGRESS.ERROR;
-    ELSIF (_eres = E_PROGRESS.DONE)
+      _eState               := E_PROGRESS.PROGRESS_ERROR;
+    ELSIF (_eres = E_PROGRESS.PROGRESS_DONE)
     THEN
-      _eState               := E_PROGRESS.WORKING;
+      _eState               := E_PROGRESS.PROGRESS_WORKING;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.WORKING:
-    _eState                 := E_PROGRESS.DONE;
+  E_PROGRESS.PROGRESS_WORKING:
+    _eState                 := E_PROGRESS.PROGRESS_DONE;
 
     _eres                   := Home(
                                     Execute   := FALSE,
@@ -1276,73 +1276,73 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN AxisIdle := E_PROGRESS.ERROR; return; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT Check() THEN AxisIdle := E_PROGRESS.PROGRESS_ERROR; return; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     IF Execute 
     THEN
       memset(ADR(_stMsg),0,SIZEOF(_stMsg));
       _nRetry                       := 0;
       _eResult                      := Reset(FALSE);
-      _eState                       := E_PROGRESS.BUSY;
+      _eState                       := E_PROGRESS.PROGRESS_BUSY;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.BUSY:
+  E_PROGRESS.PROGRESS_BUSY:
     _eResult                        := Reset(TRUE);
 
-    IF (_eResult = E_PROGRESS.DONE)
+    IF (_eResult = E_PROGRESS.PROGRESS_DONE)
     THEN
       _nRetry                       := _nRetry + 1;
-      _eState                       := E_PROGRESS.STARTUP;
+      _eState                       := E_PROGRESS.PROGRESS_STARTUP;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.STARTUP:
+  E_PROGRESS.PROGRESS_STARTUP:
     _eResult                        := Reset(FALSE);
     _eResult                        := Enable(FALSE);
-    _eState                         := E_PROGRESS.READY;
+    _eState                         := E_PROGRESS.PROGRESS_CHECK;
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.PREPARE:
+  E_PROGRESS.PROGRESS_PREPARE:
     _eResult                        := Reset(FALSE);
     _eResult                        := Enable(FALSE);
 
-    _eState                         := E_PROGRESS.BUSY;
+    _eState                         := E_PROGRESS.PROGRESS_BUSY;
 
     _stMsg.eType                    := E_MessageType.eMessageInfo;
     _stMsg.eDevice                  := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
     _stMsg.eSubdevice               :=  e_SubDevice.AxisIdle;
     _stMsg.iErrorNumber             := _nErrorId;
 
-    _stMsg.sText                    := concat(TO_STRING(_eCtrl), ' retry: ');
+    _stMsg.sText                    := concat(TO_STRING(_eCmd), ' retry: ');
     _stMsg.sText                    := concat(_stMsg.sText, TO_STRING(_nRetry));
 
     f_MessageSet(_stMsg);
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.READY:
+  E_PROGRESS.PROGRESS_CHECK:
     _eResult                        := Enable(TRUE);
 
     IF (_nRetry > MAX_RETRY)
     THEN
-      _eState                       := E_PROGRESS.ERROR;
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
 
-    ELSIF (_eResult = E_PROGRESS.DONE)
+    ELSIF (_eResult = E_PROGRESS.PROGRESS_DONE)
     THEN
       Enable(FALSE);
-      _eState                       := E_PROGRESS.DONE;
+      _eState                       := E_PROGRESS.PROGRESS_DONE;
 
-    ELSIF (_eResult = E_PROGRESS.ERROR)
+    ELSIF (_eResult = E_PROGRESS.PROGRESS_ERROR)
     THEN
-      _eState                       := E_PROGRESS.PREPARE;
+      _eState                       := E_PROGRESS.PROGRESS_PREPARE;
 
       _nErrorId                     := _AxisRef.NcToPlc.ErrorCode;
     
@@ -1351,7 +1351,7 @@ OF
       _stMsg.eSubdevice             :=  e_SubDevice.AxisIdle;
       _stMsg.iErrorNumber           := _nErrorId;
 
-      _stMsg.sText                  := concat(TO_STRING(_eCtrl), ' error axis enable: ');
+      _stMsg.sText                  := concat(TO_STRING(_eCmd), ' error axis enable: ');
       _stMsg.sText                  := concat(_stMsg.sText, TO_STRING(_nAxisIndex));
 
       f_MessageSet(_stMsg);
@@ -1402,37 +1402,37 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN AxisInit := E_PROGRESS.ERROR; RETURN; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT Check() THEN AxisInit := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     IF Execute 
     THEN
       memset(ADR(_stMsg),0,SIZEOF(_stMsg));
 
       _nErrorId                     := 0;
       _rValue                       := 0;
-      _eState                       := E_PROGRESS.BUSY;
+      _eState                       := E_PROGRESS.PROGRESS_BUSY;
       _eInit                        := _eState;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.BUSY:
-    _eState                         := E_PROGRESS.STARTUP;
+  E_PROGRESS.PROGRESS_BUSY:
+    _eState                         := E_PROGRESS.PROGRESS_STARTUP;
     _eResult                        := StartUp(FALSE);
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.STARTUP:
+  E_PROGRESS.PROGRESS_STARTUP:
     _eResult                        := StartUp(TRUE);
-    IF (_eResult = E_PROGRESS.DONE)
+    IF (_eResult = E_PROGRESS.PROGRESS_DONE)
     THEN
-      _eState                       := E_PROGRESS.PREPARE;
+      _eState                       := E_PROGRESS.PROGRESS_PREPARE;
       _eResult                      := AxisReset(FALSE);
-    ELSIF (_eResult = E_PROGRESS.ERROR)
+    ELSIF (_eResult = E_PROGRESS.PROGRESS_ERROR)
     THEN
       _eState                       := _eResult;
 
@@ -1448,9 +1448,9 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.PREPARE:
+  E_PROGRESS.PROGRESS_PREPARE:
     _eResult                        := AxisReset(TRUE);
-    IF (_eResult = E_PROGRESS.DONE)
+    IF (_eResult = E_PROGRESS.PROGRESS_DONE)
     THEN
       _fbCoeRead(
                 Execute             := FALSE,
@@ -1461,11 +1461,11 @@ OF
       THEN
         memset(ADR(_sDeviceName),0,SIZEOF(_sDeviceName));
   
-        _eState                     := E_PROGRESS.READY;
+        _eState                     := E_PROGRESS.PROGRESS_CHECK;
       ELSE
-        _eState                     := E_PROGRESS.WORKING;
+        _eState                     := E_PROGRESS.PROGRESS_WORKING;
       END_IF
-    ELSIF (_eResult = E_PROGRESS.ERROR)
+    ELSIF (_eResult = E_PROGRESS.PROGRESS_ERROR)
     THEN
       _eState                       := _eResult;
 
@@ -1481,7 +1481,7 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.READY:
+  E_PROGRESS.PROGRESS_CHECK:
     _eResult                        := AxisReset(FALSE);
     // get manufacturer device name in CoE
     _fbCoeRead.Index                := 16#1008;
@@ -1496,19 +1496,19 @@ OF
 
     IF _fbCoeRead.Busy
     THEN
-      _eState                       := E_PROGRESS.WAITING;
+      _eState                       := E_PROGRESS.PROGRESS_OCCUPIED;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.WAITING:
+  E_PROGRESS.PROGRESS_OCCUPIED:
     _fbCoeRead(
               NetId                 := _AxisRef.ADS.NetId, 
               Axis                  := _AxisRef);
 
     IF NOT _fbCoeRead.Busy
     THEN
-      _eState                       := E_PROGRESS.WORKING;
+      _eState                       := E_PROGRESS.PROGRESS_WORKING;
     END_IF
 
 // in case encoder type is used without hardware, error must be ignored here
@@ -1541,8 +1541,8 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.WORKING:
-    _eState                         := E_PROGRESS.DONE;
+  E_PROGRESS.PROGRESS_WORKING:
+    _eState                         := E_PROGRESS.PROGRESS_DONE;
     // set default for axis release
     AxisEnableNegative              := TRUE;
     AxisEnablePositive              := TRUE;
@@ -1583,21 +1583,21 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN AxisMoveToPosition := E_PROGRESS.ERROR; RETURN; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT Check() THEN AxisMoveToPosition := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     IF Execute 
     THEN
-      _eState               := E_PROGRESS.BUSY;
+      _eState               := E_PROGRESS.PROGRESS_BUSY;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.BUSY:
-    _eState                 := E_PROGRESS.WAITING;
+  E_PROGRESS.PROGRESS_BUSY:
+    _eState                 := E_PROGRESS.PROGRESS_OCCUPIED;
     _eres                   := MoveToPos(
                                       Execute    := FALSE, 
                                       Position   := Data.rSetPos, 
@@ -1609,7 +1609,7 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.WAITING:
+  E_PROGRESS.PROGRESS_OCCUPIED:
     _eres                   := MoveToPos(
                                       Execute    := TRUE, 
                                       Position   := Data.rSetPos, 
@@ -1619,18 +1619,18 @@ OF
                                       Jerk       := Data.rJerk, 
                                       BufferMode := Tc2_MC2.MC_BufferMode.MC_Aborting);
 
-    IF (_eres = E_PROGRESS.ERROR)
+    IF (_eres = E_PROGRESS.PROGRESS_ERROR)
     THEN
-        _eState             := E_PROGRESS.ERROR;
-    ELSIF (_eres = E_PROGRESS.DONE)
+        _eState             := E_PROGRESS.PROGRESS_ERROR;
+    ELSIF (_eres = E_PROGRESS.PROGRESS_DONE)
     THEN 
-      _eState               := E_PROGRESS.WORKING;
+      _eState               := E_PROGRESS.PROGRESS_WORKING;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.WORKING:
-    _eState                 := E_PROGRESS.DONE;
+  E_PROGRESS.PROGRESS_WORKING:
+    _eState                 := E_PROGRESS.PROGRESS_DONE;
     _eres                   := MoveToPos(
                                       Execute    := FALSE, 
                                       Position   := Data.rSetPos, 
@@ -1657,21 +1657,21 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN AxisMoveVelocity := E_PROGRESS.ERROR; RETURN; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT Check() THEN AxisMoveVelocity := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     IF Execute 
     THEN
-      _eState               := E_PROGRESS.BUSY;
+      _eState               := E_PROGRESS.PROGRESS_BUSY;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.BUSY:
-    _eState                 := E_PROGRESS.WAITING;
+  E_PROGRESS.PROGRESS_BUSY:
+    _eState                 := E_PROGRESS.PROGRESS_OCCUPIED;
     _eres                   := MoveVelo(
                                     Execute     := FALSE, 
                                     Velocity    := Data.rSetVelo, 
@@ -1683,7 +1683,7 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.WAITING:
+  E_PROGRESS.PROGRESS_OCCUPIED:
     _eres                   := MoveVelo(
                                     Execute     := TRUE, 
                                     Velocity    := Data.rSetVelo, 
@@ -1692,18 +1692,18 @@ OF
                                     Jerk        := Data.rJerk, 
                                     Direction   := Data.iDirection, 
                                     BufferMode  := Tc2_MC2.MC_BufferMode.MC_Aborting);
-    IF (_eres = E_PROGRESS.ERROR)
+    IF (_eres = E_PROGRESS.PROGRESS_ERROR)
     THEN
-        _eState             := E_PROGRESS.ERROR;
-    ELSIF (_eres = E_PROGRESS.DONE)
+        _eState             := E_PROGRESS.PROGRESS_ERROR;
+    ELSIF (_eres = E_PROGRESS.PROGRESS_DONE)
     THEN 
-      _eState               := E_PROGRESS.WORKING;
+      _eState               := E_PROGRESS.PROGRESS_WORKING;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.WORKING:
-    _eState                 := E_PROGRESS.DONE;
+  E_PROGRESS.PROGRESS_WORKING:
+    _eState                 := E_PROGRESS.PROGRESS_DONE;
     _eres                   := MoveVelo(
                                     Execute     := FALSE, 
                                     Velocity    := Data.rSetVelo, 
@@ -1731,43 +1731,43 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN AxisParameterRead := E_PROGRESS.ERROR; RETURN; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT Check() THEN AxisParameterRead := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     IF Execute 
     THEN
       _rValue                                     := 0.0;
-      _eState                                     := E_PROGRESS.BUSY;
+      _eState                                     := E_PROGRESS.PROGRESS_BUSY;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.BUSY:
-    _eState                                       := E_PROGRESS.WAITING;
+  E_PROGRESS.PROGRESS_BUSY:
+    _eState                                       := E_PROGRESS.PROGRESS_OCCUPIED;
     _eres           := ReadParameter(
                                   Execute         := FALSE,
                                   ParameterNumber := ParameterNr);
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.WAITING:
+  E_PROGRESS.PROGRESS_OCCUPIED:
     _eres           := ReadParameter(
                                   Execute         := TRUE,
                                   ParameterNumber := ParameterNr);
 
-    IF (_eres = E_PROGRESS.ERROR)
+    IF (_eres = E_PROGRESS.PROGRESS_ERROR)
     THEN
-      _eState                                     := E_PROGRESS.ERROR;
-    ELSIF (_eres = E_PROGRESS.DONE)
+      _eState                                     := E_PROGRESS.PROGRESS_ERROR;
+    ELSIF (_eres = E_PROGRESS.PROGRESS_DONE)
     THEN 
-      _eState                                     := E_PROGRESS.WORKING;
+      _eState                                     := E_PROGRESS.PROGRESS_WORKING;
     END_IF
 
-  E_PROGRESS.WORKING:
-    _eState                                       := E_PROGRESS.DONE;
+  E_PROGRESS.PROGRESS_WORKING:
+    _eState                                       := E_PROGRESS.PROGRESS_DONE;
     _eres           := ReadParameter(
                                   Execute         := FALSE,
                                   ParameterNumber := ParameterNr);
@@ -1794,22 +1794,22 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN AxisParameterWrite := E_PROGRESS.ERROR; RETURN; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT Check() THEN AxisParameterWrite := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     IF Execute 
     THEN
       _rValue                                     := _NcParameterWrt^[_nAxisIndex].rValue;
-      _eState                                     := E_PROGRESS.BUSY;
+      _eState                                     := E_PROGRESS.PROGRESS_BUSY;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.BUSY:
-    _eState                                       := E_PROGRESS.WAITING;
+  E_PROGRESS.PROGRESS_BUSY:
+    _eState                                       := E_PROGRESS.PROGRESS_OCCUPIED;
     _eres           := WriteParameter(
                                   Execute         := FALSE,
                                   Value           := _rValue,
@@ -1817,21 +1817,21 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.WAITING:
+  E_PROGRESS.PROGRESS_OCCUPIED:
     _eres           := WriteParameter(
                                   Execute         := TRUE,
                                   Value           := _rValue,
                                   ParameterNumber := ParameterNr);
-    IF (_eres = E_PROGRESS.ERROR)
+    IF (_eres = E_PROGRESS.PROGRESS_ERROR)
     THEN
-      _eState                                     := E_PROGRESS.ERROR;
-    ELSIF (_eres = E_PROGRESS.DONE)
+      _eState                                     := E_PROGRESS.PROGRESS_ERROR;
+    ELSIF (_eres = E_PROGRESS.PROGRESS_DONE)
     THEN 
-      _eState                                     := E_PROGRESS.WORKING;
+      _eState                                     := E_PROGRESS.PROGRESS_WORKING;
     END_IF
 
-  E_PROGRESS.WORKING:
-    _eState                                       := E_PROGRESS.DONE;
+  E_PROGRESS.PROGRESS_WORKING:
+    _eState                                       := E_PROGRESS.PROGRESS_DONE;
     _eres           := WriteParameter(
                                   Execute         := FALSE,
                                   Value           := _rValue,
@@ -1856,22 +1856,22 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN AxisParameterWritePersistent := E_PROGRESS.ERROR; RETURN; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT Check() THEN AxisParameterWritePersistent := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     IF Execute 
     THEN
       _rValue                                     := _NcParameterWrt^[_nAxisIndex].rValue;
-      _eState                                     := E_PROGRESS.BUSY;
+      _eState                                     := E_PROGRESS.PROGRESS_BUSY;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.BUSY:
-    _eState                                       := E_PROGRESS.WAITING;
+  E_PROGRESS.PROGRESS_BUSY:
+    _eState                                       := E_PROGRESS.PROGRESS_OCCUPIED;
     _eres           := WriteParameterPersistent(
                                   Execute         := FALSE,
                                   Value           := _rValue,
@@ -1879,21 +1879,21 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.WAITING:
+  E_PROGRESS.PROGRESS_OCCUPIED:
     _eres           := WriteParameterPersistent(
                                   Execute         := TRUE,
                                   Value           := _rValue,
                                   ParameterNumber := ParameterNr);
-    IF (_eres = E_PROGRESS.ERROR)
+    IF (_eres = E_PROGRESS.PROGRESS_ERROR)
     THEN
-      _eState                                     := E_PROGRESS.ERROR;
-    ELSIF (_eres = E_PROGRESS.DONE)
+      _eState                                     := E_PROGRESS.PROGRESS_ERROR;
+    ELSIF (_eres = E_PROGRESS.PROGRESS_DONE)
     THEN 
-      _eState                                     := E_PROGRESS.WORKING;
+      _eState                                     := E_PROGRESS.PROGRESS_WORKING;
     END_IF
 
-  E_PROGRESS.WORKING:
-    _eState                                       := E_PROGRESS.DONE;
+  E_PROGRESS.PROGRESS_WORKING:
+    _eState                                       := E_PROGRESS.PROGRESS_DONE;
     _eres           := WriteParameterPersistent(
                                   Execute         := FALSE,
                                   Value           := _rValue,
@@ -1929,40 +1929,40 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN AxisReset := E_PROGRESS.ERROR; RETURN; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT Check() THEN AxisReset := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     IF Execute 
     THEN
-      _eState                       := E_PROGRESS.BUSY;
+      _eState                       := E_PROGRESS.PROGRESS_BUSY;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.BUSY:
+  E_PROGRESS.PROGRESS_BUSY:
     _eres                           := Reset(FALSE);
-    _eState                         := E_PROGRESS.WAITING;
+    _eState                         := E_PROGRESS.PROGRESS_OCCUPIED;
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.WAITING:
+  E_PROGRESS.PROGRESS_OCCUPIED:
     _eres                           := Reset(TRUE);
-    IF (_eres = E_PROGRESS.DONE)
+    IF (_eres = E_PROGRESS.PROGRESS_DONE)
     THEN
-      _eState                       := E_PROGRESS.WORKING;
-    ELSIF (_eres = E_PROGRESS.ERROR)
+      _eState                       := E_PROGRESS.PROGRESS_WORKING;
+    ELSIF (_eres = E_PROGRESS.PROGRESS_ERROR)
     THEN
-      _eState                       := E_PROGRESS.ERROR;
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.WORKING:
+  E_PROGRESS.PROGRESS_WORKING:
     _eres                           := Reset(FALSE);
-    _eState                         := E_PROGRESS.DONE;
+    _eState                         := E_PROGRESS.PROGRESS_DONE;
 END_CASE
 
 AxisReset                           := _eState;
@@ -1993,21 +1993,21 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN AxisStop := E_PROGRESS.ERROR; RETURN; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT Check() THEN AxisStop := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     IF Execute 
     THEN
-      _eState       := E_PROGRESS.BUSY;
+      _eState       := E_PROGRESS.PROGRESS_BUSY;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.BUSY:
-    _eState         := E_PROGRESS.WAITING;
+  E_PROGRESS.PROGRESS_BUSY:
+    _eState         := E_PROGRESS.PROGRESS_OCCUPIED;
     _eres           := Stop(
                             Execute := FALSE, 
                             Dec     := Data.rDec, 
@@ -2015,24 +2015,24 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.WAITING:
+  E_PROGRESS.PROGRESS_OCCUPIED:
     _eres           := Stop(
                             Execute := TRUE, 
                             Dec     := Data.rDec, 
                             Jerk    := Data.rJerk);
 
-    IF (_eres = E_PROGRESS.ERROR)
+    IF (_eres = E_PROGRESS.PROGRESS_ERROR)
     THEN
-        _eState     := E_PROGRESS.ERROR;
-    ELSIF (_eres = E_PROGRESS.DONE)
+        _eState     := E_PROGRESS.PROGRESS_ERROR;
+    ELSIF (_eres = E_PROGRESS.PROGRESS_DONE)
     THEN 
-      _eState       := E_PROGRESS.WORKING;
+      _eState       := E_PROGRESS.PROGRESS_WORKING;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.WORKING:
-    _eState         := E_PROGRESS.DONE;
+  E_PROGRESS.PROGRESS_WORKING:
+    _eState         := E_PROGRESS.PROGRESS_DONE;
     _eres           := Stop(
                             Execute := FALSE, 
                             Dec     := Data.rDec, 
@@ -2186,9 +2186,9 @@ OF
     _eInit    := _eResult             := AxisInit(FALSE);
     _estate                           := E_AXIS_STATE.AXIS_INIT;
 ELSE
-  IF (_eInit <> E_PROGRESS.DONE)
+  IF (_eInit <> E_PROGRESS.PROGRESS_DONE)
   THEN
-    _eResult                          := E_PROGRESS.INIT;
+    _eResult                          := E_PROGRESS.PROGRESS_INIT;
     _estate                           := E_AXIS_STATE.AXIS_NO_INIT;
   ELSE
     CASE eCmd
@@ -2303,9 +2303,9 @@ ELSE
 
       IF (eCmd = E_AXIS_CTRL.AXIS_NULL)
       THEN
-        _eResult                      := E_PROGRESS.DONE;
+        _eResult                      := E_PROGRESS.PROGRESS_DONE;
       ELSE
-        _eResult                      := E_PROGRESS.INVALID;
+        _eResult                      := E_PROGRESS.PROGRESS_INVALID;
   
         _stMsg.eType                  := E_MessageType.eMessageError;
         _stMsg.eDevice                := E_Device.Axis + TO_DINT(_Axes[_nAxisIndex].NcToPlc.AxisId);
@@ -2388,7 +2388,7 @@ END_VAR
   _stMsg.iErrorNumber        := _nAxisIndex;
 
   _sCtrl                     := concat('E_AXIS_CTRL', '.');
-  _sCtrl                     := concat(_sCtrl, TO_STRING(_eCtrl));
+  _sCtrl                     := concat(_sCtrl, TO_STRING(_eCmd));
 
   _stMsg.sText               := concat('new command: ', _sCtrl);
 
@@ -2422,7 +2422,7 @@ END_VAR
   _stMsg.iErrorNumber        := _nAxisIndex;
 
   _sCtrl                     := concat('E_AXIS_CTRL', '.');
-  _sCtrl                     := concat(_sCtrl, TO_STRING(_eCtrl));
+  _sCtrl                     := concat(_sCtrl, TO_STRING(_eCmd));
 
   _sResult                   := concat('E_PROGRESS', '.');
   _sResult                   := concat(_sResult, TO_STRING(_eResult));
@@ -2499,12 +2499,12 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN ResetSoE := E_PROGRESS.ERROR; RETURN; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT Check() THEN ResetSoE := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     IF Execute 
     THEN
       memset(ADR(_stMsg),0,SIZEOF(_stMsg));
@@ -2513,13 +2513,13 @@ OF
 		  _nRepeat                      := 1;
       _udiErrSer := _udiErrAds      := 0;
       _rValue                       := 0;
-      _eState                       := E_PROGRESS.BUSY;
+      _eState                       := E_PROGRESS.PROGRESS_BUSY;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.BUSY:
-    _eState                         := E_PROGRESS.WAITING;
+  E_PROGRESS.PROGRESS_BUSY:
+    _eState                         := E_PROGRESS.PROGRESS_OCCUPIED;
 		_tonDelay(
             IN                      := FALSE);
 
@@ -2530,7 +2530,7 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.WAITING:
+  E_PROGRESS.PROGRESS_OCCUPIED:
 		_tonDelay(
             PT                      := T#1500MS, 
             IN                      := TRUE);
@@ -2555,30 +2555,30 @@ OF
       f_MessageSet(_stMsg);
 
       _Info^[_nAxisIndex].nErrorId := _udiErrSer;
-      _eState                       := E_PROGRESS.ERROR;
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
 
 		ELSIF NOT _fbReset.Busy
 		THEN
-      _eState                       := E_PROGRESS.WORKING;
+      _eState                       := E_PROGRESS.PROGRESS_WORKING;
 
     ELSE
       IF _tonDelay.Q AND
          _AxisRef.NcToPlc.StateDWord.28
       THEN
         _nRepeat                    := _nRepeat + 1;
-        _eState                     := E_PROGRESS.BUSY;    
+        _eState                     := E_PROGRESS.PROGRESS_BUSY;    
       END_IF
 
       IF (_nRepeat > 5)
       THEN
-        _eState                     := E_PROGRESS.ERROR;
+        _eState                     := E_PROGRESS.PROGRESS_ERROR;
       END_IF
 		END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.WORKING:
-    _eState                         := E_PROGRESS.DONE;
+  E_PROGRESS.PROGRESS_WORKING:
+    _eState                         := E_PROGRESS.PROGRESS_DONE;
 END_CASE
 
 
@@ -2682,28 +2682,7 @@ END_VAR
       </Set>
     </Property>
     <LineIds Name="FB_McAxisCtrl">
-      <LineId Id="4106" Count="29" />
-      <LineId Id="4224" Count="11" />
-      <LineId Id="4474" Count="0" />
-      <LineId Id="4383" Count="0" />
-      <LineId Id="4385" Count="5" />
-      <LineId Id="4473" Count="0" />
-      <LineId Id="4394" Count="0" />
-      <LineId Id="4475" Count="0" />
-      <LineId Id="4236" Count="4" />
-      <LineId Id="4364" Count="2" />
-      <LineId Id="4373" Count="3" />
-      <LineId Id="4372" Count="0" />
-      <LineId Id="4368" Count="3" />
-      <LineId Id="4377" Count="0" />
-      <LineId Id="4363" Count="0" />
-      <LineId Id="4378" Count="3" />
-      <LineId Id="4362" Count="0" />
-      <LineId Id="4396" Count="76" />
-      <LineId Id="4245" Count="0" />
-      <LineId Id="4476" Count="10" />
-      <LineId Id="4250" Count="3" />
-      <LineId Id="4266" Count="33" />
+      <LineId Id="4877" Count="203" />
       <LineId Id="17" Count="0" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.Axes.Set">

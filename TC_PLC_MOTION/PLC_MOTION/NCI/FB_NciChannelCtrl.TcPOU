@@ -151,9 +151,9 @@ OF
     _eInit := _eResult      := Ctrl_Init(FALSE);
     _eState                 := E_NCI_STATE.INIT;
 ELSE
-  IF NOT (_eInit = E_PROGRESS.DONE)
+  IF NOT (_eInit = E_PROGRESS.PROGRESS_DONE)
   THEN
-    _eResult                := E_PROGRESS.ERROR;
+    _eResult                := E_PROGRESS.PROGRESS_ERROR;
   
     _stMsg.eType            := E_MessageType.eMessageError;
     _stMsg.eDevice          := E_Device.NciChannelCtrl + TO_DINT(ChnId);
@@ -176,7 +176,7 @@ ELSE
     
       E_NCI_CTRL.FEED_TABLE:
         // nothing implemented yet
-        _eResult                := E_PROGRESS.NOT_EXIST;
+        _eResult                := E_PROGRESS.PROGRESS_NOT_EXIST;
         _eState                 := E_NCI_STATE.FEED_TABLE;
     
       E_NCI_CTRL.RESET:
@@ -227,9 +227,9 @@ ELSE
   
       IF (eCmd = E_NCI_CTRL.NULL)
       THEN
-        _eResult              := E_PROGRESS.DONE;
+        _eResult              := E_PROGRESS.PROGRESS_DONE;
       ELSE
-        _eResult              := E_PROGRESS.INVALID;
+        _eResult              := E_PROGRESS.PROGRESS_INVALID;
   
         _stMsg.eType          := E_MessageType.eMessageError;
         _stMsg.eDevice        := E_Device.NciChannelCtrl + TO_DINT(ChnId);
@@ -263,58 +263,58 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN Ctrl_BuildGroup := E_PROGRESS.ERROR; RETURN; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT Check() THEN Ctrl_BuildGroup := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     IF Execute 
     THEN
       _eJobResult                   := BuilDGroup(FALSE);
-      _eState                       := E_PROGRESS.BUSY;
+      _eState                       := E_PROGRESS.PROGRESS_BUSY;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.BUSY:
+  E_PROGRESS.PROGRESS_BUSY:
     _eJobResult                     := BuilDGroup(TRUE);
 
-    IF (_eJobResult = E_PROGRESS.ERROR)
+    IF (_eJobResult = E_PROGRESS.PROGRESS_ERROR)
     THEN
       BuilDGroup(FALSE);
-      _eState                       := E_PROGRESS.ERROR;
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
 
-    ELSIF (_eJobResult = E_PROGRESS.DONE)
+    ELSIF (_eJobResult = E_PROGRESS.PROGRESS_DONE)
     THEN
       BuilDGroup(FALSE);
-      _eState                       := E_PROGRESS.STARTUP;
+      _eState                       := E_PROGRESS.PROGRESS_STARTUP;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.STARTUP:
-    _eState                         := E_PROGRESS.PREPARE;
+  E_PROGRESS.PROGRESS_STARTUP:
+    _eState                         := E_PROGRESS.PROGRESS_PREPARE;
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.PREPARE:
-    _eState                         := E_PROGRESS.READY;
+  E_PROGRESS.PROGRESS_PREPARE:
+    _eState                         := E_PROGRESS.PROGRESS_CHECK;
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.READY:
-    _eState                         := E_PROGRESS.WAITING;
+  E_PROGRESS.PROGRESS_CHECK:
+    _eState                         := E_PROGRESS.PROGRESS_OCCUPIED;
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.WAITING:
-    _eState                         := E_PROGRESS.WORKING;
+  E_PROGRESS.PROGRESS_OCCUPIED:
+    _eState                         := E_PROGRESS.PROGRESS_WORKING;
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.WORKING:
-    _eState                         := E_PROGRESS.DONE;
+  E_PROGRESS.PROGRESS_WORKING:
+    _eState                         := E_PROGRESS.PROGRESS_DONE;
 END_CASE
 
 Ctrl_BuildGroup                      := _eState;
@@ -332,59 +332,59 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN Ctrl_ClearGroup := E_PROGRESS.ERROR; RETURN; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT Check() THEN Ctrl_ClearGroup := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     IF Execute 
     THEN
       _eJobResult                           := ClearGroup(FALSE);
-      _eState                               := E_PROGRESS.BUSY;
+      _eState                               := E_PROGRESS.PROGRESS_BUSY;
     END_IF
 
-  E_PROGRESS.BUSY:
+  E_PROGRESS.PROGRESS_BUSY:
     _eJobResult                             := ClearGroup(TRUE);
-    IF (_eJobResult = E_PROGRESS.ERROR)
+    IF (_eJobResult = E_PROGRESS.PROGRESS_ERROR)
     THEN
       ClearGroup(FALSE);
-      _eState                               := E_PROGRESS.ERROR;
+      _eState                               := E_PROGRESS.PROGRESS_ERROR;
 
-    ELSIF (_eJobResult = E_PROGRESS.DONE)
+    ELSIF (_eJobResult = E_PROGRESS.PROGRESS_DONE)
     THEN
       ClearGroup(FALSE);
       _eJobResult                           := ItpReset(FALSE);
-      _eState                               := E_PROGRESS.STARTUP;
+      _eState                               := E_PROGRESS.PROGRESS_STARTUP;
     END_IF
 
-  E_PROGRESS.STARTUP:
+  E_PROGRESS.PROGRESS_STARTUP:
     _eJobResult                             := ItpReset(TRUE);
-    IF (_eJobResult = E_PROGRESS.ERROR)
+    IF (_eJobResult = E_PROGRESS.PROGRESS_ERROR)
     THEN
       ItpReset(FALSE);
-      _eState                               := E_PROGRESS.ERROR;
+      _eState                               := E_PROGRESS.PROGRESS_ERROR;
 
-    ELSIF (_eJobResult = E_PROGRESS.DONE)
+    ELSIF (_eJobResult = E_PROGRESS.PROGRESS_DONE)
     THEN
       ItpReset(FALSE);
-      _eState                               := E_PROGRESS.PREPARE;
+      _eState                               := E_PROGRESS.PROGRESS_PREPARE;
     END_IF
 
-  E_PROGRESS.PREPARE:
+  E_PROGRESS.PROGRESS_PREPARE:
     IF (_NciChannelRef^.NcToPlc.HskMFuncReq = 0)
     THEN
-      _eState                               := E_PROGRESS.DONE;
+      _eState                               := E_PROGRESS.PROGRESS_DONE;
     ELSE
       _NciChannelRef^.PlcToNc.MFuncGranted  := 0;
-      _eState                               := E_PROGRESS.READY;
+      _eState                               := E_PROGRESS.PROGRESS_CHECK;
     END_IF
 
-  E_PROGRESS.READY:
+  E_PROGRESS.PROGRESS_CHECK:
       _NciChannelRef^.PlcToNc.MFuncGranted  := 1;
-      _eState                               := E_PROGRESS.PREPARE;
+      _eState                               := E_PROGRESS.PROGRESS_PREPARE;
 
-  E_PROGRESS.DONE:
+  E_PROGRESS.PROGRESS_DONE:
     _NciChannelRef^.PlcToNc.MFuncGranted    := 0;
 END_CASE
 
@@ -404,39 +404,39 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN Ctrl_ConfirmHsk := E_PROGRESS.ERROR; RETURN; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT Check() THEN Ctrl_ConfirmHsk := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     IF Execute 
     THEN
       _eJobResult                         := ConfirmHSK(FALSE);
-      _eState                             := E_PROGRESS.BUSY;
+      _eState                             := E_PROGRESS.PROGRESS_BUSY;
     END_IF
 END_CASE
 CASE _eState
 OF
 
-  E_PROGRESS.BUSY:
+  E_PROGRESS.PROGRESS_BUSY:
     _eJobResult                           := ConfirmHSK(TRUE);
 
-    IF (_eJobResult = E_PROGRESS.ERROR)
+    IF (_eJobResult = E_PROGRESS.PROGRESS_ERROR)
     THEN
       ConfirmHSK(FALSE);
-      _eState                             := E_PROGRESS.ERROR;
+      _eState                             := E_PROGRESS.PROGRESS_ERROR;
 
-    ELSIF (_eJobResult = E_PROGRESS.DONE)
+    ELSIF (_eJobResult = E_PROGRESS.PROGRESS_DONE)
     THEN
       ConfirmHSK(FALSE);
-      _eState                             := E_PROGRESS.PREPARE;
+      _eState                             := E_PROGRESS.PROGRESS_PREPARE;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.PREPARE:
-    _eState                               := E_PROGRESS.DONE;
+  E_PROGRESS.PROGRESS_PREPARE:
+    _eState                               := E_PROGRESS.PROGRESS_DONE;
 END_CASE
 
 Ctrl_ConfirmHsk                            := _eState;
@@ -459,62 +459,62 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN Ctrl_Idle := E_PROGRESS.ERROR; RETURN; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT Check() THEN Ctrl_Idle := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     IF Execute 
     THEN
       _eJobResult                         := ItpReset(FALSE);
-      _eState                             := E_PROGRESS.BUSY;
+      _eState                             := E_PROGRESS.PROGRESS_BUSY;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.BUSY:
+  E_PROGRESS.PROGRESS_BUSY:
     IF (_NciChannelRef^.NcToPlc.ItpState <> Tc2_NCI.NCI_INTERPRETER_IDLE)
     THEN
-      _eState                             := E_PROGRESS.STARTUP;
+      _eState                             := E_PROGRESS.PROGRESS_STARTUP;
     ELSE
       IF (_NciChannelRef^.PlcToNc.ChnAxesOvr > 0) AND NOT
          (_NciChannelRef^.NcToPlc.ChnState.8)
       THEN
-        _eState                           := E_PROGRESS.PREPARE;
+        _eState                           := E_PROGRESS.PROGRESS_PREPARE;
       END_IF
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.STARTUP:
+  E_PROGRESS.PROGRESS_STARTUP:
     _eJobResult                           := ItpReset(TRUE);
-    IF (_eJobResult = E_PROGRESS.ERROR)
+    IF (_eJobResult = E_PROGRESS.PROGRESS_ERROR)
     THEN
       ItpReset(FALSE);
-      _eState                             := E_PROGRESS.ERROR;
+      _eState                             := E_PROGRESS.PROGRESS_ERROR;
 
-    ELSIF (_eJobResult = E_PROGRESS.DONE)
+    ELSIF (_eJobResult = E_PROGRESS.PROGRESS_DONE)
     THEN
       ItpReset(FALSE);
-      _eState                             := E_PROGRESS.PREPARE;
+      _eState                             := E_PROGRESS.PROGRESS_PREPARE;
     END_IF
 
-  E_PROGRESS.PREPARE:
+  E_PROGRESS.PROGRESS_PREPARE:
     _NciChannelRef^.PlcToNc.MFuncGranted  := 0;
-    _eState                               := E_PROGRESS.READY;
+    _eState                               := E_PROGRESS.PROGRESS_CHECK;
 
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.READY:
+  E_PROGRESS.PROGRESS_CHECK:
     _nErr                                 := ItpGetGroupAxisIds(_NciAxisIds, _NciChannelRef^.NcToPlc);
 
     IF (_NciChannelRef^.NcToPlc.HskMFuncReq = 0)
     THEN
       IF (_nErr <> 0)
       THEN
-        _eState                           := E_PROGRESS.ERROR;
+        _eState                           := E_PROGRESS.PROGRESS_ERROR;
         _stMsg.eType                      := E_MessageType.eMessageError;
         _stMsg.eDevice                    := ChannelDevice;
         _stMsg.eSubdevice                 := e_Subdevice.NciIdle;
@@ -523,10 +523,10 @@ OF
 
         f_MessageSet(_stMsg);
       ELSE
-        _eState                           := E_PROGRESS.DONE;
+        _eState                           := E_PROGRESS.PROGRESS_DONE;
       END_IF
     ELSE
-      _eState                             := E_PROGRESS.STARTUP;
+      _eState                             := E_PROGRESS.PROGRESS_STARTUP;
     END_IF
 END_CASE
 
@@ -552,28 +552,28 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN _eState := E_PROGRESS.ERROR; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT Check() THEN _eState := E_PROGRESS.PROGRESS_ERROR; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     IF Execute 
     THEN
       memset(ADR(_stMsg),0,SIZEOF(_stMsg));
       _udiErr                       := 0;
       _rValue                       := 0;
-      _eState                       := E_PROGRESS.BUSY;
+      _eState                       := E_PROGRESS.PROGRESS_BUSY;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.BUSY:
+  E_PROGRESS.PROGRESS_BUSY:
     IF NOT (_stCfgAxes^.nXAxisId > 0) OR
        NOT (_stCfgAxes^.nYAxisId > 0) OR
        NOT (_stCfgAxes^.nZAxisId > 0)
     THEN
-      _eState                       := E_PROGRESS.WAITING;
+      _eState                       := E_PROGRESS.PROGRESS_OCCUPIED;
 
       _stMsg.eType                  := E_MessageType.eMessageWarn;
       _stMsg.eDevice                := ChannelDevice;
@@ -584,50 +584,50 @@ OF
       f_MessageSet(_stMsg);
     ELSE
       _eJobResult                   := ItpReset(FALSE);
-      _eState                       := E_PROGRESS.STARTUP;
+      _eState                       := E_PROGRESS.PROGRESS_STARTUP;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.STARTUP:
+  E_PROGRESS.PROGRESS_STARTUP:
     _eJobResult                     := ItpReset(TRUE);
-    IF (_eJobResult = E_PROGRESS.ERROR)
+    IF (_eJobResult = E_PROGRESS.PROGRESS_ERROR)
     THEN
-      _eState                       := E_PROGRESS.ERROR;
-    ELSIF (_eJobResult = E_PROGRESS.DONE)
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
+    ELSIF (_eJobResult = E_PROGRESS.PROGRESS_DONE)
     THEN
       _eJobResult                   := ItpReset  (FALSE);
       _eJobResult                   := ClearGroup(FALSE);
-      _eState                       := E_PROGRESS.PREPARE;
+      _eState                       := E_PROGRESS.PROGRESS_PREPARE;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.PREPARE:
+  E_PROGRESS.PROGRESS_PREPARE:
     _eJobResult                     := ClearGroup(TRUE);
-    IF (_eJobResult = E_PROGRESS.ERROR)
+    IF (_eJobResult = E_PROGRESS.PROGRESS_ERROR)
     THEN
-      _eState                       := E_PROGRESS.ERROR;
-    ELSIF (_eJobResult = E_PROGRESS.DONE)
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
+    ELSIF (_eJobResult = E_PROGRESS.PROGRESS_DONE)
     THEN
       _eJobResult                   := ClearGroup(FALSE);
-      _eState                       := E_PROGRESS.READY;
+      _eState                       := E_PROGRESS.PROGRESS_CHECK;
     END_IF
 
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.READY:
-    _eState                         := E_PROGRESS.WORKING;
+  E_PROGRESS.PROGRESS_CHECK:
+    _eState                         := E_PROGRESS.PROGRESS_WORKING;
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.WAITING:
+  E_PROGRESS.PROGRESS_OCCUPIED:
     IF (_stCfgAxes^.nXAxisId > 0) AND
        (_stCfgAxes^.nYAxisId > 0) AND
        (_stCfgAxes^.nZAxisId > 0)
     THEN
-      _eState                       := E_PROGRESS.STARTUP;
+      _eState                       := E_PROGRESS.PROGRESS_STARTUP;
 
       _stMsg.eType                  := E_MessageType.eMessageInfo;
       _stMsg.eDevice                := ChannelDevice;
@@ -643,8 +643,8 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.WORKING:
-    _eState                         := E_PROGRESS.DONE;
+  E_PROGRESS.PROGRESS_WORKING:
+    _eState                         := E_PROGRESS.PROGRESS_DONE;
 END_CASE
 
 Ctrl_Init                           := _eState;
@@ -662,31 +662,31 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN Ctrl_LoadProg := E_PROGRESS.ERROR; RETURN; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT Check() THEN Ctrl_LoadProg := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     IF Execute 
     THEN
       _eJobResult                         := LoadProg(FALSE);
-      _eState                             := E_PROGRESS.BUSY;
+      _eState                             := E_PROGRESS.PROGRESS_BUSY;
     END_IF
 
-  E_PROGRESS.BUSY:
+  E_PROGRESS.PROGRESS_BUSY:
     _NciChannelRef^.PlcToNc.MFuncGranted  := 0;
     _eJobResult                           := LoadProg(TRUE);
 
-    IF (_eJobResult = E_PROGRESS.ERROR)
+    IF (_eJobResult = E_PROGRESS.PROGRESS_ERROR)
     THEN
       LoadProg(FALSE);
-      _eState                             := E_PROGRESS.ERROR;
+      _eState                             := E_PROGRESS.PROGRESS_ERROR;
 
-    ELSIF (_eJobResult = E_PROGRESS.DONE)
+    ELSIF (_eJobResult = E_PROGRESS.PROGRESS_DONE)
     THEN
       LoadProg(FALSE);
-      _eState                             := E_PROGRESS.DONE;
+      _eState                             := E_PROGRESS.PROGRESS_DONE;
     END_IF
 END_CASE
 
@@ -705,42 +705,42 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN Ctrl_R_Parameter_Rd := E_PROGRESS.ERROR; RETURN; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT Check() THEN Ctrl_R_Parameter_Rd := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     IF Execute 
     THEN
       _eJobResult                         := ReadRParams(FALSE);
-      _eState                             := E_PROGRESS.BUSY;
+      _eState                             := E_PROGRESS.PROGRESS_BUSY;
     END_IF
 
-  E_PROGRESS.BUSY:
+  E_PROGRESS.PROGRESS_BUSY:
     _NciChannelRef^.PlcToNc.MFuncGranted  := 0;
     _eJobResult                           := ReadRParams(TRUE);
 
-    IF (_eJobResult = E_PROGRESS.ERROR)
+    IF (_eJobResult = E_PROGRESS.PROGRESS_ERROR)
     THEN
       ReadRParams(FALSE);
-      _eState                             := E_PROGRESS.ERROR;
+      _eState                             := E_PROGRESS.PROGRESS_ERROR;
 
-    ELSIF (_eJobResult = E_PROGRESS.DONE)
+    ELSIF (_eJobResult = E_PROGRESS.PROGRESS_DONE)
     THEN
       ReadRParams(FALSE);
-      _eState                             := E_PROGRESS.STARTUP;
+      _eState                             := E_PROGRESS.PROGRESS_STARTUP;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.STARTUP:
+  E_PROGRESS.PROGRESS_STARTUP:
     _NciChannelRef^.PlcToNc.MFuncGranted  := 1;
-    _eState                               := E_PROGRESS.PREPARE;
+    _eState                               := E_PROGRESS.PROGRESS_PREPARE;
 
-  E_PROGRESS.PREPARE:
+  E_PROGRESS.PROGRESS_PREPARE:
     _NciChannelRef^.PlcToNc.MFuncGranted  := 0;
-    _eState                               := E_PROGRESS.DONE;
+    _eState                               := E_PROGRESS.PROGRESS_DONE;
 END_CASE
 
 Ctrl_R_Parameter_Rd                       := _eState;
@@ -758,42 +758,42 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN Ctrl_R_Parameter_Wrt := E_PROGRESS.ERROR; RETURN; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT Check() THEN Ctrl_R_Parameter_Wrt := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     IF Execute 
     THEN
       _eJobResult                         := WriteRParams(FALSE);
-      _eState                             := E_PROGRESS.BUSY;
+      _eState                             := E_PROGRESS.PROGRESS_BUSY;
     END_IF
 
-  E_PROGRESS.BUSY:
+  E_PROGRESS.PROGRESS_BUSY:
     _NciChannelRef^.PlcToNc.MFuncGranted  := 0;
     _eJobResult                           := WriteRParams(TRUE);
 
-    IF (_eJobResult = E_PROGRESS.ERROR)
+    IF (_eJobResult = E_PROGRESS.PROGRESS_ERROR)
     THEN
       WriteRParams(FALSE);
-      _eState                             := E_PROGRESS.ERROR;
+      _eState                             := E_PROGRESS.PROGRESS_ERROR;
 
-    ELSIF (_eJobResult = E_PROGRESS.DONE)
+    ELSIF (_eJobResult = E_PROGRESS.PROGRESS_DONE)
     THEN
       WriteRParams(FALSE);
-      _eState                             := E_PROGRESS.STARTUP;
+      _eState                             := E_PROGRESS.PROGRESS_STARTUP;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.STARTUP:
+  E_PROGRESS.PROGRESS_STARTUP:
     _NciChannelRef^.PlcToNc.MFuncGranted  := 1;
-    _eState                               := E_PROGRESS.PREPARE;
+    _eState                               := E_PROGRESS.PROGRESS_PREPARE;
 
-  E_PROGRESS.PREPARE:
+  E_PROGRESS.PROGRESS_PREPARE:
     _NciChannelRef^.PlcToNc.MFuncGranted  := 0;
-    _eState                               := E_PROGRESS.DONE;
+    _eState                               := E_PROGRESS.PROGRESS_DONE;
 END_CASE
 
 Ctrl_R_Parameter_Wrt                      := _eState;
@@ -811,52 +811,52 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN Ctrl_Reset := E_PROGRESS.ERROR; RETURN; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT Check() THEN Ctrl_Reset := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     IF Execute 
     THEN
       _eJobResult                         := ItpReset(FALSE);
-      _eState                             := E_PROGRESS.BUSY;
+      _eState                             := E_PROGRESS.PROGRESS_BUSY;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.BUSY:
+  E_PROGRESS.PROGRESS_BUSY:
     _NciChannelRef^.PlcToNc.MFuncGranted  := 0;
     _eJobResult                           := ItpReset(TRUE);
 
-    IF (_eJobResult = E_PROGRESS.ERROR)
+    IF (_eJobResult = E_PROGRESS.PROGRESS_ERROR)
     THEN
       ItpReset(FALSE);
-      _eState                             := E_PROGRESS.ERROR;
+      _eState                             := E_PROGRESS.PROGRESS_ERROR;
 
-    ELSIF (_eJobResult = E_PROGRESS.DONE)
+    ELSIF (_eJobResult = E_PROGRESS.PROGRESS_DONE)
     THEN
       ItpReset(FALSE);
-      _eState                             := E_PROGRESS.STARTUP;
+      _eState                             := E_PROGRESS.PROGRESS_STARTUP;
     END_IF
 
-  E_PROGRESS.STARTUP:
+  E_PROGRESS.PROGRESS_STARTUP:
     _NciChannelRef^.PlcToNc.MFuncGranted  := 1;
-    _eState                               := E_PROGRESS.PREPARE;
+    _eState                               := E_PROGRESS.PROGRESS_PREPARE;
 
-  E_PROGRESS.PREPARE:
+  E_PROGRESS.PROGRESS_PREPARE:
     _NciChannelRef^.PlcToNc.MFuncGranted  := 0;
-    _eState                               := E_PROGRESS.READY;
+    _eState                               := E_PROGRESS.PROGRESS_CHECK;
 
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.READY:
+  E_PROGRESS.PROGRESS_CHECK:
     IF (_NciChannelRef^.NcToPlc.HskMFuncReq = 0)
     THEN
-      _eState                             := E_PROGRESS.DONE;
+      _eState                             := E_PROGRESS.PROGRESS_DONE;
     ELSE
-      _eState                             := E_PROGRESS.STARTUP;
+      _eState                             := E_PROGRESS.PROGRESS_STARTUP;
     END_IF
 END_CASE
 
@@ -875,33 +875,33 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN Ctrl_Restart := E_PROGRESS.ERROR; RETURN; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT Check() THEN Ctrl_Restart := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     IF Execute 
     THEN
       _eJobResult                         := StepOnAfterEStop(FALSE);
-      _eState                             := E_PROGRESS.BUSY;
+      _eState                             := E_PROGRESS.PROGRESS_BUSY;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.BUSY:
+  E_PROGRESS.PROGRESS_BUSY:
     _NciChannelRef^.PlcToNc.MFuncGranted  := 0;
     _eJobResult                           := StepOnAfterEStop(TRUE);
 
-    IF (_eJobResult = E_PROGRESS.ERROR)
+    IF (_eJobResult = E_PROGRESS.PROGRESS_ERROR)
     THEN
       StepOnAfterEStop(FALSE);
-      _eState                             := E_PROGRESS.ERROR;
+      _eState                             := E_PROGRESS.PROGRESS_ERROR;
 
-    ELSIF (_eJobResult = E_PROGRESS.DONE)
+    ELSIF (_eJobResult = E_PROGRESS.PROGRESS_DONE)
     THEN
       StepOnAfterEStop(FALSE);
-      _eState                             := E_PROGRESS.DONE;
+      _eState                             := E_PROGRESS.PROGRESS_DONE;
     END_IF
 END_CASE
 
@@ -921,33 +921,33 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN Ctrl_Start := E_PROGRESS.ERROR; RETURN; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT Check() THEN Ctrl_Start := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     IF Execute 
     THEN
       _eJobResult                         := StartStop(FALSE, TRUE, FALSE);
-      _eState                             := E_PROGRESS.BUSY;
+      _eState                             := E_PROGRESS.PROGRESS_BUSY;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.BUSY:
+  E_PROGRESS.PROGRESS_BUSY:
     _NciChannelRef^.PlcToNc.MFuncGranted  := 0;
     _eJobResult                           := StartStop(TRUE, TRUE, FALSE);
 
-    IF (_eJobResult = E_PROGRESS.ERROR)
+    IF (_eJobResult = E_PROGRESS.PROGRESS_ERROR)
     THEN
       StartStop(FALSE, TRUE, FALSE);
-      _eState                             := E_PROGRESS.ERROR;
+      _eState                             := E_PROGRESS.PROGRESS_ERROR;
 
-    ELSIF (_eJobResult = E_PROGRESS.DONE)
+    ELSIF (_eJobResult = E_PROGRESS.PROGRESS_DONE)
     THEN
       StartStop(FALSE, TRUE, FALSE);
-      _eState                             := E_PROGRESS.DONE;
+      _eState                             := E_PROGRESS.PROGRESS_DONE;
     END_IF
 END_CASE
 
@@ -966,33 +966,33 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN Ctrl_Stop := E_PROGRESS.ERROR; RETURN; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT Check() THEN Ctrl_Stop := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     IF Execute 
     THEN
       _eJobResult                         := StartStop(FALSE, FALSE, TRUE);
-      _eState                             := E_PROGRESS.BUSY;
+      _eState                             := E_PROGRESS.PROGRESS_BUSY;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.BUSY:
+  E_PROGRESS.PROGRESS_BUSY:
     _NciChannelRef^.PlcToNc.MFuncGranted  := 0;
     _eJobResult                           := StartStop(TRUE, FALSE, TRUE);
 
-    IF (_eJobResult = E_PROGRESS.ERROR)
+    IF (_eJobResult = E_PROGRESS.PROGRESS_ERROR)
     THEN
       StartStop(FALSE, FALSE, TRUE);
-      _eState                             := E_PROGRESS.ERROR;
+      _eState                             := E_PROGRESS.PROGRESS_ERROR;
 
-    ELSIF (_eJobResult = E_PROGRESS.DONE)
+    ELSIF (_eJobResult = E_PROGRESS.PROGRESS_DONE)
     THEN
       StartStop(FALSE, FALSE, TRUE);
-      _eState                             := E_PROGRESS.DONE;
+      _eState                             := E_PROGRESS.PROGRESS_DONE;
     END_IF
 END_CASE
 
@@ -1011,33 +1011,33 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN Ctrl_Stop_STO := E_PROGRESS.ERROR; RETURN; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT Check() THEN Ctrl_Stop_STO := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     IF Execute 
     THEN
       _eJobResult                         := EStop(FALSE);
-      _eState                             := E_PROGRESS.BUSY;
+      _eState                             := E_PROGRESS.PROGRESS_BUSY;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.BUSY:
+  E_PROGRESS.PROGRESS_BUSY:
     _NciChannelRef^.PlcToNc.MFuncGranted  := 0;
     _eJobResult                           := EStop(TRUE);
 
-    IF (_eJobResult = E_PROGRESS.ERROR)
+    IF (_eJobResult = E_PROGRESS.PROGRESS_ERROR)
     THEN
       EStop(FALSE);
-      _eState                             := E_PROGRESS.ERROR;
+      _eState                             := E_PROGRESS.PROGRESS_ERROR;
 
-    ELSIF (_eJobResult = E_PROGRESS.DONE)
+    ELSIF (_eJobResult = E_PROGRESS.PROGRESS_DONE)
     THEN
       EStop(FALSE);
-      _eState                             := E_PROGRESS.DONE;
+      _eState                             := E_PROGRESS.PROGRESS_DONE;
     END_IF
 END_CASE
 
@@ -1053,7 +1053,7 @@ END_VAR
 ]]></Declaration>
       <Implementation>
         <ST><![CDATA[
-IF NOT Check() THEN Cycle := _eCycle := _eResult := E_PROGRESS.ERROR; RETURN; END_IF
+IF NOT Check() THEN Cycle := _eCycle := _eResult := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
 
 ChannelDevice := e_Device.NciChannel + TO_UINT(ChnId);
 //-----------------------------------------------------------------------------
@@ -1090,14 +1090,14 @@ END_IF
 //-----------------------------------------------------------------------------
 CASE _eResult
 OF
-  E_PROGRESS.INVALID:
-    _State^.eState            := TO_UINT(E_PROGRESS.ERROR);
+  E_PROGRESS.PROGRESS_INVALID:
+    _State^.eState            := TO_UINT(E_PROGRESS.PROGRESS_ERROR);
 
-  E_PROGRESS.ERROR:
-    _State^.eState            := _eState + E_PROGRESS.ERROR;
+  E_PROGRESS.PROGRESS_ERROR:
+    _State^.eState            := _eState + E_PROGRESS.PROGRESS_ERROR;
 
-  E_PROGRESS.DONE:
-    _State^.eState            := _eState + E_PROGRESS.DONE;
+  E_PROGRESS.PROGRESS_DONE:
+    _State^.eState            := _eState + E_PROGRESS.PROGRESS_DONE;
 
 ELSE
     _State^.eState            := _eState + _eResult;
@@ -1163,7 +1163,7 @@ _State^.nMFunc                := _NciChannelRef^.NcToPlc.HskMFuncNo;
 _State^.nItpState             := GetItpState();
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-Cycle := _eCycle              := E_PROGRESS.WORKING;
+Cycle := _eCycle              := E_PROGRESS.PROGRESS_WORKING;
 ]]></ST>
       </Implementation>
     </Method>
@@ -1363,19 +1363,7 @@ Template_1 := _eState;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.Cmd">
-      <LineId Id="274" Count="0" />
-      <LineId Id="189" Count="6" />
-      <LineId Id="275" Count="1" />
-      <LineId Id="284" Count="12" />
-      <LineId Id="278" Count="0" />
-      <LineId Id="277" Count="0" />
-      <LineId Id="280" Count="1" />
-      <LineId Id="301" Count="51" />
-      <LineId Id="354" Count="19" />
-      <LineId Id="300" Count="0" />
-      <LineId Id="282" Count="0" />
-      <LineId Id="279" Count="0" />
-      <LineId Id="270" Count="3" />
+      <LineId Id="3" Count="105" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.Ctrl_BuildGroup">
@@ -1391,50 +1379,12 @@ Template_1 := _eState;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.Ctrl_Idle">
-      <LineId Id="3" Count="52" />
-      <LineId Id="74" Count="2" />
-      <LineId Id="82" Count="4" />
-      <LineId Id="88" Count="0" />
-      <LineId Id="87" Count="0" />
-      <LineId Id="77" Count="0" />
-      <LineId Id="56" Count="0" />
-      <LineId Id="78" Count="0" />
-      <LineId Id="57" Count="5" />
+      <LineId Id="3" Count="71" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.Ctrl_Init">
-      <LineId Id="18" Count="16" />
-      <LineId Id="70" Count="3" />
-      <LineId Id="80" Count="0" />
-      <LineId Id="110" Count="7" />
-      <LineId Id="78" Count="0" />
-      <LineId Id="89" Count="0" />
-      <LineId Id="79" Count="0" />
-      <LineId Id="76" Count="0" />
-      <LineId Id="36" Count="3" />
-      <LineId Id="90" Count="0" />
-      <LineId Id="95" Count="1" />
-      <LineId Id="94" Count="0" />
-      <LineId Id="91" Count="1" />
-      <LineId Id="108" Count="0" />
-      <LineId Id="97" Count="0" />
-      <LineId Id="40" Count="0" />
-      <LineId Id="93" Count="0" />
-      <LineId Id="41" Count="3" />
-      <LineId Id="99" Count="8" />
-      <LineId Id="98" Count="0" />
-      <LineId Id="46" Count="8" />
-      <LineId Id="81" Count="4" />
-      <LineId Id="126" Count="0" />
-      <LineId Id="119" Count="4" />
-      <LineId Id="127" Count="0" />
-      <LineId Id="124" Count="0" />
-      <LineId Id="128" Count="0" />
-      <LineId Id="125" Count="0" />
-      <LineId Id="129" Count="0" />
-      <LineId Id="88" Count="0" />
-      <LineId Id="56" Count="7" />
-      <LineId Id="5" Count="0" />
+      <LineId Id="3" Count="95" />
+      <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.Ctrl_LoadProg">
       <LineId Id="3" Count="28" />
@@ -1469,11 +1419,7 @@ Template_1 := _eState;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.Cycle">
-      <LineId Id="3" Count="32" />
-      <LineId Id="37" Count="17" />
-      <LineId Id="118" Count="1" />
-      <LineId Id="117" Count="0" />
-      <LineId Id="55" Count="57" />
+      <LineId Id="3" Count="111" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.ItfChannel.Get">
@@ -1481,15 +1427,11 @@ Template_1 := _eState;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.LogControl">
-      <LineId Id="3" Count="8" />
-      <LineId Id="21" Count="9" />
-      <LineId Id="13" Count="0" />
+      <LineId Id="3" Count="19" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.LogResult">
-      <LineId Id="3" Count="13" />
-      <LineId Id="26" Count="9" />
-      <LineId Id="18" Count="0" />
+      <LineId Id="3" Count="24" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.M_FunctionScope.Set">

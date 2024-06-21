@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Refactors>
+  <Renames>
+    <RenamedSymbol>
+      <Type guid="11d31827-5ba7-0339-218a-c900cf2dcf09">ST_AXIS_CTRL</Type>
+      <From>eCtrl</From>
+      <To>eCmd</To>
+    </RenamedSymbol>
+    <RenamedSymbol>
+      <Type guid="2b4dad11-6d18-0e6f-2be1-3edcadce9751">ST_CAM_CTRL</Type>
+      <From>eCtrl</From>
+      <To>eCmd</To>
+    </RenamedSymbol>
+    <RenamedSymbol>
+      <Type guid="999335a0-5af6-0c1d-15bd-a65b83fb504c">FB_McAxisCtrl</Type>
+      <From>_eCtrl</From>
+      <To>_eCmd</To>
+    </RenamedSymbol>
+    <RenamedSymbol>
+      <Type guid="999335a0-5af6-0c1d-15bd-a65b83fb504c">FB_McAxisCtrl</Type>
+      <From>_eCtrlOld</From>
+      <To>_eCmdOld</To>
+    </RenamedSymbol>
+    <RenamedSymbol>
+      <Type guid="527605ca-3a86-0df1-134f-058287ba4975">FB_CamCtrl</Type>
+      <From>_eCtrl</From>
+      <To>_eCmd</To>
+    </RenamedSymbol>
+    <RenamedSymbol>
+      <Type guid="527605ca-3a86-0df1-134f-058287ba4975">FB_CamCtrl</Type>
+      <From>_eCtrlOld</From>
+      <To>_eCmdOld</To>
+    </RenamedSymbol>
+  </Renames>
+</Refactors>

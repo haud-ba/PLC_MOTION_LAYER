@@ -8,7 +8,7 @@
     <DownloadApplicationInfo>true</DownloadApplicationInfo>
     <WriteProductVersion>true</WriteProductVersion>
     <GenerateTpy>false</GenerateTpy>
-    <Name>PLC_STATE_DRIVE</Name>
+    <Name>PLC_MOTION</Name>
     <ProgramVersion>3.1.4024.0</ProgramVersion>
     <Application>{0b9ad4b8-9b21-46d2-af23-75ba528d74dd}</Application>
     <TypeSystem>{2f650832-3b33-41ac-8655-4702718764fe}</TypeSystem>
@@ -276,11 +276,7 @@
       <SubType>Code</SubType>
       <DependentUpon>Visualization Manager.TcVMO</DependentUpon>
     </Compile>
-    <Compile Include="_UML\CD_AXIS_ACCESS.TcCD">
-      <SubType>Code</SubType>
-      <ExcludeFromBuild>true</ExcludeFromBuild>
-    </Compile>
-    <Compile Include="_UML\CD_CAM_ACCESS.TcCD">
+    <Compile Include="_UML\CD_PLC_MOTION.TcCD">
       <SubType>Code</SubType>
       <ExcludeFromBuild>true</ExcludeFromBuild>
     </Compile>
@@ -407,7 +403,7 @@
     </SubObject>
   </ItemGroup>
   <ItemGroup>
-    <None Include="PLC_STATE_DRIVE.tmc">
+    <None Include="PLC_MOTION.tmc">
       <SubType>Content</SubType>
     </None>
   </ItemGroup>

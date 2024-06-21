@@ -17,7 +17,7 @@ END_VAR
 // check if compiler define is present [PLC_STATE_DRIVE/CompilerDefines/Manual: CAM]
 // see PLC_CONSTANT for conditional pragma
 //-----------------------------------------------------------------------------------------------------------------
-IF NOT PLC_CONSTANT.CAM_ACTIVE THEN eInit := E_PROGRESS.NOT_EXIST; RETURN; END_IF
+IF NOT PLC_CONSTANT.CAM_ACTIVE THEN eInit := E_PROGRESS.PROGRESS_NOT_EXIST; RETURN; END_IF
 //-----------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------
@@ -52,17 +52,17 @@ IF NOT bInit
 THEN
   CASE eInit
   OF
-    E_PROGRESS.INVALID,
-    E_PROGRESS.DONE:
+    E_PROGRESS.PROGRESS_INVALID,
+    E_PROGRESS.PROGRESS_DONE:
       FOR nAxis := 1 TO MAX_AXIS
       DO
         GVL_CAM.Control[nAxis].MessageLevel       := GVL_MSG.MessageLevel;
       END_FOR 
       nAxisInit                                   := 1;
-      eInit                                       := E_PROGRESS.INIT;
+      eInit                                       := E_PROGRESS.PROGRESS_INIT;
 
 
-    E_PROGRESS.INIT:
+    E_PROGRESS.PROGRESS_INIT:
       stMsg.eType                                 := E_MessageType.eMessageVerbose;
       stMsg.eDevice                               := e_Device.Camming;
       stMsg.eSubdevice                            := e_SubDevice.CamStartUp;
@@ -72,16 +72,16 @@ THEN
 
       f_MessageSet(stMsg);
 
-      GVL_CAM.Ctrl[nAxisInit].eCtrl               := E_AXIS_CTRL.AXIS_NULL;
-      eInit                                       := E_PROGRESS.BUSY;
+      GVL_CAM.Ctrl[nAxisInit].eCmd               := E_AXIS_CTRL.AXIS_NULL;
+      eInit                                       := E_PROGRESS.PROGRESS_BUSY;
 
 
-    E_PROGRESS.BUSY:
-      GVL_CAM.Ctrl[nAxisInit].eCtrl               := E_AXIS_CTRL.AXIS_INIT;
+    E_PROGRESS.PROGRESS_BUSY:
+      GVL_CAM.Ctrl[nAxisInit].eCmd               := E_AXIS_CTRL.AXIS_INIT;
 
-      IF (GVL_CAM.State[nAxisInit].eState = E_AXIS_STATE.AXIS_INIT + E_PROGRESS.ERROR)
+      IF (GVL_CAM.State[nAxisInit].eState = E_AXIS_STATE.AXIS_INIT + E_PROGRESS.PROGRESS_ERROR)
       THEN
-        eInit                                     := E_PROGRESS.ERROR;
+        eInit                                     := E_PROGRESS.PROGRESS_ERROR;
 
         stMsg.eType                               := E_MessageType.eMessageError;
         stMsg.eDevice                             := e_Device.Camming;
@@ -91,17 +91,17 @@ THEN
         stMsg.sText                               := concat('CAM.eInit ERROR at Index: ', TO_STRING(nAxisInit));
         f_MessageSet(stMsg);
 
-      ELSIF (GVL_CAM.State[nAxisInit].eState = E_AXIS_STATE.AXIS_INIT + E_PROGRESS.DONE)
+      ELSIF (GVL_CAM.State[nAxisInit].eState = E_AXIS_STATE.AXIS_INIT + E_PROGRESS.PROGRESS_DONE)
       THEN
-        eInit                                     := E_PROGRESS.READY;
+        eInit                                     := E_PROGRESS.PROGRESS_CHECK;
       END_IF
 
 
-    E_PROGRESS.READY:
+    E_PROGRESS.PROGRESS_CHECK:
       IF (nAxisInit > PLC_CONSTANT.MAX_AXIS-1)
       THEN
         bInit                                     := TRUE;
-        eInit                                     := E_PROGRESS.DONE;
+        eInit                                     := E_PROGRESS.PROGRESS_DONE;
 
         stMsg.eType                               := E_MessageType.eMessageInfo;
         stMsg.eDevice                             := e_Device.Camming;
@@ -113,7 +113,7 @@ THEN
 
       ELSE
         nAxisInit                                 := nAxisInit + 1;
-        eInit                                     := E_PROGRESS.INIT;
+        eInit                                     := E_PROGRESS.PROGRESS_INIT;
       END_IF
   END_CASE
 END_IF
@@ -123,7 +123,7 @@ END_IF
 //-----------------------------------------------------------------------------------------------------------------
 // /cyclic
 //-----------------------------------------------------------------------------------------------------------------
-IF (eInit <> E_PROGRESS.ERROR)
+IF (eInit <> E_PROGRESS.PROGRESS_ERROR)
 THEN
   FOR nAxis := 1 TO PLC_CONSTANT.MAX_AXIS
   DO

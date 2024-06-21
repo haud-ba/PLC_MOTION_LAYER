@@ -3,7 +3,13 @@
   <GVL Name="PLC_VERSION" Id="{d2395695-97e2-030c-1191-ad6e09085440}">
     <Declaration><![CDATA[{attribute 'qualified_only'}
 VAR_GLOBAL CONSTANT
-  VERSION               : STRING := 'V 01.00.10';
+  VERSION               : STRING := 'V 01.00.11';
+
+  // 2024 06 21 HAUD
+  //
+  // - TC_PLC_MOTION_LAYER: 
+  //    - E_PROGRESS refactoring to match TC_XTS_TRANSPORT_LAYER
+  
 
   // 2024 06 10 HAUD
   //

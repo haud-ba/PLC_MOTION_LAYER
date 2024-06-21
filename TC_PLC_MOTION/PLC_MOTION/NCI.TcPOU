@@ -20,7 +20,7 @@ END_VAR
 // check if compiler define is present [PLC_STATE_DRIVE/CompilerDefines/Manual: NCI]
 // see PLC_CONSTANT for conditional pragma
 //-----------------------------------------------------------------------------------------------------------------
-IF NOT PLC_CONSTANT.NCI_ACTIVE THEN eInit   := E_PROGRESS.NOT_EXIST; RETURN; END_IF
+IF NOT PLC_CONSTANT.NCI_ACTIVE THEN eInit   := E_PROGRESS.PROGRESS_NOT_EXIST; RETURN; END_IF
 //-----------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------
@@ -63,17 +63,17 @@ IF NOT bInit
 THEN
   CASE eInit
   OF
-    E_PROGRESS.INVALID,
-    E_PROGRESS.DONE:
+    E_PROGRESS.PROGRESS_INVALID,
+    E_PROGRESS.PROGRESS_DONE:
       FOR nChn := 1 TO MAX_NCI_CH
       DO
         GVL_MSG.MessageLevelNciChn[nChn]          := GVL_MSG.MessageLevel;
       END_FOR 
       nChnInit                                    := 1;
-      eInit                                       := E_PROGRESS.INIT;
+      eInit                                       := E_PROGRESS.PROGRESS_INIT;
 
 
-    E_PROGRESS.INIT:
+    E_PROGRESS.PROGRESS_INIT:
       stMsg.eType                                 := E_MessageType.eMessageVerbose;
       stMsg.eDevice                               := e_Device.NciChannelCtrl;
       stMsg.eSubdevice                            := e_SubDevice.NciStartUp;
@@ -83,15 +83,15 @@ THEN
       f_MessageSet(stMsg);
 
       GVL_NCI.stChannelCtrl[nChnInit].eCmd        := E_NCI_CTRL.NULL;
-      eInit                                       := E_PROGRESS.BUSY;
+      eInit                                       := E_PROGRESS.PROGRESS_BUSY;
 
 
-    E_PROGRESS.BUSY:
+    E_PROGRESS.PROGRESS_BUSY:
       GVL_NCI.stChannelCtrl[nChnInit].eCmd        := E_NCI_CTRL.INIT;
 
-      IF (GVL_NCI.stChannelState[nChnInit].eState = E_NCI_STATE.INIT + E_PROGRESS.ERROR)
+      IF (GVL_NCI.stChannelState[nChnInit].eState = E_NCI_STATE.INIT + E_PROGRESS.PROGRESS_ERROR)
       THEN
-        eInit                                     := E_PROGRESS.ERROR;
+        eInit                                     := E_PROGRESS.PROGRESS_ERROR;
 
         stMsg.eType                               := E_MessageType.eMessageError;
         stMsg.eDevice                             := e_Device.NciChannelCtrl;
@@ -101,17 +101,17 @@ THEN
         stMsg.sText                               := concat('NCI.eInit ERROR at Index: ', TO_STRING(nChnInit));
         f_MessageSet(stMsg);
 
-      ELSIF (GVL_NCI.stChannelState[nChnInit].eState = E_NCI_STATE.INIT + E_PROGRESS.DONE)
+      ELSIF (GVL_NCI.stChannelState[nChnInit].eState = E_NCI_STATE.INIT + E_PROGRESS.PROGRESS_DONE)
       THEN
-        eInit                                     := E_PROGRESS.READY;
+        eInit                                     := E_PROGRESS.PROGRESS_CHECK;
       END_IF
 
 
-    E_PROGRESS.READY:
+    E_PROGRESS.PROGRESS_CHECK:
       IF (nChnInit > PLC_CONSTANT.MAX_NCI_CH-1)
       THEN
         bInit                                     := TRUE;
-        eInit                                     := E_PROGRESS.DONE;
+        eInit                                     := E_PROGRESS.PROGRESS_DONE;
 
         stMsg.eType                               := E_MessageType.eMessageInfo;
         stMsg.eDevice                             := e_Device.NciChannelCtrl;
@@ -123,7 +123,7 @@ THEN
 
       ELSE
         nChnInit                                  := nChnInit + 1;
-        eInit                                     := E_PROGRESS.INIT;
+        eInit                                     := E_PROGRESS.PROGRESS_INIT;
       END_IF
   END_CASE
 END_IF

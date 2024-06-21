@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # TcXaeShell Solution File, Format Version 11.00
 VisualStudioVersion = 15.0.28010.2050
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{DFBE7525-6864-4E62-8B2E-D530D69D9D96}") = "PLC_STATE_DRIVE", "TC_PlcStateDrive\PLC_STATE_DRIVE.tspproj", "{61BBEFDF-92F8-45CC-821A-463F3CCD7608}"
+Project("{DFBE7525-6864-4E62-8B2E-D530D69D9D96}") = "PLC_MOTION", "TC_PLC_MOTION\PLC_MOTION.tspproj", "{61BBEFDF-92F8-45CC-821A-463F3CCD7608}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

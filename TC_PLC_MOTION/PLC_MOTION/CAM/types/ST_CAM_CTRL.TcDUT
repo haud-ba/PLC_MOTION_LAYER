@@ -4,7 +4,7 @@
     <Declaration><![CDATA[{attribute 'pack_mode' := '2'}
 TYPE ST_CAM_CTRL :
 STRUCT
-  eCtrl               : E_AXIS_CTRL;    // commanded axis function
+  eCmd               : E_AXIS_CTRL;    // commanded axis function
 END_STRUCT
 END_TYPE
 ]]></Declaration>

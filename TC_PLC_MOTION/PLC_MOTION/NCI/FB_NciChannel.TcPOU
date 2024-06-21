@@ -79,12 +79,12 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN BuilDGroup := E_PROGRESS.ERROR; RETURN; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT Check() THEN BuilDGroup := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     IF Execute 
     THEN
       _fbBuildGroup( 
@@ -102,13 +102,13 @@ OF
       memset(ADR(_stMsg),0,SIZEOF(_stMsg));
       _udiErr                       := 0;
       _rValue                       := 0;
-      _eState                       := E_PROGRESS.BUSY;
+      _eState                       := E_PROGRESS.PROGRESS_BUSY;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.BUSY:
-    _eState                         := E_PROGRESS.STARTUP;
+  E_PROGRESS.PROGRESS_BUSY:
+    _eState                         := E_PROGRESS.PROGRESS_STARTUP;
     _fbBuildGroup( 
                 bExecute            := TRUE, 
                 nGroupId            := ItpGetGroupId(sNciToPlc:=_NciChannelRef^.NcToPlc),
@@ -116,7 +116,7 @@ OF
 
     IF _fbBuildGroup.bErr 
     THEN
-      _eState                       := E_PROGRESS.ERROR;
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
       _stMsg.eDevice                := ChannelDevice;
@@ -128,7 +128,7 @@ OF
     ELSE
       IF _fbBuildGroup.bBusy
       THEN
-        _eState                     := E_PROGRESS.STARTUP;
+        _eState                     := E_PROGRESS.PROGRESS_STARTUP;
 
         _stMsg.eType                := E_MessageType.eMessageInfo;
         _stMsg.eDevice              := ChannelDevice;
@@ -145,7 +145,7 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.STARTUP:
+  E_PROGRESS.PROGRESS_STARTUP:
     _fbBuildGroup( 
                 bExecute            := TRUE, 
                 nGroupId            := ItpGetGroupId(sNciToPlc:=_NciChannelRef^.NcToPlc),
@@ -153,7 +153,7 @@ OF
 
     IF _fbBuildGroup.bErr 
     THEN
-      _eState                       := E_PROGRESS.ERROR;
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
       _stMsg.eDevice                := ChannelDevice;
@@ -165,7 +165,7 @@ OF
     ELSE
       IF NOT _fbBuildGroup.bBusy
       THEN
-        _eState                     := E_PROGRESS.DONE;
+        _eState                     := E_PROGRESS.PROGRESS_DONE;
 
         _stMsg.eType                := E_MessageType.eMessageInfo;
         _stMsg.eDevice              := ChannelDevice;
@@ -182,8 +182,8 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.ERROR,
-  E_PROGRESS.DONE:
+  E_PROGRESS.PROGRESS_ERROR,
+  E_PROGRESS.PROGRESS_DONE:
     _fbBuildGroup( 
                 bExecute            := FALSE, 
                 nGroupId            := ItpGetGroupId(sNciToPlc:=_NciChannelRef^.NcToPlc));
@@ -285,12 +285,12 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN ClearGroup := E_PROGRESS.ERROR; RETURN; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT Check() THEN ClearGroup := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     IF Execute 
     THEN
       _fbClearGroup( 
@@ -300,13 +300,13 @@ OF
       memset(ADR(_stMsg),0,SIZEOF(_stMsg));
       _udiErr                       := 0;
       _rValue                       := 0;
-      _eState                       := E_PROGRESS.BUSY;
+      _eState                       := E_PROGRESS.PROGRESS_BUSY;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.BUSY:
-    _eState                         := E_PROGRESS.STARTUP;
+  E_PROGRESS.PROGRESS_BUSY:
+    _eState                         := E_PROGRESS.PROGRESS_STARTUP;
     _fbClearGroup( 
                   bExecute          := TRUE, 
                   nGroupId          := ItpGetGroupId(sNciToPlc:= _NciChannelRef^.NcToPlc),
@@ -314,7 +314,7 @@ OF
 
     IF _fbClearGroup.bErr 
     THEN
-      _eState                       := E_PROGRESS.ERROR;
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
       _stMsg.eDevice                := ChannelDevice;
@@ -326,7 +326,7 @@ OF
     ELSE
       IF _fbClearGroup.bBusy
       THEN
-        _eState                     := E_PROGRESS.STARTUP;
+        _eState                     := E_PROGRESS.PROGRESS_STARTUP;
         _stMsg.eType                := E_MessageType.eMessageInfo;
         _stMsg.eDevice              := ChannelDevice;
         _stMsg.eSubdevice           := e_Subdevice.fbClearGroup;
@@ -342,7 +342,7 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.STARTUP:
+  E_PROGRESS.PROGRESS_STARTUP:
     _fbClearGroup( 
                   bExecute          := TRUE, 
                   nGroupId          := ItpGetGroupId(sNciToPlc:= _NciChannelRef^.NcToPlc),
@@ -350,7 +350,7 @@ OF
 
     IF _fbClearGroup.bErr 
     THEN
-      _eState                       := E_PROGRESS.ERROR;
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
       _stMsg.eDevice                := ChannelDevice;
@@ -362,7 +362,7 @@ OF
     ELSE
       IF NOT _fbClearGroup.bBusy
       THEN
-        _eState                     := E_PROGRESS.PREPARE;
+        _eState                     := E_PROGRESS.PROGRESS_PREPARE;
 
         _stMsg.eType                := E_MessageType.eMessageInfo;
         _stMsg.eDevice              := ChannelDevice;
@@ -379,28 +379,28 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.PREPARE:
-    _eState                         := E_PROGRESS.READY;
+  E_PROGRESS.PROGRESS_PREPARE:
+    _eState                         := E_PROGRESS.PROGRESS_CHECK;
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.READY:
-    _eState                         := E_PROGRESS.WAITING;
+  E_PROGRESS.PROGRESS_CHECK:
+    _eState                         := E_PROGRESS.PROGRESS_OCCUPIED;
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.WAITING:
-    _eState                         := E_PROGRESS.WORKING;
+  E_PROGRESS.PROGRESS_OCCUPIED:
+    _eState                         := E_PROGRESS.PROGRESS_WORKING;
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.WORKING:
-    _eState                         := E_PROGRESS.DONE;
+  E_PROGRESS.PROGRESS_WORKING:
+    _eState                         := E_PROGRESS.PROGRESS_DONE;
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.ERROR,
-  E_PROGRESS.DONE:
+  E_PROGRESS.PROGRESS_ERROR,
+  E_PROGRESS.PROGRESS_DONE:
     _fbClearGroup( 
                   bExecute          := FALSE, 
                   nGroupId          := ItpGetGroupId(sNciToPlc:= _NciChannelRef^.NcToPlc));
@@ -424,12 +424,12 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN ConfirmHSK := E_PROGRESS.ERROR; RETURN; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT Check() THEN ConfirmHSK := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     _NciChannelRef^.PlcToNc.MFuncGranted   := 0;
 
     IF Execute 
@@ -437,18 +437,18 @@ OF
       memset(ADR(_stMsg),0,SIZEOF(_stMsg));
       _udiErr                                 := 0;
       _rValue                                 := 0;
-      _eState                                 := E_PROGRESS.BUSY;
+      _eState                                 := E_PROGRESS.PROGRESS_BUSY;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.BUSY:
+  E_PROGRESS.PROGRESS_BUSY:
     IF (_NciChannelRef^.PlcToNc.ChnAxesOvr > 0) AND NOT
        (_NciChannelRef^.NcToPlc.ChnState.8)
     THEN
       IF (_NciChannelRef^.NcToPlc.HskMFuncReq = 1)
       THEN
-        _eState                               := E_PROGRESS.STARTUP;
+        _eState                               := E_PROGRESS.PROGRESS_STARTUP;
 
         _stMsg.eType                          := E_MessageType.eMessageInfo;
         _stMsg.eDevice                        := ChannelDevice;
@@ -465,12 +465,12 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.STARTUP:
+  E_PROGRESS.PROGRESS_STARTUP:
     _NciChannelRef^.PlcToNc.MFuncGranted   := 1;
 
     IF (_NciChannelRef^.NcToPlc.HskMFuncReq = 0)
     THEN
-      _eState                                 := E_PROGRESS.PREPARE;
+      _eState                                 := E_PROGRESS.PROGRESS_PREPARE;
       _NciChannelRef^.PlcToNc.MFuncGranted := 0;
 
       _stMsg.eType                            := E_MessageType.eMessageInfo;
@@ -487,23 +487,23 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.PREPARE:
-    _eState                         := E_PROGRESS.READY;
+  E_PROGRESS.PROGRESS_PREPARE:
+    _eState                         := E_PROGRESS.PROGRESS_CHECK;
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.READY:
-    _eState                         := E_PROGRESS.WAITING;
+  E_PROGRESS.PROGRESS_CHECK:
+    _eState                         := E_PROGRESS.PROGRESS_OCCUPIED;
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.WAITING:
-    _eState                         := E_PROGRESS.WORKING;
+  E_PROGRESS.PROGRESS_OCCUPIED:
+    _eState                         := E_PROGRESS.PROGRESS_WORKING;
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.WORKING:
-    _eState                         := E_PROGRESS.DONE;
+  E_PROGRESS.PROGRESS_WORKING:
+    _eState                         := E_PROGRESS.PROGRESS_DONE;
 END_CASE
 
 
@@ -524,12 +524,12 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN DeleteDistanceToGo := E_PROGRESS.ERROR; RETURN; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT Check() THEN DeleteDistanceToGo := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     _fbItpDelDtg(
                 sNciToPlc   := _NciChannelRef^.NcToPlc, 
                 bExecute    := FALSE);
@@ -539,12 +539,12 @@ OF
       memset(ADR(_stMsg),0,SIZEOF(_stMsg));
       _udiErr                                 := 0;
       _rValue                                 := 0;
-      _eState                                 := E_PROGRESS.BUSY;
+      _eState                                 := E_PROGRESS.PROGRESS_BUSY;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.BUSY:
+  E_PROGRESS.PROGRESS_BUSY:
     _fbItpDelDtg(
                 sNciToPlc   := _NciChannelRef^.NcToPlc, 
                 bExecute    := TRUE,
@@ -552,7 +552,7 @@ OF
 
     IF _fbItpDelDtg.bErr 
     THEN
-      _eState                       := E_PROGRESS.ERROR;
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
       _stMsg.eDevice                := ChannelDevice;
@@ -564,7 +564,7 @@ OF
     ELSE
       IF _fbItpDelDtg.bBusy
       THEN
-        _eState                     := E_PROGRESS.STARTUP;
+        _eState                     := E_PROGRESS.PROGRESS_STARTUP;
 
         _stMsg.eType                := E_MessageType.eMessageInfo;
         _stMsg.eDevice              := ChannelDevice;
@@ -581,7 +581,7 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.STARTUP:
+  E_PROGRESS.PROGRESS_STARTUP:
     _fbItpDelDtg(
                 sNciToPlc   := _NciChannelRef^.NcToPlc, 
                 bExecute    := TRUE,
@@ -589,7 +589,7 @@ OF
 
     IF _fbItpDelDtg.bErr 
     THEN
-      _eState                       := E_PROGRESS.ERROR;
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
       _stMsg.eDevice                := ChannelDevice;
@@ -601,7 +601,7 @@ OF
     ELSE
       IF NOT _fbItpDelDtg.bBusy
       THEN
-        _eState                     := E_PROGRESS.PREPARE;
+        _eState                     := E_PROGRESS.PROGRESS_PREPARE;
 
         _stMsg.eType                := E_MessageType.eMessageInfo;
         _stMsg.eDevice              := ChannelDevice;
@@ -614,28 +614,28 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.PREPARE:
-    _eState                         := E_PROGRESS.READY;
+  E_PROGRESS.PROGRESS_PREPARE:
+    _eState                         := E_PROGRESS.PROGRESS_CHECK;
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.READY:
-    _eState                         := E_PROGRESS.WAITING;
+  E_PROGRESS.PROGRESS_CHECK:
+    _eState                         := E_PROGRESS.PROGRESS_OCCUPIED;
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.WAITING:
-    _eState                         := E_PROGRESS.WORKING;
+  E_PROGRESS.PROGRESS_OCCUPIED:
+    _eState                         := E_PROGRESS.PROGRESS_WORKING;
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.WORKING:
-    _eState                         := E_PROGRESS.DONE;
+  E_PROGRESS.PROGRESS_WORKING:
+    _eState                         := E_PROGRESS.PROGRESS_DONE;
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.ERROR,
-  E_PROGRESS.DONE:
+  E_PROGRESS.PROGRESS_ERROR,
+  E_PROGRESS.PROGRESS_DONE:
     _fbItpDelDtg(
                 sNciToPlc   := _NciChannelRef^.NcToPlc, 
                 bExecute    := FALSE);
@@ -699,12 +699,12 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN EStop := E_PROGRESS.ERROR; RETURN; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT Check() THEN EStop := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     _fbEStop(
             sNciToPlc               := _NciChannelRef^.NcToPlc, 
             bExecute                := FALSE);
@@ -714,12 +714,12 @@ OF
       memset(ADR(_stMsg),0,SIZEOF(_stMsg));
       _udiErr                       := 0;
       _rValue                       := 0;
-      _eState                       := E_PROGRESS.BUSY;
+      _eState                       := E_PROGRESS.PROGRESS_BUSY;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.BUSY:
+  E_PROGRESS.PROGRESS_BUSY:
     _fbEStop(
             sNciToPlc               := _NciChannelRef^.NcToPlc, 
             bExecute                := TRUE,
@@ -727,7 +727,7 @@ OF
 
     IF _fbEStop.bErr 
     THEN
-      _eState                       := E_PROGRESS.ERROR;
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
       _stMsg.eDevice                := ChannelDevice;
@@ -739,7 +739,7 @@ OF
     ELSE
       IF _fbEStop.bBusy
       THEN
-        _eState                     := E_PROGRESS.STARTUP;
+        _eState                     := E_PROGRESS.PROGRESS_STARTUP;
 
         _stMsg.eType                := E_MessageType.eMessageInfo;
         _stMsg.eDevice              := ChannelDevice;
@@ -756,7 +756,7 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.STARTUP:
+  E_PROGRESS.PROGRESS_STARTUP:
     _fbEStop(
             sNciToPlc               := _NciChannelRef^.NcToPlc, 
             bExecute                := TRUE,
@@ -764,7 +764,7 @@ OF
 
     IF _fbEStop.bErr 
     THEN
-      _eState                       := E_PROGRESS.ERROR;
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
       _stMsg.eDevice                := ChannelDevice;
@@ -776,7 +776,7 @@ OF
     ELSE
       IF NOT _fbEStop.bBusy
       THEN
-        _eState                     := E_PROGRESS.PREPARE;
+        _eState                     := E_PROGRESS.PROGRESS_PREPARE;
 
         _stMsg.eType                := E_MessageType.eMessageInfo;
         _stMsg.eDevice              := ChannelDevice;
@@ -789,28 +789,28 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.PREPARE:
-    _eState                         := E_PROGRESS.READY;
+  E_PROGRESS.PROGRESS_PREPARE:
+    _eState                         := E_PROGRESS.PROGRESS_CHECK;
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.READY:
-    _eState                         := E_PROGRESS.WAITING;
+  E_PROGRESS.PROGRESS_CHECK:
+    _eState                         := E_PROGRESS.PROGRESS_OCCUPIED;
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.WAITING:
-    _eState                         := E_PROGRESS.WORKING;
+  E_PROGRESS.PROGRESS_OCCUPIED:
+    _eState                         := E_PROGRESS.PROGRESS_WORKING;
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.WORKING:
-    _eState                         := E_PROGRESS.DONE;
+  E_PROGRESS.PROGRESS_WORKING:
+    _eState                         := E_PROGRESS.PROGRESS_DONE;
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.ERROR,
-  E_PROGRESS.DONE:
+  E_PROGRESS.PROGRESS_ERROR,
+  E_PROGRESS.PROGRESS_DONE:
     _fbEStop(
             sNciToPlc               := _NciChannelRef^.NcToPlc, 
             bExecute                := FALSE);
@@ -910,12 +910,12 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN ItpReset := E_PROGRESS.ERROR; RETURN; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT Check() THEN ItpReset := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     _fbReset(
             bExecute                := FALSE, 
             tTimeOut                := T#1S, 
@@ -926,12 +926,12 @@ OF
       memset(ADR(_stMsg),0,SIZEOF(_stMsg));
       _udiErr                       := 0;
       _rValue                       := 0;
-      _eState                       := E_PROGRESS.BUSY;
+      _eState                       := E_PROGRESS.PROGRESS_BUSY;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.BUSY:
+  E_PROGRESS.PROGRESS_BUSY:
     _fbReset(
             bExecute                := TRUE, 
             tTimeOut                := T#1S, 
@@ -940,7 +940,7 @@ OF
 
     IF _fbReset.bErr 
     THEN
-      _eState                       := E_PROGRESS.ERROR;
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
       _stMsg.eDevice                := ChannelDevice;
@@ -952,7 +952,7 @@ OF
     ELSE
 //      IF _fbReset.bBusy
 //      THEN
-        _eState                     := E_PROGRESS.STARTUP;
+        _eState                     := E_PROGRESS.PROGRESS_STARTUP;
 
         _stMsg.eType                := E_MessageType.eMessageInfo;
         _stMsg.eDevice              := ChannelDevice;
@@ -969,7 +969,7 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.STARTUP:
+  E_PROGRESS.PROGRESS_STARTUP:
     _fbReset(
             bExecute                := TRUE, 
             tTimeOut                := T#1S, 
@@ -978,7 +978,7 @@ OF
 
     IF _fbReset.bErr 
     THEN
-      _eState                       := E_PROGRESS.ERROR;
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
       _stMsg.eDevice                := ChannelDevice;
@@ -990,7 +990,7 @@ OF
     ELSE
       IF NOT _fbReset.bBusy
       THEN
-        _eState                     := E_PROGRESS.PREPARE;
+        _eState                     := E_PROGRESS.PROGRESS_PREPARE;
 
         _stMsg.eType                := E_MessageType.eMessageInfo;
         _stMsg.eDevice              := ChannelDevice;
@@ -1003,28 +1003,28 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.PREPARE:
-    _eState                         := E_PROGRESS.READY;
+  E_PROGRESS.PROGRESS_PREPARE:
+    _eState                         := E_PROGRESS.PROGRESS_CHECK;
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.READY:
-    _eState                         := E_PROGRESS.WAITING;
+  E_PROGRESS.PROGRESS_CHECK:
+    _eState                         := E_PROGRESS.PROGRESS_OCCUPIED;
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.WAITING:
-    _eState                         := E_PROGRESS.WORKING;
+  E_PROGRESS.PROGRESS_OCCUPIED:
+    _eState                         := E_PROGRESS.PROGRESS_WORKING;
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.WORKING:
-    _eState                         := E_PROGRESS.DONE;
+  E_PROGRESS.PROGRESS_WORKING:
+    _eState                         := E_PROGRESS.PROGRESS_DONE;
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.ERROR,
-  E_PROGRESS.DONE:
+  E_PROGRESS.PROGRESS_ERROR,
+  E_PROGRESS.PROGRESS_DONE:
     _fbReset(
             bExecute                := FALSE, 
             tTimeOut                := T#1S, 
@@ -1050,12 +1050,12 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN LoadProg := E_PROGRESS.ERROR; RETURN; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT Check() THEN LoadProg := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     _fbLoadProg(
                sNciToPlc            := _NciChannelRef^.NcToPlc, 
                bExecute             := FALSE, 
@@ -1067,12 +1067,12 @@ OF
       memset(ADR(_stMsg),0,SIZEOF(_stMsg));
       _udiErr                       := 0;
       _rValue                       := 0;
-      _eState                       := E_PROGRESS.BUSY;
+      _eState                       := E_PROGRESS.PROGRESS_BUSY;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.BUSY:
+  E_PROGRESS.PROGRESS_BUSY:
     _fbLoadProg(
                sNciToPlc            := _NciChannelRef^.NcToPlc, 
                bExecute             := TRUE, 
@@ -1082,7 +1082,7 @@ OF
 
     IF _fbLoadProg.bErr 
     THEN
-      _eState                       := E_PROGRESS.ERROR;
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
       _stMsg.eDevice                := ChannelDevice;
@@ -1094,7 +1094,7 @@ OF
     ELSE
       IF _fbLoadProg.bBusy
       THEN
-        _eState                     := E_PROGRESS.STARTUP;
+        _eState                     := E_PROGRESS.PROGRESS_STARTUP;
 
         _stMsg.eType                := E_MessageType.eMessageInfo;
         _stMsg.eDevice              := ChannelDevice;
@@ -1111,7 +1111,7 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.STARTUP:
+  E_PROGRESS.PROGRESS_STARTUP:
     _fbLoadProg(
                sNciToPlc            := _NciChannelRef^.NcToPlc, 
                bExecute             := TRUE, 
@@ -1121,7 +1121,7 @@ OF
 
     IF _fbLoadProg.bErr 
     THEN
-      _eState                       := E_PROGRESS.ERROR;
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
       _stMsg.eDevice                := ChannelDevice;
@@ -1133,7 +1133,7 @@ OF
     ELSE
       IF NOT _fbLoadProg.bBusy
       THEN
-        _eState                     := E_PROGRESS.PREPARE;
+        _eState                     := E_PROGRESS.PROGRESS_PREPARE;
 
         _stMsg.eType                := E_MessageType.eMessageInfo;
         _stMsg.eDevice              := ChannelDevice;
@@ -1150,14 +1150,14 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.PREPARE:
+  E_PROGRESS.PROGRESS_PREPARE:
     IF (_NciChannelRef^.NcToPlc.ItpState = Tc2_NCI.NCI_INTERPRETER_READY)
     THEN
-      _eState                       := E_PROGRESS.READY;
+      _eState                       := E_PROGRESS.PROGRESS_CHECK;
 
     ELSIF (_NciChannelRef^.NcToPlc.ItpState = Tc2_NCI.NCI_INTERPRETER_ABORTED)
     THEN
-      _eState                       := E_PROGRESS.ERROR;
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
       _stMsg.eDevice                := ChannelDevice;
@@ -1170,23 +1170,23 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.READY:
-    _eState                         := E_PROGRESS.WAITING;
+  E_PROGRESS.PROGRESS_CHECK:
+    _eState                         := E_PROGRESS.PROGRESS_OCCUPIED;
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.WAITING:
-    _eState                         := E_PROGRESS.WORKING;
+  E_PROGRESS.PROGRESS_OCCUPIED:
+    _eState                         := E_PROGRESS.PROGRESS_WORKING;
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.WORKING:
-    _eState                         := E_PROGRESS.DONE;
+  E_PROGRESS.PROGRESS_WORKING:
+    _eState                         := E_PROGRESS.PROGRESS_DONE;
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.ERROR,
-  E_PROGRESS.DONE:
+  E_PROGRESS.PROGRESS_ERROR,
+  E_PROGRESS.PROGRESS_DONE:
     _fbLoadProg(
                sNciToPlc            := _NciChannelRef^.NcToPlc, 
                bExecute             := FALSE, 
@@ -1349,12 +1349,12 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN ReadLine := E_PROGRESS.ERROR; RETURN; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT Check() THEN ReadLine := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     _fbReadLine(
                PORT                 := 500, 
                IDXGRP               := 16#2300 + _NciChannelRef^.NcToPlc.ChnId, // + ChannelID
@@ -1369,12 +1369,12 @@ OF
       memset(ADR(_stMsg),     0,SIZEOF(_stMsg));
       _udiErr                       := 0;
       _rValue                       := 0;
-      _eState                       := E_PROGRESS.BUSY;
+      _eState                       := E_PROGRESS.PROGRESS_BUSY;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.BUSY:
+  E_PROGRESS.PROGRESS_BUSY:
     _fbReadLine(
                PORT                 := 500, 
                IDXGRP               := 16#2300 + _NciChannelRef^.NcToPlc.ChnId, // + ChannelID
@@ -1385,7 +1385,7 @@ OF
 
     IF _fbReadLine.ERR 
     THEN
-      _eState                       := E_PROGRESS.ERROR;
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
       _stMsg.eDevice                := ChannelDevice;
@@ -1397,7 +1397,7 @@ OF
     ELSE
       IF _fbReadLine.BUSY
       THEN
-        _eState                     := E_PROGRESS.STARTUP;
+        _eState                     := E_PROGRESS.PROGRESS_STARTUP;
 
         _stMsg.eType                := E_MessageType.eMessageInfo;
         _stMsg.eDevice              := ChannelDevice;
@@ -1414,7 +1414,7 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.STARTUP:
+  E_PROGRESS.PROGRESS_STARTUP:
     _fbReadLine(
                PORT                 := 500, 
                IDXGRP               := 16#2300 + _NciChannelRef^.NcToPlc.ChnId, // + ChannelID
@@ -1425,7 +1425,7 @@ OF
 
     IF _fbReadLine.ERR 
     THEN
-      _eState                       := E_PROGRESS.ERROR;
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
       _stMsg.eDevice                := ChannelDevice;
@@ -1439,7 +1439,7 @@ OF
       THEN
         ActProgLine                 := _ReadString;
 
-        _eState                     := E_PROGRESS.PREPARE;
+        _eState                     := E_PROGRESS.PROGRESS_PREPARE;
 
         _stMsg.eType                := E_MessageType.eMessageInfo;
         _stMsg.eDevice              := ChannelDevice;
@@ -1456,28 +1456,28 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.PREPARE:
-    _eState                         := E_PROGRESS.READY;
+  E_PROGRESS.PROGRESS_PREPARE:
+    _eState                         := E_PROGRESS.PROGRESS_CHECK;
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.READY:
-    _eState                         := E_PROGRESS.WAITING;
+  E_PROGRESS.PROGRESS_CHECK:
+    _eState                         := E_PROGRESS.PROGRESS_OCCUPIED;
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.WAITING:
-    _eState                         := E_PROGRESS.WORKING;
+  E_PROGRESS.PROGRESS_OCCUPIED:
+    _eState                         := E_PROGRESS.PROGRESS_WORKING;
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.WORKING:
-    _eState                         := E_PROGRESS.DONE;
+  E_PROGRESS.PROGRESS_WORKING:
+    _eState                         := E_PROGRESS.PROGRESS_DONE;
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.ERROR,
-  E_PROGRESS.DONE:
+  E_PROGRESS.PROGRESS_ERROR,
+  E_PROGRESS.PROGRESS_DONE:
     _fbReadLine(
                PORT                 := 500, 
                IDXGRP               := 16#2300 + _NciChannelRef^.NcToPlc.ChnId, // + ChannelID
@@ -1509,19 +1509,19 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN ReadRParams := E_PROGRESS.ERROR; RETURN; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT Check() THEN ReadRParams := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     IF Execute 
     THEN
       memset(ADR(_stMsg),  0,SIZEOF(_stMsg));
       memset(ADR(_rValue), 0,SIZEOF(_rValue));
 
       _udiErr := _nIndex := _nCount := 0;
-      _eState                       := E_PROGRESS.BUSY;
+      _eState                       := E_PROGRESS.PROGRESS_BUSY;
 
       _fbItpReadRParams(
                   sNciToPlc         := _NciChannelRef^.NcToPlc, 
@@ -1533,7 +1533,7 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.BUSY:
+  E_PROGRESS.PROGRESS_BUSY:
     _fbItpReadRParams(
                   sNciToPlc         := _NciChannelRef^.NcToPlc, 
                   bExecute          := TRUE, 
@@ -1544,7 +1544,7 @@ OF
 
     IF _fbItpReadRParams.bErr 
     THEN
-      _eState                       := E_PROGRESS.ERROR;
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
       _stMsg.eDevice                := ChannelDevice;
@@ -1556,7 +1556,7 @@ OF
     ELSE
       IF _fbItpReadRParams.bBusy
       THEN
-        _eState                     := E_PROGRESS.PREPARE;
+        _eState                     := E_PROGRESS.PROGRESS_PREPARE;
 
         _stMsg.eType                := E_MessageType.eMessageInfo;
         _stMsg.eDevice              := ChannelDevice;
@@ -1572,7 +1572,7 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.STARTUP:
+  E_PROGRESS.PROGRESS_STARTUP:
     _fbItpReadRParams(
                   sNciToPlc         := _NciChannelRef^.NcToPlc, 
                   bExecute          := TRUE, 
@@ -1583,7 +1583,7 @@ OF
 
     IF _fbItpReadRParams.bErr 
     THEN
-      _eState                       := E_PROGRESS.ERROR;
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
       _stMsg.eDevice                := ChannelDevice;
@@ -1595,7 +1595,7 @@ OF
     ELSE
       IF NOT _fbItpReadRParams.bBusy
       THEN
-        _eState                     := E_PROGRESS.PREPARE;
+        _eState                     := E_PROGRESS.PROGRESS_PREPARE;
 
         _stMsg.eType                := E_MessageType.eMessageInfo;
         _stMsg.eDevice              := ChannelDevice;
@@ -1611,17 +1611,17 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.PREPARE:
+  E_PROGRESS.PROGRESS_PREPARE:
     _nIndex                         := _pParameterRead^._nStart;
     _nCount                         := _pParameterRead^._nCount;
     _pParameterRead^._rValue        := _rValue;
 
-    _eState                         := E_PROGRESS.DONE;
+    _eState                         := E_PROGRESS.PROGRESS_DONE;
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.ERROR,
-  E_PROGRESS.DONE:
+  E_PROGRESS.PROGRESS_ERROR,
+  E_PROGRESS.PROGRESS_DONE:
     _fbItpReadRParams(
                   sNciToPlc         := _NciChannelRef^.NcToPlc, 
                   bExecute          := FALSE, 
@@ -1650,12 +1650,12 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN StartStop := E_PROGRESS.ERROR; RETURN; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT Check() THEN StartStop := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     _fbStartStop(
                 bStart              := FALSE, 
                 bStop               := FALSE, 
@@ -1666,12 +1666,12 @@ OF
       memset(ADR(_stMsg),0,SIZEOF(_stMsg));
       _udiErr                       := 0;
       _rValue                       := 0;
-      _eState                       := E_PROGRESS.BUSY;
+      _eState                       := E_PROGRESS.PROGRESS_BUSY;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.BUSY:
+  E_PROGRESS.PROGRESS_BUSY:
     _fbStartStop(
                 bStart              := Start, 
                 bStop               := Stop, 
@@ -1680,7 +1680,7 @@ OF
 
     IF _fbStartStop.bErr 
     THEN
-      _eState                       := E_PROGRESS.ERROR;
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
       _stMsg.eDevice                := ChannelDevice;
@@ -1692,7 +1692,7 @@ OF
     ELSE
       IF _fbStartStop.bBusy
       THEN
-        _eState                     := E_PROGRESS.STARTUP;
+        _eState                     := E_PROGRESS.PROGRESS_STARTUP;
 
         _stMsg.eType                := E_MessageType.eMessageInfo;
         _stMsg.eDevice              := ChannelDevice;
@@ -1708,7 +1708,7 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.STARTUP:
+  E_PROGRESS.PROGRESS_STARTUP:
     _fbStartStop(
                 bStart              := Start, 
                 bStop               := Stop, 
@@ -1717,7 +1717,7 @@ OF
 
     IF _fbStartStop.bErr 
     THEN
-      _eState                       := E_PROGRESS.ERROR;
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
       _stMsg.eDevice                := ChannelDevice;
@@ -1729,7 +1729,7 @@ OF
     ELSE
       IF NOT _fbStartStop.bBusy
       THEN
-        _eState                     := E_PROGRESS.PREPARE;
+        _eState                     := E_PROGRESS.PROGRESS_PREPARE;
 
         _stMsg.eType                := E_MessageType.eMessageInfo;
         _stMsg.eDevice              := ChannelDevice;
@@ -1745,28 +1745,28 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.PREPARE:
-    _eState                         := E_PROGRESS.READY;
+  E_PROGRESS.PROGRESS_PREPARE:
+    _eState                         := E_PROGRESS.PROGRESS_CHECK;
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.READY:
-    _eState                         := E_PROGRESS.WAITING;
+  E_PROGRESS.PROGRESS_CHECK:
+    _eState                         := E_PROGRESS.PROGRESS_OCCUPIED;
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.WAITING:
-    _eState                         := E_PROGRESS.WORKING;
+  E_PROGRESS.PROGRESS_OCCUPIED:
+    _eState                         := E_PROGRESS.PROGRESS_WORKING;
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.WORKING:
-    _eState                         := E_PROGRESS.DONE;
+  E_PROGRESS.PROGRESS_WORKING:
+    _eState                         := E_PROGRESS.PROGRESS_DONE;
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.ERROR,
-  E_PROGRESS.DONE:
+  E_PROGRESS.PROGRESS_ERROR,
+  E_PROGRESS.PROGRESS_DONE:
     _fbStartStop(
                 bStart              := FALSE, 
                 bStop               := FALSE, 
@@ -1791,12 +1791,12 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN StepOnAfterEStop := E_PROGRESS.ERROR; RETURN; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT Check() THEN StepOnAfterEStop := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     _fbStepOnAfterEStop(
                     bExecute        := FALSE, 
                     sNciToPlc       := _NciChannelRef^.NcToPlc);
@@ -1806,12 +1806,12 @@ OF
       memset(ADR(_stMsg),0,SIZEOF(_stMsg));
       _udiErr                       := 0;
       _rValue                       := 0;
-      _eState                       := E_PROGRESS.BUSY;
+      _eState                       := E_PROGRESS.PROGRESS_BUSY;
     END_IF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.BUSY:
+  E_PROGRESS.PROGRESS_BUSY:
     _fbStepOnAfterEStop(
                     bExecute        := TRUE, 
                     sNciToPlc       := _NciChannelRef^.NcToPlc,
@@ -1819,7 +1819,7 @@ OF
 
     IF _fbStepOnAfterEStop.bErr 
     THEN
-      _eState                       := E_PROGRESS.ERROR;
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
       _stMsg.eDevice                := ChannelDevice;
@@ -1831,7 +1831,7 @@ OF
     ELSE
       IF _fbStepOnAfterEStop.bBusy
       THEN
-        _eState                     := E_PROGRESS.STARTUP;
+        _eState                     := E_PROGRESS.PROGRESS_STARTUP;
 
         _stMsg.eType                := E_MessageType.eMessageInfo;
         _stMsg.eDevice              := ChannelDevice;
@@ -1847,7 +1847,7 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.STARTUP:
+  E_PROGRESS.PROGRESS_STARTUP:
     _fbStepOnAfterEStop(
                     bExecute        := TRUE, 
                     sNciToPlc       := _NciChannelRef^.NcToPlc,
@@ -1855,7 +1855,7 @@ OF
 
     IF _fbStepOnAfterEStop.bErr 
     THEN
-      _eState                       := E_PROGRESS.ERROR;
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
       _stMsg.eDevice                := ChannelDevice;
@@ -1867,7 +1867,7 @@ OF
     ELSE
       IF NOT _fbStepOnAfterEStop.bBusy
       THEN
-        _eState                     := E_PROGRESS.STARTUP;
+        _eState                     := E_PROGRESS.PROGRESS_STARTUP;
 
         _stMsg.eType                := E_MessageType.eMessageInfo;
         _stMsg.eDevice              := ChannelDevice;
@@ -1883,28 +1883,28 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.PREPARE:
-    _eState                         := E_PROGRESS.READY;
+  E_PROGRESS.PROGRESS_PREPARE:
+    _eState                         := E_PROGRESS.PROGRESS_CHECK;
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.READY:
-    _eState                         := E_PROGRESS.WAITING;
+  E_PROGRESS.PROGRESS_CHECK:
+    _eState                         := E_PROGRESS.PROGRESS_OCCUPIED;
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.WAITING:
-    _eState                         := E_PROGRESS.WORKING;
+  E_PROGRESS.PROGRESS_OCCUPIED:
+    _eState                         := E_PROGRESS.PROGRESS_WORKING;
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.WORKING:
-    _eState                         := E_PROGRESS.DONE;
+  E_PROGRESS.PROGRESS_WORKING:
+    _eState                         := E_PROGRESS.PROGRESS_DONE;
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.ERROR,
-  E_PROGRESS.DONE:
+  E_PROGRESS.PROGRESS_ERROR,
+  E_PROGRESS.PROGRESS_DONE:
     _fbStepOnAfterEStop(
                     bExecute        := FALSE, 
                     sNciToPlc       := _NciChannelRef^.NcToPlc);
@@ -1932,12 +1932,12 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN WriteRParams := E_PROGRESS.ERROR; RETURN; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+        <ST><![CDATA[IF NOT Check() THEN WriteRParams := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
 
 CASE _eState
 OF
-  E_PROGRESS.INIT:
+  E_PROGRESS.PROGRESS_INIT:
     IF Execute 
     THEN
       memset(ADR(_stMsg),0,SIZEOF(_stMsg));
@@ -1945,7 +1945,7 @@ OF
       _udiErr := _nIndex := _nCount := 0;
 
       _rValue                       := _pParameterWrite^._rValue;
-      _eState                       := E_PROGRESS.BUSY;
+      _eState                       := E_PROGRESS.PROGRESS_BUSY;
 
       _fbItpWriteRParams(
                     bExecute        := FALSE, 
@@ -1958,7 +1958,7 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.BUSY:
+  E_PROGRESS.PROGRESS_BUSY:
     _fbItpWriteRParams(
                     bExecute        := TRUE, 
                     pAddr           := ADR(_rValue), 
@@ -1969,7 +1969,7 @@ OF
 
     IF _fbItpWriteRParams.bErr 
     THEN
-      _eState                       := E_PROGRESS.ERROR;
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
       _stMsg.eDevice                := ChannelDevice;
@@ -1981,7 +1981,7 @@ OF
     ELSE
       IF _fbItpWriteRParams.bBusy
       THEN
-        _eState                     := E_PROGRESS.STARTUP;
+        _eState                     := E_PROGRESS.PROGRESS_STARTUP;
 
         _stMsg.eType                := E_MessageType.eMessageInfo;
         _stMsg.eDevice              := ChannelDevice;
@@ -1997,7 +1997,7 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.STARTUP:
+  E_PROGRESS.PROGRESS_STARTUP:
     _fbItpWriteRParams(
                     bExecute        := TRUE, 
                     pAddr           := ADR(_rValue), 
@@ -2008,7 +2008,7 @@ OF
 
     IF _fbItpWriteRParams.bErr 
     THEN
-      _eState                       := E_PROGRESS.ERROR;
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
       _stMsg.eDevice                := ChannelDevice;
@@ -2020,7 +2020,7 @@ OF
     ELSE
       IF NOT _fbItpWriteRParams.bBusy
       THEN
-        _eState                     := E_PROGRESS.STARTUP;
+        _eState                     := E_PROGRESS.PROGRESS_STARTUP;
 
         _stMsg.eType                := E_MessageType.eMessageInfo;
         _stMsg.eDevice              := ChannelDevice;
@@ -2036,16 +2036,16 @@ OF
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.PREPARE:
+  E_PROGRESS.PROGRESS_PREPARE:
     _nIndex                         := _pParameterWrite^._nStart;
     _nCount                         := _pParameterWrite^._nCount;
     _rValue                         := _pParameterWrite^._rValue;
-    _eState                         := E_PROGRESS.DONE;
+    _eState                         := E_PROGRESS.PROGRESS_DONE;
 END_CASE
 CASE _eState
 OF
-  E_PROGRESS.ERROR,
-  E_PROGRESS.DONE:
+  E_PROGRESS.PROGRESS_ERROR,
+  E_PROGRESS.PROGRESS_DONE:
     _fbItpWriteRParams(
                     bExecute        := FALSE, 
                     pAddr           := ADR(_pParameterWrite^._rValue), 
@@ -2080,13 +2080,7 @@ WriteRParams                        := _eState;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.BuilDGroup">
-      <LineId Id="3" Count="55" />
-      <LineId Id="118" Count="3" />
-      <LineId Id="127" Count="0" />
-      <LineId Id="60" Count="31" />
-      <LineId Id="132" Count="0" />
-      <LineId Id="128" Count="3" />
-      <LineId Id="93" Count="13" />
+      <LineId Id="3" Count="111" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.CfgAxes.Set">
@@ -2102,27 +2096,15 @@ WriteRParams                        := _eState;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.ClearGroup">
-      <LineId Id="3" Count="46" />
-      <LineId Id="132" Count="0" />
-      <LineId Id="128" Count="3" />
-      <LineId Id="51" Count="32" />
-      <LineId Id="133" Count="3" />
-      <LineId Id="84" Count="33" />
+      <LineId Id="3" Count="122" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.ConfirmHSK">
-      <LineId Id="3" Count="31" />
-      <LineId Id="91" Count="3" />
-      <LineId Id="36" Count="18" />
-      <LineId Id="95" Count="3" />
-      <LineId Id="56" Count="24" />
+      <LineId Id="3" Count="83" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.DeleteDistanceToGo">
-      <LineId Id="3" Count="46" />
-      <LineId Id="132" Count="0" />
-      <LineId Id="128" Count="3" />
-      <LineId Id="51" Count="66" />
+      <LineId Id="3" Count="118" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.Error.Get">
@@ -2134,10 +2116,7 @@ WriteRParams                        := _eState;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.EStop">
-      <LineId Id="3" Count="46" />
-      <LineId Id="131" Count="0" />
-      <LineId Id="128" Count="2" />
-      <LineId Id="50" Count="67" />
+      <LineId Id="3" Count="118" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.GetChannelOverride">
@@ -2161,23 +2140,11 @@ WriteRParams                        := _eState;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.ItpReset">
-      <LineId Id="3" Count="49" />
-      <LineId Id="133" Count="2" />
-      <LineId Id="53" Count="0" />
-      <LineId Id="136" Count="0" />
-      <LineId Id="54" Count="68" />
+      <LineId Id="3" Count="123" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.LoadProg">
-      <LineId Id="3" Count="51" />
-      <LineId Id="150" Count="2" />
-      <LineId Id="55" Count="0" />
-      <LineId Id="153" Count="0" />
-      <LineId Id="56" Count="33" />
-      <LineId Id="154" Count="2" />
-      <LineId Id="90" Count="0" />
-      <LineId Id="157" Count="0" />
-      <LineId Id="91" Count="48" />
+      <LineId Id="3" Count="144" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.M_FuncReq.Get">
@@ -2185,8 +2152,8 @@ WriteRParams                        := _eState;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.MessageLevel.Set">
+      <LineId Id="3" Count="0" />
       <LineId Id="2" Count="0" />
-      <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.MFunc.Get">
       <LineId Id="3" Count="1" />
@@ -2221,45 +2188,23 @@ WriteRParams                        := _eState;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.ReadLine">
-      <LineId Id="3" Count="54" />
-      <LineId Id="155" Count="0" />
-      <LineId Id="152" Count="2" />
-      <LineId Id="58" Count="37" />
-      <LineId Id="159" Count="0" />
-      <LineId Id="156" Count="2" />
-      <LineId Id="96" Count="38" />
+      <LineId Id="3" Count="139" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.ReadRParams">
-      <LineId Id="3" Count="53" />
-      <LineId Id="134" Count="2" />
-      <LineId Id="57" Count="35" />
-      <LineId Id="137" Count="2" />
-      <LineId Id="93" Count="26" />
+      <LineId Id="3" Count="122" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.StartStop">
-      <LineId Id="3" Count="48" />
-      <LineId Id="134" Count="2" />
-      <LineId Id="52" Count="33" />
-      <LineId Id="137" Count="2" />
-      <LineId Id="86" Count="35" />
+      <LineId Id="3" Count="124" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.StepOnAfterEStop">
-      <LineId Id="3" Count="46" />
-      <LineId Id="128" Count="2" />
-      <LineId Id="50" Count="32" />
-      <LineId Id="131" Count="2" />
-      <LineId Id="83" Count="34" />
+      <LineId Id="3" Count="120" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.WriteRParams">
-      <LineId Id="3" Count="55" />
-      <LineId Id="134" Count="2" />
-      <LineId Id="59" Count="35" />
-      <LineId Id="137" Count="2" />
-      <LineId Id="95" Count="24" />
+      <LineId Id="3" Count="122" />
       <LineId Id="2" Count="0" />
     </LineIds>
   </POU>
