@@ -124,7 +124,7 @@ END_CASE
 CASE _eResult
 OF
   E_PROGRESS.PROGRESS_INVALID:
-    _State^[_nAxisIndex].eState     := TO_UINT(E_PROGRESS.PROGRESS_ERROR);
+    _State^[_nAxisIndex].eState     := E_PROGRESS.PROGRESS_ERROR;
 
   E_PROGRESS.PROGRESS_ERROR:
     _Info^[_nAxisIndex].bReady      := FALSE;
