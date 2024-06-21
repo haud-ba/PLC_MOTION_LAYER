@@ -1,7 +1,7 @@
 # Introduction 
 ## **PLC_OPEN_DRIVE** (deprecated)
 
-## **PLC_STATE_DRIVE** (active)
+## **PLC_MOTION** (active)
   
   - TwinCAT motion layer approach
 	- Manual compiler defines for optional binding of libraries ('library'RMB:Properties:Conditional Referencing)
