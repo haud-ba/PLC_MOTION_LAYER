@@ -6,6 +6,9 @@
 *.suo
 *.user
 *.sln.docstates
+*.graphml
+*.pptx
+
 
 TC_PlcOpenDrive/
 
