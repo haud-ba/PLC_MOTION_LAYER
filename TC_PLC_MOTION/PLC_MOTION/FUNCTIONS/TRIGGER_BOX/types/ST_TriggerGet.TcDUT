@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <DUT Name="ST_TriggerGet" Id="{037e5d49-4aa3-4f2f-9ed4-0863cf4815ea}">
+    <Declaration><![CDATA[TYPE ST_TriggerGet :
+STRUCT
+  State           : UINT; // 0 := deactivated, 100 := BUSY, 1000 := DONE, 9000 := ERROR
+  Init            : UINT;
+  // FlashTimestamp  : ARRAY[1..GVL_FUNCTIONS.MAX_TRIGGER_COUNT] OF ULINT; // DC timestamp
+  FlashPosition   : ARRAY[1..MAX_TRIGGER_COUNT] OF LREAL; // AxisPosition for DC timestamp
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

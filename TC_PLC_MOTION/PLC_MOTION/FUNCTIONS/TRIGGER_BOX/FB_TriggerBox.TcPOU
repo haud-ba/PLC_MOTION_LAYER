@@ -1,0 +1,1274 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="FB_TriggerBox" Id="{db4923bf-bc34-4aee-8591-dc86a23ff7f9}" SpecialFunc="None">
+    <Declaration><![CDATA[//-----------------------------------------------------------------------------------------------------------
+// TriggerBox
+//
+// HAUD
+// 17.07.2024
+// - init: ALL outputs will be switched of 
+// - controlled via ST_TriggerBox
+// - position and timestamp based setting of digital output
+// - feedback from digital input with timestamp
+// - AxisPosition at timestamp as result
+//-----------------------------------------------------------------------------------------------------------
+FUNCTION_BLOCK FB_TriggerBox EXTENDS FB_Xfc
+VAR
+  _Box              : REFERENCE TO ARRAY[1..MAX_TRIGGER_BOX]  OF ST_TriggerBox;
+
+  _Input            : POINTER TO ARRAY[1..MAX_TRIGGER_BOX] OF ST_DC_Input;
+  _Output_2252      : POINTER TO ARRAY[1..MAX_TRIGGER_BOX] OF ST_DC_Output;
+
+  _Index            : uDINT;
+  _AxisId           : UDINT;
+  _AxisIndex        : UDINT;
+
+  _stCtrl           : ST_TriggerSet;
+  _McDirection      : Tc2_MC2.MC_Direction;
+
+  _eState           : E_PROGRESS;
+  _eResult          : E_PROGRESS;
+  _eInit            : E_PROGRESS;
+
+  _rtrigEnable      : Tc2_Standard.R_TRIG;
+  _rtrigInit        : Tc2_Standard.R_TRIG;
+  _TrigCount        : UDINT := 1; // counter for active index in _stCtrl.TriggerPosition[]
+
+  _CurrentTime      : ULINT;      // current DC time 64 bit
+  _CurrentTimeShort : UDINT;      // current DC time 32 bit
+  _LatchTime        : UDINT;
+  _SwitchTime       : ULINT;      // DC time for output at _stCtrl.TriggerPosition[_TrigCount]
+  _SafeCycles       : BYTE := 3;  // cycles needed to get the SwitchTime onto the terminal/output
+
+  _bError           : BOOL;
+  _stMsg            : ST_Message;
+  _MessageLevel     : E_MessageType;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Folder Name="methods" Id="{66960e94-618b-4a51-8fe4-7cb0e0c8b66b}" />
+    <Folder Name="properties" Id="{e525154d-dd27-4c88-81c0-6d06259e3a2a}" />
+    <Property Name="Ctrl" Id="{5df0cab9-0783-4ce9-b03c-a84423388261}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY Ctrl : REFERENCE TO ARRAY [1..MAX_TRIGGER_BOX] OF ST_TriggerBox]]></Declaration>
+      <Set Name="Set" Id="{ad9fa7f7-8ca0-4982-bf1c-b06712bc7c22}">
+        <Declaration><![CDATA[
+VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_Box REF= Ctrl;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Method Name="Cycle" Id="{38560d16-85bb-4f22-b229-6bb6d186351c}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD Cycle : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//-----------------------------------------------------------------------------
+// trigger detection
+//-----------------------------------------------------------------------------
+_rtrigEnable(CLK                := _Box[_Index].ToPlc.Control.Enable);
+_rtrigInit(  CLK                := _Box[_Index].ToPlc.Control.Init);
+//-----------------------------------------------------------------------------
+// forced init
+//-----------------------------------------------------------------------------
+IF _rtrigInit.Q THEN _eInit := E_PROGRESS.PROGRESS_INVALID; END_IF
+//-----------------------------------------------------------------------------
+// clear state
+//-----------------------------------------------------------------------------
+IF NOT _Box[_Index].ToPlc.Control.Enable 
+THEN 
+  _eState                       := E_PROGRESS.PROGRESS_INVALID;
+
+  _Box[_Index].FromPlc.State    := TO_UINT(_eState);
+END_IF
+
+_eDeviceFunction                := e_Device.XfcTriggerBox + _Index;
+
+_CurrentTime                    := Tc2_EtherCAT.F_GetCurDcTaskTime64();
+_CurrentTimeShort               := TO_UDINT(_CurrentTime AND 16#FFFFFFFF);
+
+_Box[_Index].FromPlc.Init       := TO_UINT(_eInit);
+
+IF NOT (_eInit = E_PROGRESS.PROGRESS_DONE)
+THEN
+  _eInit                        := Init();
+  RETURN;
+END_IF
+//-----------------------------------------------------------------------------
+// TriggerBox execution
+//-----------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_INVALID:      // check input data
+    IF _rtrigEnable.Q
+    THEN
+      _Box[_Index].FromPlc.State  := TO_UINT(E_PROGRESS.PROGRESS_BUSY);
+
+      _bError                   := FALSE;
+      _TrigCount                := 1;     // initialize trigger counter for output on TriggerPositions
+      _eState                   := E_PROGRESS.PROGRESS_INIT;
+
+      _stCtrl                   := _Box[_Index].ToPlc;
+      _AxisId                   := _stCtrl.AxisId;
+      _AxisIndex                := GetIndex(_AxisId);
+
+      _eResult                  := TimeToPosition(FALSE, _AxisId, 0.0, _MessageLevel);
+
+      IF NOT (_AxisIndex > 0) OR NOT (_AxisId > 0)
+      THEN
+        _bError                 := TRUE;
+        _stMsg.iErrorNumber     := 10;
+        _stMsg.eSubdevice       := XfcTriggerStart;
+        _stMsg.sText            := 'AxisId Invalid ';
+        _eState                 := E_PROGRESS.PROGRESS_STILL_WORKING;
+      END_IF
+
+      IF NOT (_stCtrl.TriggerCount > 0) OR
+         NOT (_stCtrl.TriggerCount < TO_UDINT(MAX_TRIGGER_COUNT+1))
+      THEN
+        _bError                 := TRUE;
+        _stMsg.iErrorNumber     := 11;
+        _stMsg.eSubdevice       := XfcTriggerStart;
+        _stMsg.sText            := 'TriggerCount Invalid ';
+        _eState                 := E_PROGRESS.PROGRESS_STILL_WORKING;
+      END_IF
+    END_IF
+
+
+  E_PROGRESS.PROGRESS_INIT:
+      _eDeviceAxis              := e_Device.XfcAxis + (_stCtrl.AxisId);
+      _eResult                  := TimeToPosition(TRUE, _AxisId, _stCtrl.TriggerPosition[_TrigCount], _MessageLevel);
+
+      IF (_eResult = E_PROGRESS.PROGRESS_ERROR)
+      THEN
+        TimeToPosition(FALSE, _AxisId, _stCtrl.TriggerPosition[_TrigCount], _MessageLevel);
+
+        _bError                   := TRUE;
+        _stMsg.iErrorNumber       := 15;
+        _stMsg.sText              := concat('Get TimeToPosition ', TO_STRING(_stCtrl.TriggerPosition[_TrigCount]));
+        _stMsg.sText              := concat(_stMsg.sText, ' ');
+        _eState                   := E_PROGRESS.PROGRESS_STILL_WORKING;
+
+      ELSIF (_eResult = E_PROGRESS.PROGRESS_DONE)
+      THEN
+        TimeToPosition(FALSE, _AxisId, _stCtrl.TriggerPosition[_TrigCount], _MessageLevel);
+
+        _eState                 := E_PROGRESS.PROGRESS_BUSY;
+
+        _SwitchTime             := _CurrentTime + TO_ULINT(_XfcDurationToPosition[_AxisIndex]);
+        _eResult                := SwitchOn_2252(FALSE, _SwitchTime, 3);
+   
+        IF (_MessageLevel = E_MessageType.eMessageVerbose)
+        THEN
+          _stMsg.eType          := E_MessageType.eMessageVerbose;
+          _stMsg.eDevice        := _eDeviceFunction;
+          _stMsg.eSubdevice     := e_Subdevice.XfcTimeToPosition;
+          _stMsg.iErrorNumber   := _SwitchTime;
+          _stMsg.sText          := concat(TO_STRING(_eState), ': ');
+          _stMsg.sText          := concat(_stMsg.sText, TO_STRING(_XfcDurationToPosition[_AxisIndex]));
+  
+          f_MessageSet(_stMsg);
+        END_IF
+      END_IF
+END_CASE
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_BUSY:
+    _eResult                    := SwitchOn_2252(TRUE, _SwitchTime, 3);
+
+
+    IF (_stCtrl.Control.NoFeedback)
+    THEN
+      IF (_eResult = E_PROGRESS.PROGRESS_ERROR)
+      THEN
+        _bError                 := TRUE;
+        _stMsg.iErrorNumber     := 12;
+        _stMsg.eSubdevice       := XfcSwitchOn_2252;
+        _stMsg.sText            := 'NO_FEEDBACK: Switch Time in the past ';
+        _eState                 := E_PROGRESS.PROGRESS_STILL_WORKING;
+
+      ELSIF (_eResult = E_PROGRESS.PROGRESS_DONE)
+      THEN
+        _eState                 := E_PROGRESS.PROGRESS_STARTUP;
+      END_IF
+
+    ELSIF (_eResult = E_PROGRESS.PROGRESS_ERROR)
+    THEN
+        _bError                 := TRUE;
+        _stMsg.iErrorNumber     := 13;
+        _stMsg.eSubdevice       := XfcSwitchOn_2252;
+        _stMsg.sText            := 'Switch Time in the past ';
+        _eState                 := E_PROGRESS.PROGRESS_STILL_WORKING;
+
+    ELSIF (_Input^[_Index].LatchPositive >= _SwitchTime)
+    THEN
+      _LatchTime                := TO_UDINT(_Input^[_Index].LatchPositive AND 16#FFFFFFFF);
+
+      IF (_MessageLevel = E_MessageType.eMessageVerbose)
+      THEN
+        _stMsg.eType            := E_MessageType.eMessageVerbose;
+        _stMsg.eDevice          := _eDeviceFunction;
+        _stMsg.eSubdevice       := e_Subdevice.XfcLatchPosition;
+        _stMsg.iErrorNumber     := _LatchTime;
+        _stMsg.sText            := concat(TO_STRING(_eState), ': ');
+        _stMsg.sText            := concat(_stMsg.sText, TO_STRING(_eDeviceAxis));
+
+        f_MessageSet(_stMsg);
+      END_IF
+      _eState                   := E_PROGRESS.PROGRESS_PREPARE;
+      _eResult                  := PositionAtTime(FALSE, _stCtrl.AxisId, 0, _MessageLevel);
+      _eResult                  := SwitchOn_2252(FALSE, _SwitchTime, 3);
+    END_IF
+END_CASE
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_PREPARE:
+    _eResult                    := PositionAtTime(TRUE, _stCtrl.AxisId, _LatchTime, _MessageLevel);
+
+    IF (_eResult = E_PROGRESS.PROGRESS_ERROR)
+    THEN
+      _bError                   := TRUE;
+      _stMsg.iErrorNumber       := 14;
+      _stMsg.sText              := 'PositionAtTime LatchPositive ';
+      _eState                   := E_PROGRESS.PROGRESS_STILL_WORKING;
+      _eResult                  := PositionAtTime(FALSE, _stCtrl.AxisId, 0, _MessageLevel);
+
+    ELSIF (_eResult = E_PROGRESS.PROGRESS_DONE)
+    THEN
+      _Box[_Index].FromPlc.FlashPosition[_TrigCount]  := _XfcRecordedPosition[_AxisIndex];
+
+      IF (_MessageLevel = E_MessageType.eMessageVerbose)
+      THEN
+        _stMsg.eType            := E_MessageType.eMessageVerbose;
+        _stMsg.eDevice          := _eDeviceFunction;
+        _stMsg.eSubdevice       := e_Subdevice.XfcRecordedPosition;
+        _stMsg.iErrorNumber     := _LatchTime;
+        _stMsg.sText            := concat(TO_STRING(_eState), ': ');
+        _stMsg.sText            := concat(_stMsg.sText, TO_STRING(_XfcRecordedPosition[_AxisIndex]));
+
+        f_MessageSet(_stMsg);
+      END_IF
+      _eState                   := E_PROGRESS.PROGRESS_STARTUP;
+      _eResult                  := PositionAtTime(FALSE, _stCtrl.AxisId, 0, _MessageLevel);
+      _eResult                  := SwitchOff_2252(FALSE, 3);
+    END_IF
+END_CASE
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_STARTUP:
+    _eResult                    := SwitchOff_2252(TRUE, 1);
+    IF (_eResult = E_PROGRESS.PROGRESS_DONE)
+    THEN
+      _eResult                  := SwitchOff_2252(FALSE, 1);
+      _TrigCount                := _TrigCount + 1;
+
+      IF (_TrigCount > _stCtrl.TriggerCount)
+      THEN
+        _eState                 := E_PROGRESS.PROGRESS_CHECK;
+      ELSE
+        _eState                 := E_PROGRESS.PROGRESS_INIT;
+      END_IF
+    END_IF
+END_CASE
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_CHECK:
+    _eState                     := E_PROGRESS.PROGRESS_OCCUPIED;
+END_CASE
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_OCCUPIED:
+    _eState                     := E_PROGRESS.PROGRESS_WORKING;
+END_CASE
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_WORKING:
+    _eState                     := E_PROGRESS.PROGRESS_STILL_WORKING;
+END_CASE
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_STILL_WORKING:
+    IF NOT _bError
+    THEN
+      _eState                   := E_PROGRESS.PROGRESS_DONE;
+
+      IF (_MessageLevel > E_MessageType.eMessageWarning)
+      THEN
+        _stMsg.eType            := E_MessageType.eMessageInfo;
+        _stMsg.eDevice          := _eDeviceFunction;
+        _stMsg.eSubdevice       := e_Subdevice.XfcTriggerOut;
+        _stMsg.iErrorNumber     := _eDeviceAxis;
+        _stMsg.sText            := concat(TO_STRING(_eState), ': ');
+        _stMsg.sText            := concat(_stMsg.sText, TO_STRING(e_Device.XfcAxis));
+
+        f_MessageSet(_stMsg);
+      END_IF
+      _Box[_Index].FromPlc.State  := TO_UINT(_eState);
+    ELSE
+      _eState                   := E_PROGRESS.PROGRESS_ERROR;
+
+      _stMsg.eType              := E_MessageType.eMessageError;
+      _stMsg.eDevice            := _eDeviceFunction;
+      _stMsg.sText              := concat(_stMsg.sText, TO_STRING(_eState));
+
+      f_MessageSet(_stMsg);
+
+      _Box[_Index].FromPlc.State  := TO_UINT(_eState) + TO_UINT(_stMsg.iErrorNumber);
+    END_IF
+END_CASE
+
+
+
+
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="CycleWaitForPosition" Id="{0c59e9a7-6d7f-43a4-bd21-5d8b0de0630e}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD CycleWaitForPosition : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//-----------------------------------------------------------------------------
+// trigger detection
+//-----------------------------------------------------------------------------
+_rtrigEnable(CLK                := _Box[_Index].ToPlc.Control.Enable);
+_rtrigInit(  CLK                := _Box[_Index].ToPlc.Control.Init);
+//-----------------------------------------------------------------------------
+// forced init
+//-----------------------------------------------------------------------------
+IF _rtrigInit.Q THEN _eInit := E_PROGRESS.PROGRESS_INVALID; END_IF
+//-----------------------------------------------------------------------------
+// clear state
+//-----------------------------------------------------------------------------
+IF NOT _Box[_Index].ToPlc.Control.Enable 
+THEN 
+  _eState                       := E_PROGRESS.PROGRESS_INVALID;
+
+  _Box[_Index].FromPlc.State    := TO_UINT(_eState);
+END_IF
+
+_eDeviceFunction                := e_Device.XfcTriggerBox + _Index;
+
+_CurrentTime                    := Tc2_EtherCAT.F_GetCurDcTaskTime64();
+_CurrentTimeShort               := TO_UDINT(_CurrentTime AND 16#FFFFFFFF);
+
+_Box[_Index].FromPlc.Init       := TO_UINT(_eInit);
+
+IF NOT (_eInit = E_PROGRESS.PROGRESS_DONE)
+THEN
+  _eInit                        := Init();
+  RETURN;
+END_IF
+//-----------------------------------------------------------------------------
+// TriggerBox execution
+//-----------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_INVALID:      // check input data
+    IF _rtrigEnable.Q
+    THEN
+      _Box[_Index].FromPlc.State  := TO_UINT(E_PROGRESS.PROGRESS_BUSY);
+
+      _bError                   := FALSE;
+      _TrigCount                := 1;     // initialize trigger counter for output on TriggerPositions
+      _eState                   := E_PROGRESS.PROGRESS_INIT;
+
+      _stCtrl                   := _Box[_Index].ToPlc;
+      _AxisId                   := _stCtrl.AxisId;
+      _AxisIndex                := GetIndex(_AxisId);
+
+      _eResult                  := TimeToPosition(FALSE, _AxisId, 0.0, _MessageLevel);
+      _eResult                  := WaitForPosition(FALSE, _AxisId, _stCtrl.TriggerPosition[_TrigCount], _MessageLevel);
+
+      IF NOT (_AxisIndex > 0) OR NOT (_AxisId > 0)
+      THEN
+        _bError                 := TRUE;
+        _stMsg.iErrorNumber     := 10;
+        _stMsg.eSubdevice       := XfcTriggerStart;
+        _stMsg.sText            := 'AxisId Invalid ';
+        _eState                 := E_PROGRESS.PROGRESS_STILL_WORKING;
+      END_IF
+
+      IF NOT (_stCtrl.TriggerCount > 0) OR
+         NOT (_stCtrl.TriggerCount < TO_UDINT(MAX_TRIGGER_COUNT+1))
+      THEN
+        _bError                 := TRUE;
+        _stMsg.iErrorNumber     := 11;
+        _stMsg.eSubdevice       := XfcTriggerStart;
+        _stMsg.sText            := 'TriggerCount Invalid ';
+        _eState                 := E_PROGRESS.PROGRESS_STILL_WORKING;
+      END_IF
+
+      IF (_MessageLevel = E_MessageType.eMessageVerbose)
+      THEN
+        _stMsg.eType          := E_MessageType.eMessageVerbose;
+        _stMsg.eDevice        := _eDeviceFunction;
+        _stMsg.eSubdevice     := e_Subdevice.XfcTriggerStart;
+        _stMsg.iErrorNumber   := _CurrentTime;
+        _stMsg.sText          := concat(TO_STRING(_eState), ': ');
+        _stMsg.sText          := concat(_stMsg.sText, TO_STRING(e_Device.XfcAxis));
+        _stMsg.sText          := concat(_stMsg.sText, '_ID_');
+        _stMsg.sText          := concat(_stMsg.sText, TO_STRING(_AxisId));
+
+        f_MessageSet(_stMsg);
+      END_IF
+    END_IF
+
+
+  E_PROGRESS.PROGRESS_INIT:
+    _eDeviceAxis              := e_Device.XfcAxis + (_stCtrl.AxisId);
+    _eResult                  := WaitForPosition(TRUE, _AxisId, _stCtrl.TriggerPosition[_TrigCount], _MessageLevel);
+
+    IF (_eResult = E_PROGRESS.PROGRESS_DONE)
+    THEN
+      _eState                 := E_PROGRESS.PROGRESS_BUSY;
+
+      IF (_MessageLevel = E_MessageType.eMessageVerbose)
+      THEN
+        _stMsg.eType          := E_MessageType.eMessageVerbose;
+        _stMsg.eDevice        := _eDeviceFunction;
+        _stMsg.eSubdevice     := e_Subdevice.XfcWaitForPosition;
+        _stMsg.iErrorNumber   := _CurrentTime;
+        _stMsg.sText          := concat(TO_STRING(_eState), ': ');
+        _stMsg.sText          := concat(_stMsg.sText, TO_STRING(_XfcDurationToPosition[_AxisIndex]));
+
+        f_MessageSet(_stMsg);
+      END_IF
+    END_IF
+END_CASE
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_BUSY:
+    _eResult                  := TimeToPosition(TRUE, _AxisId, _stCtrl.TriggerPosition[_TrigCount], _MessageLevel);
+
+    IF (_eResult = E_PROGRESS.PROGRESS_ERROR)
+    THEN
+      TimeToPosition(FALSE, _AxisId, _stCtrl.TriggerPosition[_TrigCount], _MessageLevel);
+
+      _bError                   := TRUE;
+      _stMsg.iErrorNumber       := 15;
+      _stMsg.sText              := concat('Get TimeToPosition ', TO_STRING(_stCtrl.TriggerPosition[_TrigCount]));
+      _stMsg.sText              := concat(_stMsg.sText, ' ');
+      _eState                   := E_PROGRESS.PROGRESS_STILL_WORKING;
+
+    ELSIF (_eResult = E_PROGRESS.PROGRESS_DONE)
+    THEN
+      TimeToPosition(FALSE, _AxisId, _stCtrl.TriggerPosition[_TrigCount], _MessageLevel);
+
+      _SwitchTime             := _CurrentTime + TO_ULINT(_XfcDurationToPosition[_AxisIndex]);
+      _eResult                := SwitchOn_2252(FALSE, _SwitchTime, 3);
+ 
+      IF (_MessageLevel = E_MessageType.eMessageVerbose)
+      THEN
+        _stMsg.eType          := E_MessageType.eMessageVerbose;
+        _stMsg.eDevice        := _eDeviceFunction;
+        _stMsg.eSubdevice     := e_Subdevice.XfcTimeToPosition;
+        _stMsg.iErrorNumber   := _SwitchTime;
+        _stMsg.sText          := concat(TO_STRING(_eState), ': ');
+        _stMsg.sText          := concat(_stMsg.sText, TO_STRING(_XfcDurationToPosition[_AxisIndex]));
+
+        f_MessageSet(_stMsg);
+      END_IF
+      _eState                 := E_PROGRESS.PROGRESS_PREPARE;
+    END_IF
+END_CASE
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_PREPARE:
+    //_Box[_Index].FromPlc.State  := TO_UINT(_eState);
+    _eResult                    := SwitchOn_2252(TRUE, _SwitchTime, 3);
+
+
+    IF (_stCtrl.Control.NoFeedback)
+    THEN
+      IF (_eResult = E_PROGRESS.PROGRESS_ERROR)
+      THEN
+        _bError                 := TRUE;
+        _stMsg.iErrorNumber     := 12;
+        _stMsg.eSubdevice       := XfcSwitchOn_2252;
+        _stMsg.sText            := 'NO_FEEDBACK: Switch Time in the past ';
+        _eState                 := E_PROGRESS.PROGRESS_STILL_WORKING;
+
+      ELSIF (_eResult = E_PROGRESS.PROGRESS_DONE)
+      THEN
+        _eState                 := E_PROGRESS.PROGRESS_CHECK;
+      END_IF
+
+    ELSIF (_eResult = E_PROGRESS.PROGRESS_ERROR)
+    THEN
+        _bError                 := TRUE;
+        _stMsg.iErrorNumber     := 13;
+        _stMsg.eSubdevice       := XfcSwitchOn_2252;
+        _stMsg.sText            := 'Switch Time in the past ';
+        _eState                 := E_PROGRESS.PROGRESS_STILL_WORKING;
+    END_IF
+
+    IF (_Input^[_Index].Input) OR
+       (_Input^[_Index].LatchPositive >= _SwitchTime)
+    THEN
+      _LatchTime                := TO_UDINT(_Input^[_Index].LatchPositive AND 16#FFFFFFFF);
+
+      IF (_MessageLevel = E_MessageType.eMessageVerbose)
+      THEN
+        _stMsg.eType            := E_MessageType.eMessageVerbose;
+        _stMsg.eDevice          := _eDeviceFunction;
+        _stMsg.eSubdevice       := e_Subdevice.XfcLatchPosition;
+        _stMsg.iErrorNumber     := _LatchTime;
+        _stMsg.sText            := concat(TO_STRING(_eState), ': ');
+        _stMsg.sText            := concat(_stMsg.sText, TO_STRING(_eDeviceAxis));
+
+        f_MessageSet(_stMsg);
+      END_IF
+      _eState                   := E_PROGRESS.PROGRESS_STARTUP;
+      _eResult                  := PositionAtTime(FALSE, _stCtrl.AxisId, 0, _MessageLevel);
+      _eResult                  := SwitchOn_2252(FALSE, _SwitchTime, 3);
+    END_IF
+END_CASE
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_STARTUP:
+    //_Box[_Index].FromPlc.State  := TO_UINT(_eState);
+    _eResult                    := PositionAtTime(TRUE, _stCtrl.AxisId, _LatchTime, _MessageLevel);
+
+    IF (_eResult = E_PROGRESS.PROGRESS_ERROR)
+    THEN
+      _bError                   := TRUE;
+      _stMsg.iErrorNumber       := 14;
+      _stMsg.sText              := 'PositionAtTime LatchPositive ';
+      _eState                   := E_PROGRESS.PROGRESS_STILL_WORKING;
+      _eResult                  := PositionAtTime(FALSE, _stCtrl.AxisId, 0, _MessageLevel);
+
+    ELSIF (_eResult = E_PROGRESS.PROGRESS_DONE)
+    THEN
+      _Box[_Index].FromPlc.FlashPosition[_TrigCount]  := _XfcRecordedPosition[_AxisIndex];
+
+      IF (_MessageLevel = E_MessageType.eMessageVerbose)
+      THEN
+        _stMsg.eType            := E_MessageType.eMessageVerbose;
+        _stMsg.eDevice          := _eDeviceFunction;
+        _stMsg.eSubdevice       := e_Subdevice.XfcRecordedPosition;
+        _stMsg.iErrorNumber     := _LatchTime;
+        _stMsg.sText            := concat(TO_STRING(_eState), ': ');
+        _stMsg.sText            := concat(_stMsg.sText, TO_STRING(_XfcRecordedPosition[_AxisIndex]));
+
+        f_MessageSet(_stMsg);
+      END_IF
+      _eState                   := E_PROGRESS.PROGRESS_CHECK;
+      _eResult                  := PositionAtTime(FALSE, _stCtrl.AxisId, 0, _MessageLevel);
+      _eResult                  := SwitchOff_2252(FALSE, 3);
+    END_IF
+END_CASE
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_CHECK:
+    _Box[_Index].FromPlc.State  := TO_UINT(_eState) + TO_UINT(_TrigCount);
+    _eResult                    := SwitchOff_2252(TRUE, 4);
+    IF (_eResult = E_PROGRESS.PROGRESS_DONE)
+    THEN
+      _eResult                  := SwitchOff_2252(FALSE, 4);
+      _TrigCount                := _TrigCount + 1;
+
+      IF (_TrigCount > _stCtrl.TriggerCount)
+      THEN
+        _eState                 := E_PROGRESS.PROGRESS_OCCUPIED;
+      ELSE
+        _eState                 := E_PROGRESS.PROGRESS_INIT;
+        _eResult                := WaitForPosition(FALSE, _AxisId, _stCtrl.TriggerPosition[_TrigCount], _MessageLevel);
+      END_IF
+    END_IF
+END_CASE
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_OCCUPIED:
+    _eState                     := E_PROGRESS.PROGRESS_WORKING;
+END_CASE
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_WORKING:
+    _eState                     := E_PROGRESS.PROGRESS_STILL_WORKING;
+END_CASE
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_STILL_WORKING:
+    IF NOT _bError
+    THEN
+      _eState                   := E_PROGRESS.PROGRESS_DONE;
+
+      IF (_MessageLevel > E_MessageType.eMessageWarning)
+      THEN
+        _stMsg.eType            := E_MessageType.eMessageInfo;
+        _stMsg.eDevice          := _eDeviceFunction;
+        _stMsg.eSubdevice       := e_Subdevice.XfcTriggerOut;
+        _stMsg.iErrorNumber     := _CurrentTime;
+        _stMsg.sText            := concat(TO_STRING(_eState), ': ');
+        _stMsg.sText            := concat(_stMsg.sText, TO_STRING(e_Device.XfcAxis));
+        _stMsg.sText            := concat(_stMsg.sText, '_ID_');
+        _stMsg.sText            := concat(_stMsg.sText, TO_STRING(_AxisId));
+        f_MessageSet(_stMsg);
+      END_IF
+      _Box[_Index].FromPlc.State  := TO_UINT(_eState);
+    ELSE
+      _eState                   := E_PROGRESS.PROGRESS_ERROR;
+
+      _stMsg.eType              := E_MessageType.eMessageError;
+      _stMsg.eDevice            := _eDeviceFunction;
+      _stMsg.eSubdevice         := e_Subdevice.XfcTriggerOut;
+      _stMsg.sText              := concat(_stMsg.sText, TO_STRING(_eState));
+
+      f_MessageSet(_stMsg);
+
+      _Box[_Index].FromPlc.State  := TO_UINT(_eState) + TO_UINT(_stMsg.iErrorNumber);
+    END_IF
+END_CASE
+
+
+
+
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="Index" Id="{3c03046a-745d-4156-ad36-4ca380452463}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY Index : udint]]></Declaration>
+      <Get Name="Get" Id="{5bf1b6a3-d598-4816-b77f-32ca015b57dd}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Index := _Index;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{3abce8f0-db48-4c0f-97e9-5137929148c3}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_Index := Index;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Method Name="Init" Id="{9ed0687f-e23c-4170-9864-3d5c86179885}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD Init : E_PROGRESS
+VAR_INST
+  _eState         : E_PROGRESS;
+  _eResult        : E_PROGRESS;
+
+  _stMsg          : ST_Message;
+  _bError         : BOOL;
+  _udiErrorId     : UDINT;
+
+  _nIdx           : udint;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[
+_stMsg.eDevice                  := _eDeviceFunction;
+_stMsg.eSubdevice               := XfcInit;
+
+
+CASE _eInit
+OF
+  E_PROGRESS.PROGRESS_INVALID:
+    _eState                     := E_PROGRESS.PROGRESS_INIT;
+    _bError                     := FALSE;
+    _udiErrorId                 := 0;
+END_CASE
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_INIT:
+    _eResult                    := SwitchOff_2252(FALSE, 2);
+    _eState                     := E_PROGRESS.PROGRESS_BUSY;
+
+      IF (_MessageLevel = E_MessageType.eMessageVerbose)
+      THEN
+        _stMsg.eType            := E_MessageType.eMessageVerbose;
+        _stMsg.iErrorNumber     := 0;
+        _stMsg.sText            := TO_STRING(_eState);
+
+        f_MessageSet(_stMsg);
+      END_IF
+
+  //-----------------------------------------------------------------------------
+  // clear output terminals 2252
+  //-----------------------------------------------------------------------------
+  E_PROGRESS.PROGRESS_BUSY:
+    _eResult                    := SwitchOff_2252(TRUE, 10);
+
+    IF (_eResult = E_PROGRESS.PROGRESS_DONE)
+    THEN
+      IF (_Index > 0) AND
+         (_Index < MAX_TRIGGER_BOX+1)
+      THEN
+        FOR _nIdx := 1 TO MAX_TRIGGER_COUNT
+        DO
+          _Box[_Index].FromPlc.FlashPosition[_nIdx] := 0.0;
+        END_FOR
+      END_IF
+
+      _eState                   := E_PROGRESS.PROGRESS_PREPARE;
+      _eResult                  := SwitchOff_2252(FALSE, 10);
+    END_IF
+END_CASE
+//-----------------------------------------------------------------------------
+// reserve states for future timestamp outputs with dedicated switch off
+//-----------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_PREPARE:
+    _eState                     := E_PROGRESS.PROGRESS_STARTUP;
+END_CASE
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_STARTUP:
+    _eState                     := E_PROGRESS.PROGRESS_CHECK;
+END_CASE
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_CHECK:
+    _eState                     := E_PROGRESS.PROGRESS_OCCUPIED;
+END_CASE
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_OCCUPIED:
+    _eState                     := E_PROGRESS.PROGRESS_WORKING;
+END_CASE
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_WORKING:
+    _eState                     := E_PROGRESS.PROGRESS_STILL_WORKING;
+END_CASE
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_STILL_WORKING:
+    IF NOT _bError
+    THEN
+      _eState                   := E_PROGRESS.PROGRESS_DONE;
+
+      IF (_MessageLevel > E_MessageType.eMessageWarning)
+      THEN
+        _stMsg.eType            := E_MessageType.eMessageInfo;
+        _stMsg.iErrorNumber     := 0;
+        _stMsg.sText            := TO_STRING(_eState);
+      END_IF
+    ELSE
+      _eState                   := E_PROGRESS.PROGRESS_ERROR;
+
+      _stMsg.eType              := E_MessageType.eMessageError;
+      _stMsg.iErrorNumber       := _udiErrorId;
+      _stMsg.sText              := TO_STRING(_eState);
+    END_IF
+END_CASE
+
+Init                            := _eState;
+
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="Input" Id="{6d5ea1b3-e047-43d0-bad1-f57a4f879cb3}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY Input : pointer TO ARRAY [1..MAX_TRIGGER_BOX] OF ST_DC_Input]]></Declaration>
+      <Set Name="Set" Id="{75be905b-dcd0-4597-a76a-347fe44f7078}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_Input := Input;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="MessageLevel" Id="{4d136669-d80f-447f-b466-594c0abfb41f}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY MessageLevel : e_messagetype]]></Declaration>
+      <Get Name="Get" Id="{6cb87e47-382b-4e62-99c5-ef325467f8bb}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[MessageLevel := _MessageLevel;
+]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{2f2e6644-0a3c-4a37-96e1-3cc9898015e3}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_MessageLevel := MessageLevel;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="Output_2252" Id="{e15669ef-9058-4d88-84b4-da3acbfd606a}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY Output_2252 : pointer TO ARRAY [1..MAX_TRIGGER_BOX] OF ST_DC_Output]]></Declaration>
+      <Set Name="Set" Id="{3a2d407e-dd79-4982-97d2-461ba1df92d7}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_Output_2252 := Output_2252;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Method Name="SwitchOff_2252" Id="{41db8b4f-3857-4c1c-92e8-de062d51d11b}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD SwitchOff_2252 : E_PROGRESS
+VAR_INPUT
+  Execute         : BOOL;
+  DurationCycles  : UINT := 3;   // PLC cycles are counted after the output time was reached before the method returns done
+END_VAR
+VAR_INST
+  _bError             : BOOL;
+  _eState             : E_PROGRESS;
+
+  _stMsg              : ST_Message;
+  _CurrentStartTime   : ULINT;
+  _nCount             : UINT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT Execute THEN _eState     := E_PROGRESS.PROGRESS_INIT;  END_IF
+
+
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_INIT:
+    IF Execute
+    THEN
+      _nCount                   := 0;
+      _bError                   := FALSE;
+      _eState                   := E_PROGRESS.PROGRESS_BUSY;
+      _CurrentStartTime         := Tc2_EtherCAT.F_GetCurDcTaskTime64();
+
+      _Output_2252^[_Index].nActivate     := 0;
+
+      IF (_MessageLevel = E_MessageType.eMessageVerbose)
+      THEN
+        _stMsg.eType            := E_MessageType.eMessageVerbose;
+        _stMsg.eDevice          := _eDeviceFunction;
+        _stMsg.eSubdevice       := XfcSwitchOff_2252;
+        _stMsg.iErrorNumber     := _CurrentStartTime;
+        _stMsg.sText            := TO_STRING(_eState);
+        f_MessageSet(_stMsg);
+      END_IF
+    END_IF
+
+  E_PROGRESS.PROGRESS_BUSY:
+    _Output_2252^[_Index].Ch1_Output    := FALSE;
+    _Output_2252^[_Index].Ch2_Output    := FALSE;
+
+    _Output_2252^[_Index].Ch1_Tristate  := FALSE;
+    _Output_2252^[_Index].Ch2_Tristate  := FALSE;
+
+    _Output_2252^[_Index].dcStartTime   := (_CurrentStartTime + DurationCycles*2_000_000);
+    _Output_2252^[_Index].nActivate     := 0;
+    _eState                                 := E_PROGRESS.PROGRESS_PREPARE;
+
+
+  E_PROGRESS.PROGRESS_PREPARE:
+    _Output_2252^[_Index].nActivate     := 3;
+    _eState                                 := E_PROGRESS.PROGRESS_STARTUP;
+
+  E_PROGRESS.PROGRESS_STARTUP:
+    IF (_CurrentTime > _Output_2252^[_Index].dcStartTime)
+    THEN
+      //_Output_2252^[_Index].nActivate   := 0;
+      _eState                               := E_PROGRESS.PROGRESS_CHECK;
+    END_IF
+
+  E_PROGRESS.PROGRESS_CHECK:
+    _nCount                                 := _nCount + 1;
+    IF (_nCount > DurationCycles-1)
+    THEN
+      _Output_2252^[_Index].nActivate   := 0;
+      _eState                               := E_PROGRESS.PROGRESS_STILL_WORKING;
+    END_IF
+END_CASE
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_STILL_WORKING:
+    IF NOT _bError
+    THEN
+      _eState                   := E_PROGRESS.PROGRESS_DONE;
+      IF (_MessageLevel > E_MessageType.eMessageWarning)
+      THEN
+        _stMsg.eType            := E_MessageType.eMessageInfo;
+        _stMsg.eDevice          := _eDeviceFunction;
+        _stMsg.eSubdevice       := XfcSwitchOff_2252;
+        _stMsg.iErrorNumber     := _CurrentTime;
+        _stMsg.sText            := TO_STRING(_eState);
+        f_MessageSet(_stMsg);
+      END_IF
+    ELSE
+      _eState                   := E_PROGRESS.PROGRESS_ERROR;
+
+      _stMsg.eType              := E_MessageType.eMessageError;
+      _stMsg.eDevice            := _eDeviceFunction;
+      _stMsg.eSubdevice         := XfcSwitchOff_2252;
+      _stMsg.sText              := concat(_stMsg.sText, TO_STRING(_eState));
+
+      f_MessageSet(_stMsg);
+ 
+    END_IF
+END_CASE
+
+
+SwitchOff_2252                  := _eState;
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="SwitchOn_2252" Id="{ea3bc18f-a84f-4d7c-91e2-e60c1c26ddb5}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD SwitchOn_2252 : E_PROGRESS // uses _Output[] datafield directly
+VAR_INPUT
+  Execute         : BOOL;
+  StartTime       : ULINT;
+  DurationCycles  : UINT := 3;   // PLC cycles are counted after the output time was reached before the method returns done
+END_VAR
+VAR_INST
+  _bError             : BOOL;
+  _eState             : E_PROGRESS;
+
+  _stMsg              : ST_Message;
+  _CurrentStartTime   : ULINT;
+  _nCount             : UINT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT Execute THEN _eState     := E_PROGRESS.PROGRESS_INIT;  END_IF
+
+
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_INIT:
+    IF Execute
+    THEN
+      _nCount                   := 0;
+      _bError                   := FALSE;
+      _eState                   := E_PROGRESS.PROGRESS_BUSY;
+      _CurrentStartTime         := Tc2_EtherCAT.F_GetCurDcTaskTime64();
+
+      IF (_MessageLevel = E_MessageType.eMessageVerbose)
+      THEN
+        _stMsg.eType            := E_MessageType.eMessageVerbose;
+        _stMsg.eDevice          := _eDeviceFunction;
+        _stMsg.eSubdevice       := XfcSwitchOn_2252;
+        _stMsg.iErrorNumber     := _CurrentStartTime;
+        _stMsg.sText            := TO_STRING(_eState);
+        f_MessageSet(_stMsg);
+      END_IF
+
+      IF NOT ((_CurrentStartTime + _SafeCycles*1_000_000) < StartTime)
+      THEN
+        _bError                 := TRUE;
+        _stMsg.sText            := 'StartTime too close to CurrentTime ';
+        _eState                 := E_PROGRESS.PROGRESS_STILL_WORKING;
+      END_IF
+
+    END_IF
+END_CASE
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_BUSY:
+    _Output_2252^[_Index].Ch1_Output    := TRUE;
+    _Output_2252^[_Index].Ch2_Output    := TRUE;
+
+    _Output_2252^[_Index].Ch1_Tristate  := FALSE;
+    _Output_2252^[_Index].Ch2_Tristate  := FALSE;
+
+    _Output_2252^[_Index].dcStartTime   := StartTime;
+    _Output_2252^[_Index].nActivate     := 0;
+    _eState                                 := E_PROGRESS.PROGRESS_PREPARE;
+
+
+  E_PROGRESS.PROGRESS_PREPARE:
+    _Output_2252^[_Index].nActivate     := 3;
+    _eState                                 := E_PROGRESS.PROGRESS_CHECK;
+END_CASE
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_STARTUP:
+    IF (_CurrentTime > StartTime)
+    THEN
+      _Output_2252^[_Index].nActivate   := 0;
+      _eState                               := E_PROGRESS.PROGRESS_CHECK;
+    END_IF
+END_CASE
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_CHECK:
+    _nCount                                 := _nCount + 1;
+    IF (_nCount > DurationCycles-1)
+    THEN
+      _eState                               := E_PROGRESS.PROGRESS_STILL_WORKING;
+    END_IF
+END_CASE
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_STILL_WORKING:
+    IF NOT _bError
+    THEN
+      _eState                   := E_PROGRESS.PROGRESS_DONE;
+      IF (_MessageLevel > E_MessageType.eMessageWarning)
+      THEN
+        _stMsg.eType            := E_MessageType.eMessageInfo;
+        _stMsg.eDevice          := _eDeviceFunction;
+        _stMsg.eSubdevice       := XfcSwitchOn_2252;
+        _stMsg.iErrorNumber     := _CurrentTime;
+        _stMsg.sText            := TO_STRING(_eState);
+        f_MessageSet(_stMsg);
+      END_IF
+    ELSE
+      _eState                   := E_PROGRESS.PROGRESS_ERROR;
+
+      _stMsg.eType              := E_MessageType.eMessageError;
+      _stMsg.eDevice            := _eDeviceFunction;
+      _stMsg.eSubdevice         := XfcSwitchOn_2252;
+      _stMsg.sText              := concat(_stMsg.sText, TO_STRING(_eState));
+
+      f_MessageSet(_stMsg);
+ 
+    END_IF
+END_CASE
+
+
+SwitchOn_2252                   := _eState;
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="FB_TriggerBox">
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_TriggerBox.Ctrl.Set">
+      <LineId Id="2" Count="0" />
+      <LineId Id="6" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_TriggerBox.Cycle">
+      <LineId Id="523" Count="271" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_TriggerBox.CycleWaitForPosition">
+      <LineId Id="3" Count="49" />
+      <LineId Id="283" Count="0" />
+      <LineId Id="53" Count="18" />
+      <LineId Id="305" Count="7" />
+      <LineId Id="331" Count="2" />
+      <LineId Id="314" Count="2" />
+      <LineId Id="72" Count="3" />
+      <LineId Id="334" Count="0" />
+      <LineId Id="76" Count="4" />
+      <LineId Id="285" Count="0" />
+      <LineId Id="287" Count="10" />
+      <LineId Id="81" Count="6" />
+      <LineId Id="89" Count="15" />
+      <LineId Id="107" Count="13" />
+      <LineId Id="321" Count="0" />
+      <LineId Id="121" Count="6" />
+      <LineId Id="317" Count="0" />
+      <LineId Id="128" Count="25" />
+      <LineId Id="298" Count="0" />
+      <LineId Id="154" Count="0" />
+      <LineId Id="299" Count="0" />
+      <LineId Id="155" Count="23" />
+      <LineId Id="318" Count="0" />
+      <LineId Id="179" Count="34" />
+      <LineId Id="319" Count="0" />
+      <LineId Id="214" Count="10" />
+      <LineId Id="303" Count="0" />
+      <LineId Id="225" Count="34" />
+      <LineId Id="323" Count="0" />
+      <LineId Id="260" Count="7" />
+      <LineId Id="322" Count="0" />
+      <LineId Id="268" Count="11" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_TriggerBox.Index.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_TriggerBox.Index.Set">
+      <LineId Id="2" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_TriggerBox.Init">
+      <LineId Id="115" Count="2" />
+      <LineId Id="114" Count="0" />
+      <LineId Id="9" Count="2" />
+      <LineId Id="111" Count="0" />
+      <LineId Id="113" Count="0" />
+      <LineId Id="119" Count="1" />
+      <LineId Id="127" Count="4" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="134" Count="0" />
+      <LineId Id="17" Count="4" />
+      <LineId Id="24" Count="1" />
+      <LineId Id="133" Count="0" />
+      <LineId Id="132" Count="0" />
+      <LineId Id="26" Count="0" />
+      <LineId Id="28" Count="1" />
+      <LineId Id="135" Count="0" />
+      <LineId Id="30" Count="0" />
+      <LineId Id="33" Count="1" />
+      <LineId Id="123" Count="0" />
+      <LineId Id="122" Count="0" />
+      <LineId Id="124" Count="0" />
+      <LineId Id="154" Count="2" />
+      <LineId Id="150" Count="3" />
+      <LineId Id="157" Count="1" />
+      <LineId Id="126" Count="0" />
+      <LineId Id="137" Count="0" />
+      <LineId Id="125" Count="0" />
+      <LineId Id="35" Count="1" />
+      <LineId Id="136" Count="0" />
+      <LineId Id="37" Count="3" />
+      <LineId Id="138" Count="0" />
+      <LineId Id="42" Count="36" />
+      <LineId Id="139" Count="0" />
+      <LineId Id="79" Count="2" />
+      <LineId Id="84" Count="6" />
+      <LineId Id="93" Count="3" />
+      <LineId Id="99" Count="0" />
+      <LineId Id="109" Count="0" />
+      <LineId Id="101" Count="1" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_TriggerBox.Input.Set">
+      <LineId Id="2" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_TriggerBox.MessageLevel.Get">
+      <LineId Id="2" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_TriggerBox.MessageLevel.Set">
+      <LineId Id="2" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_TriggerBox.Output_2252.Set">
+      <LineId Id="2" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_TriggerBox.SwitchOff_2252">
+      <LineId Id="125" Count="11" />
+      <LineId Id="251" Count="0" />
+      <LineId Id="250" Count="0" />
+      <LineId Id="137" Count="7" />
+      <LineId Id="256" Count="0" />
+      <LineId Id="145" Count="0" />
+      <LineId Id="154" Count="0" />
+      <LineId Id="252" Count="0" />
+      <LineId Id="160" Count="14" />
+      <LineId Id="253" Count="0" />
+      <LineId Id="180" Count="5" />
+      <LineId Id="236" Count="0" />
+      <LineId Id="191" Count="3" />
+      <LineId Id="254" Count="0" />
+      <LineId Id="195" Count="17" />
+      <LineId Id="255" Count="0" />
+      <LineId Id="213" Count="16" />
+      <LineId Id="11" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_TriggerBox.SwitchOn_2252">
+      <LineId Id="5" Count="0" />
+      <LineId Id="14" Count="0" />
+      <LineId Id="16" Count="5" />
+      <LineId Id="171" Count="0" />
+      <LineId Id="22" Count="0" />
+      <LineId Id="24" Count="1" />
+      <LineId Id="129" Count="0" />
+      <LineId Id="26" Count="6" />
+      <LineId Id="195" Count="0" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="127" Count="1" />
+      <LineId Id="130" Count="0" />
+      <LineId Id="133" Count="2" />
+      <LineId Id="131" Count="0" />
+      <LineId Id="126" Count="0" />
+      <LineId Id="34" Count="7" />
+      <LineId Id="137" Count="0" />
+      <LineId Id="139" Count="0" />
+      <LineId Id="138" Count="0" />
+      <LineId Id="140" Count="0" />
+      <LineId Id="142" Count="0" />
+      <LineId Id="141" Count="0" />
+      <LineId Id="143" Count="1" />
+      <LineId Id="146" Count="0" />
+      <LineId Id="136" Count="0" />
+      <LineId Id="47" Count="1" />
+      <LineId Id="147" Count="0" />
+      <LineId Id="49" Count="2" />
+      <LineId Id="149" Count="3" />
+      <LineId Id="172" Count="3" />
+      <LineId Id="153" Count="6" />
+      <LineId Id="176" Count="3" />
+      <LineId Id="160" Count="0" />
+      <LineId Id="78" Count="14" />
+      <LineId Id="194" Count="0" />
+      <LineId Id="93" Count="3" />
+      <LineId Id="108" Count="1" />
+      <LineId Id="113" Count="0" />
+      <LineId Id="110" Count="2" />
+      <LineId Id="101" Count="3" />
+      <LineId Id="15" Count="0" />
+      <LineId Id="12" Count="1" />
+      <LineId Id="11" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

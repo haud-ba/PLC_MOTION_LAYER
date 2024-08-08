@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <DUT Name="T_TriggerControl" Id="{fc584296-b9a7-49d5-be97-39d776e36b2b}">
+    <Declaration><![CDATA[TYPE T_TriggerControl :
+UNION
+  Ctrl         : BYTE;
+  Bits         : T_TriggerControlBits;
+END_UNION
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

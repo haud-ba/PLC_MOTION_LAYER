@@ -124,7 +124,7 @@ END_CASE
 CASE _eResult
 OF
   E_PROGRESS.PROGRESS_INVALID:
-    _State^[_nAxisIndex].eState     := E_PROGRESS.PROGRESS_ERROR;
+    _State^[_nAxisIndex].eState     := TO_UINT(E_PROGRESS.PROGRESS_ERROR);
 
   E_PROGRESS.PROGRESS_ERROR:
     _Info^[_nAxisIndex].bReady      := FALSE;
@@ -1317,7 +1317,7 @@ OF
     _eState                         := E_PROGRESS.PROGRESS_BUSY;
 
     _stMsg.eType                    := E_MessageType.eMessageInfo;
-    _stMsg.eDevice                  := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
+    _stMsg.eDevice                  := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
     _stMsg.eSubdevice               :=  e_SubDevice.AxisIdle;
     _stMsg.iErrorNumber             := _nErrorId;
 
@@ -1347,7 +1347,7 @@ OF
       _nErrorId                     := _AxisRef.NcToPlc.ErrorCode;
     
       _stMsg.eType                  := E_MessageType.eMessageError;
-      _stMsg.eDevice                := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
+      _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
       _stMsg.eSubdevice             :=  e_SubDevice.AxisIdle;
       _stMsg.iErrorNumber           := _nErrorId;
 
@@ -1437,7 +1437,7 @@ OF
       _eState                       := _eResult;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
-      _stMsg.eDevice                := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
+      _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
       _stMsg.eSubdevice             := e_Subdevice.AxisStartUp;
       _stMsg.iErrorNumber := _nErrorId  := 6666;
 
@@ -1470,7 +1470,7 @@ OF
       _eState                       := _eResult;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
-      _stMsg.eDevice                := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
+      _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
       _stMsg.eSubdevice             := e_Subdevice.AxisStartUp;
       _stMsg.iErrorNumber           := ErrorId;
 
@@ -1554,7 +1554,7 @@ OF
               Axis                  := _AxisRef);
 
     _stMsg.eType                    := E_MessageType.eMessageInfo;
-    _stMsg.eDevice                  := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
+    _stMsg.eDevice                  := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
     _stMsg.eSubdevice               := e_Subdevice.AxisStartUp;
     _stMsg.iErrorNumber             := 0;
     _stMsg.sText                    := concat('Axis Init: ', _sDeviceName);
@@ -2308,7 +2308,7 @@ ELSE
         _eResult                      := E_PROGRESS.PROGRESS_INVALID;
   
         _stMsg.eType                  := E_MessageType.eMessageError;
-        _stMsg.eDevice                := E_Device.Axis + TO_DINT(_Axes[_nAxisIndex].NcToPlc.AxisId);
+        _stMsg.eDevice                := E_Device.Axis + (_Axes[_nAxisIndex].NcToPlc.AxisId);
         _stMsg.eSubdevice             := e_Subdevice.AxisControl;
         _stMsg.iErrorNumber           := 0;
   
@@ -2383,7 +2383,7 @@ END_VAR
 ]]></Declaration>
       <Implementation>
         <ST><![CDATA[  _stMsg.eType               := E_MessageType.eMessageInfo;
-  _stMsg.eDevice             := E_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
+  _stMsg.eDevice             := E_Device.Axis + (_AxisRef.NcToPlc.AxisId);
   _stMsg.eSubdevice          := e_Subdevice.AxisControl;
   _stMsg.iErrorNumber        := _nAxisIndex;
 
@@ -2417,7 +2417,7 @@ END_VAR
       <Implementation>
         <ST><![CDATA[
   _stMsg.eType               := E_MessageType.eMessageInfo;
-  _stMsg.eDevice             := E_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
+  _stMsg.eDevice             := E_Device.Axis + (_AxisRef.NcToPlc.AxisId);
   _stMsg.eSubdevice          := e_Subdevice.AxisControl;
   _stMsg.iErrorNumber        := _nAxisIndex;
 
@@ -2544,7 +2544,7 @@ OF
     IF _fbReset.Error
     THEN
       _stMsg.eType                  := E_MessageType.eMessageError;
-      _stMsg.eDevice                := e_Device.Axis + TO_DINT(_AxisRef.NcToPlc.AxisId);
+      _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
       _stMsg.eSubdevice             :=  e_SubDevice.fbResetSercos;
       _stMsg.iErrorNumber           := _udiErrAds;
 

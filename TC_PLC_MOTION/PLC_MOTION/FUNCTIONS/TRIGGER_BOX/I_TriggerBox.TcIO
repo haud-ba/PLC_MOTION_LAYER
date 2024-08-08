@@ -1,0 +1,63 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <Itf Name="I_TriggerBox" Id="{88fb9a70-fb03-4389-a4bf-f2d2f5433782}">
+    <Declaration><![CDATA[INTERFACE I_TriggerBox
+]]></Declaration>
+    <Folder Name="methods" Id="{7af41f99-8ef5-4244-9eb8-ff90b93413e0}" />
+    <Folder Name="properties" Id="{f9d6d2c4-bae8-4e76-a211-8aef3feb2d2a}" />
+    <Property Name="Ctrl" Id="{a02c71a9-7eb9-4ade-8151-99c1cb874075}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY Ctrl : REFERENCE TO ARRAY [1..MAX_TRIGGER_BOX] OF ST_TriggerBox]]></Declaration>
+      <Set Name="Set" Id="{ccf37769-c021-4db9-8510-ab1051e1376b}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Method Name="Cycle" Id="{9f0a49ea-f863-4e47-a13f-ea2e1f6ca12c}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD Cycle : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+    </Method>
+    <Method Name="CycleWaitForPosition" Id="{3f25e4eb-13ff-4ee8-b00f-5bdf2b66c1bd}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD CycleWaitForPosition : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+    </Method>
+    <Property Name="Index" Id="{14b1db6e-50ab-452c-a2f6-f172dd2e1077}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY Index : udint]]></Declaration>
+      <Get Name="Get" Id="{c91c7464-b668-44bd-b7aa-1360d7d8cbc4}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+      <Set Name="Set" Id="{5c3ae170-7db3-4d8e-bff5-b736ba7da786}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="Input" Id="{56b3ec5d-39e2-4fd9-8b90-ab1cddd2dcf8}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY Input : pointer TO ARRAY [1..MAX_TRIGGER_BOX] OF ST_DC_Input]]></Declaration>
+      <Set Name="Set" Id="{a88c0ddb-5a3f-4c35-8212-57fad37a1837}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="ItfAxis" Id="{c412ecf8-d468-4ba5-8e21-f017a2031c34}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY ItfAxis : ARRAY[1..MAX_AXIS]       OF I_McAxis]]></Declaration>
+      <Set Name="Set" Id="{22a1a5d8-29fb-4b5a-9f93-1a40428a060f}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="MessageLevel" Id="{495db5bd-a678-49ec-963c-f82600e2d46c}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY MessageLevel : e_messagetype]]></Declaration>
+      <Get Name="Get" Id="{987fb413-6d5c-4483-bede-b15512f7f427}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+      <Set Name="Set" Id="{578a8a23-e733-45ca-b6fa-16bcb446a141}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="Output_2252" Id="{40855d71-34b8-4c3d-a561-8d2cb5dea8dd}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY Output_2252 : pointer TO ARRAY [1..MAX_TRIGGER_BOX] OF ST_DC_Output]]></Declaration>
+      <Set Name="Set" Id="{d7ea2af2-976c-4642-9146-6cc4930d60d1}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+  </Itf>
+</TcPlcObject>

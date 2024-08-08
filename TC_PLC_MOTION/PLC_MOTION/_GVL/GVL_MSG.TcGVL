@@ -8,10 +8,10 @@ VAR_GLOBAL CONSTANT
   //  - compiler define option WIN switches to Windows file paths
   //-----------------------------------------------------------------------------
 {IF NOT defined (BSD)}
-  {info 'WIN folders'}
+  {info 'PLC_MOTION_LAYER: WIN'}
   LOG_DIR               : STRING  := 'C:\TwinCAT\#MsgFiles\';
 {ELSE}
-  {info 'BSD folders'}
+  {info 'PLC_MOTION_LAYER: BSD'}
   LOG_DIR               : STRING  := '/usr/local/etc/TwinCAT/#MsgFiles/';
 {END_IF}
 
@@ -42,7 +42,7 @@ VAR_GLOBAL
   MessageLevelNciChn              : ARRAY[1..PLC_CONSTANT.MAX_NCI_CH] OF E_MessageType;
 
 {IF defined (TEST)}
-  {info 'TEST logging enabled'}
+  {info 'PLC_MOTION_LAYER: TEST'}
   MessageLevel                    : E_MessageType := eMessageVerbose; // a lot of messages
 {ELSE}
   MessageLevel                    : E_MessageType := eMessageError;    // not as much messages 

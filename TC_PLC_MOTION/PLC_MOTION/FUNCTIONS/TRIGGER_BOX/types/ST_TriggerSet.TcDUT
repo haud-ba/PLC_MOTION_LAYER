@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <DUT Name="ST_TriggerSet" Id="{fc5477ac-2847-4ac0-a905-eff71ca80fb5}">
+    <Declaration><![CDATA[TYPE ST_TriggerSet :
+STRUCT
+  Control             : T_TriggerControlBits;
+
+   {attribute 'hide'}
+  byc : ARRAY[1..7] OF BYTE;;
+
+
+  AxisId              : UDINT;  // TwinCAT NC Axis ID
+
+  TriggerCount        : UDINT;  // how many TriggerPositions shall be used
+
+  TriggerPosition     : ARRAY[1..MAX_TRIGGER_COUNT] OF LREAL;  // Axis Position where output must be set by TriggerBox
+                                // Trigger is set when crossing Position
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

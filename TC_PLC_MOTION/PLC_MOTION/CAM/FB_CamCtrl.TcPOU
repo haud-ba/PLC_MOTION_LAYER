@@ -87,7 +87,7 @@ OF
     _eState                         := E_PROGRESS.PROGRESS_BUSY;
 
     _stMsg.eType                    := E_MessageType.eMessageInfo;
-    _stMsg.eDevice                  := e_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+    _stMsg.eDevice                  := e_Device.Camming + (_AxisSlave.NcToPlc.AxisId);
     _stMsg.eSubdevice               :=  e_SubDevice.fbPowerOn;
     _stMsg.iErrorNumber             := _nErrorId;
 
@@ -137,7 +137,7 @@ OF
       _nErrorId                     := _AxisSlave.NcToPlc.ErrorCode;
     
       _stMsg.eType                  := E_MessageType.eMessageError;
-      _stMsg.eDevice                := e_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+      _stMsg.eDevice                := e_Device.Camming + (_AxisSlave.NcToPlc.AxisId);
       _stMsg.eSubdevice             :=  e_SubDevice.fbPowerOn;
       _stMsg.iErrorNumber           := _nErrorId;
 
@@ -188,7 +188,7 @@ OF
         _eCk                        := E_CHECK_STATE.CAM_MASTER_AXIS_REF_INVALID;
 
         _stMsg.eType                := E_MessageType.eMessageError;
-        _stMsg.eDevice              := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+        _stMsg.eDevice              := E_Device.Camming + (_AxisSlave.NcToPlc.AxisId);
         _stMsg.eSubdevice           := e_Subdevice.CamControl;
         _stMsg.iErrorNumber         := _stCamData.nMasterIndex;
   
@@ -281,7 +281,7 @@ OF
     _Info^[_nAxisIndex]             := CamInfoData;
 
     _stMsg.eType                    := E_MessageType.eMessageInfo;
-    _stMsg.eDevice                  := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+    _stMsg.eDevice                  := E_Device.Camming + (_AxisSlave.NcToPlc.AxisId);
     _stMsg.eSubdevice               := e_Subdevice.CamControl;
     _stMsg.iErrorNumber             := 0;
 
@@ -735,7 +735,7 @@ OF
       _eState                       := _eResult;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
-      _stMsg.eDevice                := e_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+      _stMsg.eDevice                := e_Device.Camming + (_AxisSlave.NcToPlc.AxisId);
       _stMsg.eSubdevice             := e_Subdevice.CamStartUp;
       _stMsg.iErrorNumber := _nErrorId  := 6666;
 
@@ -755,7 +755,7 @@ OF
       _eState                       := _eResult;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
-      _stMsg.eDevice                := e_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+      _stMsg.eDevice                := e_Device.Camming + (_AxisSlave.NcToPlc.AxisId);
       _stMsg.eSubdevice             := e_Subdevice.fbReset;
       _stMsg.iErrorNumber           := _AxisSlave.Status.ErrorID;
 
@@ -780,7 +780,7 @@ OF
     _eState                         := E_PROGRESS.PROGRESS_DONE;
 
     _stMsg.eType                    := E_MessageType.eMessageInfo;
-    _stMsg.eDevice                  := e_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+    _stMsg.eDevice                  := e_Device.Camming + (_AxisSlave.NcToPlc.AxisId);
     _stMsg.eSubdevice               := e_Subdevice.CamControl;
     _stMsg.iErrorNumber             := 0;
     _stMsg.sText                    := concat('CamInit: ', TO_STRING(_eState));
@@ -1000,7 +1000,7 @@ ELSE
         _eResult                      := E_PROGRESS.PROGRESS_INVALID;
   
         _stMsg.eType                  := E_MessageType.eMessageError;
-        _stMsg.eDevice                := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+        _stMsg.eDevice                := E_Device.Camming + (_AxisSlave.NcToPlc.AxisId);
         _stMsg.eSubdevice             := e_Subdevice.CamControl;
         _stMsg.iErrorNumber           := 0;
   
@@ -1206,7 +1206,7 @@ END_VAR
 ]]></Declaration>
       <Implementation>
         <ST><![CDATA[  _stMsg.eType               := SEL((_eCheck = E_CHECK_STATE.CHECK_DONE),(E_MessageType.eMessageError),(E_MessageType.eMessageInfo));
-  _stMsg.eDevice             := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+  _stMsg.eDevice             := E_Device.Camming + (_AxisSlave.NcToPlc.AxisId);
   _stMsg.eSubdevice          := e_Subdevice.CamControl;
   _stMsg.iErrorNumber        := _nAxisIndex;
 
@@ -1238,7 +1238,7 @@ END_VAR
 ]]></Declaration>
       <Implementation>
         <ST><![CDATA[  _stMsg.eType               := E_MessageType.eMessageInfo;
-  _stMsg.eDevice             := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+  _stMsg.eDevice             := E_Device.Camming + (_AxisSlave.NcToPlc.AxisId);
   _stMsg.eSubdevice          := e_Subdevice.CamControl;
   _stMsg.iErrorNumber        := _nAxisIndex;
 
@@ -1271,7 +1271,7 @@ END_VAR
       <Implementation>
         <ST><![CDATA[
   _stMsg.eType               := E_MessageType.eMessageInfo;
-  _stMsg.eDevice             := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+  _stMsg.eDevice             := E_Device.Camming + (_AxisSlave.NcToPlc.AxisId);
   _stMsg.eSubdevice          := e_Subdevice.CamControl;
   _stMsg.iErrorNumber        := _nAxisIndex;
 

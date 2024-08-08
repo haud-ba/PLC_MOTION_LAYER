@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <DUT Name="ST_DC_Input" Id="{44ab4740-247a-4ad8-b9b7-ca786d719010}">
+    <Declaration><![CDATA[TYPE ST_DC_Input :
+STRUCT
+  Input      : BIT;
+
+  Status     : USINT;
+
+  LatchPositive  : ULINT;
+  LatchNegative  : ULINT;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

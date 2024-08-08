@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <DUT Name="ST_TriggerBox" Id="{7bebcc89-848c-4317-a4db-001979b08fb4}">
+    <Declaration><![CDATA[TYPE ST_TriggerBox :
+STRUCT
+  // MB Triggerbox Function
+  // - output to CAM at given AxisPosition
+  // - input feedback from FlashController trigger timestamp
+  // - input feedback of AxisPosition at timestamp (FlashPosition)
+  ToPlc   : ST_TriggerSet;
+  FromPlc : ST_TriggerGet;  
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

@@ -11,6 +11,9 @@
       <Name>MAIN</Name>
     </PouCall>
     <PouCall>
+      <Name>FUNCTIONS</Name>
+    </PouCall>
+    <PouCall>
       <Name>NCI</Name>
     </PouCall>
     <PouCall>

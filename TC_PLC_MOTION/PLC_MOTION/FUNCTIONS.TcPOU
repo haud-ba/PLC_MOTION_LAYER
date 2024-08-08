@@ -1,0 +1,64 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="FUNCTIONS" Id="{e2929a8f-d00c-4f74-8ad9-39b9524bc0c1}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM FUNCTIONS
+VAR
+  nAxis,
+  nTrigger,
+  nProbe          : UINT;
+
+  I_McAxis        : ARRAY[1..MAX_AXIS]  OF I_McAxis;
+  szState,
+  szControl		:UINT;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[FOR nAxis := 1 TO MAX_AXIS
+DO
+  I_McAxis[nAxis]       := GVL_AXIS.Control[nAxis];
+END_FOR
+
+
+IF cXFC
+THEN
+
+szControl := SIZEOF(ST_TriggerSet);
+szState	  := SIZEOF(GVL_FUNCTIONS.TriggerBox[1].FromPlc);
+
+  FOR nProbe := 1 TO MAX_TOUCH_PROBE
+  DO
+    GVL_FUNCTIONS.TouchProbeCtrl[nProbe].MessageLevel   := GVL_FUNCTIONS.MessageLevelTouchProbe[nProbe];
+    GVL_FUNCTIONS.TouchProbeCtrl[nProbe].Index          := nProbe;
+    GVL_FUNCTIONS.TouchProbeCtrl[nProbe].ItfAxis        := I_McAxis;
+    GVL_FUNCTIONS.TouchProbeCtrl[nProbe].Ctrl           REF= GVL_FUNCTIONS.TouchProbe;
+    GVL_FUNCTIONS.TouchProbeCtrl[nProbe].Input          := ADR(GVL_FUNCTIONS.DigitalInput);
+    GVL_FUNCTIONS.TouchProbeCtrl[nProbe].InputState     := ADR(GVL_FUNCTIONS.DigitalState);
+    GVL_FUNCTIONS.TouchProbeCtrl[nProbe].Cycle();
+
+  END_FOR
+  
+  FOR nTrigger := 1 TO MAX_TRIGGER_BOX
+  DO
+    GVL_FUNCTIONS.TriggerBoxCtrl[nTrigger].MessageLevel := GVL_FUNCTIONS.MessageLevelTriggerBox[nTrigger];
+    GVL_FUNCTIONS.TriggerBoxCtrl[nTrigger].Index        := nTrigger;
+    GVL_FUNCTIONS.TriggerBoxCtrl[nTrigger].ItfAxis      := I_McAxis;
+    GVL_FUNCTIONS.TriggerBoxCtrl[nTrigger].Ctrl         REF= GVL_FUNCTIONS.TriggerBox;
+    GVL_FUNCTIONS.TriggerBoxCtrl[nTrigger].Input        := ADR(GVL_FUNCTIONS.DigitalInputDC);
+    GVL_FUNCTIONS.TriggerBoxCtrl[nTrigger].Output_2252  := ADR(GVL_FUNCTIONS.DigitalOutputDC);
+
+    GVL_FUNCTIONS.TriggerBoxCtrl[nTrigger].CycleWaitForPosition();
+  END_FOR
+END_IF
+
+
+  
+
+
+]]></ST>
+    </Implementation>
+    <LineIds Name="FUNCTIONS">
+      <LineId Id="216" Count="40" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

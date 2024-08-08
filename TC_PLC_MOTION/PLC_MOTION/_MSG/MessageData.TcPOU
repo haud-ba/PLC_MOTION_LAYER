@@ -315,7 +315,7 @@ VAR_INPUT
 END_VAR
 VAR
   sId                 : STRING := '_ID_';
-  nId                 : DINT;
+  nId                 : UDINT;
 END_VAR
 ]]></Declaration>
       <Implementation>

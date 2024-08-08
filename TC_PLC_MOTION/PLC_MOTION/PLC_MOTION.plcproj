@@ -63,6 +63,63 @@
     <Compile Include="CAM\types\ST_MOTION_FUNCTION_POINT.TcDUT">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="FUNCTIONS.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FUNCTIONS\TOUCH_PROBE\FB_TouchProbe.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FUNCTIONS\TOUCH_PROBE\I_TouchProbe.TcIO">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FUNCTIONS\TOUCH_PROBE\types\ST_2BIT.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FUNCTIONS\TOUCH_PROBE\types\ST_DC_Input.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FUNCTIONS\TOUCH_PROBE\types\ST_MTI_INPUT.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FUNCTIONS\TOUCH_PROBE\types\ST_MTI_STATUS.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FUNCTIONS\TOUCH_PROBE\types\ST_TouchProbe.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FUNCTIONS\TOUCH_PROBE\types\ST_TouchProbeGet.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FUNCTIONS\TOUCH_PROBE\types\ST_TouchProbeSet.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FUNCTIONS\TRIGGER_BOX\FB_TriggerBox.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FUNCTIONS\TRIGGER_BOX\I_TriggerBox.TcIO">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FUNCTIONS\TRIGGER_BOX\types\ST_DC_Output.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FUNCTIONS\TRIGGER_BOX\types\ST_DC_State.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FUNCTIONS\TRIGGER_BOX\types\ST_TriggerBox.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FUNCTIONS\TRIGGER_BOX\types\ST_TriggerGet.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FUNCTIONS\TRIGGER_BOX\types\ST_TriggerSet.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FUNCTIONS\TRIGGER_BOX\types\T_TriggerControl.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FUNCTIONS\TRIGGER_BOX\types\T_TriggerControlBits.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="MAPPING\MAPPING_in.TcPOU">
       <SubType>Code</SubType>
     </Compile>
@@ -206,6 +263,12 @@
     <Compile Include="NC_PTP\types\control\ST_NC_PARAMETER.TcDUT">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="XFC\FB_Xfc.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="XFC\types\E_XFC_CHECK.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="_DUT\E_CHECK_STATE.TcDUT">
       <SubType>Code</SubType>
     </Compile>
@@ -220,6 +283,10 @@
       <LinkAlways>true</LinkAlways>
     </Compile>
     <Compile Include="_GVL\GVL_CAM.TcGVL">
+      <SubType>Code</SubType>
+      <LinkAlways>true</LinkAlways>
+    </Compile>
+    <Compile Include="_GVL\GVL_FUNCTIONS.TcGVL">
       <SubType>Code</SubType>
       <LinkAlways>true</LinkAlways>
     </Compile>
@@ -324,6 +391,9 @@
       <SystemLibrary>true</SystemLibrary>
       <ResolverGuid>2717eb6a-dd07-4c66-8d8d-cacebd7b18ae</ResolverGuid>
     </PlaceholderReference>
+    <PlaceholderReference Include="Tc2_EtherCAT">
+      <DefaultResolution>Tc2_EtherCAT, * (Beckhoff Automation GmbH)</DefaultResolution>
+    </PlaceholderReference>
     <PlaceholderReference Include="Tc2_MC2">
       <DefaultResolution>Tc2_MC2, * (Beckhoff Automation GmbH)</DefaultResolution>
       <Namespace>Tc2_MC2</Namespace>
@@ -337,6 +407,12 @@
     <PlaceholderReference Include="Tc2_MC2_Drive">
       <DefaultResolution>Tc2_MC2_Drive, * (Beckhoff Automation GmbH)</DefaultResolution>
       <Namespace>Tc2_MC2_Drive</Namespace>
+    </PlaceholderReference>
+    <PlaceholderReference Include="Tc2_MC2_XFC">
+      <DefaultResolution>Tc2_MC2_XFC, * (Beckhoff Automation GmbH)</DefaultResolution>
+      <Condition>XFC</Condition>
+      <Namespace>Tc2_MC2_XFC</Namespace>
+      <Optional>true</Optional>
     </PlaceholderReference>
     <PlaceholderReference Include="Tc2_NC">
       <DefaultResolution>Tc2_NC, * (Beckhoff Automation GmbH)</DefaultResolution>
@@ -361,12 +437,19 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="CAM\types" />
+    <Folder Include="FUNCTIONS\TOUCH_PROBE" />
+    <Folder Include="FUNCTIONS\TOUCH_PROBE\types" />
+    <Folder Include="FUNCTIONS\TRIGGER_BOX" />
+    <Folder Include="FUNCTIONS\TRIGGER_BOX\types" />
     <Folder Include="MAPPING\types" />
     <Folder Include="NCI\files" />
     <Folder Include="NCI\types" />
     <Folder Include="NC_PTP\types\control" />
     <Folder Include="NC_PTP\types\axis" />
     <Folder Include="MAPPING" />
+    <Folder Include="FUNCTIONS" />
+    <Folder Include="XFC" />
+    <Folder Include="XFC\types" />
     <Folder Include="_UML" />
     <Folder Include="_MSG\types" />
     <Folder Include="NC_PTP" />

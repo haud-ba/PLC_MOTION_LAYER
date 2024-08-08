@@ -1,0 +1,523 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="FB_TouchProbe" Id="{379ba5cf-2e9d-498d-a8bf-d202d33bef2a}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_TouchProbe EXTENDS FB_Xfc
+VAR
+  _Probe            : REFERENCE TO ARRAY[1..MAX_TOUCH_PROBE] OF ST_TouchProbe;
+  _Input            : POINTER TO ARRAY[1..MAX_TOUCH_PROBE] OF ST_MTI_Input;
+  _InputState       : POINTER TO ARRAY[1..MAX_TOUCH_PROBE] OF ST_MTI_STATUS;
+
+  _Index            : UDINT;
+  _AxisId           : UDINT;
+  _AxisIndex        : UDINT;
+
+  _stCtrl           : ST_TouchProbeSet;
+  _McDirection      : Tc2_MC2.MC_Direction;
+
+  _eState           : E_PROGRESS;
+  _eResult          : E_PROGRESS;
+
+  _rtrigEnable      : Tc2_Standard.R_TRIG;
+  _TrigCount        : UDINT;
+
+  _CurrentTime      : ULINT;
+  _CurrentTimeShort : UDINT;
+  _LatchTime        : UDINT;
+  _LatchState       : Bool;
+
+  _bError           : BOOL;
+  _stMsg            : ST_Message;
+  _MessageLevel     : E_MessageType;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Property Name="Ctrl" Id="{54fe8f3f-9445-437a-89b9-2c201fda5e98}">
+      <Declaration><![CDATA[PROPERTY Ctrl : REFERENCE TO ARRAY [1..MAX_TOUCH_PROBE] OF ST_TouchProbe]]></Declaration>
+      <Set Name="Set" Id="{dc10eecf-2bd5-4358-a169-ae96d39aa8b6}">
+        <Declaration><![CDATA[
+VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_Probe REF= Ctrl;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Method Name="Cycle" Id="{211e6416-a5ad-4ea8-a51c-fe35825bea80}">
+      <Declaration><![CDATA[METHOD Cycle : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[
+IF NOT _Probe[_Index].ToPlc.Enable 
+THEN 
+  _eState                       := E_PROGRESS.PROGRESS_INVALID;
+  _LatchState                   := FALSE;
+  _Probe[_Index].FromPlc.State  := TO_UINT(_eState);
+END_IF
+
+_eDeviceFunction                := e_Device.XfcTouchProbe + _Index;
+
+_rtrigEnable(CLK                := _Probe[_Index].ToPlc.Enable);
+
+
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_INVALID:      // check input data
+    IF _rtrigEnable.Q
+    THEN
+      _Probe[_Index].FromPlc.State          := TO_UINT(E_PROGRESS.PROGRESS_BUSY);
+      _Probe[_Index].FromPlc.LatchPositive  := 0.0;
+      _Probe[_Index].FromPlc.LatchNegative  := 0.0;
+
+      _bError                   := FALSE;
+      _eState                   := E_PROGRESS.PROGRESS_INIT;
+
+      _stCtrl                   := _Probe[_Index].ToPlc;
+      _CurrentTime              := Tc2_EtherCAT.F_GetCurDcTaskTime64();
+      _CurrentTimeShort         := TO_UDINT(_CurrentTime AND 16#FFFFFFFF);
+
+      _AxisId                   := _stCtrl.AxisId;
+      _AxisIndex                := GetIndex(_AxisId);
+
+      _stMsg.iErrorNumber       := 0;
+
+      IF NOT (_AxisIndex > 0) OR NOT (_AxisId > 0)
+      THEN
+        _bError                 := TRUE;
+        _stMsg.iErrorNumber     := 1;
+        _stMsg.sText            := 'AxisId Invalid ';
+        _eState                 := E_PROGRESS.PROGRESS_STILL_WORKING;
+      END_IF
+
+      IF NOT (_stCtrl.Direction = MC_Positive_Direction) OR 
+         NOT (_stCtrl.Direction = MC_Negative_Direction)
+      THEN
+        _bError                 := TRUE;
+        _stMsg.iErrorNumber     := 2;
+        _stMsg.sText            := 'Direction Invalid ';
+        _eState                 := E_PROGRESS.PROGRESS_STILL_WORKING;
+      END_IF
+
+      IF NOT IsFinite(F_LReal(_stCtrl.PositionStart))
+      THEN
+        _bError                 := TRUE;
+        _stMsg.iErrorNumber     := 3;
+        _stMsg.sText            := 'PositionStart not finite ';
+        _eState                 := E_PROGRESS.PROGRESS_STILL_WORKING;
+      END_IF
+
+      IF NOT IsFinite(F_LReal(_stCtrl.PositionEnd))
+      THEN
+        _bError                 := TRUE;
+        _stMsg.iErrorNumber     := 4;
+        _stMsg.sText            := 'PositionEnd not finite ';
+        _eState                 := E_PROGRESS.PROGRESS_STILL_WORKING;
+      END_IF
+    END_IF
+
+
+  E_PROGRESS.PROGRESS_INIT:
+      _eDeviceAxis              := e_Device.XfcAxis + (_stCtrl.AxisId);
+      _eState                   := E_PROGRESS.PROGRESS_BUSY;
+
+      IF (_MessageLevel = E_MessageType.eMessageVerbose)
+      THEN
+        _stMsg.eType            := E_MessageType.eMessageVerbose;
+        _stMsg.eDevice          := _eDeviceFunction;
+        _stMsg.eSubdevice       := e_Subdevice.XfcTouchProbe;
+        _stMsg.iErrorNumber     := _eDeviceAxis;
+        _stMsg.sText            := concat(TO_STRING(_eState), ': ');
+        _stMsg.sText            := concat(_stMsg.sText, TO_STRING(e_Device.XfcAxis));
+        _stMsg.sText            := concat(_stMsg.sText, '_ID_');
+        _stMsg.sText            := concat(_stMsg.sText, TO_STRING(_AxisId));
+
+        f_MessageSet(_stMsg);
+      END_IF
+END_CASE
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_BUSY:
+    _McDirection                := _stCtrl.Direction;
+    CASE _McDirection
+    OF
+      MC_Positive_Direction:
+        IF (_ItfAxis[_AxisIndex].Position >= _stCtrl.PositionStart)
+        THEN
+          _eResult              := PositionAtTime(FALSE, _stCtrl.AxisId, 0, _MessageLevel);
+          _eState               := E_PROGRESS.PROGRESS_PREPARE;
+        END_IF
+
+      MC_Negative_Direction:
+        IF (_ItfAxis[_AxisIndex].Position <= _stCtrl.PositionStart)
+        THEN
+          _eResult              := PositionAtTime(FALSE, _stCtrl.AxisId, 0, _MessageLevel);
+          _eState               := E_PROGRESS.PROGRESS_PREPARE;
+        END_IF
+    END_CASE
+END_CASE
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_PREPARE:
+    CASE _McDirection
+    OF
+      MC_Positive_Direction:
+        IF (_ItfAxis[_AxisIndex].Position > _stCtrl.PositionEnd)
+        THEN
+          _bError                   := TRUE;
+          _stMsg.iErrorNumber       := 5;
+          _stMsg.sText              := 'PositionEnd reached, no rising trigger ';
+          _eState                   := E_PROGRESS.PROGRESS_STILL_WORKING;
+    
+        ELSIF (_Input^[_Index].EventState) OR
+              (_Input^[_Index].EventTime > _CurrentTimeShort)
+        THEN
+          _LatchState               := _Input^[_Index].EventState;
+          _LatchTime                := _Input^[_Index].EventTime;
+    
+          IF (_MessageLevel = E_MessageType.eMessageVerbose)
+          THEN
+            _stMsg.eType            := E_MessageType.eMessageVerbose;
+            _stMsg.eDevice          := _eDeviceFunction;
+            _stMsg.eSubdevice       := e_Subdevice.XfcTouchProbe;
+            _stMsg.iErrorNumber     := _LatchTime;
+            _stMsg.sText            := concat(TO_STRING(_eState), ': ');
+            _stMsg.sText            := concat(_stMsg.sText, TO_STRING(e_Device.XfcAxis));
+    
+            f_MessageSet(_stMsg);
+          END_IF
+          _eState                   := E_PROGRESS.PROGRESS_STARTUP;
+        END_IF
+
+      MC_Negative_Direction:
+        IF (_ItfAxis[_AxisIndex].Position < _stCtrl.PositionEnd)
+        THEN
+          _bError                   := TRUE;
+          _stMsg.iErrorNumber       := 5;
+          _stMsg.sText              := 'PositionEnd reached, no rising trigger ';
+          _eState                   := E_PROGRESS.PROGRESS_STILL_WORKING;
+    
+        ELSIF (_Input^[_Index].EventState) OR
+              (_Input^[_Index].EventTime > _CurrentTimeShort)
+        THEN
+          _LatchState               := _Input^[_Index].EventState;
+          _LatchTime                := _Input^[_Index].EventTime;
+    
+          IF (_MessageLevel = E_MessageType.eMessageVerbose)
+          THEN
+            _stMsg.eType            := E_MessageType.eMessageVerbose;
+            _stMsg.eDevice          := _eDeviceFunction;
+            _stMsg.eSubdevice       := e_Subdevice.XfcTouchProbe;
+            _stMsg.iErrorNumber     := _LatchTime;
+            _stMsg.sText            := concat(TO_STRING(_eState), ': ');
+            _stMsg.sText            := concat(_stMsg.sText, TO_STRING(e_Device.XfcAxis));
+    
+            f_MessageSet(_stMsg);
+          END_IF
+          _eState                   := E_PROGRESS.PROGRESS_STARTUP;
+        END_IF
+    END_CASE
+END_CASE
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_STARTUP:
+    _eResult                    := PositionAtTime(TRUE, _stCtrl.AxisId, _LatchTime, _MessageLevel);
+
+    IF (_eResult = E_PROGRESS.PROGRESS_ERROR)
+    THEN
+      _bError                   := TRUE;
+      _stMsg.iErrorNumber       := 7;
+      _stMsg.sText              := 'PositionAtTime LatchPositive ';
+      _eState                   := E_PROGRESS.PROGRESS_STILL_WORKING;
+      _eResult                  := PositionAtTime(FALSE, _stCtrl.AxisId, 0, _MessageLevel);
+
+    ELSIF (_eResult = E_PROGRESS.PROGRESS_DONE)
+    THEN
+      _Probe[_Index].FromPlc.LatchPositive  := _XfcRecordedPosition[_AxisIndex];
+
+      _CurrentTime              := Tc2_EtherCAT.F_GetCurDcTaskTime64();
+      _CurrentTimeShort         := TO_UDINT(_CurrentTime AND 16#FFFFFFFF);
+
+      IF (_MessageLevel = E_MessageType.eMessageVerbose)
+      THEN
+        _stMsg.eType            := E_MessageType.eMessageVerbose;
+        _stMsg.eDevice          := _eDeviceFunction;
+        _stMsg.eSubdevice       := e_Subdevice.XfcTouchProbe;
+        _stMsg.iErrorNumber     := _LatchTime;
+        _stMsg.sText            := concat(TO_STRING(_eState), ': ');
+        _stMsg.sText            := concat(_stMsg.sText, TO_STRING(_XfcRecordedPosition[_AxisIndex]));
+
+        f_MessageSet(_stMsg);
+      END_IF
+      _eState                   := E_PROGRESS.PROGRESS_CHECK;
+      _eResult                  := PositionAtTime(FALSE, _stCtrl.AxisId, 0, _MessageLevel);
+    END_IF
+END_CASE
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_CHECK:
+    CASE _McDirection
+    OF
+      MC_Positive_Direction:
+        IF (_ItfAxis[_AxisIndex].Position > _stCtrl.PositionEnd)
+        THEN
+          _bError                   := TRUE;
+          _stMsg.iErrorNumber       := 6;
+          _stMsg.sText              := concat('PositionEnd reached, no falling trigger :', TO_STRING(_ItfAxis[_AxisIndex].Position));
+          _eState                   := E_PROGRESS.PROGRESS_STILL_WORKING;
+    
+        ELSIF NOT (_Input^[_Index].EventState) OR
+              (_Input^[_Index].EventTime > _LatchTime - 1_000)
+        THEN
+          _LatchState               := _Input^[_Index].EventState;
+          _LatchTime                := _Input^[_Index].EventTime;
+    
+          IF (_MessageLevel = E_MessageType.eMessageVerbose)
+          THEN
+            _stMsg.eType            := E_MessageType.eMessageVerbose;
+            _stMsg.eDevice          := _eDeviceFunction;
+            _stMsg.eSubdevice       := e_Subdevice.XfcTouchProbe;
+            _stMsg.iErrorNumber     := _LatchTime;
+            _stMsg.sText            := concat(TO_STRING(_eState), ': ');
+            _stMsg.sText            := concat(_stMsg.sText, TO_STRING(e_Device.XfcAxis));
+    
+            f_MessageSet(_stMsg);
+          END_IF
+          _eState                   := E_PROGRESS.PROGRESS_OCCUPIED;
+        END_IF
+
+      MC_Negative_Direction:
+        IF (_ItfAxis[_AxisIndex].Position < _stCtrl.PositionEnd)
+        THEN
+          _bError                   := TRUE;
+          _stMsg.iErrorNumber       := 6;
+          _stMsg.sText              := concat('PositionEnd reached, no falling trigger :', TO_STRING(_ItfAxis[_AxisIndex].Position));
+          _eState                   := E_PROGRESS.PROGRESS_STILL_WORKING;
+    
+        ELSIF NOT (_Input^[_Index].EventState) OR
+              (_Input^[_Index].EventTime > _LatchTime - 1_000)
+        THEN
+          _LatchState               := _Input^[_Index].EventState;
+          _LatchTime                := _Input^[_Index].EventTime;
+    
+          IF (_MessageLevel = E_MessageType.eMessageVerbose)
+          THEN
+            _stMsg.eType            := E_MessageType.eMessageVerbose;
+            _stMsg.eDevice          := _eDeviceFunction;
+            _stMsg.eSubdevice       := e_Subdevice.XfcTouchProbe;
+            _stMsg.iErrorNumber     := _LatchTime;
+            _stMsg.sText            := concat(TO_STRING(_eState), ': ');
+            _stMsg.sText            := concat(_stMsg.sText, TO_STRING(e_Device.XfcAxis));
+    
+            f_MessageSet(_stMsg);
+          END_IF
+          _eState                   := E_PROGRESS.PROGRESS_OCCUPIED;
+        END_IF
+    END_CASE
+END_CASE
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_OCCUPIED:
+    _eResult                    := PositionAtTime(TRUE, _stCtrl.AxisId, _LatchTime, _MessageLevel);
+
+    IF (_eResult = E_PROGRESS.PROGRESS_ERROR)
+    THEN
+      _bError                   := TRUE;
+      _stMsg.iErrorNumber       := 8;
+      _stMsg.sText              := 'PositionAtTime LatchNegative: ';
+      _eState                   := E_PROGRESS.PROGRESS_STILL_WORKING;
+      _eResult                  := PositionAtTime(FALSE, _stCtrl.AxisId, 0, _MessageLevel);
+
+    ELSIF (_eResult = E_PROGRESS.PROGRESS_DONE)
+    THEN
+      _Probe[_Index].FromPlc.LatchNegative  := _XfcRecordedPosition[_AxisIndex];
+
+      IF (_MessageLevel = E_MessageType.eMessageVerbose)
+      THEN
+        _stMsg.eType            := E_MessageType.eMessageVerbose;
+        _stMsg.eDevice          := _eDeviceFunction;
+        _stMsg.eSubdevice       := e_Subdevice.XfcTouchProbe;
+        _stMsg.iErrorNumber     := _LatchTime;
+        _stMsg.sText            := concat(TO_STRING(_eState), ': ');
+        _stMsg.sText            := concat(_stMsg.sText, TO_STRING(_XfcRecordedPosition[_AxisIndex]));
+
+        f_MessageSet(_stMsg);
+      END_IF
+      _eState                   := E_PROGRESS.PROGRESS_WORKING;
+      _eResult                  := PositionAtTime(FALSE, _stCtrl.AxisId, 0, _MessageLevel);
+    END_IF
+END_CASE
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_WORKING:
+    _eState                     := E_PROGRESS.PROGRESS_STILL_WORKING;
+END_CASE
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_STILL_WORKING:
+    IF NOT _bError
+    THEN
+      _eState                   := E_PROGRESS.PROGRESS_DONE;
+
+      IF (_MessageLevel > E_MessageType.eMessageWarning)
+      THEN
+        _stMsg.eType            := E_MessageType.eMessageInfo;
+        _stMsg.eDevice          := _eDeviceFunction;
+        _stMsg.eSubdevice       := e_Subdevice.XfcTouchProbe;
+        _stMsg.iErrorNumber     := _eDeviceAxis;
+        _stMsg.sText            := concat(TO_STRING(_eState), ': ');
+        _stMsg.sText            := concat(_stMsg.sText, TO_STRING(e_Device.XfcAxis));
+        _stMsg.sText            := concat(_stMsg.sText, '_ID_');
+        _stMsg.sText            := concat(_stMsg.sText, TO_STRING(_AxisId));
+
+        f_MessageSet(_stMsg);
+      END_IF
+      _Probe[_Index].FromPlc.State  := TO_UINT(_eState);
+    ELSE
+      _eState                   := E_PROGRESS.PROGRESS_ERROR;
+
+      _stMsg.eType              := E_MessageType.eMessageError;
+      _stMsg.eDevice            := _eDeviceFunction;
+      _stMsg.eSubdevice         := e_Subdevice.XfcTouchProbe;
+      _stMsg.sText              := concat(_stMsg.sText, TO_STRING(_eState));
+      _stMsg.sText              := concat(_stMsg.sText, ': ');
+      _stMsg.sText              := concat(_stMsg.sText, TO_STRING(e_Device.XfcAxis));
+      _stMsg.sText              := concat(_stMsg.sText, '_ID_');
+      _stMsg.sText              := concat(_stMsg.sText, TO_STRING(_AxisId));
+
+      f_MessageSet(_stMsg);
+      _Probe[_Index].FromPlc.State  := TO_UINT(_eState) + TO_UINT(_stMsg.iErrorNumber);
+    END_IF
+END_CASE
+
+
+
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="Index" Id="{2ad14ec0-74ba-4dc0-be2c-769aec1b401e}">
+      <Declaration><![CDATA[PROPERTY Index : udint]]></Declaration>
+      <Get Name="Get" Id="{8c2feba7-3bfd-40e9-a587-1801df041bfa}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Index := _Index;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{181ace03-1c86-4c39-ab65-975367a2c1f7}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_Index := Index;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="Input" Id="{54665186-7cbf-46fa-9f9f-24486f540965}">
+      <Declaration><![CDATA[PROPERTY Input : pointer TO ARRAY [1..MAX_TOUCH_PROBE] OF ST_MTI_Input]]></Declaration>
+      <Set Name="Set" Id="{1d54dd94-4fc9-4b7d-9746-161b9de3cd1c}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_Input := Input;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="InputState" Id="{07bea674-c1e0-4819-b13a-24f0a7118b94}">
+      <Declaration><![CDATA[PROPERTY InputState : pointer TO ARRAY [1..MAX_TOUCH_PROBE] OF ST_MTI_STATUS]]></Declaration>
+      <Set Name="Set" Id="{0e4bdfba-eb8f-444c-a9f7-a73c93697eba}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_InputState := InputState;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="MessageLevel" Id="{d8c3388a-c45c-4862-8954-1cb7379f7dfe}">
+      <Declaration><![CDATA[PROPERTY MessageLevel : e_messagetype]]></Declaration>
+      <Get Name="Get" Id="{66813ac6-89dd-48e1-89d1-07ff7edea78d}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[MessageLevel := _MessageLevel;
+]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{55ce8e29-5bc6-4e5a-829e-645018219a72}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_MessageLevel := MessageLevel;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <LineIds Name="FB_TouchProbe">
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_TouchProbe.Ctrl.Set">
+      <LineId Id="2" Count="0" />
+      <LineId Id="6" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_TouchProbe.Cycle">
+      <LineId Id="794" Count="0" />
+      <LineId Id="424" Count="17" />
+      <LineId Id="792" Count="1" />
+      <LineId Id="442" Count="11" />
+      <LineId Id="791" Count="0" />
+      <LineId Id="456" Count="73" />
+      <LineId Id="535" Count="250" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_TouchProbe.Index.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_TouchProbe.Index.Set">
+      <LineId Id="2" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_TouchProbe.Input.Set">
+      <LineId Id="2" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_TouchProbe.InputState.Set">
+      <LineId Id="2" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_TouchProbe.MessageLevel.Get">
+      <LineId Id="2" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_TouchProbe.MessageLevel.Set">
+      <LineId Id="2" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

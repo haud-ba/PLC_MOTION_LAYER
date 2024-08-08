@@ -81,6 +81,26 @@ TYPE e_Subdevice :
   Get_ItpState,
   Get_Error,
 
+  XfcPositionAtTime       := 300,
+  XfcTimeOfPosition,
+  XfcTimeToPosition,
+  XfcTimeToModuloPosition,
+  XfcRecordedPosition,
+  XfcTouchProbe,          // 305
+  XfcTouchProbeEL1258,
+  XfcTouchProbeOptions,
+  XfcTriggerRef,
+  XfcTriggerRef_MT,
+  XfcEl1258Interface_MT,  // 310
+  XfcRecordedPosition_MT,
+  XfcTriggerOut,
+  XfcTriggerStart,
+  XfcSwitchOn_2252,
+  XfcSwitchOff_2252,      // 315
+  XfcInit,
+  XfcLatchPosition,
+  XfcWaitForPosition,
+
   AxisControl           := 1000,
   AxisStartUp,
   AxisCycle,
@@ -114,7 +134,7 @@ TYPE e_Subdevice :
   CamControl            := 8000,
   CamStartUp,
   CamCycle
-)DINT;
+)uDINT;
 END_TYPE
 ]]></Declaration>
   </DUT>

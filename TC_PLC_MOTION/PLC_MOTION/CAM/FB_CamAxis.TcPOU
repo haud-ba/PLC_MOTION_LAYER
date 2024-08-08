@@ -80,7 +80,7 @@ OF
         _eCk                        := E_CHECK_STATE.CAM_MASTER_AXIS_REF_INVALID;
 
         _stMsg.eType                := E_MessageType.eMessageError;
-        _stMsg.eDevice              := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+        _stMsg.eDevice              := E_Device.Camming + (_AxisSlave.NcToPlc.AxisId);
         _stMsg.eSubdevice           := e_Subdevice.fbCamInV2;
         _stMsg.iErrorNumber         := nMasterIndex;
   
@@ -94,7 +94,7 @@ OF
         IF (_MessageLevel = E_MessageType.eMessageVerbose)
         THEN
           _stMsg.eType              := E_MessageType.eMessageVerbose;
-          _stMsg.eDevice            := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+          _stMsg.eDevice            := E_Device.Camming + (_AxisSlave.NcToPlc.AxisId);
           _stMsg.eSubdevice         := e_Subdevice.fbCamInfoV2;
           _stMsg.iErrorNumber       := 0;
     
@@ -131,7 +131,7 @@ OF
       _udiErr                       := _fbCamInV2.ErrorID;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
-      _stMsg.eDevice                := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+      _stMsg.eDevice                := E_Device.Camming + (_AxisSlave.NcToPlc.AxisId);
       _stMsg.eSubdevice             := e_Subdevice.fbCamInV2;
       _stMsg.iErrorNumber           := _udiErr;
 
@@ -150,7 +150,7 @@ OF
       IF (_MessageLevel < E_MessageType.eMessageError)
       THEN
         _stMsg.eType                := E_MessageType.eMessageInfo;
-        _stMsg.eDevice              := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+        _stMsg.eDevice              := E_Device.Camming + (_AxisSlave.NcToPlc.AxisId);
         _stMsg.eSubdevice           := e_Subdevice.fbCamInV2;
         _stMsg.iErrorNumber         := 0;
   
@@ -218,7 +218,7 @@ OF
       IF (_MessageLevel = E_MessageType.eMessageVerbose)
       THEN
         _stMsg.eType                := E_MessageType.eMessageVerbose;
-        _stMsg.eDevice              := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+        _stMsg.eDevice              := E_Device.Camming + (_AxisSlave.NcToPlc.AxisId);
         _stMsg.eSubdevice           := e_Subdevice.fbCamInfoV2;
         _stMsg.iErrorNumber         := 0;
   
@@ -244,7 +244,7 @@ OF
       _udiErr                       := _fbCamInfoV2.ErrorID;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
-      _stMsg.eDevice                := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+      _stMsg.eDevice                := E_Device.Camming + (_AxisSlave.NcToPlc.AxisId);
       _stMsg.eSubdevice             := e_Subdevice.fbCamInfoV2;
       _stMsg.iErrorNumber           := _udiErr;
 
@@ -263,7 +263,7 @@ OF
       IF (_MessageLevel < E_MessageType.eMessageError)
       THEN
         _stMsg.eType                := E_MessageType.eMessageInfo;
-        _stMsg.eDevice              := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+        _stMsg.eDevice              := E_Device.Camming + (_AxisSlave.NcToPlc.AxisId);
         _stMsg.eSubdevice           := e_Subdevice.fbCamInfoV2;
         _stMsg.iErrorNumber         := 0;
   
@@ -399,7 +399,7 @@ OF
       IF (_MessageLevel = E_MessageType.eMessageVerbose)
       THEN
         _stMsg.eType                := E_MessageType.eMessageInfo;
-        _stMsg.eDevice              := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+        _stMsg.eDevice              := E_Device.Camming + (_AxisSlave.NcToPlc.AxisId);
         _stMsg.eSubdevice           := e_Subdevice.fbCamOut;
         _stMsg.iErrorNumber         := 0;
   
@@ -424,7 +424,7 @@ OF
       _udiErr                       := _fbCamOut.ErrorID;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
-      _stMsg.eDevice                := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+      _stMsg.eDevice                := E_Device.Camming + (_AxisSlave.NcToPlc.AxisId);
       _stMsg.eSubdevice             := e_Subdevice.fbCamOut;
       _stMsg.iErrorNumber           := _udiErr;
 
@@ -442,7 +442,7 @@ OF
       IF (_MessageLevel < E_MessageType.eMessageError)
       THEN
         _stMsg.eType                := E_MessageType.eMessageInfo;
-        _stMsg.eDevice              := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+        _stMsg.eDevice              := E_Device.Camming + (_AxisSlave.NcToPlc.AxisId);
         _stMsg.eSubdevice           := e_Subdevice.fbCamOut;
         _stMsg.iErrorNumber         := 0;
   
@@ -514,7 +514,7 @@ OF
     IF (_MessageLevel = E_MessageType.eMessageVerbose)
     THEN
       _stMsg.eType                  := E_MessageType.eMessageVerbose;
-      _stMsg.eDevice                := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+      _stMsg.eDevice                := E_Device.Camming + (_AxisSlave.NcToPlc.AxisId);
       _stMsg.eSubdevice             := e_Subdevice.fbCamScalingV2;
       _stMsg.iErrorNumber           := _nLastCamTableID;
 
@@ -538,7 +538,7 @@ OF
       _udiErr                       := _fbScalingV2.ErrorID;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
-      _stMsg.eDevice                := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+      _stMsg.eDevice                := E_Device.Camming + (_AxisSlave.NcToPlc.AxisId);
       _stMsg.eSubdevice             := e_Subdevice.fbCamScalingV2;
       _stMsg.iErrorNumber           := _udiErr;
 
@@ -555,7 +555,7 @@ OF
       _udiErr                       := _fbScalingV2.ErrorID;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
-      _stMsg.eDevice                := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+      _stMsg.eDevice                := E_Device.Camming + (_AxisSlave.NcToPlc.AxisId);
       _stMsg.eSubdevice             := e_Subdevice.fbCamScalingV2;
       _stMsg.iErrorNumber           := _udiErr;
 
@@ -573,7 +573,7 @@ OF
       IF (_MessageLevel < E_MessageType.eMessageError)
       THEN
         _stMsg.eType                := E_MessageType.eMessageInfo;
-        _stMsg.eDevice              := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+        _stMsg.eDevice              := E_Device.Camming + (_AxisSlave.NcToPlc.AxisId);
         _stMsg.eSubdevice           := e_Subdevice.fbCamScalingV2;
         _stMsg.iErrorNumber         := 0;
   
@@ -688,7 +688,7 @@ OF
       _udiErr                       := _fbReadMotionFunction.ErrorID;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
-      _stMsg.eDevice                := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+      _stMsg.eDevice                := E_Device.Camming + (_AxisSlave.NcToPlc.AxisId);
       _stMsg.eSubdevice             := e_Subdevice.fbReadMotionFunction;
       _stMsg.iErrorNumber           := _udiErr;
 
@@ -709,7 +709,7 @@ OF
       IF (_MessageLevel < E_MessageType.eMessageError)
       THEN
         _stMsg.eType                := E_MessageType.eMessageInfo;
-        _stMsg.eDevice              := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+        _stMsg.eDevice              := E_Device.Camming + (_AxisSlave.NcToPlc.AxisId);
         _stMsg.eSubdevice           := e_Subdevice.fbReadMotionFunction;
         _stMsg.iErrorNumber         := 0;
   
@@ -731,9 +731,9 @@ OF
 
     _stMsg.eType                    := SEL((TO_UINT(_mcCamRef.ArraySize) > MAX_MOTION_FUNCTION_POINTS),
                                             E_MessageType.eMessageInfo,
-                                            E_MessageType.eMessageWarn);
+                                            E_MessageType.eMessageWarning);
 
-    _stMsg.eDevice                  := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+    _stMsg.eDevice                  := E_Device.Camming + (_AxisSlave.NcToPlc.AxisId);
     _stMsg.eSubdevice               := e_Subdevice.fbReadMotionFunction;
     _stMsg.iErrorNumber             := _nMotionFunctionSize;
 
@@ -759,7 +759,7 @@ OF
     IF (_MessageLevel < E_MessageType.eMessageError)
     THEN
       _stMsg.eType                  := E_MessageType.eMessageInfo;
-      _stMsg.eDevice                := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+      _stMsg.eDevice                := E_Device.Camming + (_AxisSlave.NcToPlc.AxisId);
       _stMsg.eSubdevice             := e_Subdevice.fbReadMotionFunction;
       _stMsg.iErrorNumber           := 0;
   
@@ -866,7 +866,7 @@ OF
       _udiErr                       := _fbReadMotionFunctionPoint.ErrorID;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
-      _stMsg.eDevice                := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+      _stMsg.eDevice                := E_Device.Camming + (_AxisSlave.NcToPlc.AxisId);
       _stMsg.eSubdevice             := e_Subdevice.fbReadMotionFunctionPoint;
       _stMsg.iErrorNumber           := _udiErr;
 
@@ -884,7 +884,7 @@ OF
         _eState                     := E_PROGRESS.PROGRESS_DONE;
   
         _stMsg.eType                := E_MessageType.eMessageInfo;
-        _stMsg.eDevice              := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+        _stMsg.eDevice              := E_Device.Camming + (_AxisSlave.NcToPlc.AxisId);
         _stMsg.eSubdevice           := e_Subdevice.fbReadMotionFunctionPoint;
         _stMsg.iErrorNumber         := 0;
   
@@ -995,7 +995,7 @@ OF
       _udiErr                       := _fbReadMotionFunctionValues.ErrorID;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
-      _stMsg.eDevice                := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+      _stMsg.eDevice                := E_Device.Camming + (_AxisSlave.NcToPlc.AxisId);
       _stMsg.eSubdevice             := e_Subdevice.fbReadMotionFunctionValues;
       _stMsg.iErrorNumber           := _udiErr;
 
@@ -1016,7 +1016,7 @@ OF
         _eState                     := E_PROGRESS.PROGRESS_DONE;
   
         _stMsg.eType                := E_MessageType.eMessageInfo;
-        _stMsg.eDevice              := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+        _stMsg.eDevice              := E_Device.Camming + (_AxisSlave.NcToPlc.AxisId);
         _stMsg.eSubdevice           := e_Subdevice.fbReadMotionFunctionValues;
         _stMsg.iErrorNumber         := 0;
   
@@ -1098,7 +1098,7 @@ OF
       _udiErr                       := _fbSetCamOnlineChangeMode.ErrorID;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
-      _stMsg.eDevice                := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+      _stMsg.eDevice                := E_Device.Camming + (_AxisSlave.NcToPlc.AxisId);
       _stMsg.eSubdevice             := e_Subdevice.fbSetOnlineChangeMode;
       _stMsg.iErrorNumber           := _udiErr;
 
@@ -1113,7 +1113,7 @@ OF
       _eState                       := E_PROGRESS.PROGRESS_DONE;
 
       _stMsg.eType                  := E_MessageType.eMessageInfo;
-      _stMsg.eDevice                := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+      _stMsg.eDevice                := E_Device.Camming + (_AxisSlave.NcToPlc.AxisId);
       _stMsg.eSubdevice             := e_Subdevice.fbSetOnlineChangeMode;
       _stMsg.iErrorNumber           := 0;
 
@@ -1295,7 +1295,7 @@ OF
       _udiErr                       := _fbWriteMotionFunction.ErrorID;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
-      _stMsg.eDevice                := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+      _stMsg.eDevice                := E_Device.Camming + (_AxisSlave.NcToPlc.AxisId);
       _stMsg.eSubdevice             := e_Subdevice.fbWriteMotionFunction;
       _stMsg.iErrorNumber           := _udiErr;
 
@@ -1327,7 +1327,7 @@ OF
     _eState                         := E_PROGRESS.PROGRESS_DONE;
 
     _stMsg.eType                    := E_MessageType.eMessageInfo;
-    _stMsg.eDevice                  := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+    _stMsg.eDevice                  := E_Device.Camming + (_AxisSlave.NcToPlc.AxisId);
     _stMsg.eSubdevice               := e_Subdevice.fbWriteMotionFunction;
     _stMsg.iErrorNumber             := 0;
 
@@ -1422,7 +1422,7 @@ OF
         _udiErr                     := _stCamData.nPointIndex;
   
         _stMsg.eType                := E_MessageType.eMessageError;
-        _stMsg.eDevice              := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+        _stMsg.eDevice              := E_Device.Camming + (_AxisSlave.NcToPlc.AxisId);
         _stMsg.eSubdevice           := e_Subdevice.fbWriteMotionFunctionPoint;
         _stMsg.iErrorNumber         := _udiErr;
   
@@ -1477,7 +1477,7 @@ OF
       _udiErr                       := _fbWriteMotionFunctionPoint.ErrorID;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
-      _stMsg.eDevice                := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+      _stMsg.eDevice                := E_Device.Camming + (_AxisSlave.NcToPlc.AxisId);
       _stMsg.eSubdevice             := e_Subdevice.fbWriteMotionFunctionPoint;
       _stMsg.iErrorNumber           := _udiErr;
 
@@ -1508,7 +1508,7 @@ OF
     _eState                         := E_PROGRESS.PROGRESS_DONE;
 
     _stMsg.eType                    := E_MessageType.eMessageInfo;
-    _stMsg.eDevice                  := E_Device.Camming + TO_DINT(_AxisSlave.NcToPlc.AxisId);
+    _stMsg.eDevice                  := E_Device.Camming + (_AxisSlave.NcToPlc.AxisId);
     _stMsg.eSubdevice               := e_Subdevice.fbWriteMotionFunctionPoint;
     _stMsg.iErrorNumber             := 0;
 

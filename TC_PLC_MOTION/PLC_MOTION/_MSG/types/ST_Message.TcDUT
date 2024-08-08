@@ -7,7 +7,7 @@ STRUCT
   eDevice       : e_Device;
   eSubdevice    : e_SubDevice;
   {attribute 'displaymode':='hex'}
-  iErrorNumber  : LINT;
+  iErrorNumber  : ULINT;
   tTime         : STRING(24);
   sText         : STRING(256);
 END_STRUCT

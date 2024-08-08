@@ -4,6 +4,13 @@
     <Declaration><![CDATA[INTERFACE I_McAxis
 ]]></Declaration>
     <Folder Name="methods" Id="{b49529db-ea8c-01b3-3687-85fa88f4ed08}" />
+    <Folder Name="properties" Id="{1fd118ac-d3fc-4dba-b1a3-479fd44bd13d}" />
+    <Property Name="AxisRef" Id="{653615dd-2878-4b72-8d04-079697472efe}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY AxisRef : reference to AXIS_REF]]></Declaration>
+      <Get Name="Get" Id="{8e4019dc-34f1-4a1f-8b70-5940902e8936}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+    </Property>
     <Method Name="Disable" Id="{6733f6f1-eee7-046b-33ae-7a8adfed7590}" FolderPath="methods\">
       <Declaration><![CDATA[METHOD Disable : E_PROGRESS
 VAR_INPUT
@@ -27,6 +34,12 @@ VAR_INPUT
 END_VAR
 ]]></Declaration>
     </Method>
+    <Property Name="Position" Id="{a08b4e22-77b3-4582-8c00-d0e03499f6f4}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY Position : LREAL]]></Declaration>
+      <Get Name="Get" Id="{044142a5-1d79-44ea-81e4-7a49c5e5f078}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+    </Property>
     <Method Name="Reset" Id="{b60d6850-a4c7-07c3-05ec-3f927ae74504}" FolderPath="methods\">
       <Declaration><![CDATA[METHOD Reset : E_PROGRESS
 VAR_INPUT

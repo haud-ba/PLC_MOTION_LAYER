@@ -1,0 +1,782 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="FB_Xfc" Id="{faf15168-3e66-4984-ace5-c4c789696f89}" SpecialFunc="None">
+    <Declaration><![CDATA[//-----------------------------------------------------------------------------------------------------------
+// XFC base class
+//
+// HAUD
+// 18.07.2024
+// - encapsulation of XFC library: Tc2_MC2_XFC
+//-----------------------------------------------------------------------------------------------------------
+FUNCTION_BLOCK FB_Xfc
+VAR
+  _eDeviceFunction            : e_Device;
+  _eDeviceAxis                : e_Device;
+
+  _XfcTaskTime_DC             : T_DCTIME;
+
+  _ItfAxis                    : ARRAY[1..MAX_AXIS] OF I_McAxis;
+
+  // base function blocks per axis
+  _XfcPositionAtTime          : ARRAY[1..MAX_AXIS] OF Tc2_MC2_XFC.XFC_PositionAtTime;
+  _XfcTimeOfPosition          : ARRAY[1..MAX_AXIS] OF Tc2_MC2_XFC.XFC_TimeOfPosition;
+  _XfcTimeToPosition          : ARRAY[1..MAX_AXIS] OF Tc2_MC2_XFC.XFC_TimeToPosition;
+  _XfcTimeToModuloPosition    : ARRAY[1..MAX_AXIS] OF Tc2_MC2_XFC.XFC_TimeToModuloPosition;
+
+  _XfcNcTimeConversionOptions : ARRAY[1..MAX_AXIS] OF ST_NcTimeConversionOptions; 
+  _XfcRecordedPosition        : ARRAY[1..MAX_AXIS] OF LREAL;
+  _XfcRecordedTime            : ARRAY[1..MAX_AXIS] OF T_DCTIME32;
+
+  _XfcDurationToPosition      : ARRAY[1..MAX_AXIS] OF DINT;
+  _XfcDcTimeOfPosition        : ARRAY[1..MAX_AXIS] OF T_DCTIME32;
+
+  // inputs
+  _XfcTouchProbe              : Tc2_MC2_XFC.XFC_TouchProbe;
+  _XfcTouchProbeEL1258        : Tc2_MC2_XFC.XFC_EL1258_TouchProbe;
+
+  // input datatypes
+  _XfcTouchProbeOptions       : Tc2_MC2_XFC.ST_XfcTouchProbeOptions;
+  _XfcTriggerRef              : Tc2_MC2_XFC.XFC_TRIGGER_REF;
+  _XfcTriggerRef_MT           : Tc2_MC2_XFC.XFC_MT_TRIGGER_REF;      // multi timestamping
+  //_XfcEl1258Interface_MT      : Tc2_MC2_XFC.EL1258_MT_IoInterface;   // multi timestamping
+  _XfcRecordedPosition_MT     : Tc2_MC2_XFC.ST_RecordedPosition;     // multi timestamping
+
+
+  // outputs
+  _XfcOutputEL2252            : Tc2_MC2_XFC.XFC_TouchProbe;
+  _XfcOutputEL2258            : Tc2_MC2_XFC.XFC_EL2258_MultiEdge;
+
+ 
+  // work vars
+
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Folder Name="methods" Id="{215fc499-e58d-49f5-bb87-20ccd2fe4205}" />
+    <Folder Name="properties" Id="{d3d22d2b-5f5c-454b-8de3-d808a8ac8e36}" />
+    <Method Name="Check" Id="{7b3a574f-7e6e-43b6-a212-14874e4f16d4}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD Check : BOOL
+VAR_INST
+  _idx        : UINT;
+  _eCheck     : E_XFC_CHECK;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[
+FOR _idx := 1 TO MAX_AXIS
+DO
+  IF NOT (_ItfAxis[_idx] <> 0)
+  THEN
+    _eCheck       := E_XFC_CHECK.XFC_CHECK_REF_AXIS_ITF;
+    RETURN;
+  END_IF
+END_FOR
+
+
+
+
+_eCheck           := E_XFC_CHECK.XFC_CHECK_DONE;
+Check             := TRUE;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="GetIndex" Id="{ca005090-273f-43a6-ac1a-a5bbc45f5cd8}" FolderPath="methods\">
+      <Declaration><![CDATA[//-----------------------------------------------------------------------------------------------------------
+// GetIndex
+//
+// HAUD
+// 18.07.2024
+// - input:  TwinCAT NC Axis ID
+// - output: index in AXIS_REF array
+//-----------------------------------------------------------------------------------------------------------
+METHOD GetIndex : UDINT
+VAR_INPUT
+  AxisId        : UDINT;
+END_VAR
+VAR
+  _idx          : UDINT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[
+FOR _idx := 1 TO TO_UDINT(MAX_AXIS)
+DO
+  IF (_ItfAxis[_idx].AxisRef.NcToPlc.AxisId > 0)
+  THEN
+    IF (_ItfAxis[_idx].AxisRef.NcToPlc.AxisId = AxisId)
+    THEN
+      GetIndex      := _idx;
+      RETURN;
+    END_IF
+  END_IF
+END_FOR
+
+GetIndex          := _idx;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="ItfAxis" Id="{dd8af9f5-7703-433b-b4b5-bf39a6c89f01}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY ItfAxis : ARRAY[1..MAX_AXIS]       OF I_McAxis]]></Declaration>
+      <Set Name="Set" Id="{f54e6cf1-d4d5-41a7-8c77-90d7407c510c}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_ItfAxis := ItfAxis;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Method Name="PositionAtTime" Id="{bcad8cc7-e8ea-4395-923a-2a5dbb50ef71}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD PositionAtTime : E_PROGRESS
+VAR_INPUT
+  Execute         : BOOL;
+  AxisId          : UDINT;                    // NC Axis ID
+  DcTime          : Tc2_EtherCAT.T_DCTIME32;  // lower part Dctime of event
+  MessageLevel    : E_MessageType := E_MessageType.eMessageError;  // switch for detailed logging if required
+END_VAR
+VAR_INST
+  _eState         : E_PROGRESS;
+
+  _stMsg          : ST_Message;
+  _bError         : BOOL;
+  _udiErrorId     : UDINT;
+  _AxisIndex      : UDINT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT Execute THEN _eState     := E_PROGRESS.PROGRESS_INIT;  END_IF
+IF NOT Check() THEN PositionAtTime   := E_PROGRESS.PROGRESS_ERROR; END_IF
+
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_INIT:
+    IF Execute
+    THEN
+      _AxisIndex                := GetIndex(AxisId);
+      _bError                   := FALSE;
+      _udiErrorId               := 0;
+      _eState                   := E_PROGRESS.PROGRESS_BUSY;
+
+      IF (MessageLevel = E_MessageType.eMessageVerbose)
+      THEN
+        _stMsg.eType            := E_MessageType.eMessageVerbose;
+        _stMsg.eDevice          := _eDeviceAxis;
+        _stMsg.eSubdevice       := XfcPositionAtTime;
+        _stMsg.iErrorNumber     := 0;
+        _stMsg.sText            := TO_STRING(_eState);
+
+        f_MessageSet(_stMsg);
+      END_IF
+
+      IF NOT (_AxisIndex > 0)
+      THEN
+        _stMsg.eType            := E_MessageType.eMessageError;
+        _stMsg.eDevice          := _eDeviceAxis;
+        _stMsg.eSubdevice       := XfcPositionAtTime;
+        _stMsg.iErrorNumber     := _AxisIndex;
+        _stMsg.sText            := TO_STRING(E_XFC_CHECK.XFC_CHECK_AXIS_INDEX);
+
+        _bError                 := TRUE;
+        _eState                 := E_PROGRESS.PROGRESS_STILL_WORKING;
+      END_IF
+    END_IF
+END_CASE
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_BUSY:
+    _eState                     := E_PROGRESS.PROGRESS_STILL_WORKING;
+
+    _XfcPositionAtTime[_AxisIndex](
+                    DcTime      := DcTime, 
+                    Options     := _XfcNcTimeConversionOptions[_AxisIndex], 
+                    Position    => _XfcRecordedPosition[_AxisIndex], 
+                    Error       => _bError, 
+                    ErrorID     => _udiErrorId, 
+                    Axis        := _ItfAxis[_AxisIndex].AxisRef);
+END_CASE
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_STILL_WORKING:
+    IF NOT _bError
+    THEN
+      _eState                   := E_PROGRESS.PROGRESS_DONE;
+      IF (MessageLevel > E_MessageType.eMessageWarning)
+      THEN
+        _stMsg.eType            := E_MessageType.eMessageInfo;
+        _stMsg.eDevice          := _eDeviceAxis;
+        _stMsg.eSubdevice       := XfcPositionAtTime;
+        _stMsg.iErrorNumber     := 0;
+        _stMsg.sText            := TO_STRING(_eState);
+
+        f_MessageSet(_stMsg);
+      END_IF
+    ELSE
+      _eState                   := E_PROGRESS.PROGRESS_ERROR;
+
+      _stMsg.eType              := E_MessageType.eMessageError;
+      _stMsg.eDevice            := _eDeviceAxis;
+      _stMsg.eSubdevice         := XfcPositionAtTime;
+      _stMsg.iErrorNumber       := _udiErrorId;
+      _stMsg.sText              := TO_STRING(_eState);
+
+      f_MessageSet(_stMsg);
+    END_IF
+END_CASE
+
+
+
+PositionAtTime                  := _eState;
+
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="TimeOfPosition" Id="{bfb77ab3-8689-4507-afde-ccf2c2742727}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD TimeOfPosition : E_PROGRESS
+VAR_INPUT
+  Execute         : BOOL;
+  AxisId          : UDINT;                    // NC Axis ID
+  Position        : LREAL;
+  MessageLevel    : E_MessageType := E_MessageType.eMessageError;  // switch for detailed logging if required
+END_VAR
+VAR_INST
+  _eState         : E_PROGRESS;
+
+  _stMsg          : ST_Message;
+  _bError         : BOOL;
+  _udiErrorId     : UDINT;
+  _AxisIndex      : UDINT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT Execute THEN _eState     := E_PROGRESS.PROGRESS_INIT;  END_IF
+IF NOT Check() THEN TimeOfPosition   := E_PROGRESS.PROGRESS_ERROR; END_IF
+
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_INIT:
+    IF Execute
+    THEN
+      _AxisIndex                := GetIndex(AxisId);
+      _bError                   := FALSE;
+      _udiErrorId               := 0;
+      _eState                   := E_PROGRESS.PROGRESS_BUSY;
+
+      IF (MessageLevel = E_MessageType.eMessageVerbose)
+      THEN
+        _stMsg.eType            := E_MessageType.eMessageVerbose;
+        _stMsg.eDevice          := _eDeviceAxis;
+        _stMsg.eSubdevice       := XfcTimeOfPosition;
+        _stMsg.iErrorNumber     := 0;
+        _stMsg.sText            := TO_STRING(_eState);
+
+        f_MessageSet(_stMsg);
+      END_IF
+
+      IF NOT (_AxisIndex > 0)
+      THEN
+        _stMsg.eType            := E_MessageType.eMessageError;
+        _stMsg.eDevice          := _eDeviceAxis;
+        _stMsg.eSubdevice       := XfcTimeOfPosition;
+        _stMsg.iErrorNumber     := _AxisIndex;
+        _stMsg.sText            := TO_STRING(E_XFC_CHECK.XFC_CHECK_AXIS_INDEX);
+
+        _bError                 := TRUE;
+        _eState                 := E_PROGRESS.PROGRESS_STILL_WORKING;
+      END_IF
+    END_IF
+END_CASE
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_BUSY:
+    _eState                     := E_PROGRESS.PROGRESS_STILL_WORKING;
+
+    _XfcTimeOfPosition[_AxisIndex](
+	                  Position    := Position, 
+                    Options     := _XfcNcTimeConversionOptions[_AxisIndex], 
+                    DcTime      => _XfcRecordedTime[_AxisIndex], 
+                    Error       => _bError, 
+                    ErrorID     => _udiErrorId, 
+                    Axis        := _ItfAxis[_AxisIndex].AxisRef);
+END_CASE
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_STILL_WORKING:
+    IF NOT _bError
+    THEN
+      _eState                   := E_PROGRESS.PROGRESS_DONE;
+      IF (MessageLevel > E_MessageType.eMessageWarning)
+      THEN
+        _stMsg.eType            := E_MessageType.eMessageInfo;
+        _stMsg.eDevice          := _eDeviceAxis;
+        _stMsg.eSubdevice       := XfcTimeOfPosition;
+        _stMsg.iErrorNumber     := 0;
+        _stMsg.sText            := TO_STRING(_eState);
+
+        f_MessageSet(_stMsg);
+      END_IF
+    ELSE
+      _eState                   := E_PROGRESS.PROGRESS_ERROR;
+
+      _stMsg.eType              := E_MessageType.eMessageError;
+      _stMsg.eDevice            := _eDeviceAxis;
+      _stMsg.eSubdevice         := XfcTimeOfPosition;
+      _stMsg.iErrorNumber       := _udiErrorId;
+      _stMsg.sText              := TO_STRING(_eState);
+
+      f_MessageSet(_stMsg);
+    END_IF
+END_CASE
+
+
+
+TimeOfPosition                  := _eState;
+
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="TimeToPosition" Id="{89347929-ec1a-4fbb-922b-03e1484aa2f9}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD TimeToPosition : E_PROGRESS
+VAR_INPUT
+  Execute         : BOOL;
+  AxisId          : UDINT;                    // NC Axis ID
+  TargetPosition  : LREAL;
+  MessageLevel    : E_MessageType := E_MessageType.eMessageError;  // switch for detailed logging if required
+END_VAR
+VAR_INST
+  _eState         : E_PROGRESS;
+
+  _stMsg          : ST_Message;
+  _bError         : BOOL;
+  _udiErrorId     : UDINT;
+  _AxisIndex      : UDINT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT Execute THEN _eState     := E_PROGRESS.PROGRESS_INIT;  END_IF
+IF NOT Check() THEN TimeToPosition   := E_PROGRESS.PROGRESS_ERROR; END_IF
+
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_INIT:
+    IF Execute
+    THEN
+      _AxisIndex                := GetIndex(AxisId);
+      _bError                   := FALSE;
+      _udiErrorId               := 0;
+      _eState                   := E_PROGRESS.PROGRESS_BUSY;
+
+      IF (MessageLevel = E_MessageType.eMessageVerbose)
+      THEN
+        _stMsg.eType            := E_MessageType.eMessageVerbose;
+        _stMsg.eDevice          := _eDeviceAxis;
+        _stMsg.eSubdevice       := XfcTimeToPosition;
+        _stMsg.iErrorNumber     := 0;
+        _stMsg.sText            := TO_STRING(_eState);
+
+        f_MessageSet(_stMsg);
+      END_IF
+
+      IF NOT (_AxisIndex > 0)
+      THEN
+        _stMsg.eType            := E_MessageType.eMessageError;
+        _stMsg.eDevice          := _eDeviceAxis;
+        _stMsg.eSubdevice       := XfcTimeToPosition;
+        _stMsg.iErrorNumber     := _AxisIndex;
+        _stMsg.sText            := TO_STRING(E_XFC_CHECK.XFC_CHECK_AXIS_INDEX);
+
+        _bError                 := TRUE;
+        _eState                 := E_PROGRESS.PROGRESS_STILL_WORKING;
+      END_IF
+    END_IF
+END_CASE
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_BUSY:
+    _eState                     := E_PROGRESS.PROGRESS_STILL_WORKING;
+
+    _XfcTimeToPosition[_AxisIndex](
+                Position        := TargetPosition, 
+                Options         := _XfcNcTimeConversionOptions[_AxisIndex], 
+                Duration        => _XfcDurationToPosition[_AxisIndex], 
+                TimeOfPosition  => _XfcDcTimeOfPosition[_AxisIndex], 
+                Error           => _bError, 
+                ErrorID         => _udiErrorId, 
+                Axis            := _ItfAxis[_AxisIndex].AxisRef);
+END_CASE
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_STILL_WORKING:
+    IF NOT _bError
+    THEN
+      _eState                   := E_PROGRESS.PROGRESS_DONE;
+      IF (MessageLevel > E_MessageType.eMessageWarning)
+      THEN
+        _stMsg.eType            := E_MessageType.eMessageInfo;
+        _stMsg.eDevice          := _eDeviceAxis;
+        _stMsg.eSubdevice       := XfcTimeToPosition;
+        _stMsg.iErrorNumber     := 0;
+        _stMsg.sText            := TO_STRING(_eState);
+
+        f_MessageSet(_stMsg);
+      END_IF
+    ELSE
+      _eState                   := E_PROGRESS.PROGRESS_ERROR;
+
+      _stMsg.eType              := E_MessageType.eMessageError;
+      _stMsg.eDevice            := _eDeviceAxis;
+      _stMsg.eSubdevice         := XfcTimeToPosition;
+      _stMsg.iErrorNumber       := _udiErrorId;
+      _stMsg.sText              := TO_STRING(_eState);
+
+      f_MessageSet(_stMsg);
+    END_IF
+END_CASE
+
+
+
+TimeToPosition                  := _eState;
+
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="TimeToPositionModulo" Id="{76efb226-31cf-4e9e-b066-909a79b9efb2}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD TimeToPositionModulo : E_PROGRESS
+VAR_INPUT
+  Execute         : BOOL;
+  AxisId          : UDINT;                    // NC Axis ID
+  ModuloPosition  : LREAL;
+  ModuloFactor    : LREAL;
+  MessageLevel    : E_MessageType := E_MessageType.eMessageError;  // switch for detailed logging if required
+END_VAR
+VAR_INST
+  _eState         : E_PROGRESS;
+
+  _stMsg          : ST_Message;
+  _bError         : BOOL;
+  _udiErrorId     : UDINT;
+  _AxisIndex      : UDINT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT Execute THEN _eState     := E_PROGRESS.PROGRESS_INIT;  END_IF
+IF NOT Check() THEN TimeToPositionModulo   := E_PROGRESS.PROGRESS_ERROR; END_IF
+
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_INIT:
+    IF Execute
+    THEN
+      _AxisIndex                := GetIndex(AxisId);
+      _bError                   := FALSE;
+      _udiErrorId               := 0;
+      _eState                   := E_PROGRESS.PROGRESS_BUSY;
+
+      IF (MessageLevel = E_MessageType.eMessageVerbose)
+      THEN
+        _stMsg.eType            := E_MessageType.eMessageVerbose;
+        _stMsg.eDevice          := _eDeviceAxis;
+        _stMsg.eSubdevice       := XfcTimeToModuloPosition;
+        _stMsg.iErrorNumber     := 0;
+        _stMsg.sText            := TO_STRING(_eState);
+
+        f_MessageSet(_stMsg);
+      END_IF
+
+      IF NOT (_AxisIndex > 0)
+      THEN
+        _stMsg.eType            := E_MessageType.eMessageError;
+        _stMsg.eDevice          := _eDeviceAxis;
+        _stMsg.eSubdevice       := XfcTimeToModuloPosition;
+        _stMsg.iErrorNumber     := _AxisIndex;
+        _stMsg.sText            := TO_STRING(E_XFC_CHECK.XFC_CHECK_AXIS_INDEX);
+
+        _bError                 := TRUE;
+        _eState                 := E_PROGRESS.PROGRESS_STILL_WORKING;
+      END_IF
+    END_IF
+END_CASE
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_BUSY:
+    _eState                     := E_PROGRESS.PROGRESS_STILL_WORKING;
+
+    _XfcTimeToModuloPosition[_AxisIndex](
+                Position        := ModuloPosition, 
+                ModuloFactor    := ModuloFactor, 
+                Options         := _XfcNcTimeConversionOptions[_AxisIndex], 
+                Duration        => _XfcDurationToPosition[_AxisIndex], 
+                AbsolutePosition=> _XfcRecordedPosition[_AxisIndex], 
+                TimeOfPosition  => _XfcDcTimeOfPosition[_AxisIndex], 
+                Error           => _bError, 
+                ErrorID         => _udiErrorId, 
+                Axis            := _ItfAxis[_AxisIndex].AxisRef);
+END_CASE
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_STILL_WORKING:
+    IF NOT _bError
+    THEN
+      _eState                   := E_PROGRESS.PROGRESS_DONE;
+      IF (MessageLevel > E_MessageType.eMessageWarning)
+      THEN
+        _stMsg.eType            := E_MessageType.eMessageInfo;
+        _stMsg.eDevice          := _eDeviceAxis;
+        _stMsg.eSubdevice       := XfcTimeToModuloPosition;
+        _stMsg.iErrorNumber     := 0;
+        _stMsg.sText            := TO_STRING(_eState);
+
+        f_MessageSet(_stMsg);
+      END_IF
+    ELSE
+      _eState                   := E_PROGRESS.PROGRESS_ERROR;
+
+      _stMsg.eType              := E_MessageType.eMessageError;
+      _stMsg.eDevice            := _eDeviceAxis;
+      _stMsg.eSubdevice         := XfcTimeToModuloPosition;
+      _stMsg.iErrorNumber       := _udiErrorId;
+      _stMsg.sText              := TO_STRING(_eState);
+
+      f_MessageSet(_stMsg);
+    END_IF
+END_CASE
+
+TimeToPositionModulo                  := _eState;
+
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="WaitForPosition" Id="{9d671d5f-582b-42ec-987e-73c87f64f372}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD WaitForPosition : E_PROGRESS
+VAR_INPUT
+  Execute         : BOOL;
+  AxisId          : UDINT;                    // NC Axis ID
+  TargetPosition  : LREAL;
+  MessageLevel    : E_MessageType := E_MessageType.eMessageError;  // switch for detailed logging if required
+END_VAR
+VAR_INST
+  _eState         : E_PROGRESS;
+
+  _stMsg          : ST_Message;
+  _bError         : BOOL;
+  _udiErrorId     : UDINT;
+  _AxisIndex      : UDINT;
+END_VAR
+
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT Execute THEN _eState     := E_PROGRESS.PROGRESS_INIT;  END_IF
+IF NOT Check() THEN WaitForPosition   := E_PROGRESS.PROGRESS_ERROR; END_IF
+
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_INIT:
+    IF Execute
+    THEN
+      _AxisIndex                := GetIndex(AxisId);
+      _bError                   := FALSE;
+      _udiErrorId               := 0;
+      _eState                   := E_PROGRESS.PROGRESS_BUSY;
+
+      IF (MessageLevel = E_MessageType.eMessageVerbose)
+      THEN
+        _stMsg.eType            := E_MessageType.eMessageVerbose;
+        _stMsg.eDevice          := _eDeviceAxis;
+        _stMsg.eSubdevice       := XfcWaitForPosition;
+        _stMsg.iErrorNumber     := 0;
+        _stMsg.sText            := TO_STRING(_eState);
+
+        f_MessageSet(_stMsg);
+      END_IF
+
+      IF NOT (_AxisIndex > 0)
+      THEN
+        _stMsg.eType            := E_MessageType.eMessageError;
+        _stMsg.eDevice          := _eDeviceAxis;
+        _stMsg.eSubdevice       := XfcWaitForPosition;
+        _stMsg.iErrorNumber     := _AxisIndex;
+        _stMsg.sText            := TO_STRING(E_XFC_CHECK.XFC_CHECK_AXIS_INDEX);
+
+        _bError                 := TRUE;
+        _eState                 := E_PROGRESS.PROGRESS_STILL_WORKING;
+      END_IF
+    END_IF
+END_CASE
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_BUSY:
+    _eState                     := E_PROGRESS.PROGRESS_PREPARE;
+
+    _XfcTimeToPosition[_AxisIndex](
+                Position        := TargetPosition, 
+                Options         := _XfcNcTimeConversionOptions[_AxisIndex], 
+                Duration        => _XfcDurationToPosition[_AxisIndex], 
+                TimeOfPosition  => , 
+                Error           => _bError, 
+                ErrorID         => _udiErrorId, 
+                Axis            := _ItfAxis[_AxisIndex].AxisRef);
+
+END_CASE
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_PREPARE:
+
+    IF NOT _bError
+    THEN
+      IF (_XfcTimeToPosition[_AxisIndex].Duration < 10_000_000)
+      THEN
+        _eState                 := E_PROGRESS.PROGRESS_STILL_WORKING;
+      ELSE
+        _eState                 := E_PROGRESS.PROGRESS_BUSY;
+      END_IF
+    ELSE
+      IF (_udiErrorId <> 17250)
+      THEN
+        // axis is not yet in range --> retry
+        _eState                 := E_PROGRESS.PROGRESS_BUSY;
+      ELSE
+        // position will not be reachable --> error
+        _eState                 := E_PROGRESS.PROGRESS_STILL_WORKING;  
+      END_IF
+    END_IF
+END_CASE
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_STILL_WORKING:
+    IF NOT _bError
+    THEN
+      _eState                   := E_PROGRESS.PROGRESS_DONE;
+      IF (MessageLevel > E_MessageType.eMessageWarning)
+      THEN
+        _stMsg.eType            := E_MessageType.eMessageInfo;
+        _stMsg.eDevice          := _eDeviceAxis;
+        _stMsg.eSubdevice       := XfcWaitForPosition;
+        _stMsg.iErrorNumber     := TO_ULINT(_XfcDurationToPosition[_AxisIndex]);
+        _stMsg.sText            := TO_STRING(_eState);
+
+        f_MessageSet(_stMsg);
+      END_IF
+    ELSE
+      _eState                   := E_PROGRESS.PROGRESS_ERROR;
+
+      _stMsg.eType              := E_MessageType.eMessageError;
+      _stMsg.eDevice            := _eDeviceAxis;
+      _stMsg.eSubdevice         := XfcWaitForPosition;
+      _stMsg.iErrorNumber       := _udiErrorId;
+      _stMsg.sText              := TO_STRING(_eState);
+
+      f_MessageSet(_stMsg);
+    END_IF
+END_CASE
+
+
+WaitForPosition                 := _eState;
+
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="FB_Xfc">
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_Xfc.Check">
+      <LineId Id="44" Count="0" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="34" Count="0" />
+      <LineId Id="36" Count="4" />
+      <LineId Id="35" Count="0" />
+      <LineId Id="19" Count="5" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_Xfc.GetIndex">
+      <LineId Id="18" Count="0" />
+      <LineId Id="17" Count="0" />
+      <LineId Id="22" Count="0" />
+      <LineId Id="30" Count="1" />
+      <LineId Id="24" Count="4" />
+      <LineId Id="32" Count="0" />
+      <LineId Id="23" Count="0" />
+      <LineId Id="29" Count="0" />
+      <LineId Id="16" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_Xfc.ItfAxis.Set">
+      <LineId Id="2" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_Xfc.PositionAtTime">
+      <LineId Id="186" Count="87" />
+      <LineId Id="11" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_Xfc.TimeOfPosition">
+      <LineId Id="150" Count="87" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_Xfc.TimeToPosition">
+      <LineId Id="19" Count="19" />
+      <LineId Id="158" Count="0" />
+      <LineId Id="157" Count="0" />
+      <LineId Id="39" Count="20" />
+      <LineId Id="129" Count="0" />
+      <LineId Id="131" Count="4" />
+      <LineId Id="139" Count="2" />
+      <LineId Id="68" Count="15" />
+      <LineId Id="160" Count="0" />
+      <LineId Id="159" Count="0" />
+      <LineId Id="84" Count="8" />
+      <LineId Id="162" Count="0" />
+      <LineId Id="161" Count="0" />
+      <LineId Id="93" Count="7" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_Xfc.TimeToPositionModulo">
+      <LineId Id="19" Count="19" />
+      <LineId Id="174" Count="0" />
+      <LineId Id="173" Count="0" />
+      <LineId Id="39" Count="20" />
+      <LineId Id="142" Count="0" />
+      <LineId Id="144" Count="6" />
+      <LineId Id="154" Count="2" />
+      <LineId Id="68" Count="15" />
+      <LineId Id="176" Count="0" />
+      <LineId Id="175" Count="0" />
+      <LineId Id="84" Count="8" />
+      <LineId Id="178" Count="0" />
+      <LineId Id="177" Count="0" />
+      <LineId Id="93" Count="1" />
+      <LineId Id="97" Count="3" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_Xfc.WaitForPosition">
+      <LineId Id="131" Count="113" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

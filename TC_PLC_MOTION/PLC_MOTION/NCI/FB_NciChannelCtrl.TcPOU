@@ -156,9 +156,9 @@ ELSE
     _eResult                := E_PROGRESS.PROGRESS_ERROR;
   
     _stMsg.eType            := E_MessageType.eMessageError;
-    _stMsg.eDevice          := E_Device.NciChannelCtrl + TO_DINT(ChnId);
+    _stMsg.eDevice          := E_Device.NciChannelCtrl + (ChnId);
     _stMsg.eSubdevice       := e_Subdevice.NciControl;
-    _stMsg.iErrorNumber     := -1;
+    _stMsg.iErrorNumber     := 1;
   
     _stMsg.sText          := 'eInit:';
     _stMsg.sText          := concat(_stMsg.sText, TO_STRING(_eInit));
@@ -232,7 +232,7 @@ ELSE
         _eResult              := E_PROGRESS.PROGRESS_INVALID;
   
         _stMsg.eType          := E_MessageType.eMessageError;
-        _stMsg.eDevice        := E_Device.NciChannelCtrl + TO_DINT(ChnId);
+        _stMsg.eDevice        := E_Device.NciChannelCtrl + (ChnId);
         _stMsg.eSubdevice     := e_Subdevice.NciControl;
         _stMsg.iErrorNumber   := 0;
   
@@ -575,7 +575,7 @@ OF
     THEN
       _eState                       := E_PROGRESS.PROGRESS_OCCUPIED;
 
-      _stMsg.eType                  := E_MessageType.eMessageWarn;
+      _stMsg.eType                  := E_MessageType.eMessageWarning;
       _stMsg.eDevice                := ChannelDevice;
       _stMsg.eSubdevice             := e_Subdevice.NciStartUp;
       _stMsg.iErrorNumber           := _eState;

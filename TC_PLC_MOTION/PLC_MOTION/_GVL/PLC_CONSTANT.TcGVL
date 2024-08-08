@@ -22,11 +22,10 @@ VAR_GLOBAL CONSTANT
 {END_IF}
 
 {IF defined (NCI)}
-  {info 'NCI Channel active'}
+  {info 'PLC_MOTION_LAYER: NCI'}
   NCI_ACTIVE            : BOOL    := TRUE;
   CONFIG_NAME           : STRING  := 'NCI_Spec_Ch_';
 {ELSE}
-  {info 'NCI Channel NOT active'}
   NCI_ACTIVE            : BOOL    := FALSE;
   CONFIG_NAME           : STRING  := 'NCI_NOT_ACTIVE';
 {END_IF}
@@ -43,16 +42,33 @@ VAR_GLOBAL CONSTANT
   // CAMMING related limits
   //-----------------------------------------------------------------------------
 {IF defined (CAM)}
-  {info 'CAMMING active'}
+  {info 'PLC_MOTION_LAYER: CAM'}
   CAM_ACTIVE                  : BOOL    := TRUE;
 {ELSE}
-  {info 'CAMMING NOT active'}
   CAM_ACTIVE                  : BOOL    := FALSE;
 {END_IF}
 
   MAX_CAM_CH                  : UINT    := 1;
 
   MAX_MOTION_FUNCTION_POINTS  : UINT    := 10;
+
+  // HAUD
+  // 17.07.2024
+  // Start Implementation of MB Triggerbox function
+  //  - Timestamp/position from different sources (Triggerbox, TouchProbe)
+  //  - Trigger time from flash controller, triggered by camera
+  
+  MAX_TRIGGER_BOX   : UINT := 12;
+  MAX_TOUCH_PROBE   : UINT := 12;
+
+  MAX_TRIGGER_COUNT : UINT :=  4;
+
+{IF defined (XFC)}
+  {info 'PLC_MOTION_LAYER: XFC'}
+  cXFC              : BOOL := TRUE;
+{ELSE}
+  cXFC              : BOOL := FALSE;
+{END_IF}
 
 END_VAR]]></Declaration>
   </GVL>
