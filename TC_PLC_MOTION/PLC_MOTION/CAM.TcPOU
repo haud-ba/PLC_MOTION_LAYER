@@ -20,6 +20,9 @@ END_VAR
 IF NOT PLC_CONSTANT.CAM_ACTIVE THEN eInit := E_PROGRESS.PROGRESS_NOT_EXIST; RETURN; END_IF
 //-----------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------
+// check for MAIN.eInit
+//-----------------------------------------------------------------------------------------------------------------
+IF NOT (MAIN.eInit = E_PROGRESS.PROGRESS_DONE) THEN eInit   := E_PROGRESS.PROGRESS_INVALID; RETURN; END_IF
 //-----------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------
 // /assign dataflow
@@ -54,10 +57,6 @@ THEN
   OF
     E_PROGRESS.PROGRESS_INVALID,
     E_PROGRESS.PROGRESS_DONE:
-      FOR nAxis := 1 TO MAX_AXIS
-      DO
-        GVL_CAM.Control[nAxis].MessageLevel       := GVL_MSG.MessageLevel;
-      END_FOR 
       nAxisInit                                   := 1;
       eInit                                       := E_PROGRESS.PROGRESS_INIT;
 
@@ -142,7 +141,8 @@ END_IF
       <LineId Id="21" Count="0" />
       <LineId Id="5" Count="0" />
       <LineId Id="107" Count="0" />
-      <LineId Id="178" Count="2" />
+      <LineId Id="194" Count="4" />
+      <LineId Id="180" Count="0" />
       <LineId Id="108" Count="3" />
       <LineId Id="146" Count="0" />
       <LineId Id="172" Count="0" />
@@ -152,9 +152,7 @@ END_IF
       <LineId Id="159" Count="0" />
       <LineId Id="161" Count="0" />
       <LineId Id="130" Count="3" />
-      <LineId Id="24" Count="8" />
-      <LineId Id="174" Count="3" />
-      <LineId Id="33" Count="10" />
+      <LineId Id="24" Count="19" />
       <LineId Id="182" Count="0" />
       <LineId Id="44" Count="62" />
       <LineId Id="23" Count="0" />

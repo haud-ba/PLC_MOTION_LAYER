@@ -6,8 +6,6 @@ VAR_GLOBAL
   //-----------------------------------------------------------------------------------------------------------
   // MB TriggerBox, set output to activate camera, get input timestamp from flash controller
   //-----------------------------------------------------------------------------------------------------------
-  MessageLevelTriggerBox      : ARRAY[1..MAX_TRIGGER_BOX] OF E_MessageType; // individual message level for every box.
-
 {IF defined (XFC)}
   TriggerBoxCtrl              : ARRAY[1..MAX_TRIGGER_BOX] OF Fb_TriggerBox;   // execution of trigger function
 {ELSE}
@@ -26,8 +24,6 @@ VAR_GLOBAL
   //-----------------------------------------------------------------------------------------------------------
   // MB Touch Probe, get input timestamp within axis window, get prcise position using the timestamp
   //-----------------------------------------------------------------------------------------------------------
-  MessageLevelTouchProbe      : ARRAY[1..MAX_TRIGGER_BOX] OF E_MessageType; // individual message level for every touch probe
-
 {IF defined (XFC)}
   TouchProbeCtrl              : ARRAY[1..MAX_TOUCH_PROBE] OF Fb_TouchProbe;   // execution of Touch probe function
 {ELSE}

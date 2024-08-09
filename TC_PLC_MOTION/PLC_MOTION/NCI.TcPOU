@@ -23,7 +23,9 @@ END_VAR
 IF NOT PLC_CONSTANT.NCI_ACTIVE THEN eInit   := E_PROGRESS.PROGRESS_NOT_EXIST; RETURN; END_IF
 //-----------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------
+// check for MAIN.eInit
 //-----------------------------------------------------------------------------------------------------------------
+IF NOT (MAIN.eInit = E_PROGRESS.PROGRESS_DONE) THEN eInit   := E_PROGRESS.PROGRESS_INVALID; RETURN; END_IF
 //-----------------------------------------------------------------------------------------------------------------
 // /assign dataflow
 //-----------------------------------------------------------------------------------------------------------------
@@ -65,10 +67,6 @@ THEN
   OF
     E_PROGRESS.PROGRESS_INVALID,
     E_PROGRESS.PROGRESS_DONE:
-      FOR nChn := 1 TO MAX_NCI_CH
-      DO
-        GVL_MSG.MessageLevelNciChn[nChn]          := GVL_MSG.MessageLevel;
-      END_FOR 
       nChnInit                                    := 1;
       eInit                                       := E_PROGRESS.PROGRESS_INIT;
 
@@ -154,14 +152,18 @@ END_FOR
       <LineId Id="14" Count="1" />
       <LineId Id="11" Count="0" />
       <LineId Id="165" Count="0" />
-      <LineId Id="299" Count="5" />
+      <LineId Id="359" Count="0" />
+      <LineId Id="299" Count="0" />
+      <LineId Id="360" Count="0" />
+      <LineId Id="300" Count="4" />
       <LineId Id="343" Count="1" />
       <LineId Id="306" Count="16" />
       <LineId Id="332" Count="0" />
       <LineId Id="323" Count="2" />
       <LineId Id="329" Count="2" />
       <LineId Id="298" Count="0" />
-      <LineId Id="195" Count="24" />
+      <LineId Id="195" Count="8" />
+      <LineId Id="208" Count="11" />
       <LineId Id="270" Count="0" />
       <LineId Id="220" Count="0" />
       <LineId Id="222" Count="10" />

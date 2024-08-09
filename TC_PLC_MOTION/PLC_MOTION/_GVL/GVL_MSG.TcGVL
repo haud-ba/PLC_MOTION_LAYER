@@ -15,39 +15,30 @@ VAR_GLOBAL CONSTANT
   LOG_DIR               : STRING  := '/usr/local/etc/TwinCAT/#MsgFiles/';
 {END_IF}
 
-  LOG_FILE              : STRING  := 'MSG_PLCSD_';
+  LOG_FILE              : STRING  := 'MSG_PLC_';
 
   MAX_MESSAGE           : UINT     := 200; // max entry in message list
 END_VAR
 VAR_GLOBAL
-
-  // diag data
-  dbg_AxisIdxGearIn               : ARRAY[1..PLC_CONSTANT.MAX_AXIS]      OF BYTE; // diag for Axis gear in
-  
-  dbg_AxisIdxGearInMultiMaster    : ARRAY[1..PLC_CONSTANT.MAX_AXIS,1..4] OF BYTE; // diag for Axis gear in multi master
-  
-  dbg_AxisIdxCamIn                : ARRAY[1..PLC_CONSTANT.MAX_AXIS]      OF BYTE; // diag for Axis cam in
-
+  fbLocalTime                     : fb_LocalTime;
+  dtLocalTime                     : DT;
+  sLocalTime                      : STRING;
 
   Messages                        : ARRAY[1..MAX_MESSAGE] OF ST_Message;
   MessageIndex                    : UINT := 0; // message index
   MessageError                    : UINT := 0; // error counter
 
-  fbLocalTime                     : fb_LocalTime;
-  dtLocalTime                     : DT;
-  sLocalTime                      : STRING;
+  MessageLevelAxisPtp             : ARRAY[1..PLC_CONSTANT.MAX_AXIS]         OF E_MessageType;
+  MessageLevelAxisCam             : ARRAY[1..PLC_CONSTANT.MAX_AXIS]         OF E_MessageType;
+  MessageLevelNciChn              : ARRAY[1..PLC_CONSTANT.MAX_NCI_CH]       OF E_MessageType;
+  MessageLevelTriggerBox          : ARRAY[1..PLC_CONSTANT.MAX_TRIGGER_BOX]  OF E_MessageType;
+  MessageLevelTouchProbe          : ARRAY[1..PLC_CONSTANT.MAX_TOUCH_PROBE]  OF E_MessageType;
 
-  MessageLevelAxisPtp             : ARRAY[1..PLC_CONSTANT.MAX_AXIS]   OF E_MessageType;
-  MessageLevelAxisCam             : ARRAY[1..PLC_CONSTANT.MAX_AXIS]   OF E_MessageType;
-  MessageLevelNciChn              : ARRAY[1..PLC_CONSTANT.MAX_NCI_CH] OF E_MessageType;
 
-{IF defined (TEST)}
-  {info 'PLC_MOTION_LAYER: TEST'}
-  MessageLevel                    : E_MessageType := eMessageVerbose; // a lot of messages
-{ELSE}
-  MessageLevel                    : E_MessageType := eMessageError;    // not as much messages 
-{END_IF}
-
+  // diag data
+  dbg_AxisIdxGearIn               : ARRAY[1..PLC_CONSTANT.MAX_AXIS]      OF BYTE; // diag for Axis gear in
+  dbg_AxisIdxGearInMultiMaster    : ARRAY[1..PLC_CONSTANT.MAX_AXIS,1..4] OF BYTE; // diag for Axis gear in multi master
+  dbg_AxisIdxCamIn                : ARRAY[1..PLC_CONSTANT.MAX_AXIS]      OF BYTE; // diag for Axis cam in
 END_VAR]]></Declaration>
   </GVL>
 </TcPlcObject>

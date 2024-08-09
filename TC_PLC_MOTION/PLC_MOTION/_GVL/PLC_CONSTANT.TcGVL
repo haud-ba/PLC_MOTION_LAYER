@@ -54,9 +54,9 @@ VAR_GLOBAL CONSTANT
 
   // HAUD
   // 17.07.2024
-  // Start Implementation of MB Triggerbox function
-  //  - Timestamp/position from different sources (Triggerbox, TouchProbe)
-  //  - Trigger time from flash controller, triggered by camera
+  // Start Implementation of Position Trigger function
+  //  - Timestamp/position output
+  //  - Latch DC time from input
   
   MAX_TRIGGER_BOX   : UINT := 12;
   MAX_TOUCH_PROBE   : UINT := 12;

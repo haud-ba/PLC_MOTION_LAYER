@@ -153,6 +153,18 @@
     <Compile Include="MAPPING\types\U_AXIS_INFO.TcDUT">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="MAPPING\types\U_CAM_CTRL.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MAPPING\types\U_CAM_DATA.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MAPPING\types\U_CAM_INFO.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MAPPING\types\U_CAM_STATE.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="NCI.TcPOU">
       <SubType>Code</SubType>
     </Compile>
@@ -393,6 +405,7 @@
     </PlaceholderReference>
     <PlaceholderReference Include="Tc2_EtherCAT">
       <DefaultResolution>Tc2_EtherCAT, * (Beckhoff Automation GmbH)</DefaultResolution>
+      <Namespace>Tc2_EtherCAT</Namespace>
     </PlaceholderReference>
     <PlaceholderReference Include="Tc2_MC2">
       <DefaultResolution>Tc2_MC2, * (Beckhoff Automation GmbH)</DefaultResolution>

@@ -113,14 +113,7 @@ CASE eState OF
 
     IF NOT bFileCreated
     THEN
-      IF (GVL_MSG.MessageError > 0) OR
-         (GVL_MSG.MessageLevel < E_MessageType.eMessageError)
-      THEN
-        // folder and filename have to be created
-        eState                := MSG_ROOT;
-      ELSE
-        eState                := MSG_WRITE_FILE_DONE; 
-      END_IF
+      eState                  := MSG_ROOT;
     ELSE
       // folder and file already exist
       eState                  := MSG_LINE_START;
@@ -201,23 +194,19 @@ CASE eState OF
     eState                    := MSG_LINE_CHECK;
     IF (aWriteList[iCount].eType > E_MessageType.eMessageEmpty)
     THEN
-      IF (aWriteList[iCount].eType > E_MessageType.eMessageVerbose) OR
-         (GVL_MSG.MessageLevel = E_MessageType.eMessageVerbose)
-      THEN
-        sTmp                  := TO_STRING(aWriteList[iCount].eType);
-        sTmp                  := Tc2_Standard.CONCAT(sTmp, sTab);
-        sTmp                  := Tc2_Standard.CONCAT(sTmp, aWriteList[iCount].tTime);
-        sTmp                  := Tc2_Standard.CONCAT(sTmp, sTab);
-        sTmp                  := Tc2_Standard.CONCAT(sTmp, Device_To_String(aWriteList[iCount].eDevice));
-        sTmp                  := Tc2_Standard.CONCAT(sTmp, sTab);
-        sTmp                  := Tc2_Standard.CONCAT(sTmp, TO_STRING(aWriteList[iCount].eSubdevice));
-        sTmp                  := Tc2_Standard.CONCAT(sTmp, sTab);
-        sTmp                  := Tc2_Standard.CONCAT(sTmp, TO_STRING(aWriteList[iCount].iErrorNumber));
-        sTmp                  := Tc2_Standard.CONCAT(sTmp, sTab);
-        sTmp                  := Tc2_Standard.CONCAT(sTmp, aWriteList[iCount].sText);
-        sTmp                  := Tc2_Standard.CONCAT(sTmp, sNewLine);
-        Builder(ADR(sTmp), ADR(sWriteData), StringLen(ADR(sTmp)));
-      END_IF
+      sTmp                    := TO_STRING(aWriteList[iCount].eType);
+      sTmp                    := Tc2_Standard.CONCAT(sTmp, sTab);
+      sTmp                    := Tc2_Standard.CONCAT(sTmp, aWriteList[iCount].tTime);
+      sTmp                    := Tc2_Standard.CONCAT(sTmp, sTab);
+      sTmp                    := Tc2_Standard.CONCAT(sTmp, Device_To_String(aWriteList[iCount].eDevice));
+      sTmp                    := Tc2_Standard.CONCAT(sTmp, sTab);
+      sTmp                    := Tc2_Standard.CONCAT(sTmp, TO_STRING(aWriteList[iCount].eSubdevice));
+      sTmp                    := Tc2_Standard.CONCAT(sTmp, sTab);
+      sTmp                    := Tc2_Standard.CONCAT(sTmp, TO_STRING(aWriteList[iCount].iErrorNumber));
+      sTmp                    := Tc2_Standard.CONCAT(sTmp, sTab);
+      sTmp                    := Tc2_Standard.CONCAT(sTmp, aWriteList[iCount].sText);
+      sTmp                    := Tc2_Standard.CONCAT(sTmp, sNewLine);
+      Builder(ADR(sTmp), ADR(sWriteData), StringLen(ADR(sTmp)));
     END_IF
     iCount                    := iCount + 1;
 END_CASE
@@ -584,7 +573,11 @@ bErrorWrite := fbFileOpen.bError OR fbFileWrite.bError;
       </Implementation>
     </Method>
     <LineIds Name="MessageData">
-      <LineId Id="3734" Count="215" />
+      <LineId Id="3734" Count="67" />
+      <LineId Id="3806" Count="0" />
+      <LineId Id="3810" Count="79" />
+      <LineId Id="3893" Count="12" />
+      <LineId Id="3907" Count="42" />
       <LineId Id="3675" Count="0" />
     </LineIds>
     <LineIds Name="MessageData.Builder">

@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.13">
   <POU Name="MAIN" Id="{b9c2507d-2926-4719-8f82-549e0347748a}" SpecialFunc="None">
     <Declaration><![CDATA[PROGRAM MAIN
 VAR
-  bInit                     : BOOL;
-  eInit                     : E_PROGRESS;
+  bInit                     : BOOL;         // shall be checked by controlling entity, before using Ctrl/State structs
+  eInit                     : E_PROGRESS;   // shall be checked by controlling entity, before using Ctrl/State structs
 
   nAxis,
   nAxisInit                 : UINT;
@@ -53,6 +53,7 @@ END_FOR
 //-----------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------
 // /INIT
+// - successful init is required for other optional members to start
 //-----------------------------------------------------------------------------------------------------------------
 IF NOT bInit
 THEN
@@ -60,10 +61,6 @@ THEN
   OF
     E_PROGRESS.PROGRESS_INVALID,
     E_PROGRESS.PROGRESS_DONE:
-      FOR nAxis := 1 TO MAX_AXIS
-      DO
-        GVL_AXIS.Control[nAxis].MessageLevel  := GVL_MSG.MessageLevel;
-      END_FOR 
       nAxisInit                               := 1;
       eInit                                   := E_PROGRESS.PROGRESS_INIT;
 
@@ -77,7 +74,7 @@ THEN
       stMsg.sText                             := concat('MAIN.eInit: ', TO_STRING(eInit));
       f_MessageSet(stMsg);
 
-      GVL_AXIS.Ctrl[nAxisInit].eCmd          := E_AXIS_CTRL.AXIS_NULL;
+      GVL_AXIS.Ctrl[nAxisInit].eCmd           := E_AXIS_CTRL.AXIS_NULL;
       eInit                                   := E_PROGRESS.PROGRESS_BUSY;
 
 
@@ -200,9 +197,10 @@ END_IF
       <LineId Id="279" Count="0" />
       <LineId Id="7" Count="0" />
       <LineId Id="80" Count="2" />
-      <LineId Id="150" Count="7" />
+      <LineId Id="150" Count="1" />
+      <LineId Id="369" Count="0" />
+      <LineId Id="152" Count="5" />
       <LineId Id="278" Count="0" />
-      <LineId Id="358" Count="3" />
       <LineId Id="172" Count="1" />
       <LineId Id="175" Count="0" />
       <LineId Id="211" Count="0" />

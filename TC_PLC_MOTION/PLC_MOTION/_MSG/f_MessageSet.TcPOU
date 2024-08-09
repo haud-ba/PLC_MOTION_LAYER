@@ -12,23 +12,6 @@ END_VAR
     <Implementation>
       <ST><![CDATA[stMessage.tTime                     := GVL_MSG.sLocalTime;
 
-IF (stMessage.eType = eMessageVerbose)
-THEN
-  IF NOT (GVL_MSG.MessageLevel = eMessageVerbose)
-  THEN
-    RETURN;
-  END_IF
-END_IF
-
-IF (stMessage.eType = eMessageInfo)
-THEN
-  IF NOT (GVL_MSG.MessageLevel < eMessageError)
-  THEN
-    RETURN;
-  END_IF
-END_IF
-
-
 FOR _uiIndex := 1 TO GVL_MSG.MAX_MESSAGE
 DO
   IF (GVL_MSG.Messages[_uiIndex].eType = e_MessageType.eMessageEmpty)
@@ -48,7 +31,8 @@ END_IF
 ]]></ST>
     </Implementation>
     <LineIds Name="f_MessageSet">
-      <LineId Id="196" Count="34" />
+      <LineId Id="196" Count="1" />
+      <LineId Id="215" Count="15" />
       <LineId Id="7" Count="0" />
     </LineIds>
   </POU>

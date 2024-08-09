@@ -7,29 +7,30 @@ VAR
   nTrigger,
   nProbe          : UINT;
 
-  I_McAxis        : ARRAY[1..MAX_AXIS]  OF I_McAxis;
-  szState,
+   szState,
   szControl		:UINT;
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[FOR nAxis := 1 TO MAX_AXIS
-DO
-  I_McAxis[nAxis]       := GVL_AXIS.Control[nAxis];
-END_FOR
-
+      <ST><![CDATA[//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+// check for MAIN.eInit
+//-----------------------------------------------------------------------------------------------------------------
+IF NOT (MAIN.eInit = E_PROGRESS.PROGRESS_DONE) THEN RETURN; END_IF
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
 
 IF cXFC
 THEN
 
 szControl := SIZEOF(ST_TriggerSet);
-szState	  := SIZEOF(GVL_FUNCTIONS.TriggerBox[1].FromPlc);
+szState	  := SIZEOF(ST_TriggerGet);
 
   FOR nProbe := 1 TO MAX_TOUCH_PROBE
   DO
-    GVL_FUNCTIONS.TouchProbeCtrl[nProbe].MessageLevel   := GVL_FUNCTIONS.MessageLevelTouchProbe[nProbe];
+    GVL_FUNCTIONS.TouchProbeCtrl[nProbe].MessageLevel   := GVL_MSG.MessageLevelTouchProbe[nProbe];
     GVL_FUNCTIONS.TouchProbeCtrl[nProbe].Index          := nProbe;
-    GVL_FUNCTIONS.TouchProbeCtrl[nProbe].ItfAxis        := I_McAxis;
+    GVL_FUNCTIONS.TouchProbeCtrl[nProbe].ItfAxis        := GVL_AXIS.ItfMcAxis;
     GVL_FUNCTIONS.TouchProbeCtrl[nProbe].Ctrl           REF= GVL_FUNCTIONS.TouchProbe;
     GVL_FUNCTIONS.TouchProbeCtrl[nProbe].Input          := ADR(GVL_FUNCTIONS.DigitalInput);
     GVL_FUNCTIONS.TouchProbeCtrl[nProbe].InputState     := ADR(GVL_FUNCTIONS.DigitalState);
@@ -39,9 +40,9 @@ szState	  := SIZEOF(GVL_FUNCTIONS.TriggerBox[1].FromPlc);
   
   FOR nTrigger := 1 TO MAX_TRIGGER_BOX
   DO
-    GVL_FUNCTIONS.TriggerBoxCtrl[nTrigger].MessageLevel := GVL_FUNCTIONS.MessageLevelTriggerBox[nTrigger];
+    GVL_FUNCTIONS.TriggerBoxCtrl[nTrigger].MessageLevel := GVL_MSG.MessageLevelTriggerBox[nTrigger];
     GVL_FUNCTIONS.TriggerBoxCtrl[nTrigger].Index        := nTrigger;
-    GVL_FUNCTIONS.TriggerBoxCtrl[nTrigger].ItfAxis      := I_McAxis;
+    GVL_FUNCTIONS.TriggerBoxCtrl[nTrigger].ItfAxis      := GVL_AXIS.ItfMcAxis;
     GVL_FUNCTIONS.TriggerBoxCtrl[nTrigger].Ctrl         REF= GVL_FUNCTIONS.TriggerBox;
     GVL_FUNCTIONS.TriggerBoxCtrl[nTrigger].Input        := ADR(GVL_FUNCTIONS.DigitalInputDC);
     GVL_FUNCTIONS.TriggerBoxCtrl[nTrigger].Output_2252  := ADR(GVL_FUNCTIONS.DigitalOutputDC);
@@ -57,7 +58,8 @@ END_IF
 ]]></ST>
     </Implementation>
     <LineIds Name="FUNCTIONS">
-      <LineId Id="216" Count="40" />
+      <LineId Id="272" Count="6" />
+      <LineId Id="221" Count="35" />
       <LineId Id="5" Count="0" />
     </LineIds>
   </POU>
