@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.13">
   <POU Name="FB_McAxis" Id="{b0a70715-8745-098e-33e9-cc5f7a367c73}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_McAxis
 VAR
@@ -2192,7 +2192,7 @@ OF
       _stMsg.iErrorNumber           := 0;
       _stMsg.sText                  := concat('Encoder Type: ', _sEncoder);
 
-      IF (_MessageLevel < E_MessageType.eMessageError)
+      IF (_MessageLevel > E_MessageType.eMessageError)
       THEN
         f_MessageSet(_stMsg);
       END_IF
@@ -2249,7 +2249,7 @@ OF
       _stMsg.iErrorNumber           := 0;
       _stMsg.sText                  := concat('Axis Name: ', _sName);
 
-      IF (_MessageLevel < E_MessageType.eMessageError)
+      IF (_MessageLevel > E_MessageType.eMessageError)
       THEN
         f_MessageSet(_stMsg);
       END_IF

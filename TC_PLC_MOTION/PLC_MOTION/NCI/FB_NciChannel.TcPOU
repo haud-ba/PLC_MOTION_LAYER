@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.13">
   <POU Name="FB_NciChannel" Id="{4fc926fe-507f-0c5c-2d9c-1283cf9bcfbb}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_NciChannel IMPLEMENTS I_NciChannel
 VAR
@@ -173,7 +173,7 @@ OF
         _stMsg.iErrorNumber         := _fbBuildGroup.nGroupId;
         _stMsg.sText                := concat('BuildGroup Done: ', TO_STRING(_fbBuildGroup.nGroupId));
 
-        IF (_MessageLevel < E_MessageType.eMessageError)
+        IF (_MessageLevel > E_MessageType.eMessageError)
         THEN
           f_MessageSet(_stMsg);
         END_IF
@@ -333,7 +333,7 @@ OF
         _stMsg.iErrorNumber         := _fbClearGroup.nErrId;
         _stMsg.sText                := concat('ClearGroup Busy: ', TO_STRING(_fbClearGroup.nErrId));
 
-        IF (_MessageLevel < E_MessageType.eMessageError)
+        IF (_MessageLevel > E_MessageType.eMessageError)
         THEN
           f_MessageSet(_stMsg);
         END_IF
@@ -370,7 +370,7 @@ OF
         _stMsg.iErrorNumber         := _fbClearGroup.nErrId;
         _stMsg.sText                := concat('ClearGroup Done: ', TO_STRING(_fbClearGroup.nErrId));
 
-        IF (_MessageLevel < E_MessageType.eMessageError)
+        IF (_MessageLevel > E_MessageType.eMessageError)
         THEN
           f_MessageSet(_stMsg);
         END_IF
@@ -456,7 +456,7 @@ OF
         _stMsg.iErrorNumber                   := _NciChannelRef^.NcToPlc.HskMFuncNo;
         _stMsg.sText                          := concat('M Func check: ', 
                                                  TO_STRING(_NciChannelRef^.NcToPlc.HskMFuncNo));
-        IF (_MessageLevel < E_MessageType.eMessageError)
+        IF (_MessageLevel > E_MessageType.eMessageError)
         THEN
           f_MessageSet(_stMsg);
         END_IF
@@ -479,7 +479,7 @@ OF
       _stMsg.iErrorNumber                     := _NciChannelRef^.NcToPlc.HskMFuncNo;
       _stMsg.sText                            := concat('M Func gone: ', 
                                                TO_STRING(_NciChannelRef^.NcToPlc.HskMFuncNo));
-      IF (_MessageLevel < E_MessageType.eMessageError)
+      IF (_MessageLevel > E_MessageType.eMessageError)
       THEN
         f_MessageSet(_stMsg);
       END_IF
@@ -572,7 +572,7 @@ OF
         _stMsg.iErrorNumber         := _fbItpDelDtg.nErrId;
         _stMsg.sText                := concat('Delete DistanceToGo Busy: ', TO_STRING(_fbItpDelDtg.nErrId));
 
-        IF (_MessageLevel < E_MessageType.eMessageError)
+        IF (_MessageLevel > E_MessageType.eMessageError)
         THEN
           f_MessageSet(_stMsg);
         END_IF
@@ -608,7 +608,11 @@ OF
         _stMsg.eSubdevice           := e_Subdevice.fbDelDtgItp;
         _stMsg.iErrorNumber         := _fbItpDelDtg.nErrId;
         _stMsg.sText                := concat('Delete DistanceToGo Done: ', TO_STRING(_fbItpDelDtg.nErrId));
-        f_MessageSet(_stMsg);
+
+        IF (_MessageLevel > E_MessageType.eMessageError)
+        THEN
+          f_MessageSet(_stMsg);
+        END_IF
       END_IF
     END_IF
 END_CASE
@@ -747,7 +751,7 @@ OF
         _stMsg.iErrorNumber         := _fbEStop.nErrId;
         _stMsg.sText                := concat('E-StopItp Busy: ', TO_STRING(_fbEStop.nErrId));
 
-        IF (_MessageLevel < E_MessageType.eMessageError)
+        IF (_MessageLevel > E_MessageType.eMessageError)
         THEN
           f_MessageSet(_stMsg);
         END_IF
@@ -960,7 +964,7 @@ OF
         _stMsg.iErrorNumber         := _fbReset.nErrId;
         _stMsg.sText                := concat('ResetItp Busy: ', TO_STRING(_fbReset.nErrId));
 
-        IF (_MessageLevel < E_MessageType.eMessageError)
+        IF (_MessageLevel > E_MessageType.eMessageError)
         THEN
           f_MessageSet(_stMsg);
         END_IF
@@ -1102,7 +1106,7 @@ OF
         _stMsg.iErrorNumber         := _fbLoadProg.nErrId;
         _stMsg.sText                := concat('LoadProg Busy: ', TO_STRING(_fbLoadProg.nErrId));
 
-        IF (_MessageLevel < E_MessageType.eMessageError)
+        IF (_MessageLevel > E_MessageType.eMessageError)
         THEN
           f_MessageSet(_stMsg);
         END_IF
@@ -1141,7 +1145,7 @@ OF
         _stMsg.iErrorNumber         := _fbLoadProg.nErrId;
         _stMsg.sText                := concat('Load Prog Done: ', TO_STRING(_fbLoadProg.nErrId));
 
-        IF (_MessageLevel < E_MessageType.eMessageError)
+        IF (_MessageLevel > E_MessageType.eMessageError)
         THEN
           f_MessageSet(_stMsg);
         END_IF
@@ -1405,7 +1409,7 @@ OF
         _stMsg.iErrorNumber         := _fbReadLine.ERRID;
         _stMsg.sText                := concat('ReadLine Busy: ', TO_STRING(_fbReadLine.ERRID));
 
-        IF (_MessageLevel < E_MessageType.eMessageError)
+        IF (_MessageLevel > E_MessageType.eMessageError)
         THEN
           f_MessageSet(_stMsg);
         END_IF
@@ -1447,7 +1451,7 @@ OF
         _stMsg.iErrorNumber         := _fbReadLine.ERRID;
         _stMsg.sText                := concat('ReadLine Done: ', TO_STRING(_fbReadLine.ERRID));
 
-        IF (_MessageLevel < E_MessageType.eMessageError)
+        IF (_MessageLevel > E_MessageType.eMessageError)
         THEN
           f_MessageSet(_stMsg);
         END_IF
@@ -1563,7 +1567,7 @@ OF
         _stMsg.eSubdevice           := e_Subdevice.fbItpReadRParams;
         _stMsg.iErrorNumber         := _fbItpReadRParams.nErrId;
         _stMsg.sText                := concat('Read R Parameter Busy: ', TO_STRING(_fbItpReadRParams.nErrId));
-        IF (_MessageLevel < E_MessageType.eMessageError)
+        IF (_MessageLevel > E_MessageType.eMessageError)
         THEN
           f_MessageSet(_stMsg);
         END_IF
@@ -1602,7 +1606,7 @@ OF
         _stMsg.eSubdevice           := e_Subdevice.fbItpReadRParams;
         _stMsg.iErrorNumber         := _fbItpReadRParams.nErrId;
         _stMsg.sText                := concat('Read R Parameter Done: ', TO_STRING(_fbItpReadRParams.nErrId));
-        IF (_MessageLevel < E_MessageType.eMessageError)
+        IF (_MessageLevel > E_MessageType.eMessageError)
         THEN
           f_MessageSet(_stMsg);
         END_IF
@@ -1699,7 +1703,7 @@ OF
         _stMsg.eSubdevice           := e_Subdevice.fbStartStopItp;
         _stMsg.iErrorNumber         := _fbStartStop.nErrId;
         _stMsg.sText                := concat('StartStop Itp Busy: ', TO_STRING(_fbStartStop.nErrId));
-        IF (_MessageLevel < E_MessageType.eMessageError)
+        IF (_MessageLevel > E_MessageType.eMessageError)
         THEN
           f_MessageSet(_stMsg);
         END_IF
@@ -1736,7 +1740,7 @@ OF
         _stMsg.eSubdevice           := e_Subdevice.fbStartStopItp;
         _stMsg.iErrorNumber         := _fbStartStop.nErrId;
         _stMsg.sText                := concat('StartStop Itp Done: ', TO_STRING(_fbStartStop.nErrId));
-        IF (_MessageLevel < E_MessageType.eMessageError)
+        IF (_MessageLevel > E_MessageType.eMessageError)
         THEN
           f_MessageSet(_stMsg);
         END_IF
@@ -1838,7 +1842,7 @@ OF
         _stMsg.eSubdevice           := e_Subdevice.fbStepOnAfterEStopItp;
         _stMsg.iErrorNumber         := _fbStepOnAfterEStop.nErrId;
         _stMsg.sText                := concat('StepOn Itp Busy: ', TO_STRING(_fbStepOnAfterEStop.nErrId));
-        IF (_MessageLevel < E_MessageType.eMessageError)
+        IF (_MessageLevel > E_MessageType.eMessageError)
         THEN
           f_MessageSet(_stMsg);
         END_IF
@@ -1874,7 +1878,7 @@ OF
         _stMsg.eSubdevice           := e_Subdevice.fbStepOnAfterEStopItp;
         _stMsg.iErrorNumber         := _fbStepOnAfterEStop.nErrId;
         _stMsg.sText                := concat('StepOn Itp Busy: ', TO_STRING(_fbStepOnAfterEStop.nErrId));
-        IF (_MessageLevel < E_MessageType.eMessageError)
+        IF (_MessageLevel > E_MessageType.eMessageError)
         THEN
           f_MessageSet(_stMsg);
         END_IF
@@ -1988,7 +1992,7 @@ OF
         _stMsg.eSubdevice           := e_Subdevice.fbItpWriteRParams;
         _stMsg.iErrorNumber         := _fbItpWriteRParams.nErrId;
         _stMsg.sText                := concat('Wriet R Parameter Busy: ', TO_STRING(_fbItpWriteRParams.nErrId));
-        IF (_MessageLevel < E_MessageType.eMessageError)
+        IF (_MessageLevel > E_MessageType.eMessageError)
         THEN
           f_MessageSet(_stMsg);
         END_IF
@@ -2027,7 +2031,7 @@ OF
         _stMsg.eSubdevice           := e_Subdevice.fbItpWriteRParams;
         _stMsg.iErrorNumber         := _fbItpWriteRParams.nErrId;
         _stMsg.sText                := concat('Wriet R Parameter Done: ', TO_STRING(_fbItpWriteRParams.nErrId));
-        IF (_MessageLevel < E_MessageType.eMessageError)
+        IF (_MessageLevel > E_MessageType.eMessageError)
         THEN
           f_MessageSet(_stMsg);
         END_IF
@@ -2104,7 +2108,10 @@ WriteRParams                        := _eState;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.DeleteDistanceToGo">
-      <LineId Id="3" Count="118" />
+      <LineId Id="3" Count="83" />
+      <LineId Id="136" Count="0" />
+      <LineId Id="132" Count="3" />
+      <LineId Id="88" Count="33" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.Error.Get">

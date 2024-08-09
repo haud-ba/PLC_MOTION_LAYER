@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.13">
   <POU Name="FB_CamCtrl" Id="{527605ca-3a86-0df1-134f-058287ba4975}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_CamCtrl EXTENDS FB_CamAxis IMPLEMENTS I_Cam_Ctrl
 VAR
@@ -1215,7 +1215,7 @@ END_VAR
 
   _stMsg.sText               := concat('cyclic check: ', _sChck);
 
-  IF (_MessageLevel < E_MessageType.eMessageError)
+  IF (_MessageLevel > E_MessageType.eMessageError)
   THEN
     f_MessageSet(_stMsg);
   ELSE
@@ -1247,7 +1247,7 @@ END_VAR
 
   _stMsg.sText               := concat('new command: ', _sCtrl);
 
-  IF (_MessageLevel < E_MessageType.eMessageError)
+  IF (_MessageLevel > E_MessageType.eMessageError)
   THEN
     f_MessageSet(_stMsg);
   ELSE
@@ -1284,7 +1284,7 @@ END_VAR
   _stMsg.sText               := concat(_sCtrl, ' ');
   _stMsg.sText               := concat(_sCtrl, _sResult);
 
-  IF (_MessageLevel < E_MessageType.eMessageError)
+  IF (_MessageLevel > E_MessageType.eMessageError)
   THEN
     f_MessageSet(_stMsg);
   ELSE

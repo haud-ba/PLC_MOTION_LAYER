@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.13">
   <POU Name="FB_McAxisCtrl" Id="{999335a0-5af6-0c1d-15bd-a65b83fb504c}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_McAxisCtrl EXTENDS FB_McAxis IMPLEMENTS I_McAxis
 VAR
@@ -1561,7 +1561,7 @@ OF
     _stMsg.sText                    := concat(_stMsg.sText, ' : ');
     _stMsg.sText                    := concat(_stMsg.sText, TO_STRING(_eState));
 
-  IF (_MessageLevel < E_MessageType.eMessageError)
+  IF (_MessageLevel > E_MessageType.eMessageError)
   THEN
     f_MessageSet(_stMsg);
   END_IF
@@ -2392,14 +2392,9 @@ END_VAR
 
   _stMsg.sText               := concat('new command: ', _sCtrl);
 
-  IF (_MessageLevel < E_MessageType.eMessageError)
+  IF (_MessageLevel > E_MessageType.eMessageError)
   THEN
     f_MessageSet(_stMsg);
-  ELSE
-    IF (_stMsg.eType = E_MessageType.eMessageError)
-    THEN
-      f_MessageSet(_stMsg);
-    END_IF
   END_IF
 
 ]]></ST>
@@ -2430,14 +2425,9 @@ END_VAR
   _stMsg.sText               := concat(_sCtrl, ' ');
   _stMsg.sText               := concat(_sCtrl, _sResult);
 
-  IF (_MessageLevel < E_MessageType.eMessageError)
+  IF (_MessageLevel > E_MessageType.eMessageError)
   THEN
     f_MessageSet(_stMsg);
-  ELSE
-    IF (_stMsg.eType = E_MessageType.eMessageError)
-    THEN
-      f_MessageSet(_stMsg);
-    END_IF
   END_IF
 ]]></ST>
       </Implementation>
@@ -3375,7 +3365,8 @@ END_VAR
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.LogControl">
       <LineId Id="35" Count="8" />
-      <LineId Id="53" Count="9" />
+      <LineId Id="53" Count="3" />
+      <LineId Id="62" Count="0" />
       <LineId Id="45" Count="0" />
       <LineId Id="5" Count="0" />
     </LineIds>
@@ -3390,7 +3381,8 @@ END_VAR
       <LineId Id="20" Count="0" />
       <LineId Id="13" Count="0" />
       <LineId Id="35" Count="0" />
-      <LineId Id="43" Count="9" />
+      <LineId Id="43" Count="3" />
+      <LineId Id="52" Count="0" />
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.MotionOptions.Set">

@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.13">
   <POU Name="FB_CamAxis" Id="{38a8250f-db6d-0d34-236a-d4cf6b05092d}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_CamAxis
 VAR
@@ -147,7 +147,7 @@ OF
     THEN
       _eState                       := E_PROGRESS.PROGRESS_DONE;
 
-      IF (_MessageLevel < E_MessageType.eMessageError)
+      IF (_MessageLevel > E_MessageType.eMessageError)
       THEN
         _stMsg.eType                := E_MessageType.eMessageInfo;
         _stMsg.eDevice              := E_Device.Camming + (_AxisSlave.NcToPlc.AxisId);
@@ -260,7 +260,7 @@ OF
       _eState                       := E_PROGRESS.PROGRESS_DONE;
       _stCID                        := _fbCamInfoV2.CamInfo;
 
-      IF (_MessageLevel < E_MessageType.eMessageError)
+      IF (_MessageLevel > E_MessageType.eMessageError)
       THEN
         _stMsg.eType                := E_MessageType.eMessageInfo;
         _stMsg.eDevice              := E_Device.Camming + (_AxisSlave.NcToPlc.AxisId);
@@ -439,7 +439,7 @@ OF
     THEN
       _eState                       := E_PROGRESS.PROGRESS_DONE;
 
-      IF (_MessageLevel < E_MessageType.eMessageError)
+      IF (_MessageLevel > E_MessageType.eMessageError)
       THEN
         _stMsg.eType                := E_MessageType.eMessageInfo;
         _stMsg.eDevice              := E_Device.Camming + (_AxisSlave.NcToPlc.AxisId);
@@ -570,7 +570,7 @@ OF
     THEN
       _eState                       := E_PROGRESS.PROGRESS_DONE;
 
-      IF (_MessageLevel < E_MessageType.eMessageError)
+      IF (_MessageLevel > E_MessageType.eMessageError)
       THEN
         _stMsg.eType                := E_MessageType.eMessageInfo;
         _stMsg.eDevice              := E_Device.Camming + (_AxisSlave.NcToPlc.AxisId);
@@ -739,7 +739,7 @@ OF
 
     _stMsg.sText                    := concat(' : ', TO_STRING(_eState));
 
-    IF (_MessageLevel < E_MessageType.eMessageError)
+    IF (_MessageLevel > E_MessageType.eMessageError)
     THEN
       f_MessageSet(_stMsg);
     END_IF
@@ -756,7 +756,7 @@ OF
     _stMotionFunction.nPoints             := TO_UINT(_fbReadMotionFunction.NumPointsRead);
 *)
 
-    IF (_MessageLevel < E_MessageType.eMessageError)
+    IF (_MessageLevel > E_MessageType.eMessageError)
     THEN
       _stMsg.eType                  := E_MessageType.eMessageInfo;
       _stMsg.eDevice                := E_Device.Camming + (_AxisSlave.NcToPlc.AxisId);
@@ -890,7 +890,7 @@ OF
   
         _stMsg.sText                := concat(' : ', TO_STRING(_eState));
 
-        IF (_MessageLevel < E_MessageType.eMessageError)
+        IF (_MessageLevel > E_MessageType.eMessageError)
         THEN
           f_MessageSet(_stMsg);
         END_IF
@@ -1022,7 +1022,7 @@ OF
   
         _stMsg.sText                := concat(' : ', TO_STRING(_eState));
 
-        IF (_MessageLevel < E_MessageType.eMessageError)
+        IF (_MessageLevel > E_MessageType.eMessageError)
         THEN
           f_MessageSet(_stMsg);
         END_IF
@@ -1119,7 +1119,7 @@ OF
 
       _stMsg.sText                  := concat(' : ', TO_STRING(_eState));
 
-      IF (_MessageLevel < E_MessageType.eMessageError)
+      IF (_MessageLevel > E_MessageType.eMessageError)
       THEN
         f_MessageSet(_stMsg);
       END_IF
@@ -1333,7 +1333,7 @@ OF
 
     _stMsg.sText                    := concat(' : ', TO_STRING(_eState));
 
-    IF (_MessageLevel < E_MessageType.eMessageError)
+    IF (_MessageLevel > E_MessageType.eMessageError)
     THEN
       f_MessageSet(_stMsg);
     END_IF
@@ -1514,7 +1514,7 @@ OF
 
     _stMsg.sText                    := concat(' : ', TO_STRING(_eState));
 
-    IF (_MessageLevel < E_MessageType.eMessageError)
+    IF (_MessageLevel > E_MessageType.eMessageError)
     THEN
       f_MessageSet(_stMsg);
     END_IF
