@@ -1,12 +1,12 @@
-# Introduction 
-## **PLC_OPEN_DRIVE** (deprecated)
+# Introduction TC_PLC_MOTION_LAYER
 
-## **PLC_MOTION** (active)
+## **PLC_MOTION** 
   
   - TwinCAT motion layer approach
 	- Manual compiler defines for optional binding of libraries ('library'RMB:Properties:Conditional Referencing)
       - NCI
 	  - CAM
+	  - XFC
 	- Manual compiler define for file systems
 	  - BSD
     - struct/state based communication to extern control
@@ -21,6 +21,8 @@
       - Tc2_PlcInterpolation
     - CAMMING lib; Conditions: CAM
       - Tc2_MC2_Camming
+	- XFC lib, Conditions: XFC
+	  - Tc2_MC2_XFC
     - for each of the functions there is a Ctrl/State pair of structs and additional parameter structs to write/read
     - error logging in MsgList, info logging optional, automated write to file optional
     - enum based commands and orders
@@ -32,6 +34,7 @@
 	- GVL_AXIS	- MC/PtP
 	- GVL_NCI	- interpolated
 	- GVL_CAM	- Camming
+	- GVL_FUNCTIONS - XFC TriggerBox, TouchProbe
 	- GVL_MSG
 	
  
