@@ -5,8 +5,8 @@
 UNION
   stCtrl              : ARRAY[1..MAX_AXIS] OF ST_CAM_DATA;
 
-{IF defined (AXIS_MAP)}
-  {info 'U_AXIS_MOVE_DATA mapping activated'}
+{IF defined (CAM_MAP)}
+  {info 'U_CAM_DATA mapping activated'}
   byCtrl    AT %I*    : ARRAY[1..MAX_AXIS] OF
                         ARRAY[1..SIZEOF(ST_CAM_DATA)] OF BYTE;
 {ELSE}

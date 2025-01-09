@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
-  <DUT Name="ST_TouchProbeGet" Id="{53561cfa-a685-44fd-ad0e-5f97b7829672}">
-    <Declaration><![CDATA[TYPE ST_TouchProbeGet :
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.13">
+  <DUT Name="ST_STATE_TOUCH_PROBE" Id="{0b2fc911-fda9-407b-8cd6-cc279ae8d096}">
+    <Declaration><![CDATA[TYPE ST_STATE_TOUCH_PROBE :
 STRUCT
   State           : UINT;   // 0 := deactivated, 100 := BUSY, 1000 := DONE, 9000 := ERROR
   LatchPositive   : LREAL;  // rising edge

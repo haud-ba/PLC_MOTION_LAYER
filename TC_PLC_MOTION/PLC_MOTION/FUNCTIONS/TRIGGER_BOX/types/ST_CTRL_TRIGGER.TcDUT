@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
-  <DUT Name="ST_TriggerSet" Id="{fc5477ac-2847-4ac0-a905-eff71ca80fb5}">
-    <Declaration><![CDATA[TYPE ST_TriggerSet :
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.13">
+  <DUT Name="ST_CTRL_TRIGGER" Id="{1c130404-c118-4db3-a522-21c1b1383288}">
+    <Declaration><![CDATA[TYPE ST_CTRL_TRIGGER :
 STRUCT
   Control             : T_TriggerControlBits;
 

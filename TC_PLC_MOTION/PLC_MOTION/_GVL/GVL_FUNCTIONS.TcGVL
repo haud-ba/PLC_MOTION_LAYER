@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.13">
   <GVL Name="GVL_FUNCTIONS" Id="{c671dfde-44dd-4068-bb14-c2c3ee47ab68}">
     <Declaration><![CDATA[{attribute 'qualified_only'}
 VAR_GLOBAL
@@ -7,13 +7,13 @@ VAR_GLOBAL
   // MB TriggerBox, set output to activate camera, get input timestamp from flash controller
   //-----------------------------------------------------------------------------------------------------------
 {IF defined (XFC)}
-  TriggerBoxCtrl              : ARRAY[1..MAX_TRIGGER_BOX] OF Fb_TriggerBox;   // execution of trigger function
+  TriggerBoxCtrl                : ARRAY[1..MAX_TRIGGER_BOX] OF Fb_TriggerBox;   // execution of trigger function
 {ELSE}
-  TriggerBoxCtrl              : ARRAY[1..MAX_TRIGGER_BOX] OF I_TriggerBox;   // execution of trigger function
+  TriggerBoxCtrl                : ARRAY[1..MAX_TRIGGER_BOX] OF I_TriggerBox;   // execution of trigger function
 {END_IF}
 
-  TriggerBox                  : ARRAY[1..MAX_TRIGGER_BOX] OF ST_TriggerBox;   // .ToPlc   --> write your commands in here
-                                                                    // .FromPlc --> read your results from here
+  CtrlTrigger                   : ARRAY[1..MAX_TRIGGER_BOX] OF ST_CTRL_TRIGGER;
+  StateTrigger                  : ARRAY[1..MAX_TRIGGER_BOX] OF ST_STATE_TRIGGER;
 
   DigitalOutPutDCState  AT %I*  : ARRAY[1..MAX_TRIGGER_BOX] OF ST_DC_State;
 
@@ -25,17 +25,17 @@ VAR_GLOBAL
   // MB Touch Probe, get input timestamp within axis window, get prcise position using the timestamp
   //-----------------------------------------------------------------------------------------------------------
 {IF defined (XFC)}
-  TouchProbeCtrl              : ARRAY[1..MAX_TOUCH_PROBE] OF Fb_TouchProbe;   // execution of Touch probe function
+  TouchProbeCtrl                : ARRAY[1..MAX_TOUCH_PROBE] OF Fb_TouchProbe;   // execution of Touch probe function
 {ELSE}
-  TouchProbeCtrl              : ARRAY[1..MAX_TOUCH_PROBE] OF I_TouchProbe;   // execution of Touch probe function
+  TouchProbeCtrl                : ARRAY[1..MAX_TOUCH_PROBE] OF I_TouchProbe;   // execution of Touch probe function
 {END_IF}
 
-  TouchProbe                  : ARRAY[1..MAX_TOUCH_PROBE] OF ST_TouchProbe;   // .ToPlc   --> write your commands in here
-                                                                    // .FromPlc --> read your results from here
+  CtrlTouchProbe                : ARRAY[1..MAX_TOUCH_PROBE] OF ST_CTRL_TOUCH_PROBE;
+  StateTouchProbe               : ARRAY[1..MAX_TOUCH_PROBE] OF ST_STATE_TOUCH_PROBE;
 
-  //DigitalInputDC    AT %I*    : ARRAY[1..MAX_TOUCH_PROBE] OF ST_DC_Input; // distributed clock digital input with timestamps positive & negative
-  DigitalInput      AT %I*    : ARRAY[1..MAX_TOUCH_PROBE] OF ST_MTI_INPUT;    // multi time stamp, one channel
-  DigitalState      AT %I*    : ARRAY[1..MAX_TOUCH_PROBE] OF ST_MTI_STATUS;   // multi time stamp status from terminal
+  //DigitalInputDC    AT %I*      : ARRAY[1..MAX_TOUCH_PROBE] OF ST_DC_Input; // distributed clock digital input with timestamps positive & negative
+  DigitalInput      AT %I*      : ARRAY[1..MAX_TOUCH_PROBE] OF ST_MTI_INPUT;    // multi time stamp, one channel
+  DigitalState      AT %I*      : ARRAY[1..MAX_TOUCH_PROBE] OF ST_MTI_STATUS;   // multi time stamp status from terminal
 
 END_VAR]]></Declaration>
   </GVL>

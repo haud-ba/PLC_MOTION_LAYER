@@ -1,0 +1,20 @@
+<TcModuleRefactorInfos RefactorCnt="1">
+  <TcModuleRefactorInfo RefactorCnt="1" DateTime="2025-01-09T12:54:58">
+    <Renames>
+      <RenameTypeItem>
+        <Type>FB_TriggerBox</Type>
+        <From>_eState</From>
+        <To>_eStateProgress</To>
+      </RenameTypeItem>
+      <RenameTypeItem>
+        <Type>FB_TouchProbe</Type>
+        <From>_eState</From>
+        <To>_eStateProgress</To>
+      </RenameTypeItem>
+      <RenameSymbol>
+        <From>PLC_CONSTANT.cXFC</From>
+        <To>PLC_CONSTANT.XFC_ACTIVE</To>
+      </RenameSymbol>
+    </Renames>
+  </TcModuleRefactorInfo>
+</TcModuleRefactorInfos>

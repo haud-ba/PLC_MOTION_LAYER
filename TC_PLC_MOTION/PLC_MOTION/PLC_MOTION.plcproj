@@ -17,11 +17,21 @@
     <Implicit_Jitter_Distribution>{5da6f37d-8e2b-41dc-87ad-b3b85aa85be9}</Implicit_Jitter_Distribution>
     <LibraryReferences>{ff26b307-1ac0-40be-ba24-df54548edd9a}</LibraryReferences>
     <Released>false</Released>
-    <Title>PLC_STATE_DRIVE</Title>
-    <ProjectVersion>01.00.10</ProjectVersion>
+    <Title>PLC_MOTION_LAYER</Title>
+    <ProjectVersion>01.00.20</ProjectVersion>
     <Author>D. Hauer</Author>
     <Description>MC-PtP, NCI, Camming cyclic execution layer for motion commands</Description>
     <CompilerDefines />
+    <DeploymentEvents>
+      <Events>
+        <Event>
+          <CommandType>Copy</CommandType>
+          <DeploymentType>ActivateConfiguration</DeploymentType>
+          <Command1 />
+          <Command2 />
+        </Event>
+      </Events>
+    </DeploymentEvents>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="CAM.TcPOU">
@@ -75,6 +85,9 @@
     <Compile Include="FUNCTIONS\TOUCH_PROBE\types\ST_2BIT.TcDUT">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="FUNCTIONS\TOUCH_PROBE\types\ST_CTRL_TOUCH_PROBE.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="FUNCTIONS\TOUCH_PROBE\types\ST_DC_Input.TcDUT">
       <SubType>Code</SubType>
     </Compile>
@@ -84,13 +97,7 @@
     <Compile Include="FUNCTIONS\TOUCH_PROBE\types\ST_MTI_STATUS.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="FUNCTIONS\TOUCH_PROBE\types\ST_TouchProbe.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="FUNCTIONS\TOUCH_PROBE\types\ST_TouchProbeGet.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="FUNCTIONS\TOUCH_PROBE\types\ST_TouchProbeSet.TcDUT">
+    <Compile Include="FUNCTIONS\TOUCH_PROBE\types\ST_STATE_TOUCH_PROBE.TcDUT">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="FUNCTIONS\TRIGGER_BOX\FB_TriggerBox.TcPOU">
@@ -99,22 +106,16 @@
     <Compile Include="FUNCTIONS\TRIGGER_BOX\I_TriggerBox.TcIO">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="FUNCTIONS\TRIGGER_BOX\types\ST_CTRL_TRIGGER.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="FUNCTIONS\TRIGGER_BOX\types\ST_DC_Output.TcDUT">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="FUNCTIONS\TRIGGER_BOX\types\ST_DC_State.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="FUNCTIONS\TRIGGER_BOX\types\ST_TriggerBox.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="FUNCTIONS\TRIGGER_BOX\types\ST_TriggerGet.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="FUNCTIONS\TRIGGER_BOX\types\ST_TriggerSet.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="FUNCTIONS\TRIGGER_BOX\types\T_TriggerControl.TcDUT">
+    <Compile Include="FUNCTIONS\TRIGGER_BOX\types\ST_STATE_TRIGGER.TcDUT">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="FUNCTIONS\TRIGGER_BOX\types\T_TriggerControlBits.TcDUT">
@@ -163,6 +164,18 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="MAPPING\types\U_CAM_STATE.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MAPPING\types\U_TOUCH_PROBE_CTRL.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MAPPING\types\U_TOUCH_PROBE_STATE.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MAPPING\types\U_TRIGGER_CTRL.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MAPPING\types\U_TRIGGER_STATE.TcDUT">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="NCI.TcPOU">
@@ -504,6 +517,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="LICENSE">
+      <SubType>Content</SubType>
+    </Content>
     <Content Include="NCI\files\Test_GST.nc">
       <SubType>Content</SubType>
     </Content>

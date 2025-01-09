@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.13">
+  <DUT Name="U_TRIGGER_CTRL" Id="{fbb10e75-7a45-4fce-a2ea-5ac436853a34}">
+    <Declaration><![CDATA[TYPE U_TRIGGER_CTRL :
+UNION
+  stCtrl              : ARRAY[1..MAX_TRIGGER_BOX] OF ST_CTRL_TRIGGER;
+
+{IF defined (TRIGGER_MAP)}
+  {info 'U_TRIGGER_CTRL mapping activated'}
+  byCtrl    AT %I*    : ARRAY[1..MAX_TRIGGER_BOX] OF
+                        ARRAY[1..SIZEOF(ST_CTRL_TRIGGER)] OF BYTE;
+{ELSE}
+  byCtrl              : ARRAY[1..MAX_TRIGGER_BOX] OF
+                        ARRAY[1..SIZEOF(ST_CTRL_TRIGGER)] OF BYTE;
+{END_IF}
+END_UNION
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

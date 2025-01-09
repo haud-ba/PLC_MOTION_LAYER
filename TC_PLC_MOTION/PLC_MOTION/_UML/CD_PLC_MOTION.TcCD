@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.13">
   <ClassDiagram Name="CD_PLC_MOTION" Id="{55e09783-1315-4506-9b3d-2155ead6c61e}">
     <XmlArchive>
       <Data>

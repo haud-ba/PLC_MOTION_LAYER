@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.13">
+  <DUT Name="U_TOUCH_PROBE_CTRL" Id="{d3522c0b-542a-463f-b0d9-129aed8d68b0}">
+    <Declaration><![CDATA[TYPE U_TOUCH_PROBE_CTRL :
+UNION
+  stCtrl              : ARRAY[1..MAX_TOUCH_PROBE] OF ST_CTRL_TOUCH_PROBE;
+
+{IF defined (TRIGGER_MAP)}
+  {info 'U_TOUCH_PROBE_CTRL mapping activated'}
+  byCtrl    AT %I*    : ARRAY[1..MAX_TOUCH_PROBE] OF
+                        ARRAY[1..SIZEOF(ST_CTRL_TOUCH_PROBE)] OF BYTE;
+{ELSE}
+  byCtrl              : ARRAY[1..MAX_TOUCH_PROBE] OF
+                        ARRAY[1..SIZEOF(ST_CTRL_TOUCH_PROBE)] OF BYTE;
+{END_IF}
+END_UNION
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

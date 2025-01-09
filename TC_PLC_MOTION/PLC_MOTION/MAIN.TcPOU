@@ -72,7 +72,11 @@ THEN
       stMsg.iErrorNumber                      := nAxisInit;
 
       stMsg.sText                             := concat('MAIN.eInit: ', TO_STRING(eInit));
-      f_MessageSet(stMsg);
+
+      IF (GVL_MSG.MessageLevelAxisPtp[nAxisInit] = E_MessageType.eMessageVerbose)
+      THEN
+        f_MessageSet(stMsg);
+      END_IF
 
       GVL_AXIS.Ctrl[nAxisInit].eCmd           := E_AXIS_CTRL.AXIS_NULL;
       eInit                                   := E_PROGRESS.PROGRESS_BUSY;
@@ -206,7 +210,11 @@ END_IF
       <LineId Id="211" Count="0" />
       <LineId Id="174" Count="0" />
       <LineId Id="269" Count="5" />
+      <LineId Id="371" Count="0" />
+      <LineId Id="370" Count="0" />
+      <LineId Id="372" Count="0" />
       <LineId Id="353" Count="0" />
+      <LineId Id="373" Count="0" />
       <LineId Id="268" Count="0" />
       <LineId Id="171" Count="0" />
       <LineId Id="176" Count="1" />

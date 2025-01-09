@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.13">
   <GVL Name="PLC_CONSTANT" Id="{4cb0bbbd-669b-017e-3f2a-88b0eccf743b}">
     <Declaration><![CDATA[//{attribute 'qualified_only'}
 VAR_GLOBAL CONSTANT
@@ -65,9 +65,9 @@ VAR_GLOBAL CONSTANT
 
 {IF defined (XFC)}
   {info 'PLC_MOTION_LAYER: XFC'}
-  cXFC              : BOOL := TRUE;
+  XFC_ACTIVE        : BOOL := TRUE;
 {ELSE}
-  cXFC              : BOOL := FALSE;
+  XFC_ACTIVE        : BOOL := FALSE;
 {END_IF}
 
 END_VAR]]></Declaration>

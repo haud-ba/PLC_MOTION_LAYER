@@ -5,8 +5,8 @@
 UNION
   stState             : ARRAY[1..MAX_AXIS] OF ST_CAM_STATE;
 
-{IF defined (AXIS_MAP)}
-  {info 'U_AXIS_STATE mapping activated'}
+{IF defined (CAM_MAP)}
+  {info 'U_CAM_STATE mapping activated'}
   byState   AT %Q*    : ARRAY[1..MAX_AXIS] OF
                         ARRAY[1..SIZEOF(ST_CAM_STATE)] OF BYTE;
 {ELSE}
