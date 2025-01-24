@@ -18,7 +18,7 @@
     <LibraryReferences>{ff26b307-1ac0-40be-ba24-df54548edd9a}</LibraryReferences>
     <Released>false</Released>
     <Title>PLC_MOTION_LAYER</Title>
-    <ProjectVersion>01.00.20</ProjectVersion>
+    <ProjectVersion>01.00.30</ProjectVersion>
     <Author>D. Hauer</Author>
     <Description>MC-PtP, NCI, Camming cyclic execution layer for motion commands</Description>
     <CompilerDefines />
