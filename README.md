@@ -37,6 +37,11 @@
 	- GVL_FUNCTIONS - XFC TriggerBox, TouchProbe
 	- GVL_MSG
 	
+## TwinCAT Mapping [MAPPING programs]
+	- UNIONS for use with structured datatypes
+	- Easy connection to other fieldbuses
+	- optional Compiler defines for building of mapping
+	
  
     
 
