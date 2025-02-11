@@ -268,7 +268,7 @@ OF
 
       _stMsg.eType                  := E_MessageType.eMessageVerbose;
       _stMsg.eDevice                := E_Device.Axis + (_AxisRef.NcToPlc.AxisId);
-      _stMsg.eSubdevice             := e_Subdevice.fbPowerOff;
+      _stMsg.eSubdevice             := e_Subdevice.fbPower;
       _stMsg.iErrorNumber           := 0;
 
       _stMsg.sText                  := concat('clear error on disable : ', TO_STRING(_eState));
@@ -291,7 +291,7 @@ OF
 
       _stMsg.eType                  := E_MessageType.eMessageVerbose;
       _stMsg.eDevice                := E_Device.Axis + (_AxisRef.NcToPlc.AxisId);
-      _stMsg.eSubdevice             := e_Subdevice.fbPowerOff;
+      _stMsg.eSubdevice             := e_Subdevice.fbPower;
       _stMsg.iErrorNumber           := 0;
 
       _stMsg.sText                  := concat('clear error on disable : ', TO_STRING(_eResult));
@@ -311,7 +311,7 @@ OF
     
       _stMsg.eType                  := E_MessageType.eMessageError;
       _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
-      _stMsg.eSubdevice             :=  e_SubDevice.fbPowerOff;
+      _stMsg.eSubdevice             :=  e_SubDevice.fbPower;
       _stMsg.iErrorNumber           := _nErrorId;
 
       f_MessageSet(_stMsg);
@@ -331,7 +331,7 @@ OF
 
       _stMsg.eType                  := E_MessageType.eMessageVerbose;
       _stMsg.eDevice                := E_Device.Axis + (_AxisRef.NcToPlc.AxisId);
-      _stMsg.eSubdevice             := e_Subdevice.fbPowerOff;
+      _stMsg.eSubdevice             := e_Subdevice.fbPower;
       _stMsg.iErrorNumber           := 0;
 
       _stMsg.sText                  := concat(' : ', TO_STRING(_eState));
@@ -389,7 +389,7 @@ OF
 
       _stMsg.eType                  := E_MessageType.eMessageVerbose;
       _stMsg.eDevice                := E_Device.Axis + (_AxisRef.NcToPlc.AxisId);
-      _stMsg.eSubdevice             := e_Subdevice.fbPowerOn;
+      _stMsg.eSubdevice             := e_Subdevice.fbPower;
       _stMsg.iErrorNumber           := 0;
 
       _stMsg.sText                  := concat('clear error on enable : ', TO_STRING(_eState));
@@ -420,7 +420,7 @@ OF
     
       _stMsg.eType                  := E_MessageType.eMessageError;
       _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
-      _stMsg.eSubdevice             :=  e_SubDevice.fbPowerOn;
+      _stMsg.eSubdevice             :=  e_SubDevice.fbPower;
       _stMsg.iErrorNumber           := _nErrorId;
     
       f_MessageSet(_stMsg);
@@ -440,7 +440,7 @@ OF
 
       _stMsg.eType                  := E_MessageType.eMessageVerbose;
       _stMsg.eDevice                := E_Device.Axis + (_AxisRef.NcToPlc.AxisId);
-      _stMsg.eSubdevice             := e_Subdevice.fbPowerOn;
+      _stMsg.eSubdevice             := e_Subdevice.fbPower;
       _stMsg.iErrorNumber           := 0;
 
       _stMsg.sText                  := concat(' : ', TO_STRING(_eState));
@@ -1093,7 +1093,7 @@ OF
 
       _stMsg.eType                  := E_MessageType.eMessageInfo;
       _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
-      _stMsg.eSubdevice             := e_SubDevice.fbMoveToPosition;
+      _stMsg.eSubdevice             := e_SubDevice.fbMovePtP;
       _stMsg.iErrorNumber           := 0;
 
       _stMsg.sText                  := concat(' : ', TO_STRING(Position));
@@ -1141,7 +1141,7 @@ OF
     
       _stMsg.eType                  := E_MessageType.eMessageError;
       _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
-      _stMsg.eSubdevice             :=  e_SubDevice.fbMoveToPosition;
+      _stMsg.eSubdevice             :=  e_SubDevice.fbMovePtP;
       _stMsg.iErrorNumber           := _nErrorId;
 
       _stMsg.sText                  := concat(' : ', TO_STRING(_eState));
@@ -1155,7 +1155,7 @@ OF
 
       _stMsg.eType                  := E_MessageType.eMessageError;
       _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
-      _stMsg.eSubdevice             := e_SubDevice.fbMoveToPosition;
+      _stMsg.eSubdevice             := e_SubDevice.fbMovePtP;
       _stMsg.iErrorNumber           := _nErrorId;
 
       _stMsg.sText                  := concat('FB aborted: ', TO_STRING(_eState));
@@ -1168,7 +1168,7 @@ OF
 
       _stMsg.eType                  := E_MessageType.eMessageVerbose;
       _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
-      _stMsg.eSubdevice             := e_SubDevice.fbMoveToPosition;
+      _stMsg.eSubdevice             := e_SubDevice.fbMovePtP;
       _stMsg.iErrorNumber           := 0;
 
       _stMsg.sText                  := concat('FB active: ', TO_STRING(_eState));
@@ -1196,7 +1196,7 @@ OF
     
       _stMsg.eType                  := E_MessageType.eMessageError;
       _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
-      _stMsg.eSubdevice             :=  e_SubDevice.fbMoveToPosition;
+      _stMsg.eSubdevice             :=  e_SubDevice.fbMovePtP;
       _stMsg.iErrorNumber           := _nErrorId;
 
       _stMsg.sText                  := concat(' : ', TO_STRING(_eState));
@@ -1210,7 +1210,7 @@ OF
     
       _stMsg.eType                  := E_MessageType.eMessageError;
       _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
-      _stMsg.eSubdevice             :=  e_SubDevice.fbMoveToPosition;
+      _stMsg.eSubdevice             :=  e_SubDevice.fbMovePtP;
       _stMsg.iErrorNumber           := _nErrorId;
 
       _stMsg.sText                  := concat('FB aborted : ', TO_STRING(_eState));
@@ -1233,7 +1233,7 @@ OF
 
     _stMsg.eType                    := E_MessageType.eMessageVerbose;
     _stMsg.eDevice                  := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
-    _stMsg.eSubdevice               := e_SubDevice.fbMoveToPosition;
+    _stMsg.eSubdevice               := e_SubDevice.fbMovePtP;
     _stMsg.iErrorNumber             := 0;
 
     _stMsg.sText                    := concat(' : ', TO_STRING(_eState));

@@ -148,7 +148,7 @@ tonWriteLog(IN:= TRUE, PT := tWriteLog);
 
 IF (tonWriteLog.Q)
 THEN
-  MessageData.bWriteFile      := TRUE;
+  //MessageData.bWriteFile      := TRUE; // you have to decide whethter to use timed write or not
   tonWriteLog(IN:= FALSE);
 END_IF
 

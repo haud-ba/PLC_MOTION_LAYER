@@ -1,29 +1,27 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.13">
   <DUT Name="e_Subdevice" Id="{a194f8e6-a98e-015f-38c6-80611fab11b3}">
     <Declaration><![CDATA[{attribute 'strict'}
 {attribute 'to_string'}
 TYPE e_Subdevice :
 (
-  SubDevice_Null,
+  // sub device for message system
+  General                 :=  0,
   // Motion Control FB Instances
-  fbPowerOn               := 10,
-  fbPowerOff,
+  fbPower,
   fbReset,
   fbResetSercos,
   fbHalt,
-  fbStop,
+  fbStop,                 // 5
   fbHome,
   fbJog,
-  fbMoveToPosition,
-  fbMoveVelo,
   fbMoveVelocity1,
   fbMoveVelocity2,
-  fbMoveAbsolute1,
+  fbMoveAbsolute1,        // 10
   fbMoveAbsolute2,
   fbMoveEndless,
   fbMovePtP,
-
+  fbMoveVelo,
 
   // CA CollisionAvoidance FB instances
   // CA group fb instances
@@ -61,8 +59,6 @@ TYPE e_Subdevice :
   fbWriteParameter,
   fbWriteBoolParameter,
   fbWriteParameterPersistent,
-
-
 
 	fbBuildGroup          := 200,
 	fbClearGroup,
@@ -126,6 +122,7 @@ TYPE e_Subdevice :
   Xpu_fbXpuPart,
   Xpu_fbXpuTrack,
   Xpu_fbMc2CaGroup,
+  Xpu_fbParameterSet,
 
   Xpu_fbPartModules     := 5500,
 
@@ -133,7 +130,18 @@ TYPE e_Subdevice :
 
   CamControl            := 8000,
   CamStartUp,
-  CamCycle
+  CamCycle,
+
+  Process_StationCollector    := 11000,
+  Process_Process_Collector   := 11100,
+  Process_ProcessCollector_Init,
+  Process_ProcessCollector_Cycle,
+  Process_ProcessCollector_Control,
+
+  Process_LinkedList_GetHead,
+  Process_LinkedList_RemoveHead,
+  Process_LinkedList_AddTail
+
 )uDINT;
 END_TYPE
 ]]></Declaration>

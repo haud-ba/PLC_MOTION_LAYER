@@ -88,7 +88,7 @@ OF
 
     _stMsg.eType                    := E_MessageType.eMessageInfo;
     _stMsg.eDevice                  := e_Device.Camming + (_AxisSlave.NcToPlc.AxisId);
-    _stMsg.eSubdevice               :=  e_SubDevice.fbPowerOn;
+    _stMsg.eSubdevice               :=  e_SubDevice.fbPower;
     _stMsg.iErrorNumber             := _nErrorId;
 
     _stMsg.sText                    := concat(TO_STRING(_eCmd), ' retry: ');
@@ -138,7 +138,7 @@ OF
     
       _stMsg.eType                  := E_MessageType.eMessageError;
       _stMsg.eDevice                := e_Device.Camming + (_AxisSlave.NcToPlc.AxisId);
-      _stMsg.eSubdevice             :=  e_SubDevice.fbPowerOn;
+      _stMsg.eSubdevice             :=  e_SubDevice.fbPower;
       _stMsg.iErrorNumber           := _nErrorId;
 
       _stMsg.sText                  := concat(TO_STRING(_eCmd), ' error axis enable: ');

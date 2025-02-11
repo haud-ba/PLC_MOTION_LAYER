@@ -1,9 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
-  <POU Name="MessageData" Id="{cbf579ba-877c-0512-0a45-14c3e31a789c}" SpecialFunc="None">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.13">
+  <POU Name="MessageData" Id="{de44dfc9-febf-465b-9bb6-e18a439a0b7a}" SpecialFunc="None">
     <Declaration><![CDATA[PROGRAM MessageData
+VAR CONSTANT
+{attribute 'hide'}
+  STR_LEN       : UINT := 65535;
+END_VAR
 VAR_INPUT
-  bActivate     : BOOL;   // activates cyclic copy of message list to visualization; switched on in T_MESSAGE_LIST visu
 	bPowerFail		: BOOL;   // UPS switch
 	bWriteFile		: BOOL;   // manual write of list
 	bReset				: BOOL;
@@ -20,7 +23,7 @@ VAR
 
 	rtrigReset		: Tc2_Standard.R_TRIG;
 	aWriteList		: ARRAY[1..GVL_MSG.MAX_MESSAGE] OF ST_Message;
-	sWriteData		: STRING(32767);
+	sWriteData		: STRING(STR_LEN);
 	sNewLine			: STRING := '$N';
 	sTab					: STRING := '$T';
 	iCount, 
@@ -43,7 +46,8 @@ VAR
   bErrorWrite   : BOOL;
   nErrorWrite   : UDINT;
   nStateWrite   : UINT;
-END_VAR]]></Declaration>
+END_VAR
+]]></Declaration>
     <Implementation>
       <ST><![CDATA[//-----------------------------------------------------------------------------
 // check pointers
@@ -76,10 +80,12 @@ CASE eState OF
   MSG_NULL:
     bBusy                     := 
     bDone                     := FALSE;
-    
-    IF (bWriteFile) OR
-       (bPowerFail) OR 
-       (GVL_MSG.MessageIndex > GVL_MSG.MAX_MESSAGE-1)
+
+    IF (GVL_MSG.MessageIndex > GVL_MSG.MAX_MESSAGE/2)
+    THEN
+      eState                  := MSG_INIT;
+
+    ELSIF (bWriteFile) OR (bPowerFail)
     THEN
       eState                  := MSG_INIT;
 
@@ -113,6 +119,7 @@ CASE eState OF
 
     IF NOT bFileCreated
     THEN
+      // folder and filename have to be created
       eState                  := MSG_ROOT;
     ELSE
       // folder and file already exist
@@ -252,11 +259,11 @@ memcpy(ADR(VisuList), ADR(aWriteList), SIZEOF(VisuList));
 //-----------------------------------------------------------------------------
 ]]></ST>
     </Implementation>
-    <Method Name="Builder" Id="{e7f6a64d-5362-0a59-3bd9-ff631826ba13}">
+    <Method Name="Builder" Id="{f247003e-2aa1-4910-aa2a-0a2ab8a6c9f5}">
       <Declaration><![CDATA[METHOD Builder : BOOL // string concat for length > 255
 VAR_INPUT
   pInString   : POINTER TO STRING;
-  pOutString  : POINTER TO STRING(32767);
+  pOutString  : POINTER TO STRING(STR_LEN);
   Length      : UINT;
 END_VAR
 VAR
@@ -272,14 +279,14 @@ Counter := 0;
 
 (*check termination*)
 WHILE (pOutWork^ <> 0) AND
-      (Counter < 32767)
+      (Counter < STR_LEN+1)
 DO
   Counter := Counter + 1;
   pOutWork := pOutWork + 1;
 END_WHILE
 
 (* append only if data fits into output *)
-IF (Counter + Length < 32767)
+IF (Counter + Length < STR_LEN+1)
 THEN
 
   (* append data *)
@@ -297,8 +304,8 @@ END_IF
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="Device_to_String" Id="{a4fca8d1-7396-0a84-395c-ec256a43027b}">
-      <Declaration><![CDATA[METHOD Device_to_String : STRING
+    <Method Name="Device_to_String" Id="{b14d0ea2-0a55-49cd-a8af-196ccac3719d}">
+      <Declaration><![CDATA[METHOD Device_to_String : string
 VAR_INPUT
   eMsgDevice    : e_Device;
 END_VAR
@@ -308,90 +315,117 @@ VAR
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[
-IF (eMsgDevice <= e_device.General)
+        <ST><![CDATA[IF (eMsgDevice <= e_device.General)
 THEN
   // general case with no added indices
   Device_to_String := TO_STRING(eMsgDevice);
 ELSE
-  IF (eMsgDevice > e_Device.Data)
+  IF (eMsgDevice >= e_Device.Process)
+  THEN
+    nId := eMsgDevice MOD e_Device.Process;
+    sId := concat(sId, TO_STRING(nId));
+ 
+    Device_to_String := concat(TO_STRING(e_Device.Process), sId);
+
+  ELSIF (eMsgDevice >= e_Device.Data)
   THEN
     nId := eMsgDevice MOD e_Device.Data;
     sId := concat(sId, TO_STRING(nId));
  
     Device_to_String := concat(TO_STRING(e_device.Data), sId);
 
-  ELSIF (eMsgDevice > e_device.Axis)
+  ELSIF (eMsgDevice >= e_device.XfcAxis)
+  THEN
+    nId := eMsgDevice MOD e_device.XfcAxis;
+    sId := concat(sId, TO_STRING(nId));
+ 
+    Device_to_String := concat(TO_STRING(e_device.XfcAxis), sId);
+
+  ELSIF (eMsgDevice >= e_device.Axis)
   THEN
     nId := eMsgDevice MOD e_device.Axis;
     sId := concat(sId, TO_STRING(nId));
  
     Device_to_String := concat(TO_STRING(e_device.Axis), sId);
 
-  ELSIF (eMsgDevice > e_device.NciChannelCtrl)
+  ELSIF (eMsgDevice >= e_device.NciChannelCtrl)
   THEN
     nId := eMsgDevice MOD e_device.NciChannelCtrl;
     sId := concat(sId, TO_STRING(nId));
  
     Device_to_String := concat(TO_STRING(e_device.NciChannelCtrl), sId);
 
-  ELSIF (eMsgDevice > e_device.NciChannel)
+  ELSIF (eMsgDevice >= e_device.NciChannel)
   THEN
     nId := eMsgDevice MOD e_device.NciChannel;
     sId := concat(sId, TO_STRING(nId));
  
     Device_to_String := concat(TO_STRING(e_device.NciChannel), sId);
 
-  ELSIF (eMsgDevice > e_Device.Camming)
+  ELSIF (eMsgDevice >= e_Device.Camming)
   THEN
     nId := eMsgDevice MOD e_Device.Camming;
     sId := concat(sId, TO_STRING(nId));
  
     Device_to_String := concat(TO_STRING(e_device.Camming), sId);
 
-  ELSIF (eMsgDevice > e_Device.XtsStation)
+  ELSIF (eMsgDevice >= e_Device.XtsStation)
   THEN
     nId := eMsgDevice MOD e_Device.XtsStation;
     sId := concat(sId, TO_STRING(nId));
  
     Device_to_String := concat(TO_STRING(e_device.XtsStation), sId);
 
-  ELSIF (eMsgDevice > e_Device.XtsTransportUnit)
+  ELSIF (eMsgDevice >= e_Device.XfcTouchProbe)
+  THEN
+    nId := eMsgDevice MOD e_Device.XfcTouchProbe;
+    sId := concat(sId, TO_STRING(nId));
+ 
+    Device_to_String := concat(TO_STRING(e_device.XfcTouchProbe), sId);
+
+  ELSIF (eMsgDevice >= e_Device.XfcTriggerBox)
+  THEN
+    nId := eMsgDevice MOD e_Device.XfcTriggerBox;
+    sId := concat(sId, TO_STRING(nId));
+ 
+    Device_to_String := concat(TO_STRING(e_device.XfcTriggerBox), sId);
+
+  ELSIF (eMsgDevice >= e_Device.XtsTransportUnit)
   THEN
     nId := eMsgDevice MOD e_Device.XtsTransportUnit;
     sId := concat(sId, TO_STRING(nId));
  
     Device_to_String := concat(TO_STRING(e_device.XtsTransportUnit), sId);
 
-  ELSIF (eMsgDevice > e_Device.MoverCtrl)
+  ELSIF (eMsgDevice >= e_Device.MoverCtrl)
   THEN
     nId := eMsgDevice MOD e_Device.MoverCtrl;
     sId := concat(sId, TO_STRING(nId));
  
     Device_to_String := concat(TO_STRING(e_device.MoverCtrl), sId);
 
-  ELSIF (eMsgDevice > e_Device.Mover)
+  ELSIF (eMsgDevice >= e_Device.Mover)
   THEN
     nId := eMsgDevice MOD e_Device.Mover;
     sId := concat(sId, TO_STRING(nId));
  
     Device_to_String := concat(TO_STRING(e_device.Mover), sId);
 
-  ELSIF (eMsgDevice > e_Device.XpuCtrl)
+  ELSIF (eMsgDevice >= e_Device.XpuCtrl)
   THEN
     nId := eMsgDevice MOD e_Device.XpuCtrl;
     sId := concat(sId, TO_STRING(nId));
  
     Device_to_String := concat(TO_STRING(e_device.XpuCtrl), sId);
 
-  ELSIF (eMsgDevice > e_Device.Xpu)
+  ELSIF (eMsgDevice >= e_Device.Xpu)
   THEN
     nId := eMsgDevice MOD e_Device.Xpu;
     sId := concat(sId, TO_STRING(nId));
  
     Device_to_String := concat(TO_STRING(e_device.Xpu), sId);
 
-  ELSIF (eMsgDevice > e_Device.CaGroup)
+  ELSIF (eMsgDevice >= e_Device.CaGroup)
   THEN
     nId := eMsgDevice MOD e_Device.CaGroup;
     sId := concat(sId, TO_STRING(nId));
@@ -405,7 +439,7 @@ END_IF
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="FolderDate" Id="{769271c2-f3d0-0e78-1191-f90d8d6bf2eb}">
+    <Method Name="FolderDate" Id="{6323d7b1-8a13-4d31-8062-0c442deb810d}">
       <Declaration><![CDATA[METHOD FolderDate : STRING
 VAR_INPUT
 	pLocalTime		: POINTER TO DT;
@@ -435,7 +469,7 @@ FolderDate := sTmp;
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="StringLen" Id="{4b37d558-187c-07d9-2288-9af673b19b4e}">
+    <Method Name="StringLen" Id="{5e86732b-61bf-4490-b37b-6fbfd331e8a8}">
       <Declaration><![CDATA[METHOD StringLen : UINT // 	string length for len > 255
 VAR_INPUT
   pInString		: POINTER TO STRING(32767);
@@ -459,7 +493,7 @@ END_WHILE
 StringLen := Counter;]]></ST>
       </Implementation>
     </Method>
-    <Method Name="WriteData" Id="{fc730c43-20dd-03f0-168b-c4b918814d9f}">
+    <Method Name="WriteData" Id="{e9c2aa30-591e-40b9-8778-31f0b8013e79}">
       <Declaration><![CDATA[METHOD WriteData  : BOOL
 VAR_INPUT
   bExecute        : BOOL;
@@ -573,11 +607,74 @@ bErrorWrite := fbFileOpen.bError OR fbFileWrite.bError;
       </Implementation>
     </Method>
     <LineIds Name="MessageData">
-      <LineId Id="3734" Count="67" />
-      <LineId Id="3806" Count="0" />
-      <LineId Id="3810" Count="79" />
-      <LineId Id="3893" Count="12" />
-      <LineId Id="3907" Count="42" />
+      <LineId Id="3663" Count="0" />
+      <LineId Id="3460" Count="0" />
+      <LineId Id="3664" Count="0" />
+      <LineId Id="3461" Count="2" />
+      <LineId Id="3676" Count="0" />
+      <LineId Id="3464" Count="1" />
+      <LineId Id="3660" Count="0" />
+      <LineId Id="3466" Count="0" />
+      <LineId Id="3661" Count="0" />
+      <LineId Id="3665" Count="0" />
+      <LineId Id="3467" Count="3" />
+      <LineId Id="3472" Count="0" />
+      <LineId Id="3662" Count="0" />
+      <LineId Id="3473" Count="6" />
+      <LineId Id="3666" Count="0" />
+      <LineId Id="3481" Count="3" />
+      <LineId Id="3828" Count="2" />
+      <LineId Id="3485" Count="0" />
+      <LineId Id="3831" Count="0" />
+      <LineId Id="3488" Count="2" />
+      <LineId Id="3780" Count="0" />
+      <LineId Id="3779" Count="0" />
+      <LineId Id="3781" Count="3" />
+      <LineId Id="3491" Count="1" />
+      <LineId Id="3667" Count="0" />
+      <LineId Id="3493" Count="2" />
+      <LineId Id="3688" Count="0" />
+      <LineId Id="3496" Count="1" />
+      <LineId Id="3689" Count="0" />
+      <LineId Id="3687" Count="0" />
+      <LineId Id="3498" Count="0" />
+      <LineId Id="3691" Count="0" />
+      <LineId Id="3690" Count="0" />
+      <LineId Id="3499" Count="10" />
+      <LineId Id="3658" Count="0" />
+      <LineId Id="3510" Count="1" />
+      <LineId Id="3659" Count="0" />
+      <LineId Id="3512" Count="2" />
+      <LineId Id="3668" Count="0" />
+      <LineId Id="3515" Count="21" />
+      <LineId Id="3541" Count="2" />
+      <LineId Id="3646" Count="0" />
+      <LineId Id="3642" Count="3" />
+      <LineId Id="3647" Count="0" />
+      <LineId Id="3641" Count="0" />
+      <LineId Id="3544" Count="13" />
+      <LineId Id="3563" Count="2" />
+      <LineId Id="3649" Count="0" />
+      <LineId Id="3669" Count="0" />
+      <LineId Id="3650" Count="1" />
+      <LineId Id="3657" Count="0" />
+      <LineId Id="3652" Count="4" />
+      <LineId Id="3566" Count="0" />
+      <LineId Id="3670" Count="0" />
+      <LineId Id="3567" Count="1" />
+      <LineId Id="3686" Count="0" />
+      <LineId Id="3569" Count="3" />
+      <LineId Id="3671" Count="0" />
+      <LineId Id="3573" Count="4" />
+      <LineId Id="3581" Count="12" />
+      <LineId Id="3595" Count="2" />
+      <LineId Id="3672" Count="0" />
+      <LineId Id="3598" Count="32" />
+      <LineId Id="3673" Count="1" />
+      <LineId Id="3631" Count="0" />
+      <LineId Id="3785" Count="0" />
+      <LineId Id="3632" Count="0" />
+      <LineId Id="5" Count="0" />
       <LineId Id="3675" Count="0" />
     </LineIds>
     <LineIds Name="MessageData.Builder">
@@ -585,7 +682,9 @@ bErrorWrite := fbFileOpen.bError OR fbFileWrite.bError;
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="MessageData.Device_to_String">
-      <LineId Id="119" Count="93" />
+      <LineId Id="196" Count="4" />
+      <LineId Id="318" Count="6" />
+      <LineId Id="201" Count="108" />
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="MessageData.FolderDate">

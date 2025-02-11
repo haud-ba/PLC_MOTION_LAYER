@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.13">
   <DUT Name="e_Device" Id="{4f07530f-18fb-0dc6-20fc-45bddec0ddd2}">
     <Declaration><![CDATA[{attribute 'to_string'}
 TYPE e_Device :
@@ -21,7 +21,10 @@ TYPE e_Device :
   NciChannelCtrl    :=  5000,
   Axis              :=  7000,
   XfcAxis           :=  8000,
-  Data              := 10000
+  Data              := 10000,
+
+  Process           := 11000
+
 )UDINT;
 END_TYPE
 ]]></Declaration>
