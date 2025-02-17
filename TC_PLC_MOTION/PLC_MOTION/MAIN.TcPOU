@@ -29,7 +29,6 @@ GVL_MSG.fbLocalTime(
 FOR nAxis := 1 TO PLC_CONSTANT.MAX_AXIS
 DO
   GVL_AXIS.Control[nAxis].AxisIndex           := nAxis;
-  GVL_AXIS.Control[nAxis].MessageLevel        := GVL_MSG.MessageLevelAxisPtp[nAxis];
 
   GVL_AXIS.Control[nAxis].AxisCtrl            := ADR(GVL_AXIS.Ctrl);          // command
   GVL_AXIS.Control[nAxis].AxisState           := ADR(GVL_AXIS.State);         // state + result of command
@@ -61,6 +60,10 @@ THEN
   OF
     E_PROGRESS.PROGRESS_INVALID,
     E_PROGRESS.PROGRESS_DONE:
+      FOR nAxis := 1 TO PLC_CONSTANT.MAX_AXIS
+      DO
+        GVL_AXIS.Control[nAxis].MessageLevel  := GVL_MSG.MessageLevelAxisPtp;
+      END_FOR
       nAxisInit                               := 1;
       eInit                                   := E_PROGRESS.PROGRESS_INIT;
 
@@ -73,7 +76,7 @@ THEN
 
       stMsg.sText                             := concat('MAIN.eInit: ', TO_STRING(eInit));
 
-      IF (GVL_MSG.MessageLevelAxisPtp[nAxisInit] = E_MessageType.eMessageVerbose)
+      IF (GVL_MSG.MessageLevelAxisPtp = E_MessageType.eMessageVerbose)
       THEN
         f_MessageSet(stMsg);
       END_IF
@@ -148,7 +151,7 @@ tonWriteLog(IN:= TRUE, PT := tWriteLog);
 
 IF (tonWriteLog.Q)
 THEN
-  //MessageData.bWriteFile      := TRUE; // you have to decide whethter to use timed write or not
+  //MessageData.bWriteFile      := TRUE; // you have to decide whether to use timed write or not
   tonWriteLog(IN:= FALSE);
 END_IF
 
@@ -182,9 +185,7 @@ END_IF
       <LineId Id="77" Count="2" />
       <LineId Id="33" Count="0" />
       <LineId Id="36" Count="0" />
-      <LineId Id="102" Count="0" />
-      <LineId Id="355" Count="0" />
-      <LineId Id="103" Count="0" />
+      <LineId Id="102" Count="1" />
       <LineId Id="6" Count="0" />
       <LineId Id="95" Count="0" />
       <LineId Id="257" Count="0" />
@@ -205,6 +206,9 @@ END_IF
       <LineId Id="369" Count="0" />
       <LineId Id="152" Count="5" />
       <LineId Id="278" Count="0" />
+      <LineId Id="388" Count="1" />
+      <LineId Id="391" Count="0" />
+      <LineId Id="387" Count="0" />
       <LineId Id="172" Count="1" />
       <LineId Id="175" Count="0" />
       <LineId Id="211" Count="0" />

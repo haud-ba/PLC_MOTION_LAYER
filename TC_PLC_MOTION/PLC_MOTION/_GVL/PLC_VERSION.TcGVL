@@ -3,7 +3,13 @@
   <GVL Name="PLC_VERSION" Id="{d2395695-97e2-030c-1191-ad6e09085440}">
     <Declaration><![CDATA[{attribute 'qualified_only'}
 VAR_GLOBAL CONSTANT
-  VERSION               : STRING := 'V 01.00.30';
+  VERSION               : STRING := 'V 01.00.31';
+
+  // 2025 02 17 HAUD
+  //
+  // code review
+  // Message Levels are set during initialization
+  // sizeof mapping data is fetched at startup only
 
   // 2025 01 09 HAUD
   //

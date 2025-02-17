@@ -32,8 +32,6 @@ IF NOT (MAIN.eInit = E_PROGRESS.PROGRESS_DONE) THEN eInit   := E_PROGRESS.PROGRE
 //-----------------------------------------------------------------------------------------------------------------
 FOR nChn := 1 TO MAX_NCI_CH
 DO
-  GVL_NCI.fbNciCtrl[nChn].ItfChannel.MessageLevel     := GVL_MSG.MessageLevelNciChn[nChn];
-
   // NCI axis configuration --> NC AxisId used
   GVL_NCI.fbNciCtrl[nChn].ItfChannel.CfgAxes          := ADR(GVL_NCI.stAxisConfig[nChn]);
 
@@ -68,6 +66,10 @@ THEN
   OF
     E_PROGRESS.PROGRESS_INVALID,
     E_PROGRESS.PROGRESS_DONE:
+      FOR nChn := 1 TO MAX_NCI_CH
+      DO
+        GVL_NCI.fbNciCtrl[nChn].ItfChannel.MessageLevel     := GVL_MSG.MessageLevelNciChn;
+      END_FOR
       nChnInit                                    := 1;
       eInit                                       := E_PROGRESS.PROGRESS_INIT;
 
@@ -158,13 +160,14 @@ END_FOR
       <LineId Id="360" Count="0" />
       <LineId Id="374" Count="0" />
       <LineId Id="300" Count="4" />
-      <LineId Id="343" Count="1" />
       <LineId Id="306" Count="16" />
       <LineId Id="332" Count="0" />
       <LineId Id="323" Count="2" />
       <LineId Id="329" Count="2" />
       <LineId Id="298" Count="0" />
       <LineId Id="195" Count="8" />
+      <LineId Id="389" Count="2" />
+      <LineId Id="388" Count="0" />
       <LineId Id="208" Count="11" />
       <LineId Id="270" Count="0" />
       <LineId Id="220" Count="0" />

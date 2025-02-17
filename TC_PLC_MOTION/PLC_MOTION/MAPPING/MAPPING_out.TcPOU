@@ -23,6 +23,7 @@ VAR CONSTANT
 {END_IF}
 END_VAR
 VAR
+  bFirstCycle       : BOOL := TRUE;
 {IF defined (AXIS_MAP)}
   AxisState         : U_AXIS_STATE;
   AxisInfo          : U_AXIS_INFO;
@@ -63,30 +64,35 @@ END_VAR
 ]]></Declaration>
     <Implementation>
       <ST><![CDATA[
-szAxisState[1]      := SIZEOF(AxisState);
-szAxisState[2]      := SIZEOF(GVL_AXIS.State);
-
-szAxisInfo [1]      := SIZEOF(AxisInfo);
-szAxisInfo [2]      := SIZEOF(GVL_AXIS.Info);
-
-szAxisPara [1]      := SIZEOF(AxisParameterRd);
-szAxisPara [2]      := SIZEOF(GVL_AXIS.NcParameterRd);
-
-
-szCamInfo  [1]      := SIZEOF(CamInfo);
-szCamInfo  [2]      := SIZEOF(GVL_CAM.Info);
-
-szCamData  [1]      := SIZEOF(CamData);
-szCamData  [2]      := SIZEOF(GVL_CAM.Data);
-
-szCamState [1]      := SIZEOF(CamState);
-szCamState [2]      := SIZEOF(GVL_CAM.State);
-
-szStateTrigger [1]  := SIZEOF(TriggerState);
-szStateTrigger [2]  := SIZEOF(GVL_FUNCTIONS.StateTrigger);
-
-szStateTouchProbe [1]  := SIZEOF(TouchProbeState);
-szStateTouchProbe [2]  := SIZEOF(GVL_FUNCTIONS.StateTouchProbe);
+IF (bFirstCycle)
+THEN
+  bFirstCycle         := FALSE;
+  
+  szAxisState[1]      := SIZEOF(AxisState);
+  szAxisState[2]      := SIZEOF(GVL_AXIS.State);
+  
+  szAxisInfo [1]      := SIZEOF(AxisInfo);
+  szAxisInfo [2]      := SIZEOF(GVL_AXIS.Info);
+  
+  szAxisPara [1]      := SIZEOF(AxisParameterRd);
+  szAxisPara [2]      := SIZEOF(GVL_AXIS.NcParameterRd);
+  
+  
+  szCamInfo  [1]      := SIZEOF(CamInfo);
+  szCamInfo  [2]      := SIZEOF(GVL_CAM.Info);
+  
+  szCamData  [1]      := SIZEOF(CamData);
+  szCamData  [2]      := SIZEOF(GVL_CAM.Data);
+  
+  szCamState [1]      := SIZEOF(CamState);
+  szCamState [2]      := SIZEOF(GVL_CAM.State);
+  
+  szStateTrigger [1]  := SIZEOF(TriggerState);
+  szStateTrigger [2]  := SIZEOF(GVL_FUNCTIONS.StateTrigger);
+  
+  szStateTouchProbe [1]  := SIZEOF(TouchProbeState);
+  szStateTouchProbe [2]  := SIZEOF(GVL_FUNCTIONS.StateTouchProbe);
+END_IF
 
 IF NOT bBypassMappingAxis
 THEN
@@ -111,7 +117,9 @@ END_IF
 ]]></ST>
     </Implementation>
     <LineIds Name="MAPPING_out">
+      <LineId Id="278" Count="0" />
       <LineId Id="78" Count="0" />
+      <LineId Id="279" Count="2" />
       <LineId Id="74" Count="0" />
       <LineId Id="79" Count="0" />
       <LineId Id="85" Count="0" />
@@ -126,6 +134,7 @@ END_IF
       <LineId Id="140" Count="2" />
       <LineId Id="214" Count="2" />
       <LineId Id="132" Count="0" />
+      <LineId Id="282" Count="0" />
       <LineId Id="186" Count="1" />
       <LineId Id="206" Count="2" />
       <LineId Id="195" Count="3" />

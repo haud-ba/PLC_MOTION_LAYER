@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.13">
   <POU Name="CAM" Id="{9788bdef-fe43-088d-22e7-ce2c54a5a9f7}" SpecialFunc="None">
     <Declaration><![CDATA[PROGRAM CAM
 VAR
@@ -30,7 +30,6 @@ IF NOT (MAIN.eInit = E_PROGRESS.PROGRESS_DONE) THEN eInit   := E_PROGRESS.PROGRE
 FOR nAxis := 1 TO PLC_CONSTANT.MAX_AXIS
 DO
   GVL_CAM.Control[nAxis].ItfMcAxes                := GVL_AXIS.ItfMcAxis;
-  GVL_CAM.Control[nAxis].MessageLevel             := GVL_MSG.MessageLevelAxisCam[nAxis];
 
   GVL_CAM.Control[nAxis].AxisIndex                := nAxis;
 
@@ -57,6 +56,10 @@ THEN
   OF
     E_PROGRESS.PROGRESS_INVALID,
     E_PROGRESS.PROGRESS_DONE:
+      FOR nAxis := 1 TO PLC_CONSTANT.MAX_AXIS
+      DO
+        GVL_CAM.Control[nAxis].MessageLevel       := GVL_MSG.MessageLevelAxisCam;
+      END_FOR
       nAxisInit                                   := 1;
       eInit                                       := E_PROGRESS.PROGRESS_INIT;
 
@@ -69,7 +72,10 @@ THEN
 
       stMsg.sText                                 := concat('CAM.eInit: ', TO_STRING(eInit));
 
-      f_MessageSet(stMsg);
+      IF (GVL_MSG.MessageLevelAxisCam = E_MessageType.eMessageVerbose)
+      THEN
+        f_MessageSet(stMsg);
+      END_IF
 
       GVL_CAM.Ctrl[nAxisInit].eCmd               := E_AXIS_CTRL.AXIS_NULL;
       eInit                                       := E_PROGRESS.PROGRESS_BUSY;
@@ -144,17 +150,20 @@ END_IF
       <LineId Id="194" Count="4" />
       <LineId Id="180" Count="0" />
       <LineId Id="108" Count="3" />
-      <LineId Id="146" Count="0" />
-      <LineId Id="172" Count="0" />
-      <LineId Id="147" Count="0" />
+      <LineId Id="146" Count="1" />
       <LineId Id="112" Count="8" />
       <LineId Id="160" Count="0" />
       <LineId Id="159" Count="0" />
       <LineId Id="161" Count="0" />
       <LineId Id="130" Count="3" />
-      <LineId Id="24" Count="19" />
-      <LineId Id="182" Count="0" />
-      <LineId Id="44" Count="62" />
+      <LineId Id="24" Count="8" />
+      <LineId Id="210" Count="1" />
+      <LineId Id="213" Count="0" />
+      <LineId Id="209" Count="0" />
+      <LineId Id="33" Count="10" />
+      <LineId Id="218" Count="0" />
+      <LineId Id="214" Count="3" />
+      <LineId Id="45" Count="61" />
       <LineId Id="23" Count="0" />
       <LineId Id="6" Count="0" />
     </LineIds>

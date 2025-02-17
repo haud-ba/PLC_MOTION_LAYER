@@ -23,6 +23,7 @@ VAR CONSTANT
 {END_IF}
 END_VAR
 VAR
+  bFirstCycle       : BOOL := TRUE;
 {IF defined (AXIS_MAP)}
   AxisCtrl          : U_AXIS_CTRL;
   AxisMoveData      : U_AXIS_MOVE_DATA;
@@ -68,32 +69,37 @@ END_VAR
 ]]></Declaration>
     <Implementation>
       <ST><![CDATA[
-szAxisCtrl[1]           := SIZEOF(AxisCtrl);
-szAxisCtrl[2]           := SIZEOF(GVL_AXIS.Ctrl);
+IF (bFirstCycle)
+THEN
+  bFirstCycle             := FALSE;
 
-szAxisMoveData [1]      := SIZEOF(AxisMoveData);
-szAxisMoveData [2]      := SIZEOF(GVL_AXIS.Data);
-
-szAxisMotionOptions [1] := SIZEOF(AxisMotionOptions);
-szAxisMotionOptions [2] := SIZEOF(GVL_AXIS.MotionOptions);
-
-szAxisGearData [1]      := SIZEOF(AxisGearInData);
-szAxisGearData [2]      := SIZEOF(GVL_AXIS.GearInParameter);
-
-szAxisHoming [1]        := SIZEOF(AxisHoming);
-szAxisHoming [2]        := SIZEOF(GVL_AXIS.HomeParameter);
-
-szAxisPara [1]          := SIZEOF(AxisParameterWrt);
-szAxisPara [2]          := SIZEOF(GVL_AXIS.NcParameterWrt);
-
-szCamCtrl [1]           := SIZEOF(CamControl);
-szCamCtrl [2]           := SIZEOF(GVL_CAM.Ctrl);
-
-szCtrlTrigger[1]        := SIZEOF(TriggerControl);
-szCtrlTrigger[2]        := SIZEOF(GVL_FUNCTIONS.CtrlTrigger);
-
-szCtrlTouchProbe[1]     := SIZEOF(TouchProbeControl);
-szCtrlTouchProbe[2]     := SIZEOF(GVL_FUNCTIONS.CtrlTouchProbe);
+  szAxisCtrl[1]           := SIZEOF(AxisCtrl);
+  szAxisCtrl[2]           := SIZEOF(GVL_AXIS.Ctrl);
+  
+  szAxisMoveData [1]      := SIZEOF(AxisMoveData);
+  szAxisMoveData [2]      := SIZEOF(GVL_AXIS.Data);
+  
+  szAxisMotionOptions [1] := SIZEOF(AxisMotionOptions);
+  szAxisMotionOptions [2] := SIZEOF(GVL_AXIS.MotionOptions);
+  
+  szAxisGearData [1]      := SIZEOF(AxisGearInData);
+  szAxisGearData [2]      := SIZEOF(GVL_AXIS.GearInParameter);
+  
+  szAxisHoming [1]        := SIZEOF(AxisHoming);
+  szAxisHoming [2]        := SIZEOF(GVL_AXIS.HomeParameter);
+  
+  szAxisPara [1]          := SIZEOF(AxisParameterWrt);
+  szAxisPara [2]          := SIZEOF(GVL_AXIS.NcParameterWrt);
+  
+  szCamCtrl [1]           := SIZEOF(CamControl);
+  szCamCtrl [2]           := SIZEOF(GVL_CAM.Ctrl);
+  
+  szCtrlTrigger[1]        := SIZEOF(TriggerControl);
+  szCtrlTrigger[2]        := SIZEOF(GVL_FUNCTIONS.CtrlTrigger);
+  
+  szCtrlTouchProbe[1]     := SIZEOF(TouchProbeControl);
+  szCtrlTouchProbe[2]     := SIZEOF(GVL_FUNCTIONS.CtrlTouchProbe);
+END_IF
 
 IF NOT bBypassMappingAxis
 THEN
@@ -119,14 +125,20 @@ END_IF
 ]]></ST>
     </Implementation>
     <LineIds Name="MAPPING_in">
-      <LineId Id="120" Count="17" />
+      <LineId Id="320" Count="0" />
+      <LineId Id="120" Count="0" />
+      <LineId Id="321" Count="0" />
+      <LineId Id="323" Count="1" />
+      <LineId Id="121" Count="16" />
       <LineId Id="201" Count="0" />
       <LineId Id="182" Count="0" />
       <LineId Id="202" Count="1" />
       <LineId Id="180" Count="1" />
       <LineId Id="119" Count="0" />
       <LineId Id="252" Count="1" />
-      <LineId Id="54" Count="1" />
+      <LineId Id="54" Count="0" />
+      <LineId Id="322" Count="0" />
+      <LineId Id="55" Count="0" />
       <LineId Id="242" Count="0" />
       <LineId Id="33" Count="0" />
       <LineId Id="66" Count="1" />
