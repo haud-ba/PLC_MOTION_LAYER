@@ -11,6 +11,7 @@ VAR
 
   stMsg                     : ST_Message;
 
+  bWriteTimerActive         : Bool;         // you decide whether to use timed logging into file or not
   tWriteLog                 : TIME := T#10S;
   tonWriteLog               : Tc2_Standard.TON;
 END_VAR
@@ -151,7 +152,7 @@ tonWriteLog(IN:= TRUE, PT := tWriteLog);
 
 IF (tonWriteLog.Q)
 THEN
-  //MessageData.bWriteFile      := TRUE; // you have to decide whether to use timed write or not
+  MessageData.bWriteFile      := bWriteTimerActive; // you have to decide whether to use timed write or not
   tonWriteLog(IN:= FALSE);
 END_IF
 

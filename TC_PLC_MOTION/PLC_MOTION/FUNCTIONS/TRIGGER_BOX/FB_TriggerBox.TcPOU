@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.13">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
   <POU Name="FB_TriggerBox" Id="{db4923bf-bc34-4aee-8591-dc86a23ff7f9}" SpecialFunc="None">
     <Declaration><![CDATA[//-----------------------------------------------------------------------------------------------------------
 // TriggerBox
@@ -91,7 +91,7 @@ END_IF
 
 _eDeviceFunction                := e_Device.XfcTriggerBox + _Index;
 
-_CurrentTime                    := Tc2_EtherCAT.F_GetCurDcTaskTime64();
+_CurrentTime                    := Tc2_EtherCAT.F_GetCurDcTickTime64();
 _CurrentTimeShort               := TO_UDINT(_CurrentTime AND 16#FFFFFFFF);
 
 _State[_Index].Init             := TO_UINT(_eInit);
@@ -620,7 +620,7 @@ OF
       _nCount                   := 0;
       _bError                   := FALSE;
       _eState                   := E_PROGRESS.PROGRESS_BUSY;
-      _CurrentStartTime         := Tc2_EtherCAT.F_GetCurDcTaskTime64();
+      _CurrentStartTime         := Tc2_EtherCAT.F_GetCurDcTickTime64();
 
       _Output_2252^[_Index].nActivate     := 0;
 
@@ -644,26 +644,26 @@ OF
 
     _Output_2252^[_Index].dcStartTime   := (_CurrentStartTime + DurationCycles*2_000_000);
     _Output_2252^[_Index].nActivate     := 0;
-    _eState                                 := E_PROGRESS.PROGRESS_PREPARE;
+    _eState                             := E_PROGRESS.PROGRESS_PREPARE;
 
 
   E_PROGRESS.PROGRESS_PREPARE:
     _Output_2252^[_Index].nActivate     := 3;
-    _eState                                 := E_PROGRESS.PROGRESS_STARTUP;
+    _eState                             := E_PROGRESS.PROGRESS_STARTUP;
 
   E_PROGRESS.PROGRESS_STARTUP:
     IF (_CurrentTime > _Output_2252^[_Index].dcStartTime)
     THEN
       //_Output_2252^[_Index].nActivate   := 0;
-      _eState                               := E_PROGRESS.PROGRESS_CHECK;
+      _eState                           := E_PROGRESS.PROGRESS_CHECK;
     END_IF
 
   E_PROGRESS.PROGRESS_CHECK:
-    _nCount                                 := _nCount + 1;
+    _nCount                             := _nCount + 1;
     IF (_nCount > DurationCycles-1)
     THEN
       _Output_2252^[_Index].nActivate   := 0;
-      _eState                               := E_PROGRESS.PROGRESS_STILL_WORKING;
+      _eState                           := E_PROGRESS.PROGRESS_STILL_WORKING;
     END_IF
 END_CASE
 //-----------------------------------------------------------------------------
@@ -674,6 +674,7 @@ OF
     IF NOT _bError
     THEN
       _eState                   := E_PROGRESS.PROGRESS_DONE;
+
       IF (_MessageLevel > E_MessageType.eMessageWarning)
       THEN
         _stMsg.eType            := E_MessageType.eMessageInfo;
@@ -730,7 +731,7 @@ OF
       _nCount                   := 0;
       _bError                   := FALSE;
       _eState                   := E_PROGRESS.PROGRESS_BUSY;
-      _CurrentStartTime         := Tc2_EtherCAT.F_GetCurDcTaskTime64();
+      _CurrentStartTime         := Tc2_EtherCAT.F_GetCurDcTickTime64();
 
       IF (_MessageLevel = E_MessageType.eMessageVerbose)
       THEN
@@ -764,12 +765,12 @@ OF
 
     _Output_2252^[_Index].dcStartTime   := StartTime;
     _Output_2252^[_Index].nActivate     := 0;
-    _eState                                 := E_PROGRESS.PROGRESS_PREPARE;
+    _eState                             := E_PROGRESS.PROGRESS_PREPARE;
 
 
   E_PROGRESS.PROGRESS_PREPARE:
     _Output_2252^[_Index].nActivate     := 3;
-    _eState                                 := E_PROGRESS.PROGRESS_CHECK;
+    _eState                             := E_PROGRESS.PROGRESS_CHECK;
 END_CASE
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -779,7 +780,7 @@ OF
     IF (_CurrentTime > StartTime)
     THEN
       _Output_2252^[_Index].nActivate   := 0;
-      _eState                               := E_PROGRESS.PROGRESS_CHECK;
+      _eState                           := E_PROGRESS.PROGRESS_CHECK;
     END_IF
 END_CASE
 //-----------------------------------------------------------------------------
@@ -787,10 +788,10 @@ END_CASE
 CASE _eState
 OF
   E_PROGRESS.PROGRESS_CHECK:
-    _nCount                                 := _nCount + 1;
+    _nCount                             := _nCount + 1;
     IF (_nCount > DurationCycles-1)
     THEN
-      _eState                               := E_PROGRESS.PROGRESS_STILL_WORKING;
+      _eState                           := E_PROGRESS.PROGRESS_STILL_WORKING;
     END_IF
 END_CASE
 //-----------------------------------------------------------------------------
@@ -801,6 +802,7 @@ OF
     IF NOT _bError
     THEN
       _eState                   := E_PROGRESS.PROGRESS_DONE;
+
       IF (_MessageLevel > E_MessageType.eMessageWarning)
       THEN
         _stMsg.eType            := E_MessageType.eMessageInfo;
@@ -960,7 +962,9 @@ SwitchOn_2252                   := _eState;
       <LineId Id="236" Count="0" />
       <LineId Id="191" Count="3" />
       <LineId Id="254" Count="0" />
-      <LineId Id="195" Count="17" />
+      <LineId Id="195" Count="10" />
+      <LineId Id="270" Count="0" />
+      <LineId Id="206" Count="6" />
       <LineId Id="255" Count="0" />
       <LineId Id="213" Count="16" />
       <LineId Id="11" Count="0" />
@@ -999,7 +1003,9 @@ SwitchOn_2252                   := _eState;
       <LineId Id="153" Count="6" />
       <LineId Id="176" Count="3" />
       <LineId Id="160" Count="0" />
-      <LineId Id="78" Count="14" />
+      <LineId Id="78" Count="7" />
+      <LineId Id="210" Count="0" />
+      <LineId Id="86" Count="6" />
       <LineId Id="194" Count="0" />
       <LineId Id="93" Count="3" />
       <LineId Id="108" Count="1" />

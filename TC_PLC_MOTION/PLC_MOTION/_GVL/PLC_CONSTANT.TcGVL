@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.13">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
   <GVL Name="PLC_CONSTANT" Id="{4cb0bbbd-669b-017e-3f2a-88b0eccf743b}">
     <Declaration><![CDATA[//{attribute 'qualified_only'}
 VAR_GLOBAL CONSTANT
@@ -62,6 +62,8 @@ VAR_GLOBAL CONSTANT
   MAX_TOUCH_PROBE   : UINT := 12;
 
   MAX_TRIGGER_COUNT : UINT :=  4;
+
+  MAX_MTI_CH        : UINT :=  1; // MAX mti channel per EL terminal
 
 {IF defined (XFC)}
   {info 'PLC_MOTION_LAYER: XFC'}

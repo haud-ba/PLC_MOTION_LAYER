@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.13">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
   <POU Name="FB_McAxis" Id="{b0a70715-8745-098e-33e9-cc5f7a367c73}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_McAxis
 VAR
@@ -20,6 +20,8 @@ VAR
   _fbWriteParameter             : Tc2_MC2.MC_WriteParameter;
   _fbWriteParameterPersist      : Tc2_MC2.MC_WriteParameterPersistent;
 
+  // last target position datafield
+  _rLastTargetPosition          : LREAL;
 
   // name and encoder type are read by ADSREAD instance from NC
   _sAxisName                    : STRING(30) := 'NO NAME'; // AxisName is limited to 30 chars, IdxGrp := 4000 + _AxisRef.NcToPlc.AxisId, IdxOffs := 16#02
@@ -710,6 +712,17 @@ Home                                := _eState;
 ]]></ST>
       </Implementation>
     </Method>
+    <Property Name="LastTargetPosition" Id="{2acd46d7-7633-4de0-a1cd-d9c011a0531d}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY LastTargetPosition : LREAL]]></Declaration>
+      <Get Name="Get" Id="{44bd33b0-d2ed-4f12-a889-fee69fbf5f14}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
     <Property Name="MessageLevel" Id="{2956f01c-5a31-0fd3-2984-6a25fec4a9a5}" FolderPath="properties\">
       <Declaration><![CDATA[PROPERTY MessageLevel : E_MessageType]]></Declaration>
       <Set Name="Set" Id="{407def13-56cd-0f2f-2df4-a6018cba907f}">
@@ -796,6 +809,8 @@ OF
     _fbMoveAbsolute[2](
                     Axis            := _AxisRef,
                     Execute         := FALSE);
+
+    _rLastTargetPosition            := _fbMoveAbsolute[1].Position;
 
     IF _fbMoveAbsolute[1].Error
     THEN
@@ -927,6 +942,8 @@ OF
                     Deceleration    := Dec, 
                     Jerk            := Jerk, 
                     BufferMode      := BufferMode);
+
+    _rLastTargetPosition            := _fbMoveAbsolute[2].Position;
 
     IF _fbMoveAbsolute[2].Error
     THEN
@@ -1127,6 +1144,8 @@ OF
                     Deceleration    := Dec, 
                     Jerk            := Jerk, 
                     BufferMode      := BufferMode);
+
+    _rLastTargetPosition            := _fbMoveToPosition.Position;
 END_CASE
 CASE _eState
 OF
@@ -2016,6 +2035,8 @@ OF
                     Jerk            := Jerk, 
                     BufferMode      := BufferMode);
 
+    _rLastTargetPosition            := _fbMoveAbsolute[1].Position;
+
     _eState                         := E_PROGRESS.PROGRESS_PREPARE;
 END_CASE
 CASE _eState
@@ -2814,6 +2835,9 @@ WriteParameterPersistent            := _eState;
       <LineId Id="735" Count="2" />
       <LineId Id="2" Count="0" />
     </LineIds>
+    <LineIds Name="FB_McAxis.LastTargetPosition.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
     <LineIds Name="FB_McAxis.MessageLevel.Set">
       <LineId Id="2" Count="0" />
       <LineId Id="5" Count="0" />
@@ -2839,7 +2863,10 @@ WriteParameterPersistent            := _eState;
       <LineId Id="1049" Count="12" />
       <LineId Id="1474" Count="0" />
       <LineId Id="1479" Count="2" />
-      <LineId Id="1326" Count="13" />
+      <LineId Id="1621" Count="0" />
+      <LineId Id="1326" Count="0" />
+      <LineId Id="1620" Count="0" />
+      <LineId Id="1327" Count="12" />
       <LineId Id="1071" Count="0" />
       <LineId Id="1208" Count="1" />
       <LineId Id="1072" Count="0" />
@@ -2872,7 +2899,10 @@ WriteParameterPersistent            := _eState;
       <LineId Id="1483" Count="2" />
       <LineId Id="1482" Count="0" />
       <LineId Id="1100" Count="8" />
-      <LineId Id="1312" Count="13" />
+      <LineId Id="1623" Count="0" />
+      <LineId Id="1312" Count="0" />
+      <LineId Id="1622" Count="0" />
+      <LineId Id="1313" Count="12" />
       <LineId Id="1229" Count="10" />
       <LineId Id="1253" Count="0" />
       <LineId Id="1589" Count="3" />
@@ -2933,6 +2963,8 @@ WriteParameterPersistent            := _eState;
       <LineId Id="710" Count="3" />
       <LineId Id="1112" Count="0" />
       <LineId Id="946" Count="8" />
+      <LineId Id="1270" Count="0" />
+      <LineId Id="1269" Count="0" />
       <LineId Id="715" Count="3" />
       <LineId Id="821" Count="0" />
       <LineId Id="1136" Count="0" />
@@ -3191,7 +3223,9 @@ WriteParameterPersistent            := _eState;
       <LineId Id="977" Count="0" />
       <LineId Id="710" Count="3" />
       <LineId Id="946" Count="8" />
+      <LineId Id="1171" Count="0" />
       <LineId Id="1011" Count="0" />
+      <LineId Id="1172" Count="0" />
       <LineId Id="800" Count="0" />
       <LineId Id="715" Count="3" />
       <LineId Id="821" Count="0" />

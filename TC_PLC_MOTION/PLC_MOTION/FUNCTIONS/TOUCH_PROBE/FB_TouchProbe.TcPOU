@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.13">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
   <POU Name="FB_TouchProbe" Id="{379ba5cf-2e9d-498d-a8bf-d202d33bef2a}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_TouchProbe EXTENDS FB_Xfc
 VAR
@@ -92,7 +92,7 @@ OF
       _eStateProgress               := E_PROGRESS.PROGRESS_INIT;
 
       _CtrlLocal                    := _Ctrl[_Index];   // copy control data to local, you may write new data onto struct as long as .Enable stays TRUE
-      _CurrentTime                  := Tc2_EtherCAT.F_GetCurDcTaskTime64();
+      _CurrentTime                  := Tc2_EtherCAT.F_GetCurDcTickTime64();
       _CurrentTimeShort             := TO_UDINT(_CurrentTime AND 16#FFFFFFFF);
 
       _AxisId                       := _CtrlLocal.AxisId;   // TwinCAT NC AxisId
@@ -258,7 +258,7 @@ OF
     THEN
       _State[_Index].LatchPositive  := _XfcRecordedPosition[_AxisIndex];
 
-      _CurrentTime                  := Tc2_EtherCAT.F_GetCurDcTaskTime64();
+      _CurrentTime                  := Tc2_EtherCAT.F_GetCurDcTickTime64();
       _CurrentTimeShort             := TO_UDINT(_CurrentTime AND 16#FFFFFFFF);
 
       IF (_MessageLevel = E_MessageType.eMessageVerbose)
