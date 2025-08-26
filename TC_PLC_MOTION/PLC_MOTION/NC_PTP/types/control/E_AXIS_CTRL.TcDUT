@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
   <DUT Name="E_AXIS_CTRL" Id="{784d8a43-f813-0ae6-1900-42616ecae467}">
     <Declaration><![CDATA[{attribute 'qualified_only'}
 {attribute 'strict'}
@@ -17,6 +17,7 @@ TYPE E_AXIS_CTRL :
   AXIS_MOVE_VELO,
   AXIS_HALT,
   AXIS_STOP,
+  AXIS_SEND_TO_POS,
 
   AXIS_RESET              := 19,
   AXIS_STARTUP            := 20,

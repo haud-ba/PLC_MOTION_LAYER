@@ -176,6 +176,9 @@ ELSE
   
     E_AXIS_STATE.AXIS_MOVE_VELO:
       _eResult                      := AxisMoveVelocity(TRUE, _Data^[_nAxisIndex]);
+
+    E_AXIS_STATE.AXIS_SEND_TO_POS:
+      _eResult                      := AxisSendToPosition(TRUE, _Data^[_nAxisIndex]);
   
     E_AXIS_STATE.AXIS_RESET:
       _eResult                      := AxisReset(TRUE);
@@ -1969,6 +1972,83 @@ AxisReset                           := _eState;
 ]]></ST>
       </Implementation>
     </Method>
+    <Method Name="AxisSendToPosition" Id="{d50068e2-0445-4cf1-b220-39916efb19e1}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD AxisSendToPosition : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+  Data              : ST_MOVE_DATA;
+END_VAR
+VAR_INST
+  _eres,
+  _eState           : E_PROGRESS;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT Check() THEN AxisSendToPosition := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
+
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_INIT:
+    IF Execute 
+    THEN
+      _eState               := E_PROGRESS.PROGRESS_BUSY;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_BUSY:
+    _eState                 := E_PROGRESS.PROGRESS_OCCUPIED;
+    _eres                   := SendToPos(
+                                      Execute    := FALSE, 
+                                      Position   := Data.rSetPos, 
+	                                    Distance   := _MotionOptions^[_nAxisIndex].rDistance, 
+                                      Vel        := Data.rSetVelo, 
+                                      Acc        := Data.rAcc, 
+                                      Dec        := Data.rDec, 
+                                      Jerk       := Data.rJerk, 
+	                                    BufferMode := Tc2_MC2.MC_BufferMode.MC_Aborting);
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_OCCUPIED:
+    _eres                   := SendToPos(
+                                      Execute    := TRUE, 
+                                      Position   := Data.rSetPos, 
+	                                    Distance   := _MotionOptions^[_nAxisIndex].rDistance, 
+                                      Vel        := Data.rSetVelo, 
+                                      Acc        := Data.rAcc, 
+                                      Dec        := Data.rDec, 
+                                      Jerk       := Data.rJerk, 
+	                                    BufferMode := Tc2_MC2.MC_BufferMode.MC_Aborting);
+
+    IF (_eres = E_PROGRESS.PROGRESS_ERROR)
+    THEN
+        _eState             := E_PROGRESS.PROGRESS_ERROR;
+    ELSIF (_eres = E_PROGRESS.PROGRESS_DONE)
+    THEN 
+      _eState               := E_PROGRESS.PROGRESS_WORKING;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_WORKING:
+    _eState                 := E_PROGRESS.PROGRESS_DONE;
+    _eres                   := SendToPos(
+                                      Execute    := FALSE, 
+                                      Position   := Data.rSetPos, 
+	                                    Distance   := _MotionOptions^[_nAxisIndex].rDistance, 
+                                      Vel        := Data.rSetVelo, 
+                                      Acc        := Data.rAcc, 
+                                      Dec        := Data.rDec, 
+                                      Jerk       := Data.rJerk, 
+	                                    BufferMode := Tc2_MC2.MC_BufferMode.MC_Aborting);
+END_CASE
+
+AxisSendToPosition := _eState;
+]]></ST>
+      </Implementation>
+    </Method>
     <Property Name="AxisState" Id="{3dca1f6c-4c2d-0a02-0ad3-e24fa848690b}" FolderPath="properties\">
       <Declaration><![CDATA[PROPERTY AxisState : pointer to ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_AXIS_STATE]]></Declaration>
       <Set Name="Set" Id="{03f024e1-d54b-0d56-094a-cef330b0eb6d}">
@@ -2224,6 +2304,10 @@ ELSE
       E_AXIS_CTRL.AXIS_MOVE_VELO:
         _eResult                      := AxisMoveVelocity(FALSE, _Data^[_nAxisIndex]);
         _estate                       := E_AXIS_STATE.AXIS_MOVE_VELO;
+
+      E_AXIS_CTRL.AXIS_SEND_TO_POS:
+        _eResult                      := AxisSendToPosition(FALSE, _Data^[_nAxisIndex]);
+        _estate                       := E_AXIS_STATE.AXIS_SEND_TO_POS;
 
       //---------------------------------------------------------------------------------
       E_AXIS_CTRL.AXIS_RESET:
@@ -2672,7 +2756,9 @@ END_VAR
       </Set>
     </Property>
     <LineIds Name="FB_McAxisCtrl">
-      <LineId Id="4877" Count="203" />
+      <LineId Id="4877" Count="110" />
+      <LineId Id="5143" Count="2" />
+      <LineId Id="4988" Count="92" />
       <LineId Id="17" Count="0" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.Axes.Set">
@@ -3187,6 +3273,19 @@ END_VAR
       <LineId Id="786" Count="3" />
       <LineId Id="2" Count="0" />
     </LineIds>
+    <LineIds Name="FB_McAxisCtrl.AxisSendToPosition">
+      <LineId Id="924" Count="7" />
+      <LineId Id="935" Count="6" />
+      <LineId Id="996" Count="3" />
+      <LineId Id="1004" Count="3" />
+      <LineId Id="995" Count="0" />
+      <LineId Id="950" Count="3" />
+      <LineId Id="1008" Count="8" />
+      <LineId Id="962" Count="12" />
+      <LineId Id="1017" Count="8" />
+      <LineId Id="983" Count="2" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
     <LineIds Name="FB_McAxisCtrl.AxisState.Set">
       <LineId Id="2" Count="0" />
       <LineId Id="5" Count="0" />
@@ -3282,6 +3381,8 @@ END_VAR
       <LineId Id="35" Count="0" />
       <LineId Id="125" Count="0" />
       <LineId Id="57" Count="0" />
+      <LineId Id="303" Count="1" />
+      <LineId Id="306" Count="1" />
       <LineId Id="194" Count="0" />
       <LineId Id="58" Count="0" />
       <LineId Id="36" Count="0" />

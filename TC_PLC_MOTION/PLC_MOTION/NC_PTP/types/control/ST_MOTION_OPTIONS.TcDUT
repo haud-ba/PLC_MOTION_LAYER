@@ -1,11 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
   <DUT Name="ST_MOTION_OPTIONS" Id="{6100f6b5-5a2f-0215-28a4-225ea2460a9e}">
     <Declaration><![CDATA[{attribute 'pack_mode' := '2'}
 TYPE ST_MOTION_OPTIONS :
 STRUCT
   eBufferMode   : Tc2_MC2.MC_BufferMode;  // used in FB_McAxisCtrl.MoverBufferPos, MoveBufferVelo
-
+  rDistance     : LREAL;                  // used in FB_McAxis.SendToPos; axis has to move rDistance for method to be done
 END_STRUCT
 END_TYPE
 ]]></Declaration>

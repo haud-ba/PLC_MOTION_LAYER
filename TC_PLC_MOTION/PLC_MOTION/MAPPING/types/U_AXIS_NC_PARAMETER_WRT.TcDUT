@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
   <DUT Name="U_AXIS_NC_PARAMETER_WRT" Id="{0383247a-ba81-0347-342d-6eade186b955}">
     <Declaration><![CDATA[TYPE U_AXIS_NC_PARAMETER_WRT :
 UNION
@@ -7,7 +7,7 @@ UNION
   stCtrl              : ARRAY[1..MAX_AXIS] OF ST_NC_PARAMETER;
 
 {IF defined (AXIS_MAP)}
-  {info 'U_AXIS_GEAR_IN mapping activated'}
+  {info 'U_AXIS_NC_PARAMETER_WRT mapping activated'}
   byCtrl    AT %I*    : ARRAY[1..MAX_AXIS] OF
                         ARRAY[1..SIZEOF(ST_NC_PARAMETER)] OF BYTE;
 {ELSE}

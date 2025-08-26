@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
   <DUT Name="E_AXIS_STATE" Id="{19bc62c1-10fb-0154-0f89-7452ad5aeffe}">
     <Declaration><![CDATA[{attribute 'qualified_only'}
 {attribute 'to_string'}
@@ -18,6 +18,7 @@ TYPE E_AXIS_STATE :
   AXIS_MOVE_VELO,
   AXIS_HALT,
   AXIS_STOP,
+  AXIS_SEND_TO_POS,
 
   AXIS_RESET              := 19,
   AXIS_STARTUP            := 20,

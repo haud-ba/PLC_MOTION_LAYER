@@ -260,11 +260,10 @@ OF
     _fbPower.Enable                 := FALSE;
     _eResult                        := Reset(FALSE);
     _eState                         := E_PROGRESS.PROGRESS_STARTUP;
-END_CASE
-CASE _eState
-OF
+
   E_PROGRESS.PROGRESS_STARTUP:
-    IF _fbPower.Error
+    IF _fbPower.Error OR
+       _AxisRef.Status.Error
     THEN
       _eState                       := E_PROGRESS.PROGRESS_PREPARE;
 
@@ -381,11 +380,10 @@ OF
     _fbPower.Enable                 := TRUE;
     _eResult                        := Reset(FALSE);
     _eState                         := E_PROGRESS.PROGRESS_STARTUP;
-END_CASE
-CASE _eState
-OF
+
   E_PROGRESS.PROGRESS_STARTUP:
-    IF _fbPower.Error
+    IF _fbPower.Error OR
+       _AxisRef.Status.Error
     THEN
       _eState                       := E_PROGRESS.PROGRESS_PREPARE;
 
@@ -564,7 +562,7 @@ OF
     
         _stMsg.sText                := concat('command aborted : ', TO_STRING(_eState));
 
-        IF (_MessageLevel < E_MessageType.eMessageError)
+        IF (_MessageLevel > E_MessageType.eMessageError)
         THEN
           f_MessageSet(_stMsg);
         END_IF
@@ -1115,7 +1113,7 @@ OF
 
       _stMsg.sText                  := concat(' : ', TO_STRING(Position));
 
-      IF (_MessageLevel < E_MessageType.eMessageError)
+      IF (_MessageLevel > E_MessageType.eMessageError)
       THEN
         f_MessageSet(_stMsg);
       END_IF
@@ -1305,7 +1303,7 @@ OF
 
       _stMsg.sText                  := concat('FB start : ', TO_STRING(_rValue));
 
-      IF (_MessageLevel < E_MessageType.eMessageError)
+      IF (_MessageLevel > E_MessageType.eMessageError)
       THEN
         f_MessageSet(_stMsg);
       END_IF
@@ -1973,6 +1971,7 @@ Reset                             := _eState;
 VAR_INPUT
   Execute         : BOOL;
   Position        : LREAL;
+  Distance        : LREAL;
   Vel             : LREAL;
   Acc             : LREAL;
   Dec             : LREAL;
@@ -1982,7 +1981,7 @@ END_VAR
 VAR_INST
   _eState           : E_PROGRESS;
   _rValue           : LREAL;
-  _rTarget          : LREAL := 0.5;
+  _rStart           : LREAL;
   _stMsg            : ST_Message;
 END_VAR
 ]]></Declaration>
@@ -2002,7 +2001,7 @@ OF
 
       _stMsg.eType                  := E_MessageType.eMessageVerbose;
       _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
-      _stMsg.eSubdevice             := e_SubDevice.fbMoveAbsolute1;
+      _stMsg.eSubdevice             := e_SubDevice.fbSendToPos;
       _stMsg.iErrorNumber           := 0;
 
       _stMsg.sText                  := concat(' : ', TO_STRING(Position));
@@ -2018,6 +2017,7 @@ OF
   E_PROGRESS.PROGRESS_BUSY:
     _eState                         := E_PROGRESS.PROGRESS_STARTUP;
     _rValue                         := Position;
+    _rStart                         := _AxisRef.NcToPlc.ActPos;
 
     _fbMoveAbsolute[1](Axis         := _AxisRef,
                        Execute      := FALSE);
@@ -2050,7 +2050,7 @@ OF
     
       _stMsg.eType                  := E_MessageType.eMessageError;
       _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
-      _stMsg.eSubdevice             :=  e_SubDevice.fbMoveAbsolute1;
+      _stMsg.eSubdevice             :=  e_SubDevice.fbSendToPos;
       _stMsg.iErrorNumber           := _nErrorId;
     
       f_MessageSet(_stMsg);
@@ -2073,14 +2073,14 @@ OF
     
       _stMsg.eType                  := E_MessageType.eMessageError;
       _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
-      _stMsg.eSubdevice             :=  e_SubDevice.fbMoveAbsolute1;
+      _stMsg.eSubdevice             :=  e_SubDevice.fbSendToPos;
       _stMsg.iErrorNumber           := _nErrorId;
     
       f_MessageSet(_stMsg);
     
       _eState                         := E_PROGRESS.PROGRESS_ERROR;
 
-    ELSIF (_AxisRef.NcToPlc.ActPos > _fbMoveAbsolute[1].Position + _rTarget)
+    ELSIF (_AxisRef.NcToPlc.ActPos > _rStart + Distance)
     THEN
       _fbMoveAbsolute[1](Axis       := _AxisRef,
                          Execute    := FALSE);
@@ -2089,7 +2089,7 @@ OF
 
       _stMsg.eType                  := E_MessageType.eMessageVerbose;
       _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
-      _stMsg.eSubdevice             := e_SubDevice.fbMoveAbsolute1;
+      _stMsg.eSubdevice             := e_SubDevice.fbSendToPos;
       _stMsg.iErrorNumber           := 0;
 
       _stMsg.sText                  := concat(' : ', TO_STRING(_eState));
@@ -2696,7 +2696,11 @@ WriteParameterPersistent            := _eState;
     <LineIds Name="FB_McAxis.Disable">
       <LineId Id="873" Count="17" />
       <LineId Id="943" Count="0" />
-      <LineId Id="891" Count="7" />
+      <LineId Id="891" Count="0" />
+      <LineId Id="1017" Count="0" />
+      <LineId Id="895" Count="1" />
+      <LineId Id="1018" Count="0" />
+      <LineId Id="897" Count="1" />
       <LineId Id="962" Count="0" />
       <LineId Id="955" Count="5" />
       <LineId Id="1000" Count="0" />
@@ -2721,8 +2725,11 @@ WriteParameterPersistent            := _eState;
       <LineId Id="693" Count="15" />
       <LineId Id="738" Count="0" />
       <LineId Id="826" Count="0" />
-      <LineId Id="709" Count="1" />
-      <LineId Id="806" Count="5" />
+      <LineId Id="709" Count="0" />
+      <LineId Id="876" Count="0" />
+      <LineId Id="808" Count="1" />
+      <LineId Id="877" Count="0" />
+      <LineId Id="810" Count="1" />
       <LineId Id="829" Count="6" />
       <LineId Id="860" Count="0" />
       <LineId Id="856" Count="3" />
@@ -3218,6 +3225,7 @@ WriteParameterPersistent            := _eState;
       <LineId Id="1147" Count="3" />
       <LineId Id="704" Count="5" />
       <LineId Id="780" Count="0" />
+      <LineId Id="1191" Count="0" />
       <LineId Id="992" Count="0" />
       <LineId Id="975" Count="0" />
       <LineId Id="977" Count="0" />
