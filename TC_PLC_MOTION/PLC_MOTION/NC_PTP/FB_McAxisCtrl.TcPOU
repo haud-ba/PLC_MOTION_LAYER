@@ -1372,7 +1372,8 @@ AxisIdle                                := _eState;
 END_VAR
 ]]></Declaration>
         <Implementation>
-          <ST><![CDATA[]]></ST>
+          <ST><![CDATA[_nAxisIndex := AxisIndex;
+]]></ST>
         </Implementation>
       </Set>
     </Property>
@@ -1908,19 +1909,6 @@ AxisParameterWritePersistent                          := _eState;
 ]]></ST>
       </Implementation>
     </Method>
-    <Property Name="AxisRef" Id="{d622fbfb-1430-047a-062d-a4dac266c76c}" FolderPath="properties\">
-      <Declaration><![CDATA[PROPERTY AxisRef : reference to Tc2_MC2.AXIS_REF]]></Declaration>
-      <Get Name="Get" Id="{47a12226-31e2-0390-1c5c-a7209008eb2f}">
-        <Declaration><![CDATA[
-VAR
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[AxisRef := _AxisRef;
-]]></ST>
-        </Implementation>
-      </Get>
-    </Property>
     <Method Name="AxisReset" Id="{983134b4-72eb-0c42-3ead-aaa67397970d}" FolderPath="methods\">
       <Declaration><![CDATA[METHOD AxisReset : E_PROGRESS
 VAR_INPUT
@@ -3100,6 +3088,7 @@ END_VAR
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.AxisIndex.Set">
       <LineId Id="2" Count="0" />
+      <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.AxisInfo.Set">
       <LineId Id="2" Count="0" />
@@ -3253,10 +3242,6 @@ END_VAR
       <LineId Id="787" Count="2" />
       <LineId Id="849" Count="0" />
       <LineId Id="2" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_McAxisCtrl.AxisRef.Get">
-      <LineId Id="2" Count="0" />
-      <LineId Id="6" Count="0" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.AxisReset">
       <LineId Id="744" Count="7" />

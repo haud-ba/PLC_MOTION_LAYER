@@ -3,9 +3,13 @@
   <GVL Name="PLC_VERSION" Id="{d2395695-97e2-030c-1191-ad6e09085440}">
     <Declaration><![CDATA[{attribute 'qualified_only'}
 VAR_GLOBAL CONSTANT
-  VERSION               : STRING := 'V 01.00.32';
+  VERSION               : STRING := 'V 01.00.33';
 
-  // 2025 02 17 HAUD
+  // 2025 08 27 HAUD
+  //
+  // documentation added
+
+  // 2025 08 21 HAUD
   //
   // e_Device: Application added
   // e_Subdevices: merge with XTS_TRANSPORT_LAYER
