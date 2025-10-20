@@ -8,7 +8,7 @@
 *.sln.docstates
 *.graphml
 *.pptx
-
+*.7z
 
 TC_PlcOpenDrive/
 
