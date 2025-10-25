@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.13">
+  <DUT Name="U_CAM_CTRL" Id="{136aeeac-910f-4c64-bc76-8066a136a501}">
+    <Declaration><![CDATA[TYPE U_CAM_CTRL :
+UNION
+  stCtrl              : ARRAY[1..MAX_AXIS] OF ST_CAM_CTRL;
+
+{IF defined (CAM_MAP)}
+  {info 'U_CAM_CTRL mapping activated'}
+  byCtrl    AT %I*    : ARRAY[1..MAX_AXIS] OF
+                        ARRAY[1..SIZEOF(ST_CAM_CTRL)] OF BYTE;
+{ELSE}
+  byCtrl              : ARRAY[1..MAX_AXIS] OF
+                        ARRAY[1..SIZEOF(ST_CAM_CTRL)] OF BYTE;
+{END_IF}
+END_UNION
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

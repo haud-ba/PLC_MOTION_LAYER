@@ -1,0 +1,84 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.13">
+  <POU Name="FUNCTIONS" Id="{e2929a8f-d00c-4f74-8ad9-39b9524bc0c1}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM FUNCTIONS
+VAR
+  eInit             : E_PROGRESS;
+
+  nAxis,
+  nTrigger,
+  nProbe            : UINT;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[//-----------------------------------------------------------------------------------------------------------------
+// check if compiler define is present [PLC_STATE_DRIVE/CompilerDefines/Manual: XFC]
+// see PLC_CONSTANT for conditional pragma
+//-----------------------------------------------------------------------------------------------------------------
+IF NOT PLC_CONSTANT.XFC_ACTIVE THEN eInit := E_PROGRESS.PROGRESS_NOT_EXIST; RETURN; END_IF
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+// check MAIN.eInit
+//-----------------------------------------------------------------------------------------------------------------
+IF NOT (MAIN.eInit = E_PROGRESS.PROGRESS_DONE) 
+THEN
+  // wait for MAIN to be fully initialized
+  eInit                                               := E_PROGRESS.PROGRESS_INVALID; 
+  RETURN; 
+ELSE
+  // at the moment FUNCTIONS does not require a general init procedure
+  eInit                                               := E_PROGRESS.PROGRESS_DONE;    // general init done
+END_IF
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+// /cyclic
+//-----------------------------------------------------------------------------------------------------------------
+FOR nProbe := 1 TO MAX_TOUCH_PROBE
+DO
+  GVL_FUNCTIONS.TouchProbeCtrl[nProbe].MessageLevel   := GVL_MSG.MessageLevelTouchProbe[nProbe];
+  GVL_FUNCTIONS.TouchProbeCtrl[nProbe].Index          := nProbe;
+  GVL_FUNCTIONS.TouchProbeCtrl[nProbe].ItfAxis        := GVL_AXIS.ItfMcAxis;
+
+  GVL_FUNCTIONS.TouchProbeCtrl[nProbe].Ctrl           REF= GVL_FUNCTIONS.CtrlTouchProbe;
+  GVL_FUNCTIONS.TouchProbeCtrl[nProbe].State          REF= GVL_FUNCTIONS.StateTouchProbe;
+
+  GVL_FUNCTIONS.TouchProbeCtrl[nProbe].Input          := ADR(GVL_FUNCTIONS.DigitalInput);
+  GVL_FUNCTIONS.TouchProbeCtrl[nProbe].InputState     := ADR(GVL_FUNCTIONS.DigitalState);
+  GVL_FUNCTIONS.TouchProbeCtrl[nProbe].Cycle();
+
+END_FOR
+
+FOR nTrigger := 1 TO MAX_TRIGGER_BOX
+DO
+  GVL_FUNCTIONS.TriggerBoxCtrl[nTrigger].MessageLevel := GVL_MSG.MessageLevelTriggerBox[nTrigger];
+  GVL_FUNCTIONS.TriggerBoxCtrl[nTrigger].Index        := nTrigger;
+  GVL_FUNCTIONS.TriggerBoxCtrl[nTrigger].ItfAxis      := GVL_AXIS.ItfMcAxis;
+
+  GVL_FUNCTIONS.TriggerBoxCtrl[nTrigger].Ctrl         REF= GVL_FUNCTIONS.CtrlTrigger;
+  GVL_FUNCTIONS.TriggerBoxCtrl[nTrigger].State        REF= GVL_FUNCTIONS.StateTrigger;
+
+  GVL_FUNCTIONS.TriggerBoxCtrl[nTrigger].Input        := ADR(GVL_FUNCTIONS.DigitalInputDC);
+  GVL_FUNCTIONS.TriggerBoxCtrl[nTrigger].Output_2252  := ADR(GVL_FUNCTIONS.DigitalOutputDC);
+
+  GVL_FUNCTIONS.TriggerBoxCtrl[nTrigger].Cycle();
+END_FOR
+//-----------------------------------------------------------------------------------------------------------------
+// cyclic/
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------]]></ST>
+    </Implementation>
+    <LineIds Name="FUNCTIONS">
+      <LineId Id="325" Count="17" />
+      <LineId Id="348" Count="8" />
+      <LineId Id="380" Count="0" />
+      <LineId Id="357" Count="0" />
+      <LineId Id="378" Count="1" />
+      <LineId Id="358" Count="10" />
+      <LineId Id="381" Count="0" />
+      <LineId Id="369" Count="0" />
+      <LineId Id="382" Count="1" />
+      <LineId Id="370" Count="7" />
+      <LineId Id="252" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

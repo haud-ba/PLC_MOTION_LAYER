@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <DUT Name="U_AXIS_NC_PARAMETER_RD" Id="{c5249232-3977-0772-0279-8e1635453be8}">
+    <Declaration><![CDATA[TYPE U_AXIS_NC_PARAMETER_RD :
+UNION
+
+  stState             : ARRAY[1..MAX_AXIS] OF ST_NC_PARAMETER;
+
+{IF defined (AXIS_MAP)}
+  {info 'U_AXIS_NC_PARAMETER_RD mapping activated'}
+  byState   AT %Q*    : ARRAY[1..MAX_AXIS] OF
+                        ARRAY[1..SIZEOF(ST_NC_PARAMETER)] OF BYTE;
+{ELSE}
+  byState             : ARRAY[1..MAX_AXIS] OF
+                        ARRAY[1..SIZEOF(ST_NC_PARAMETER)] OF BYTE;
+{END_IF}
+END_UNION
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

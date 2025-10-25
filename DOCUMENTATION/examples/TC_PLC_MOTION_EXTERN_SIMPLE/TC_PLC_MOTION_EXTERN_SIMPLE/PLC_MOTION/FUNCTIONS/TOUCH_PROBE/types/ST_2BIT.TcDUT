@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <DUT Name="ST_2BIT" Id="{4b0c81b3-ef69-4a81-9d7a-f0b1f0b58904}">
+    <Declaration><![CDATA[TYPE ST_2BIT :
+STRUCT
+  b1  : BIT;
+  b2  : BIT;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

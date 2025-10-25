@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
-  <POU Name="FB_McAxis" Id="{b0a70715-8745-098e-33e9-cc5f7a367c73}" SpecialFunc="None">
-    <Declaration><![CDATA[FUNCTION_BLOCK FB_McAxis
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.13">
+  <POU Name="FB_McAxisBase" Id="{b0a70715-8745-098e-33e9-cc5f7a367c73}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK ABSTRACT FB_McAxisBase
 VAR
   _AxisRef                      : REFERENCE TO Tc2_MC2.AXIS_REF;
   _pCalibrationCam              : POINTER TO BOOL;
@@ -736,7 +736,7 @@ END_VAR
     <Method Name="MovePosBuffer" Id="{c85dc519-a612-0a41-1a3d-8c9a1d3f1397}" FolderPath="methods\">
       <Declaration><![CDATA[METHOD MovePosBuffer : E_PROGRESS
 VAR_INPUT
-  Enable          : BOOL;
+  bEnable          : BOOL;
   Position        : LREAL;
   Vel             : LREAL;
   Acc             : LREAL;
@@ -752,12 +752,12 @@ END_VAR
 ]]></Declaration>
       <Implementation>
         <ST><![CDATA[IF NOT (__ISVALIDREF(_AxisRef)) THEN  MovePosBuffer  := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
-IF NOT Enable THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
+IF NOT bEnable THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
 
 CASE _eState
 OF
   E_PROGRESS.PROGRESS_INIT:
-    IF Enable 
+    IF bEnable 
     THEN
       memset(ADR(_stMsg),0,SIZEOF(_stMsg));
       _nErrorId                     := 0;
@@ -1409,7 +1409,7 @@ MoveVelo                            := _eState;
     <Method Name="MoveVeloBuffer" Id="{6580e262-5fae-068b-31a4-0bea4fa7cdc2}" FolderPath="methods\">
       <Declaration><![CDATA[METHOD MoveVeloBuffer : E_PROGRESS
 VAR_INPUT
-  Enable          : BOOL;
+  bEnable          : BOOL;
   Velocity        : LREAL;
   Acc             : LREAL;
   Dec             : LREAL;
@@ -1424,12 +1424,12 @@ END_VAR
 ]]></Declaration>
       <Implementation>
         <ST><![CDATA[IF NOT (__ISVALIDREF(_AxisRef)) THEN  MoveVeloBuffer  := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
-IF NOT Enable THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
+IF NOT bEnable THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
 
 CASE _eState
 OF
   E_PROGRESS.PROGRESS_INIT:
-    IF Enable 
+    IF bEnable 
     THEN
       memset(ADR(_stMsg),0,SIZEOF(_stMsg));
       _nErrorId                     := 0;
@@ -2650,42 +2650,42 @@ WriteParameterPersistent            := _eState;
 ]]></ST>
       </Implementation>
     </Method>
-    <LineIds Name="FB_McAxis">
+    <LineIds Name="FB_McAxisBase">
       <LineId Id="9" Count="0" />
     </LineIds>
-    <LineIds Name="FB_McAxis.AxisEnableNegative.Get">
+    <LineIds Name="FB_McAxisBase.AxisEnableNegative.Get">
       <LineId Id="2" Count="0" />
       <LineId Id="5" Count="0" />
     </LineIds>
-    <LineIds Name="FB_McAxis.AxisEnableNegative.Set">
+    <LineIds Name="FB_McAxisBase.AxisEnableNegative.Set">
       <LineId Id="2" Count="0" />
       <LineId Id="5" Count="0" />
     </LineIds>
-    <LineIds Name="FB_McAxis.AxisEnablePositive.Get">
+    <LineIds Name="FB_McAxisBase.AxisEnablePositive.Get">
       <LineId Id="2" Count="0" />
       <LineId Id="5" Count="0" />
     </LineIds>
-    <LineIds Name="FB_McAxis.AxisEnablePositive.Set">
+    <LineIds Name="FB_McAxisBase.AxisEnablePositive.Set">
       <LineId Id="2" Count="0" />
       <LineId Id="5" Count="0" />
     </LineIds>
-    <LineIds Name="FB_McAxis.AxisName.Get">
+    <LineIds Name="FB_McAxisBase.AxisName.Get">
       <LineId Id="2" Count="0" />
       <LineId Id="5" Count="0" />
     </LineIds>
-    <LineIds Name="FB_McAxis.AxisRef.Get">
+    <LineIds Name="FB_McAxisBase.AxisRef.Get">
       <LineId Id="2" Count="0" />
       <LineId Id="5" Count="0" />
     </LineIds>
-    <LineIds Name="FB_McAxis.CalibrationCam.Get">
+    <LineIds Name="FB_McAxisBase.CalibrationCam.Get">
       <LineId Id="2" Count="0" />
       <LineId Id="5" Count="0" />
     </LineIds>
-    <LineIds Name="FB_McAxis.CalibrationCam.Set">
+    <LineIds Name="FB_McAxisBase.CalibrationCam.Set">
       <LineId Id="2" Count="0" />
       <LineId Id="5" Count="0" />
     </LineIds>
-    <LineIds Name="FB_McAxis.Cycle">
+    <LineIds Name="FB_McAxisBase.Cycle">
       <LineId Id="893" Count="5" />
       <LineId Id="829" Count="30" />
       <LineId Id="907" Count="0" />
@@ -2693,7 +2693,7 @@ WriteParameterPersistent            := _eState;
       <LineId Id="860" Count="25" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_McAxis.Disable">
+    <LineIds Name="FB_McAxisBase.Disable">
       <LineId Id="873" Count="17" />
       <LineId Id="943" Count="0" />
       <LineId Id="891" Count="0" />
@@ -2720,7 +2720,7 @@ WriteParameterPersistent            := _eState;
       <LineId Id="928" Count="2" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_McAxis.Enable">
+    <LineIds Name="FB_McAxisBase.Enable">
       <LineId Id="786" Count="0" />
       <LineId Id="693" Count="15" />
       <LineId Id="738" Count="0" />
@@ -2753,15 +2753,15 @@ WriteParameterPersistent            := _eState;
       <LineId Id="735" Count="2" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_McAxis.EncoderType.Get">
+    <LineIds Name="FB_McAxisBase.EncoderType.Get">
       <LineId Id="2" Count="0" />
       <LineId Id="5" Count="0" />
     </LineIds>
-    <LineIds Name="FB_McAxis.ErrorId.Get">
+    <LineIds Name="FB_McAxisBase.ErrorId.Get">
       <LineId Id="8" Count="0" />
       <LineId Id="5" Count="0" />
     </LineIds>
-    <LineIds Name="FB_McAxis.Halt">
+    <LineIds Name="FB_McAxisBase.Halt">
       <LineId Id="806" Count="0" />
       <LineId Id="693" Count="16" />
       <LineId Id="739" Count="5" />
@@ -2800,7 +2800,7 @@ WriteParameterPersistent            := _eState;
       <LineId Id="735" Count="2" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_McAxis.Home">
+    <LineIds Name="FB_McAxisBase.Home">
       <LineId Id="870" Count="0" />
       <LineId Id="693" Count="0" />
       <LineId Id="738" Count="0" />
@@ -2842,121 +2842,18 @@ WriteParameterPersistent            := _eState;
       <LineId Id="735" Count="2" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_McAxis.LastTargetPosition.Get">
+    <LineIds Name="FB_McAxisBase.LastTargetPosition.Get">
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_McAxis.MessageLevel.Set">
+    <LineIds Name="FB_McAxisBase.MessageLevel.Set">
       <LineId Id="2" Count="0" />
       <LineId Id="5" Count="0" />
     </LineIds>
-    <LineIds Name="FB_McAxis.MovePosBuffer">
-      <LineId Id="1182" Count="0" />
-      <LineId Id="1025" Count="9" />
-      <LineId Id="1353" Count="0" />
-      <LineId Id="1035" Count="0" />
-      <LineId Id="1199" Count="4" />
-      <LineId Id="1278" Count="1" />
-      <LineId Id="1206" Count="0" />
-      <LineId Id="1568" Count="3" />
-      <LineId Id="1036" Count="5" />
-      <LineId Id="1044" Count="0" />
-      <LineId Id="1490" Count="0" />
-      <LineId Id="1045" Count="0" />
-      <LineId Id="1491" Count="0" />
-      <LineId Id="1470" Count="0" />
-      <LineId Id="1492" Count="0" />
-      <LineId Id="1471" Count="0" />
-      <LineId Id="1469" Count="0" />
-      <LineId Id="1049" Count="12" />
-      <LineId Id="1474" Count="0" />
-      <LineId Id="1479" Count="2" />
-      <LineId Id="1621" Count="0" />
-      <LineId Id="1326" Count="0" />
-      <LineId Id="1620" Count="0" />
-      <LineId Id="1327" Count="12" />
-      <LineId Id="1071" Count="0" />
-      <LineId Id="1208" Count="1" />
-      <LineId Id="1072" Count="0" />
-      <LineId Id="1213" Count="6" />
-      <LineId Id="1251" Count="0" />
-      <LineId Id="1572" Count="3" />
-      <LineId Id="1307" Count="0" />
-      <LineId Id="1295" Count="10" />
-      <LineId Id="1576" Count="3" />
-      <LineId Id="1375" Count="0" />
-      <LineId Id="1374" Count="0" />
-      <LineId Id="1376" Count="9" />
-      <LineId Id="1580" Count="3" />
-      <LineId Id="1210" Count="0" />
-      <LineId Id="1073" Count="3" />
-      <LineId Id="1451" Count="1" />
-      <LineId Id="1475" Count="0" />
-      <LineId Id="1478" Count="0" />
-      <LineId Id="1476" Count="0" />
-      <LineId Id="1453" Count="0" />
-      <LineId Id="1436" Count="13" />
-      <LineId Id="1080" Count="1" />
-      <LineId Id="1530" Count="1" />
-      <LineId Id="1550" Count="2" />
-      <LineId Id="1534" Count="11" />
-      <LineId Id="1584" Count="4" />
-      <LineId Id="1548" Count="1" />
-      <LineId Id="1084" Count="0" />
-      <LineId Id="1087" Count="3" />
-      <LineId Id="1483" Count="2" />
-      <LineId Id="1482" Count="0" />
-      <LineId Id="1100" Count="8" />
-      <LineId Id="1623" Count="0" />
-      <LineId Id="1312" Count="0" />
-      <LineId Id="1622" Count="0" />
-      <LineId Id="1313" Count="12" />
-      <LineId Id="1229" Count="10" />
-      <LineId Id="1253" Count="0" />
-      <LineId Id="1589" Count="3" />
-      <LineId Id="1282" Count="0" />
-      <LineId Id="1280" Count="1" />
-      <LineId Id="1292" Count="1" />
-      <LineId Id="1284" Count="6" />
-      <LineId Id="1597" Count="3" />
-      <LineId Id="1400" Count="0" />
-      <LineId Id="1388" Count="10" />
-      <LineId Id="1593" Count="3" />
-      <LineId Id="1241" Count="0" />
-      <LineId Id="1110" Count="3" />
-      <LineId Id="1487" Count="2" />
-      <LineId Id="1486" Count="0" />
-      <LineId Id="1434" Count="0" />
-      <LineId Id="1433" Count="0" />
-      <LineId Id="1435" Count="0" />
-      <LineId Id="1420" Count="12" />
-      <LineId Id="1419" Count="0" />
-      <LineId Id="1117" Count="1" />
-      <LineId Id="1511" Count="1" />
-      <LineId Id="1402" Count="1" />
-      <LineId Id="1401" Count="0" />
-      <LineId Id="1120" Count="0" />
-      <LineId Id="1244" Count="5" />
-      <LineId Id="1275" Count="2" />
-      <LineId Id="1255" Count="0" />
-      <LineId Id="1601" Count="3" />
-      <LineId Id="1358" Count="0" />
-      <LineId Id="1357" Count="0" />
-      <LineId Id="1513" Count="0" />
-      <LineId Id="1121" Count="1" />
-      <LineId Id="1124" Count="1" />
-      <LineId Id="1352" Count="0" />
-      <LineId Id="1126" Count="1" />
-      <LineId Id="1493" Count="0" />
-      <LineId Id="1128" Count="0" />
-      <LineId Id="1495" Count="0" />
-      <LineId Id="1129" Count="0" />
-      <LineId Id="1494" Count="0" />
-      <LineId Id="1130" Count="0" />
-      <LineId Id="1134" Count="1" />
-      <LineId Id="1165" Count="1" />
+    <LineIds Name="FB_McAxisBase.MovePosBuffer">
+      <LineId Id="1624" Count="320" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_McAxis.MoveToPos">
+    <LineIds Name="FB_McAxisBase.MoveToPos">
       <LineId Id="1094" Count="0" />
       <LineId Id="693" Count="10" />
       <LineId Id="1114" Count="7" />
@@ -3019,7 +2916,7 @@ WriteParameterPersistent            := _eState;
       <LineId Id="737" Count="0" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_McAxis.MoveVelo">
+    <LineIds Name="FB_McAxisBase.MoveVelo">
       <LineId Id="967" Count="0" />
       <LineId Id="835" Count="10" />
       <LineId Id="984" Count="7" />
@@ -3046,87 +2943,23 @@ WriteParameterPersistent            := _eState;
       <LineId Id="918" Count="0" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_McAxis.MoveVeloBuffer">
-      <LineId Id="1248" Count="0" />
-      <LineId Id="1025" Count="9" />
-      <LineId Id="1272" Count="0" />
-      <LineId Id="1035" Count="0" />
-      <LineId Id="1265" Count="6" />
-      <LineId Id="1264" Count="0" />
-      <LineId Id="1477" Count="3" />
-      <LineId Id="1036" Count="5" />
-      <LineId Id="1044" Count="1" />
-      <LineId Id="1350" Count="0" />
-      <LineId Id="1348" Count="1" />
-      <LineId Id="1049" Count="6" />
-      <LineId Id="1057" Count="4" />
-      <LineId Id="1352" Count="14" />
-      <LineId Id="1406" Count="0" />
-      <LineId Id="1367" Count="10" />
-      <LineId Id="1481" Count="3" />
-      <LineId Id="1379" Count="24" />
-      <LineId Id="1485" Count="3" />
-      <LineId Id="1405" Count="0" />
-      <LineId Id="1073" Count="4" />
-      <LineId Id="1274" Count="0" />
-      <LineId Id="1221" Count="1" />
-      <LineId Id="1275" Count="1" />
-      <LineId Id="1223" Count="5" />
-      <LineId Id="1278" Count="0" />
-      <LineId Id="1277" Count="0" />
-      <LineId Id="1229" Count="2" />
-      <LineId Id="1080" Count="1" />
-      <LineId Id="1083" Count="0" />
-      <LineId Id="1280" Count="3" />
-      <LineId Id="1285" Count="9" />
-      <LineId Id="1489" Count="3" />
-      <LineId Id="1296" Count="0" />
-      <LineId Id="1284" Count="0" />
-      <LineId Id="1084" Count="0" />
-      <LineId Id="1087" Count="3" />
-      <LineId Id="1100" Count="2" />
-      <LineId Id="1104" Count="4" />
-      <LineId Id="1408" Count="0" />
-      <LineId Id="1448" Count="14" />
-      <LineId Id="1409" Count="10" />
-      <LineId Id="1493" Count="3" />
-      <LineId Id="1421" Count="24" />
-      <LineId Id="1497" Count="3" />
-      <LineId Id="1447" Count="0" />
-      <LineId Id="1110" Count="3" />
-      <LineId Id="1115" Count="0" />
-      <LineId Id="1207" Count="9" />
-      <LineId Id="1297" Count="1" />
-      <LineId Id="1217" Count="2" />
-      <LineId Id="1206" Count="0" />
-      <LineId Id="1117" Count="1" />
-      <LineId Id="1120" Count="0" />
-      <LineId Id="1300" Count="13" />
-      <LineId Id="1501" Count="3" />
-      <LineId Id="1315" Count="1" />
-      <LineId Id="1121" Count="1" />
-      <LineId Id="1124" Count="1" />
-      <LineId Id="1332" Count="0" />
-      <LineId Id="1126" Count="4" />
-      <LineId Id="1134" Count="0" />
-      <LineId Id="1233" Count="0" />
-      <LineId Id="1135" Count="0" />
-      <LineId Id="1166" Count="0" />
+    <LineIds Name="FB_McAxisBase.MoveVeloBuffer">
+      <LineId Id="1505" Count="284" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_McAxis.Override.Get">
+    <LineIds Name="FB_McAxisBase.Override.Get">
       <LineId Id="2" Count="0" />
       <LineId Id="5" Count="0" />
     </LineIds>
-    <LineIds Name="FB_McAxis.Override.Set">
+    <LineIds Name="FB_McAxisBase.Override.Set">
       <LineId Id="2" Count="0" />
       <LineId Id="5" Count="0" />
     </LineIds>
-    <LineIds Name="FB_McAxis.Position.Get">
+    <LineIds Name="FB_McAxisBase.Position.Get">
       <LineId Id="3" Count="0" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_McAxis.ReadParameter">
+    <LineIds Name="FB_McAxisBase.ReadParameter">
       <LineId Id="612" Count="0" />
       <LineId Id="466" Count="0" />
       <LineId Id="468" Count="2" />
@@ -3179,11 +3012,11 @@ WriteParameterPersistent            := _eState;
       <LineId Id="359" Count="0" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_McAxis.ReadParameterValue.Get">
+    <LineIds Name="FB_McAxisBase.ReadParameterValue.Get">
       <LineId Id="2" Count="0" />
       <LineId Id="5" Count="0" />
     </LineIds>
-    <LineIds Name="FB_McAxis.Reset">
+    <LineIds Name="FB_McAxisBase.Reset">
       <LineId Id="126" Count="0" />
       <LineId Id="7" Count="16" />
       <LineId Id="64" Count="1" />
@@ -3218,7 +3051,7 @@ WriteParameterPersistent            := _eState;
       <LineId Id="50" Count="1" />
       <LineId Id="5" Count="0" />
     </LineIds>
-    <LineIds Name="FB_McAxis.SendToPos">
+    <LineIds Name="FB_McAxisBase.SendToPos">
       <LineId Id="1094" Count="0" />
       <LineId Id="693" Count="10" />
       <LineId Id="1112" Count="7" />
@@ -3260,7 +3093,7 @@ WriteParameterPersistent            := _eState;
       <LineId Id="737" Count="0" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_McAxis.StartUp">
+    <LineIds Name="FB_McAxisBase.StartUp">
       <LineId Id="204" Count="0" />
       <LineId Id="18" Count="0" />
       <LineId Id="63" Count="0" />
@@ -3315,7 +3148,7 @@ WriteParameterPersistent            := _eState;
       <LineId Id="55" Count="7" />
       <LineId Id="5" Count="0" />
     </LineIds>
-    <LineIds Name="FB_McAxis.Stop">
+    <LineIds Name="FB_McAxisBase.Stop">
       <LineId Id="840" Count="0" />
       <LineId Id="693" Count="16" />
       <LineId Id="739" Count="4" />
@@ -3347,7 +3180,7 @@ WriteParameterPersistent            := _eState;
       <LineId Id="736" Count="1" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_McAxis.Template">
+    <LineIds Name="FB_McAxisBase.Template">
       <LineId Id="574" Count="17" />
       <LineId Id="598" Count="3" />
       <LineId Id="661" Count="0" />
@@ -3357,7 +3190,7 @@ WriteParameterPersistent            := _eState;
       <LineId Id="656" Count="1" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_McAxis.WriteParameter">
+    <LineIds Name="FB_McAxisBase.WriteParameter">
       <LineId Id="777" Count="0" />
       <LineId Id="575" Count="7" />
       <LineId Id="732" Count="0" />
@@ -3399,7 +3232,7 @@ WriteParameterPersistent            := _eState;
       <LineId Id="656" Count="1" />
       <LineId Id="2" Count="0" />
     </LineIds>
-    <LineIds Name="FB_McAxis.WriteParameterPersistent">
+    <LineIds Name="FB_McAxisBase.WriteParameterPersistent">
       <LineId Id="796" Count="0" />
       <LineId Id="575" Count="16" />
       <LineId Id="677" Count="3" />

@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="U_AXIS_NC_PARAMETER_WRT" Id="{7b07f878-330d-479a-9652-9d9030e8312b}">
+    <Declaration><![CDATA[TYPE U_AXIS_NC_PARAMETER_WRT :
+UNION
+
+  stCtrl              : ARRAY[1..MAX_AXIS] OF ST_NC_PARAMETER;
+
+  byCtrl    AT %Q*    : ARRAY[1..MAX_AXIS] OF
+                        ARRAY[1..SIZEOF(ST_NC_PARAMETER)] OF BYTE;
+END_UNION
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

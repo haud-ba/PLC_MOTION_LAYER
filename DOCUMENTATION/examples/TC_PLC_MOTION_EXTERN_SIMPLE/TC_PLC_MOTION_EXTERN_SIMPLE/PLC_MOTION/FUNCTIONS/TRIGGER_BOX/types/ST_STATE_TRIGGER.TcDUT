@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.13">
+  <DUT Name="ST_STATE_TRIGGER" Id="{c6100995-ed23-4317-8829-95492edca973}">
+    <Declaration><![CDATA[TYPE ST_STATE_TRIGGER :
+STRUCT
+  State           : UINT; // 0 := deactivated, 100 := BUSY, 1000 := DONE, 9000 := ERROR
+  Init            : UINT;
+  // FlashTimestamp  : ARRAY[1..GVL_FUNCTIONS.MAX_TRIGGER_COUNT] OF ULINT; // DC timestamp
+  FlashPosition   : ARRAY[1..MAX_TRIGGER_COUNT] OF LREAL; // AxisPosition for DC timestamp
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

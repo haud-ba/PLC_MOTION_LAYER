@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="MAPPING_in" Id="{9c1c55cc-539c-4e24-8b74-c3ec7fa50c1e}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM MAPPING_in
+VAR
+  bFirstCycle       : BOOL := TRUE;
+
+  AxisState         : U_AXIS_STATE;
+  AxisInfo          : U_AXIS_INFO;
+  AxisParameterRd   : U_AXIS_NC_PARAMETER_RD;
+
+  szAxisPara,
+  szAxisInfo,
+  szAxisState           : ARRAY[1..2] OF UDINT;
+
+  szCamInfo,
+  szCamData,
+  szCamState            : ARRAY[1..2] OF UDINT;
+
+  szStateTouchProbe,
+  szStateTrigger	      :  ARRAY[1..2] OF UDINT;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[
+IF (bFirstCycle)
+THEN
+  bFirstCycle         := FALSE;
+  
+  szAxisState[1]      := SIZEOF(AxisState);
+  szAxisState[2]      := SIZEOF(GVL_AXIS.State);
+  
+  szAxisInfo [1]      := SIZEOF(AxisInfo);
+  szAxisInfo [2]      := SIZEOF(GVL_AXIS.Info);
+  
+  szAxisPara [1]      := SIZEOF(AxisParameterRd);
+  szAxisPara [2]      := SIZEOF(GVL_AXIS.NcParameterRd);
+END_IF
+
+  memcpy(ADR(GVL_AXIS.State),         ADR(AxisState),              SIZEOF(AxisState));
+  memcpy(ADR(GVL_AXIS.Info),          ADR(AxisInfo),               SIZEOF(AxisInfo));
+  memcpy(ADR(GVL_AXIS.NcParameterRd), ADR(AxisParameterRd),        SIZEOF(AxisParameterRd));
+
+
+]]></ST>
+    </Implementation>
+    <LineIds Name="MAPPING_in">
+      <LineId Id="1" Count="20" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

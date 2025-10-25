@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.13">
+  <DUT Name="U_TOUCH_PROBE_STATE" Id="{71c7ab25-1174-46f1-a5db-0c3a22dfe6c9}">
+    <Declaration><![CDATA[TYPE U_TOUCH_PROBE_STATE :
+UNION
+  stState              : ARRAY[1..MAX_TOUCH_PROBE] OF ST_STATE_TOUCH_PROBE;
+
+{IF defined (TRIGGER_MAP)}
+  {info 'U_TOUCH_PROBE_STATE mapping activated'}
+  byState    AT %Q*   : ARRAY[1..MAX_TOUCH_PROBE] OF
+                        ARRAY[1..SIZEOF(ST_STATE_TOUCH_PROBE)] OF BYTE;
+{ELSE}
+  byState             : ARRAY[1..MAX_TOUCH_PROBE] OF
+                        ARRAY[1..SIZEOF(ST_STATE_TOUCH_PROBE)] OF BYTE;
+{END_IF}
+END_UNION
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

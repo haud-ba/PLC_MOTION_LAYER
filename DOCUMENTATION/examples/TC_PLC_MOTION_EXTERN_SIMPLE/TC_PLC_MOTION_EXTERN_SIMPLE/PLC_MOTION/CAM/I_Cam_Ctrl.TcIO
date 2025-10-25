@@ -1,0 +1,74 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <Itf Name="I_Cam_Ctrl" Id="{4e1da497-37ee-0168-2b24-5b9fbd7bcd6c}">
+    <Declaration><![CDATA[INTERFACE I_Cam_Ctrl
+]]></Declaration>
+    <Folder Name="methods" Id="{289023ab-c939-0f43-2a6d-f07aa32fae6f}" />
+    <Folder Name="properties" Id="{b935bae4-20b3-043e-188d-a7ce7fdbdbf3}" />
+    <Property Name="Axes" Id="{8193c79d-7247-0d2a-310f-9467f21399fd}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY Axes : reference TO ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF AXIS_REF]]></Declaration>
+      <Set Name="Set" Id="{2c47bb15-1372-0be6-0216-0353b4106f86}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="AxisCtrl" Id="{b628aab6-43ad-06cd-37b3-8ef1894d8490}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY AxisCtrl : pointer to ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF st_axis_ctrl]]></Declaration>
+      <Set Name="Set" Id="{ab5a31ec-2c82-0876-0f62-23ae259eabe0}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="AxisData" Id="{29e79334-8275-0433-3468-1bd12dc7b2a9}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY AxisData : pointer to ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_CAM_DATA]]></Declaration>
+      <Set Name="Set" Id="{66951bb9-3ec4-042a-108a-c31f69b5b650}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="AxisIndex" Id="{62db2c89-35b0-0068-2019-ab74ffbaf9ec}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY AxisIndex : uint]]></Declaration>
+      <Set Name="Set" Id="{0083986f-5ddb-0d8f-1af0-45885d80f1f2}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="AxisInfo" Id="{c4e78251-8097-003e-3bad-03f58172a569}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY AxisInfo : pointer to ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_AXIS_INFO]]></Declaration>
+      <Set Name="Set" Id="{5cb24616-3f31-0aff-1029-27202044ad6a}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="AxisState" Id="{b3fad775-854f-0465-13df-2a6b7819623a}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY AxisState : pointer to ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_CAM_STATE]]></Declaration>
+      <Set Name="Set" Id="{f00d57f8-9c0c-0ddd-2468-d15ea26ab47d}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Method Name="Cycle" Id="{ce9f2a1e-2df8-0349-1e51-54c4c0c7254a}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD Cycle  : e_progress
+]]></Declaration>
+    </Method>
+    <Property Name="ItfMcAxes" Id="{9c279bcc-d788-0eae-035d-8ae9b3fba035}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY ItfMcAxes : array[1..MAX_AXIS] of I_McAxis]]></Declaration>
+      <Set Name="Set" Id="{9f1667da-a83f-0010-2d1e-715bceceb278}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="MessageLevel" Id="{fd50ea6d-ea07-021c-1a8b-ab91ef8e6039}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY MessageLevel : E_MessageType]]></Declaration>
+      <Set Name="Set" Id="{d67756da-c6a8-0d9e-1c52-24998f70935d}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="MotionFunction" Id="{51497f92-2c5d-0340-36c3-d2c881e7309b}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY MotionFunction : POINTER TO ARRAY[1..MAX_AXIS] OF ST_MOTION_FUNCTION
+]]></Declaration>
+      <Set Name="Set" Id="{87417229-730c-082b-137d-28ee01332c1d}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="MotionFunctionPoint" Id="{3ccce8b0-462d-0c84-1a27-b7acfc79c954}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY MotionFunctionPoint : pointer to array[1..MAX_AXIS] of ST_MOTION_FUNCTION_POINT]]></Declaration>
+      <Set Name="Set" Id="{8a11a43b-80fd-00e4-0e64-27354f449965}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+  </Itf>
+</TcPlcObject>

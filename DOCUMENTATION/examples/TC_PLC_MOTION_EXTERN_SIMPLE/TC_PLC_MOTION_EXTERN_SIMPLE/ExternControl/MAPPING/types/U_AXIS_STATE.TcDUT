@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="U_AXIS_STATE" Id="{28497f21-0aa7-4401-bf4e-71cf2c1bf192}">
+    <Declaration><![CDATA[TYPE U_AXIS_STATE :
+UNION
+
+  stState             : ARRAY[1..MAX_AXIS] OF ST_AXIS_STATE;
+
+  byState   AT %I*    : ARRAY[1..MAX_AXIS] OF
+                        ARRAY[1..SIZEOF(ST_AXIS_STATE)] OF BYTE;
+END_UNION
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <DUT Name="ST_CAM_DATA" Id="{84786c9c-6951-08b2-1065-77fddc0200e2}">
+    <Declaration><![CDATA[{attribute 'pack_mode' := '2'}
+TYPE ST_CAM_DATA :
+STRUCT
+  // MC_CamInfo_V2 parameters
+  bAtMasterPosition       : BIT;    // If AtMasterPosition is TRUE, the data related to the specified MasterPosition is determined. Otherwise the data refers to the current master position.
+  nMasterIndex            : UINT;   // Index in GVL_AXIS.AxisRef[nMasterIndex]
+
+  rMasterPosition         : LREAL;  // Master position to which the data that is determined refers. This input parameter is not necessary if AtMasterPosition is FALSE.
+  rActivationPosition     : LREAL;
+  nActivationMode         : UINT;
+
+  nCamTableId             : UDINT;  // For multi-cam plate coupling, the CamTableId also has to be transferred explicitly. If a single cam plate is involved in the coupling, the CamTableId can be set to 0.
+  nPointId                : UDINT;
+  nPointIndex             : UDINT;  // index of MotionFunction array
+  nNumPoints              : UDINT;  // 0 = full motion function size
+
+  stReadValuesParameter   : ST_CAM_READ_VALUES_PARAMETER;
+
+  stCamScalingData        : ST_CAM_SCALING_DATA;
+  stOptions               : ST_CAM_OPTIONS;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

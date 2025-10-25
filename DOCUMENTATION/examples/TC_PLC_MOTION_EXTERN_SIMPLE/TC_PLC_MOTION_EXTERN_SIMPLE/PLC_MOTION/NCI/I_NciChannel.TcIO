@@ -1,0 +1,251 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <Itf Name="I_NciChannel" Id="{ef75f316-959e-0835-3611-b097b1464fc3}">
+    <Declaration><![CDATA[INTERFACE I_NciChannel
+]]></Declaration>
+    <Folder Name="methods" Id="{76943757-d4a0-0df4-1a42-45b1dd01bc41}" />
+    <Folder Name="properties" Id="{bd6dfc2c-2874-0034-396c-573eb0459dae}" />
+    <Method Name="BuilDGroup" Id="{3e1a0ff4-dc0c-007b-1a25-cbc755c968fd}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD BuilDGroup : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+END_VAR
+]]></Declaration>
+    </Method>
+    <Property Name="CfgAxes" Id="{6d0f3be9-a58a-0a3e-269f-25f12935e57b}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY CfgAxes : POINTER TO ST_3D_Group
+]]></Declaration>
+      <Set Name="Set" Id="{a17b3827-ea8b-0a64-13b8-c09d077fde4f}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="ChannelRef" Id="{36771113-5574-03d7-0084-2394369390e0}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY ChannelRef : POINTER TO ST_NciChannel_Ref]]></Declaration>
+      <Set Name="Set" Id="{9a93ca84-8c3f-0679-34f1-f6d996690cdd}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Method Name="ClearGroup" Id="{1976b063-c4e7-0102-0e20-a4850da7d26e}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD ClearGroup : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+END_VAR
+]]></Declaration>
+    </Method>
+    <Method Name="ConfirmHSK" Id="{00426d5d-2e6d-0e17-2a36-b622827f55a2}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD ConfirmHSK : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+END_VAR
+]]></Declaration>
+    </Method>
+    <Method Name="DeleteDistanceToGo" Id="{300c811a-4db2-0b13-09f2-02aa7e70dd91}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD DeleteDistanceToGo : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+END_VAR
+]]></Declaration>
+    </Method>
+    <Property Name="Error" Id="{55e12491-2b0f-0dc3-107c-da857fb74a4c}" FolderPath="properties\">
+      <Declaration><![CDATA[(*
+===============================================================
+Error-Flag
+===============================================================
+*)
+PROPERTY Error : BOOL]]></Declaration>
+      <Get Name="Get" Id="{647a9620-a748-0030-316f-b7812eb35c41}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+    </Property>
+    <Method Name="Error_Get" Id="{2fdf4a03-72b9-0902-2752-4c88e406c951}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD Error_Get : BOOL
+]]></Declaration>
+    </Method>
+    <Method Name="EStop" Id="{6c2be89c-2b45-03d5-1f3f-a92d8fd7e29f}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD EStop : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+END_VAR
+]]></Declaration>
+    </Method>
+    <Method Name="GetChannelOverride" Id="{5c31f475-6c13-0035-208c-759f3b2981c8}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD GetChannelOverride : real
+VAR_INPUT
+END_VAR
+]]></Declaration>
+    </Method>
+    <Method Name="GetItpState" Id="{a85b3524-f5b5-0d3c-119b-fa1c90864d1b}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD GetItpState : uint
+VAR_INPUT
+END_VAR
+]]></Declaration>
+    </Method>
+    <Method Name="GetLoadedProg" Id="{43d426f4-cf90-0cf3-3487-4e81f05cd792}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD GetLoadedProg : string
+VAR_INPUT
+END_VAR
+]]></Declaration>
+    </Method>
+    <Property Name="HSK" Id="{62d1d256-7ef6-01e7-0eb6-bb78462e5707}" FolderPath="properties\">
+      <Declaration><![CDATA[(*
+===============================================================
+Handshake: Announce and acknowledge M-Functions
+===============================================================
+*)
+PROPERTY HSK : BOOL]]></Declaration>
+      <Get Name="Get" Id="{8c061df3-5037-00aa-270f-0cabcd82d737}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+    </Property>
+    <Property Name="ItpAxes" Id="{ba8fd14c-0428-0920-1b87-275b99a45ee4}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY ItpAxes : ST_3D_Group
+]]></Declaration>
+      <Get Name="Get" Id="{668d7f56-e2fb-08e2-0e04-0150c9456a17}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+    </Property>
+    <Method Name="ItpReset" Id="{08c69477-f264-0bf1-30aa-d08b3e5a417f}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD ItpReset   : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+END_VAR
+]]></Declaration>
+    </Method>
+    <Method Name="LoadProg" Id="{fc827297-3895-09a6-0383-3442c3571958}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD LoadProg   : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+END_VAR
+]]></Declaration>
+    </Method>
+    <Property Name="M_FuncReq" Id="{3304e30a-4e38-0a18-39f8-085b63540fc2}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY M_FuncReq : word]]></Declaration>
+      <Get Name="Get" Id="{ffa7ef9b-2860-0015-27d4-bbbcb4f4c69f}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+    </Property>
+    <Property Name="MessageLevel" Id="{09df7ffb-d51a-0a46-1af6-e3742a983dbf}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY MessageLevel : E_MessageType]]></Declaration>
+      <Set Name="Set" Id="{da76445c-8d7c-07d5-2697-cc99925b3ad7}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="MFunc" Id="{e6813d63-ef99-0544-3d58-efdd02a6e34a}" FolderPath="properties\">
+      <Declaration><![CDATA[(*
+===============================================================
+M-Function
+===============================================================
+*)
+PROPERTY MFunc : INT]]></Declaration>
+      <Get Name="Get" Id="{c2001e49-b3a7-095d-07eb-52c6857e19f5}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+    </Property>
+    <Property Name="Override" Id="{076276e8-690e-003b-0b00-b6d1f667a3f4}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY Override : LREAL
+]]></Declaration>
+      <Get Name="Get" Id="{e2c3c72b-893f-0af3-1a64-f9a11431c84e}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+      <Set Name="Set" Id="{0d9c029e-0d86-02f1-2b3e-42baf2c0304b}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="PathVelo" Id="{26d914b0-edd6-0b19-05cc-50e16df7a041}" FolderPath="properties\">
+      <Declaration><![CDATA[(*
+===============================================================
+actual path velo [Units/s]
+===============================================================
+*)
+PROPERTY PathVelo : LREAL]]></Declaration>
+      <Get Name="Get" Id="{cd152074-f45b-0b1b-3a3a-2f28700c43c9}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+    </Property>
+    <Property Name="Prog" Id="{201ece71-e800-0d84-1292-c36645b1338f}" FolderPath="properties\">
+      <Declaration><![CDATA[(*
+===============================================================
+G-Code Program Name (sFilePath)
+===============================================================
+*)
+PROPERTY Prog : STRING(255)
+]]></Declaration>
+      <Get Name="Get" Id="{7663dd05-2dde-05a7-0fb5-757011e98c51}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+      <Set Name="Set" Id="{e844ea91-f14f-0a5b-2b77-80410c5e2627}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="R_ParameterRead" Id="{a212addd-6c9d-00f3-1a5c-fa995be4af1f}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY R_ParameterRead : Pointer to ST_R_Parameter;]]></Declaration>
+      <Set Name="Set" Id="{4cd39b22-d871-03e3-3b5d-ef9d2a33c6a5}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="R_ParameterWrite" Id="{3526422b-21f0-04a0-1241-28fb5eab3854}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY R_ParameterWrite : pointer to ST_R_Parameter;]]></Declaration>
+      <Set Name="Set" Id="{c5a49a41-b4c8-0c83-0c14-68d14dd639db}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Method Name="ReadLine" Id="{b8ab68f8-d791-074f-2c09-4edd328133eb}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD ReadLine   : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+END_VAR
+//Read G-Code actual Line
+VAR_OUTPUT
+  ActProgLine       : STRING(100);
+END_VAR
+]]></Declaration>
+    </Method>
+    <Method Name="ReadRParams" Id="{652a9ffe-927d-08aa-0dd4-a63b520763b3}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD ReadRParams : E_PROGRESS
+VAR_INPUT
+  Execute  : BOOL;
+END_VAR
+]]></Declaration>
+    </Method>
+    <Method Name="StartStop" Id="{06f443ed-888e-0c1a-0da4-c8532317da42}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD StartStop : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+  Start             : BOOL;
+  Stop              : BOOL;
+END_VAR
+]]></Declaration>
+    </Method>
+    <Method Name="StepOnAfterEStop" Id="{6154f6bd-15b9-0e13-3e19-4041bf938dc8}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD StepOnAfterEStop : E_PROGRESS
+VAR_INPUT
+  Execute: BOOL;
+END_VAR
+]]></Declaration>
+    </Method>
+    <Method Name="WriteRParams" Id="{1fc0647f-ff65-0218-021f-f3649dd685cf}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD WriteRParams : E_PROGRESS
+VAR_INPUT
+  Execute : BOOL;
+END_VAR
+]]></Declaration>
+    </Method>
+    <ObjectProperties>
+      <XmlArchive>
+        <Data>
+          <o xml:space="preserve" t="UMLStereoTypeContainerObject">
+            <v n="IsType" t="UMLType">BaseArea</v>
+            <v n="Stereotype">""</v>
+            <d n="Stereotypes" t="Hashtable" />
+          </o>
+        </Data>
+        <TypeList>
+          <Type n="Hashtable">System.Collections.Hashtable</Type>
+          <Type n="String">System.String</Type>
+          <Type n="UMLStereoTypeContainerObject">{30250973-b110-4e31-b562-c102e042dca4}</Type>
+          <Type n="UMLType">{0197b136-405a-42ee-bb27-fd08b621d0cf}</Type>
+        </TypeList>
+      </XmlArchive>
+    </ObjectProperties>
+  </Itf>
+</TcPlcObject>

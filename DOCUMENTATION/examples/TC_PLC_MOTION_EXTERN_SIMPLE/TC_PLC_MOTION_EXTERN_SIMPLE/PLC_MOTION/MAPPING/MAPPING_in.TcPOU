@@ -1,0 +1,162 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.13">
+  <POU Name="MAPPING_in" Id="{e84de69b-ba26-07ad-1592-7be68e226b51}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM MAPPING_in
+VAR CONSTANT
+{IF defined (AXIS_MAP)}
+  {info 'MAPPING_in - AXIS_MAP'}
+  bBypassMappingAxis        : BOOL  := FALSE;
+{ELSE}
+  bBypassMappingAxis        : BOOL  := TRUE;
+{END_IF}
+{IF defined (CAM_MAP)}
+  {info 'MAPPING_in - CAM_MAP'}
+  bBypassMappingCam         : BOOL  := FALSE;
+{ELSE}
+  bBypassMappingCam         : BOOL  := TRUE;
+{END_IF}
+{IF defined (TRIGGER_MAP)}
+  {info 'MAPPING_in - TRIGGER_MAP'}
+  bBypassMappingTrigger     : BOOL  := FALSE;
+{ELSE}
+  bBypassMappingTrigger     : BOOL  := TRUE;
+{END_IF}
+END_VAR
+VAR
+  bFirstCycle       : BOOL := TRUE;
+{IF defined (AXIS_MAP)}
+  AxisCtrl          : U_AXIS_CTRL;
+  AxisMoveData      : U_AXIS_MOVE_DATA;
+  AxisMotionOptions : U_AXIS_MOTION_OPTIONS;
+
+  AxisGearInData    : U_AXIS_GEAR_IN;
+  AxisHoming        : U_AXIS_HOMING;
+  AxisParameterWrt  : U_AXIS_NC_PARAMETER_WRT;
+{ELSE}
+  AxisCtrl          : BYTE;
+  AxisMoveData      : BYTE;
+  AxisMotionOptions : BYTE;
+
+  AxisGearInData    : BYTE;
+  AxisHoming        : BYTE;
+  AxisParameterWrt  : BYTE;
+{END_IF}
+{IF defined (CAM_MAP)}
+  CamControl        : U_CAM_CTRL;
+{ELSE}
+  CamControl        : BYTE;
+{END_IF}
+{IF defined (TRIGGER_MAP)}
+  TriggerControl    : U_TRIGGER_CTRL;
+  TouchProbeControl : U_TOUCH_PROBE_CTRL;
+{ELSE}
+  TriggerControl    : BYTE;
+  TouchProbeControl : BYTE;
+{END_IF}
+
+  szAxisPara,
+  szAxisHoming,
+  szAxisGearData,
+  szAxisMotionOptions,
+  szAxisMoveData,
+  szAxisCtrl          : ARRAY[1..2] OF UDINT;
+
+  szCamCtrl           : ARRAY[1..2] OF UDINT;
+
+  szCtrlTouchProbe,
+  szCtrlTrigger       :  ARRAY[1..2] OF UDINT;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[
+IF (bFirstCycle)
+THEN
+  bFirstCycle             := FALSE;
+
+  szAxisCtrl[1]           := SIZEOF(AxisCtrl);
+  szAxisCtrl[2]           := SIZEOF(GVL_AXIS.Ctrl);
+  
+  szAxisMoveData [1]      := SIZEOF(AxisMoveData);
+  szAxisMoveData [2]      := SIZEOF(GVL_AXIS.Data);
+  
+  szAxisMotionOptions [1] := SIZEOF(AxisMotionOptions);
+  szAxisMotionOptions [2] := SIZEOF(GVL_AXIS.MotionOptions);
+  
+  szAxisGearData [1]      := SIZEOF(AxisGearInData);
+  szAxisGearData [2]      := SIZEOF(GVL_AXIS.GearInParameter);
+  
+  szAxisHoming [1]        := SIZEOF(AxisHoming);
+  szAxisHoming [2]        := SIZEOF(GVL_AXIS.HomeParameter);
+  
+  szAxisPara [1]          := SIZEOF(AxisParameterWrt);
+  szAxisPara [2]          := SIZEOF(GVL_AXIS.NcParameterWrt);
+  
+  szCamCtrl [1]           := SIZEOF(CamControl);
+  szCamCtrl [2]           := SIZEOF(GVL_CAM.Ctrl);
+  
+  szCtrlTrigger[1]        := SIZEOF(TriggerControl);
+  szCtrlTrigger[2]        := SIZEOF(GVL_FUNCTIONS.CtrlTrigger);
+  
+  szCtrlTouchProbe[1]     := SIZEOF(TouchProbeControl);
+  szCtrlTouchProbe[2]     := SIZEOF(GVL_FUNCTIONS.CtrlTouchProbe);
+END_IF
+
+IF NOT bBypassMappingAxis
+THEN
+  memcpy(ADR(GVL_AXIS.Ctrl),            ADR(AxisCtrl),          SIZEOF(AxisCTrl));
+  memcpy(ADR(GVL_AXIS.Data),            ADR(AxisMoveData),      SIZEOF(AxisMoveData));
+  memcpy(ADR(GVL_AXIS.MotionOptions),   ADR(AxisMotionOptions), SIZEOF(AxisMotionOptions));
+  
+  memcpy(ADR(GVL_AXIS.GearInParameter), ADR(AxisGearInData),    SIZEOF(AxisGearInData));
+  memcpy(ADR(GVL_AXIS.HomeParameter),   ADR(AxisHoming),        SIZEOF(AxisHoming));
+  memcpy(ADR(GVL_AXIS.NcParameterWrt),  ADR(AxisParameterWrt),  SIZEOF(AxisParameterWrt));
+END_IF
+
+IF NOT bBypassMappingCam
+THEN
+  memcpy(ADR(GVL_CAM.Ctrl),             ADR(CamControl),        SIZEOF(CamControl));
+END_IF
+
+IF NOT bBypassMappingTrigger
+THEN
+  memcpy(ADR(GVL_FUNCTIONS.CtrlTrigger),   ADR(TriggerControl),     SIZEOF(TriggerControl));
+  memcpy(ADR(GVL_FUNCTIONS.CtrlTouchProbe),ADR(TouchProbeControl),  SIZEOF(TouchProbeControl));
+END_IF
+]]></ST>
+    </Implementation>
+    <LineIds Name="MAPPING_in">
+      <LineId Id="320" Count="0" />
+      <LineId Id="120" Count="0" />
+      <LineId Id="321" Count="0" />
+      <LineId Id="323" Count="1" />
+      <LineId Id="121" Count="16" />
+      <LineId Id="201" Count="0" />
+      <LineId Id="182" Count="0" />
+      <LineId Id="202" Count="1" />
+      <LineId Id="180" Count="1" />
+      <LineId Id="119" Count="0" />
+      <LineId Id="252" Count="1" />
+      <LineId Id="54" Count="0" />
+      <LineId Id="322" Count="0" />
+      <LineId Id="55" Count="0" />
+      <LineId Id="242" Count="0" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="66" Count="1" />
+      <LineId Id="69" Count="0" />
+      <LineId Id="68" Count="0" />
+      <LineId Id="70" Count="1" />
+      <LineId Id="208" Count="0" />
+      <LineId Id="244" Count="0" />
+      <LineId Id="243" Count="0" />
+      <LineId Id="245" Count="0" />
+      <LineId Id="138" Count="0" />
+      <LineId Id="246" Count="1" />
+      <LineId Id="210" Count="0" />
+      <LineId Id="248" Count="0" />
+      <LineId Id="209" Count="0" />
+      <LineId Id="254" Count="0" />
+      <LineId Id="249" Count="0" />
+      <LineId Id="13" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

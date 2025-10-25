@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.13">
+  <DUT Name="U_CAM_INFO" Id="{be65a2e2-a487-46a3-9747-cf8efe3fa69b}">
+    <Declaration><![CDATA[TYPE U_CAM_INFO :
+UNION
+
+  stState             : ARRAY[1..MAX_AXIS] OF ST_CAM_INFO;
+
+{IF defined (CAM_MAP)}
+  {info 'U_CAM_INFO mapping activated'}
+  byState  AT %Q*     : ARRAY[1..MAX_AXIS] OF
+                        ARRAY[1..SIZEOF(ST_CAM_INFO)] OF BYTE;
+{ELSE}
+  byState             : ARRAY[1..MAX_AXIS] OF
+                        ARRAY[1..SIZEOF(ST_CAM_INFO)] OF BYTE;
+{END_IF}
+
+END_UNION
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

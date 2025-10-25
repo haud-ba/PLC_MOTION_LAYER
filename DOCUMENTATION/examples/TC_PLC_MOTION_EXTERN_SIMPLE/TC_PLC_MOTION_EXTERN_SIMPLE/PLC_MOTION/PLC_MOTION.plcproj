@@ -1,0 +1,651 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <FileVersion>1.0.0.0</FileVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{15b1a673-79c3-4349-91f3-f549a08073e6}</ProjectGuid>
+    <SubObjectsSortedByName>True</SubObjectsSortedByName>
+    <DownloadApplicationInfo>true</DownloadApplicationInfo>
+    <WriteProductVersion>true</WriteProductVersion>
+    <GenerateTpy>false</GenerateTpy>
+    <Name>PLC_MOTION</Name>
+    <ProgramVersion>3.1.4026.19</ProgramVersion>
+    <Application>{0b9ad4b8-9b21-46d2-af23-75ba528d74dd}</Application>
+    <TypeSystem>{2f650832-3b33-41ac-8655-4702718764fe}</TypeSystem>
+    <Implicit_Task_Info>{a12b3f72-932e-4f0c-8ca2-137c1e731cc8}</Implicit_Task_Info>
+    <Implicit_KindOfTask>{50eb5789-d6a6-4eb7-9d52-953e36501b0b}</Implicit_KindOfTask>
+    <Implicit_Jitter_Distribution>{5da6f37d-8e2b-41dc-87ad-b3b85aa85be9}</Implicit_Jitter_Distribution>
+    <LibraryReferences>{ff26b307-1ac0-40be-ba24-df54548edd9a}</LibraryReferences>
+    <Released>false</Released>
+    <Title>PLC_MOTION_LAYER</Title>
+    <ProjectVersion>01.00.30</ProjectVersion>
+    <Author>D. Hauer</Author>
+    <Description>MC-PtP, NCI, Camming cyclic execution layer for motion commands</Description>
+    <CompilerDefines />
+    <DeploymentEvents>
+      <Events>
+        <Event>
+          <CommandType>Copy</CommandType>
+          <DeploymentType>ActivateConfiguration</DeploymentType>
+          <Command1 />
+          <Command2 />
+        </Event>
+      </Events>
+    </DeploymentEvents>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="CAM.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="CAM\FB_CamAxis.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="CAM\FB_CamCtrl.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="CAM\I_Cam_Ctrl.TcIO">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="CAM\types\ST_CAM_CTRL.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="CAM\types\ST_CAM_DATA.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="CAM\types\ST_CAM_INFO.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="CAM\types\ST_CAM_READ_VALUES_PARAMETER.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="CAM\types\ST_CAM_STATE.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="CAM\types\ST_CAM_OPTIONS.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="CAM\types\ST_CAM_SCALING_DATA.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="CAM\types\ST_MOTION_FUNCTION.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="CAM\types\ST_MOTION_FUNCTION_POINT.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FUNCTIONS.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FUNCTIONS\TOUCH_PROBE\FB_TouchProbe.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FUNCTIONS\TOUCH_PROBE\I_TouchProbe.TcIO">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FUNCTIONS\TOUCH_PROBE\types\ST_2BIT.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FUNCTIONS\TOUCH_PROBE\types\ST_CTRL_TOUCH_PROBE.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FUNCTIONS\TOUCH_PROBE\types\ST_DC_Input.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FUNCTIONS\TOUCH_PROBE\types\ST_MTI_INPUT.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FUNCTIONS\TOUCH_PROBE\types\ST_MTI_STATUS.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FUNCTIONS\TOUCH_PROBE\types\ST_STATE_TOUCH_PROBE.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FUNCTIONS\TRIGGER_BOX\FB_TriggerBox.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FUNCTIONS\TRIGGER_BOX\I_TriggerBox.TcIO">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FUNCTIONS\TRIGGER_BOX\types\ST_CTRL_TRIGGER.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FUNCTIONS\TRIGGER_BOX\types\ST_DC_Output.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FUNCTIONS\TRIGGER_BOX\types\ST_DC_State.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FUNCTIONS\TRIGGER_BOX\types\ST_STATE_TRIGGER.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FUNCTIONS\TRIGGER_BOX\types\T_TriggerControlBits.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MAPPING\MAPPING_in.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MAPPING\MAPPING_out.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MAPPING\types\U_AXIS_CTRL.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MAPPING\types\U_AXIS_NC_PARAMETER_WRT.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MAPPING\types\U_AXIS_HOMING.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MAPPING\types\U_AXIS_MOTION_OPTIONS.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MAPPING\types\U_AXIS_MOVE_DATA.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MAPPING\types\U_AXIS_GEAR_IN.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MAPPING\types\U_AXIS_NC_PARAMETER_RD.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MAPPING\types\U_AXIS_STATE.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MAPPING\types\U_AXIS_INFO.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MAPPING\types\U_CAM_CTRL.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MAPPING\types\U_CAM_DATA.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MAPPING\types\U_CAM_INFO.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MAPPING\types\U_CAM_STATE.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MAPPING\types\U_TOUCH_PROBE_CTRL.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MAPPING\types\U_TOUCH_PROBE_STATE.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MAPPING\types\U_TRIGGER_CTRL.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MAPPING\types\U_TRIGGER_STATE.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="NCI.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="NCI\FB_NciChannelCtrl.TcPOU">
+      <SubType>Code</SubType>
+      <CompilerDefines>NCI</CompilerDefines>
+    </Compile>
+    <Compile Include="NCI\FB_NciChannel.TcPOU">
+      <SubType>Code</SubType>
+      <CompilerDefines>NCI</CompilerDefines>
+    </Compile>
+    <Compile Include="NCI\I_NciChannel.TcIO">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="NCI\I_Nci_Ctrl.TcIO">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="NCI\types\E_NCI_CTRL.TcDUT">
+      <SubType>Code</SubType>
+      <CompilerDefines>NCI</CompilerDefines>
+    </Compile>
+    <Compile Include="NCI\types\E_NCI_CHANNEL_ERROR.TcDUT">
+      <SubType>Code</SubType>
+      <CompilerDefines>NCI</CompilerDefines>
+    </Compile>
+    <Compile Include="NCI\types\E_NCI_STATE.TcDUT">
+      <SubType>Code</SubType>
+      <CompilerDefines>NCI</CompilerDefines>
+    </Compile>
+    <Compile Include="NCI\types\E_NCI_INTERPRETER_STATE.TcDUT">
+      <SubType>Code</SubType>
+      <CompilerDefines>NCI</CompilerDefines>
+    </Compile>
+    <Compile Include="NCI\types\ST_3D_Group.TcDUT">
+      <SubType>Code</SubType>
+      <CompilerDefines>NCI</CompilerDefines>
+    </Compile>
+    <Compile Include="NCI\types\ST_CTRL_NCI.TcDUT">
+      <SubType>Code</SubType>
+      <CompilerDefines>NCI</CompilerDefines>
+    </Compile>
+    <Compile Include="NCI\types\ST_NCI_M_FUNC.TcDUT">
+      <SubType>Code</SubType>
+      <CompilerDefines>NCI</CompilerDefines>
+    </Compile>
+    <Compile Include="NCI\types\ST_Index_Group.TcDUT">
+      <SubType>Code</SubType>
+      <CompilerDefines>NCI</CompilerDefines>
+    </Compile>
+    <Compile Include="NCI\types\ST_Interface_Group.TcDUT">
+      <SubType>Code</SubType>
+      <CompilerDefines>NCI</CompilerDefines>
+    </Compile>
+    <Compile Include="NCI\types\ST_NciChannel_Ref.TcDUT">
+      <SubType>Code</SubType>
+      <CompilerDefines>NCI</CompilerDefines>
+    </Compile>
+    <Compile Include="NCI\types\ST_R_Parameter.TcDUT">
+      <SubType>Code</SubType>
+      <CompilerDefines>NCI</CompilerDefines>
+    </Compile>
+    <Compile Include="NCI\types\ST_STATE_NCI.TcDUT">
+      <SubType>Code</SubType>
+      <CompilerDefines>NCI</CompilerDefines>
+    </Compile>
+    <Compile Include="NC_PTP\FB_McAxisCtrl.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="NC_PTP\FB_McAxisBase.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="NC_PTP\I_McAxis.TcIO">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="NC_PTP\types\axis\E_AxisEncoderType.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="NC_PTP\types\axis\ST_HomeParams.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="NC_PTP\types\control\E_AXIS_CTRL.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="NC_PTP\types\control\E_AXIS_STATE.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="NC_PTP\types\control\ST_AXIS_CTRL.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="NC_PTP\types\control\ST_AXIS_INFO.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="NC_PTP\types\control\ST_AXIS_STATE.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="NC_PTP\types\control\ST_GEAR_IN.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="NC_PTP\types\control\ST_HOMING.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="NC_PTP\types\control\ST_MOTION_OPTIONS.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="NC_PTP\types\control\ST_MOVE_DATA.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="NC_PTP\types\control\ST_NC_PARAMETER.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="XFC\FB_Xfc.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="XFC\types\E_XFC_CHECK.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_DUT\E_CHECK_STATE.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_DUT\E_PROGRESS.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_GVL\GlobalTextList.TcGTLO">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_GVL\GVL_AXIS.TcGVL">
+      <SubType>Code</SubType>
+      <LinkAlways>true</LinkAlways>
+    </Compile>
+    <Compile Include="_GVL\GVL_CAM.TcGVL">
+      <SubType>Code</SubType>
+      <LinkAlways>true</LinkAlways>
+    </Compile>
+    <Compile Include="_GVL\GVL_FUNCTIONS.TcGVL">
+      <SubType>Code</SubType>
+      <LinkAlways>true</LinkAlways>
+    </Compile>
+    <Compile Include="_GVL\GVL_MSG.TcGVL">
+      <SubType>Code</SubType>
+      <LinkAlways>true</LinkAlways>
+    </Compile>
+    <Compile Include="_GVL\GVL_NCI.TcGVL">
+      <SubType>Code</SubType>
+      <LinkAlways>true</LinkAlways>
+    </Compile>
+    <Compile Include="_GVL\PLC_CONSTANT.TcGVL">
+      <SubType>Code</SubType>
+      <LinkAlways>true</LinkAlways>
+    </Compile>
+    <Compile Include="MAIN.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_GVL\PLC_VERSION.TcGVL">
+      <SubType>Code</SubType>
+      <LinkAlways>true</LinkAlways>
+    </Compile>
+    <Compile Include="_MSG\fb_LocalTime.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_MSG\f_MessageSet.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_MSG\MessageData.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_MSG\types\e_Device.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_MSG\types\E_MessageType.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_MSG\types\E_MESSAGE_STATE.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_MSG\types\e_Subdevice.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_MSG\types\ST_Message.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PlcTask.TcTTO">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Visualization Manager.TcVMO">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_MSG\T_MESSAGE_LIST.TcVIS">
+      <SubType>Code</SubType>
+      <DependentUpon>Visualization Manager.TcVMO</DependentUpon>
+    </Compile>
+    <Compile Include="_UML\CD_PLC_MOTION.TcCD">
+      <SubType>Code</SubType>
+      <ExcludeFromBuild>true</ExcludeFromBuild>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <PlaceholderReference Include="System_VisuElemMeter">
+      <DefaultResolution>VisuElemMeter, 4.7.0.0 (System)</DefaultResolution>
+      <Namespace>VisuElemMeter</Namespace>
+      <SystemLibrary>true</SystemLibrary>
+      <ResolverGuid>2717eb6a-dd07-4c66-8d8d-cacebd7b18ae</ResolverGuid>
+    </PlaceholderReference>
+    <PlaceholderReference Include="System_VisuElems">
+      <DefaultResolution>VisuElems, 4.7.0.0 (System)</DefaultResolution>
+      <Namespace>VisuElems</Namespace>
+      <SystemLibrary>true</SystemLibrary>
+      <ResolverGuid>2717eb6a-dd07-4c66-8d8d-cacebd7b18ae</ResolverGuid>
+    </PlaceholderReference>
+    <PlaceholderReference Include="System_VisuElemsSpecialControls">
+      <DefaultResolution>VisuElemsSpecialControls, 4.7.0.0 (System)</DefaultResolution>
+      <Namespace>VisuElemsSpecialControls</Namespace>
+      <SystemLibrary>true</SystemLibrary>
+      <ResolverGuid>2717eb6a-dd07-4c66-8d8d-cacebd7b18ae</ResolverGuid>
+    </PlaceholderReference>
+    <PlaceholderReference Include="System_VisuElemsWinControls">
+      <DefaultResolution>VisuElemsWinControls, 4.7.0.0 (System)</DefaultResolution>
+      <Namespace>VisuElemsWinControls</Namespace>
+      <SystemLibrary>true</SystemLibrary>
+      <ResolverGuid>2717eb6a-dd07-4c66-8d8d-cacebd7b18ae</ResolverGuid>
+    </PlaceholderReference>
+    <PlaceholderReference Include="System_VisuElemTextEditor">
+      <DefaultResolution>VisuElemTextEditor, 4.7.0.0 (System)</DefaultResolution>
+      <Namespace>VisuElemTextEditor</Namespace>
+      <SystemLibrary>true</SystemLibrary>
+      <ResolverGuid>2717eb6a-dd07-4c66-8d8d-cacebd7b18ae</ResolverGuid>
+    </PlaceholderReference>
+    <PlaceholderReference Include="System_VisuInputs">
+      <DefaultResolution>VisuInputs, 4.7.0.0 (System)</DefaultResolution>
+      <Namespace>VisuInputs</Namespace>
+      <SystemLibrary>true</SystemLibrary>
+      <ResolverGuid>2717eb6a-dd07-4c66-8d8d-cacebd7b18ae</ResolverGuid>
+    </PlaceholderReference>
+    <PlaceholderReference Include="System_VisuNativeControl">
+      <DefaultResolution>VisuNativeControl, 4.7.0.0 (System)</DefaultResolution>
+      <Namespace>VisuNativeControl</Namespace>
+      <SystemLibrary>true</SystemLibrary>
+      <ResolverGuid>2717eb6a-dd07-4c66-8d8d-cacebd7b18ae</ResolverGuid>
+    </PlaceholderReference>
+    <PlaceholderReference Include="Tc2_EtherCAT">
+      <DefaultResolution>Tc2_EtherCAT, * (Beckhoff Automation GmbH)</DefaultResolution>
+      <Namespace>Tc2_EtherCAT</Namespace>
+    </PlaceholderReference>
+    <PlaceholderReference Include="Tc2_MC2">
+      <DefaultResolution>Tc2_MC2, * (Beckhoff Automation GmbH)</DefaultResolution>
+      <Namespace>Tc2_MC2</Namespace>
+    </PlaceholderReference>
+    <PlaceholderReference Include="Tc2_MC2_Camming">
+      <DefaultResolution>Tc2_MC2_Camming, * (Beckhoff Automation GmbH)</DefaultResolution>
+      <Namespace>Tc2_MC2_Camming</Namespace>
+      <Condition>CAM</Condition>
+    </PlaceholderReference>
+    <PlaceholderReference Include="Tc2_MC2_Drive">
+      <DefaultResolution>Tc2_MC2_Drive, * (Beckhoff Automation GmbH)</DefaultResolution>
+      <Namespace>Tc2_MC2_Drive</Namespace>
+    </PlaceholderReference>
+    <PlaceholderReference Include="Tc2_MC2_XFC">
+      <DefaultResolution>Tc2_MC2_XFC, * (Beckhoff Automation GmbH)</DefaultResolution>
+      <Namespace>Tc2_MC2_XFC</Namespace>
+      <Condition>XFC</Condition>
+    </PlaceholderReference>
+    <PlaceholderReference Include="Tc2_NC">
+      <DefaultResolution>Tc2_NC, * (Beckhoff Automation GmbH)</DefaultResolution>
+      <Namespace>Tc2_NC</Namespace>
+    </PlaceholderReference>
+    <PlaceholderReference Include="Tc2_NCI">
+      <DefaultResolution>Tc2_NCI, * (Beckhoff Automation GmbH)</DefaultResolution>
+      <Namespace>Tc2_NCI</Namespace>
+      <Condition>NCI</Condition>
+    </PlaceholderReference>
+    <PlaceholderReference Include="Tc2_PlcInterpolation">
+      <DefaultResolution>Tc2_PlcInterpolation, * (Beckhoff Automation GmbH)</DefaultResolution>
+      <Namespace>Tc2_PlcInterpolation</Namespace>
+      <Condition>NCI</Condition>
+    </PlaceholderReference>
+    <PlaceholderReference Include="Tc2_Standard">
+      <DefaultResolution>Tc2_Standard, * (Beckhoff Automation GmbH)</DefaultResolution>
+      <Namespace>Tc2_Standard</Namespace>
+    </PlaceholderReference>
+    <PlaceholderReference Include="Tc2_System">
+      <DefaultResolution>Tc2_System, * (Beckhoff Automation GmbH)</DefaultResolution>
+      <Namespace>Tc2_System</Namespace>
+    </PlaceholderReference>
+    <PlaceholderReference Include="Tc2_Utilities">
+      <DefaultResolution>Tc2_Utilities, * (Beckhoff Automation GmbH)</DefaultResolution>
+      <Namespace>Tc2_Utilities</Namespace>
+    </PlaceholderReference>
+    <PlaceholderReference Include="Tc3_Module">
+      <DefaultResolution>Tc3_Module, * (Beckhoff Automation GmbH)</DefaultResolution>
+      <Namespace>Tc3_Module</Namespace>
+    </PlaceholderReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="CAM\types" />
+    <Folder Include="FUNCTIONS\TOUCH_PROBE" />
+    <Folder Include="FUNCTIONS\TOUCH_PROBE\types" />
+    <Folder Include="FUNCTIONS\TRIGGER_BOX" />
+    <Folder Include="FUNCTIONS\TRIGGER_BOX\types" />
+    <Folder Include="MAPPING\types" />
+    <Folder Include="NCI\files" />
+    <Folder Include="NCI\types" />
+    <Folder Include="NC_PTP\types\control" />
+    <Folder Include="NC_PTP\types\axis" />
+    <Folder Include="MAPPING" />
+    <Folder Include="FUNCTIONS" />
+    <Folder Include="XFC" />
+    <Folder Include="XFC\types" />
+    <Folder Include="_UML" />
+    <Folder Include="_MSG\types" />
+    <Folder Include="NC_PTP" />
+    <Folder Include="NCI" />
+    <Folder Include="CAM" />
+    <Folder Include="_MSG" />
+    <Folder Include="_GVL" />
+    <Folder Include="_DUT" />
+    <Folder Include="NC_PTP\types" />
+  </ItemGroup>
+  <ItemGroup>
+    <SubObject Include="FB_CamAxis.CamIn" />
+    <SubObject Include="FB_CamAxis.Template">
+      <ExcludeFromBuild>true</ExcludeFromBuild>
+    </SubObject>
+    <SubObject Include="FB_CamAxis.WriteMotionFunctionPoint" />
+    <SubObject Include="FB_CamCtrl.AxisCamIn" />
+    <SubObject Include="FB_McAxisCtrl.AxisGearInMultiMaster" />
+    <SubObject Include="FB_McAxisCtrl.Template">
+      <ExcludeFromBuild>true</ExcludeFromBuild>
+    </SubObject>
+    <SubObject Include="FB_McAxisBase.Disable" />
+    <SubObject Include="FB_McAxisBase.MoveToPos" />
+    <SubObject Include="FB_McAxisBase.MoveVeloBuffer" />
+    <SubObject Include="FB_McAxisBase.Stop" />
+    <SubObject Include="FB_McAxisBase.Template">
+      <ExcludeFromBuild>true</ExcludeFromBuild>
+    </SubObject>
+    <SubObject Include="FB_McAxisBase.WriteParameterPersistent" />
+    <SubObject Include="FB_NciChannel.ClearGroup" />
+    <SubObject Include="FB_NciChannel.ConfirmHSK" />
+    <SubObject Include="FB_NciChannelCtrl.Template">
+      <ExcludeFromBuild>true</ExcludeFromBuild>
+    </SubObject>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="PLC_MOTION.tmc">
+      <SubType>Content</SubType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="LICENSE">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="NCI\files\Test_GST.nc">
+      <SubType>Content</SubType>
+    </Content>
+  </ItemGroup>
+  <ProjectExtensions>
+    <PlcProjectOptions>
+      <XmlArchive>
+  <Data>
+    <o xml:space="preserve" t="OptionKey">
+      <v n="Name">"&lt;ProjectRoot&gt;"</v>
+      <d n="SubKeys" t="Hashtable" ckt="String" cvt="OptionKey">
+        <v>{192FAD59-8248-4824-A8DE-9177C94C195A}</v>
+        <o>
+          <v n="Name">"{192FAD59-8248-4824-A8DE-9177C94C195A}"</v>
+          <d n="SubKeys" t="Hashtable" />
+          <d n="Values" t="Hashtable" />
+        </o>
+        <v>{246001F4-279D-43AC-B241-948EB31120E1}</v>
+        <o>
+          <v n="Name">"{246001F4-279D-43AC-B241-948EB31120E1}"</v>
+          <d n="SubKeys" t="Hashtable" />
+          <d n="Values" t="Hashtable" ckt="String">
+            <v>GlobalVisuImageFilePath</v>
+            <v>"%APPLICATIONPATH%\"</v>
+            <v>UnicodeStrings</v>
+            <v>false</v>
+          </d>
+        </o>
+        <v>{29BD8D0C-3586-4548-BB48-497B9A01693F}</v>
+        <o>
+          <v n="Name">"{29BD8D0C-3586-4548-BB48-497B9A01693F}"</v>
+          <d n="SubKeys" t="Hashtable" ckt="String" cvt="OptionKey">
+            <v>NamingConventions</v>
+            <o>
+              <v n="Name">"NamingConventions"</v>
+              <d n="SubKeys" t="Hashtable" />
+              <d n="Values" t="Hashtable" />
+            </o>
+            <v>Rules</v>
+            <o>
+              <v n="Name">"Rules"</v>
+              <d n="SubKeys" t="Hashtable" />
+              <d n="Values" t="Hashtable" />
+            </o>
+          </d>
+          <d n="Values" t="Hashtable" />
+        </o>
+        <v>{40450F57-0AA3-4216-96F3-5444ECB29763}</v>
+        <o>
+          <v n="Name">"{40450F57-0AA3-4216-96F3-5444ECB29763}"</v>
+          <d n="SubKeys" t="Hashtable" />
+          <d n="Values" t="Hashtable" ckt="String">
+            <v>ActiveVisuExtensionsLength</v>
+            <v>0</v>
+            <v>ActiveVisuProfile</v>
+            <v>"IR0whWr8bwfyBwAAaCbC8QAAAABVAgAA1xHl6QAAAAABAAAAAAAAAAEaUwB5AHMAdABlAG0ALgBTAHQAcgBpAG4AZwACTHsAZgA5ADUAYgBiADQAMgA2AC0ANQA1ADIANAAtADQAYgA0ADUALQA5ADQAMAAwAC0AZgBiADAAZgAyAGUANwA3AGUANQAxAGIAfQADCE4AYQBtAGUABDJUAHcAaQBuAEMAQQBUACAAMwAuADEAIABCAHUAaQBsAGQAIAA0ADAAMgA2AC4AMQA1AAUWUAByAG8AZgBpAGwAZQBEAGEAdABhAAZMewAxADYAZQA1ADUAYgA2ADAALQA3ADAANAAzAC0ANABhADYAMwAtAGIANgA1AGIALQA2ADEANAA3ADEAMwA4ADcAOABkADQAMgB9AAcSTABpAGIAcgBhAHIAaQBlAHMACEx7ADMAYgBmAGQANQA0ADUAOQAtAGIAMAA3AGYALQA0AGQANgBlAC0AYQBlADEAYQAtAGEAOAAzADMANQA2AGEANQA1ADEANAAyAH0ACUx7ADkAYwA5ADUAOAA5ADYAOAAtADIAYwA4ADUALQA0ADEAYgBiAC0AOAA4ADcAMQAtADgAOQA1AGYAZgAxAGYAZQBkAGUAMQBhAH0ACg5WAGUAcgBzAGkAbwBuAAsGaQBuAHQADApVAHMAYQBnAGUADQpUAGkAdABsAGUADhpWAGkAcwB1AEUAbABlAG0ATQBlAHQAZQByAA8OQwBvAG0AcABhAG4AeQAQDFMAeQBzAHQAZQBtABESVgBpAHMAdQBFAGwAZQBtAHMAEjBWAGkAcwB1AEUAbABlAG0AcwBTAHAAZQBjAGkAYQBsAEMAbwBuAHQAcgBvAGwAcwATKFYAaQBzAHUARQBsAGUAbQBzAFcAaQBuAEMAbwBuAHQAcgBvAGwAcwAUJFYAaQBzAHUARQBsAGUAbQBUAGUAeAB0AEUAZABpAHQAbwByABUiVgBpAHMAdQBOAGEAdABpAHYAZQBDAG8AbgB0AHIAbwBsABYUVgBpAHMAdQBJAG4AcAB1AHQAcwAXGFYAaQBzAHUARQBsAGUAbQBCAGEAcwBlABgmRABlAHYAUABsAGEAYwBlAGgAbwBsAGQAZQByAHMAVQBzAGUAZAAZCGIAbwBvAGwAGiJQAGwAdQBnAGkAbgBDAG8AbgBzAHQAcgBhAGkAbgB0AHMAG0x7ADQAMwBkADUAMgBiAGMAZQAtADkANAAyAGMALQA0ADQAZAA3AC0AOQBlADkANAAtADEAYgBmAGQAZgAzADEAMABlADYAMwBjAH0AHBxBAHQATABlAGEAcwB0AFYAZQByAHMAaQBvAG4AHRRQAGwAdQBnAGkAbgBHAHUAaQBkAB4WUwB5AHMAdABlAG0ALgBHAHUAaQBkAB9IYQBmAGMAZAA1ADQANAA2AC0ANAA5ADEANAAtADQAZgBlADcALQBiAGIANwA4AC0AOQBiAGYAZgBlAGIANwAwAGYAZAAxADcAIBRVAHAAZABhAHQAZQBJAG4AZgBvACFMewBiADAAMwAzADYANgBhADgALQBiADUAYwAwAC0ANABiADkAYQAtAGEAMAAwAGUALQBlAGIAOAA2ADAAMQAxADEAMAA0AGMAMwB9ACIOVQBwAGQAYQB0AGUAcwAjTHsAMQA4ADYAOABmAGYAYwA5AC0AZQA0AGYAYwAtADQANQAzADIALQBhAGMAMAA2AC0AMQBlADMAOQBiAGIANQA1ADcAYgA2ADkAfQAkTHsAYQA1AGIAZAA0ADgAYwAzAC0AMABkADEANwAtADQAMQBiADUALQBiADEANgA0AC0ANQBmAGMANgBhAGQAMgBiADkANgBiADcAfQAlFk8AYgBqAGUAYwB0AHMAVAB5AHAAZQAmVFUAcABkAGEAdABlAEwAYQBuAGcAdQBhAGcAZQBNAG8AZABlAGwARgBvAHIAQwBvAG4AdgBlAHIAdABpAGIAbABlAEwAaQBiAHIAYQByAGkAZQBzACcQTABpAGIAVABpAHQAbABlACgUTABpAGIAQwBvAG0AcABhAG4AeQApHlUAcABkAGEAdABlAFAAcgBvAHYAaQBkAGUAcgBzACo4UwB5AHMAdABlAG0ALgBDAG8AbABsAGUAYwB0AGkAbwBuAHMALgBIAGEAcwBoAHQAYQBiAGwAZQArEnYAaQBzAHUAZQBsAGUAbQBzACwMcwB5AHMAdABlAG0ALUg2AGMAYgAxAGMAZABlADEALQBkADUAZABjAC0ANABhADMAYgAtADkAMAA1ADQALQAyADEAZgBhADcANQA2AGEAMwBmAGEANAAuKEkAbgB0AGUAcgBmAGEAYwBlAFYAZQByAHMAaQBvAG4ASQBuAGYAbwAvTHsAYwA2ADEAMQBlADQAMAAwAC0ANwBmAGIAOQAtADQAYwAzADUALQBiADkAYQBjAC0ANABlADMAMQA0AGIANQA5ADkANgA0ADMAfQAwGE0AYQBqAG8AcgBWAGUAcgBzAGkAbwBuADEYTQBpAG4AbwByAFYAZQByAHMAaQBvAG4AMgxMAGUAZwBhAGMAeQAzMEwAYQBuAGcAdQBhAGcAZQBNAG8AZABlAGwAVgBlAHIAcwBpAG8AbgBJAG4AZgBvADQwTABvAGEAZABMAGkAYgByAGEAcgBpAGUAcwBJAG4AdABvAFAAcgBvAGoAZQBjAHQANRpDAG8AbQBwAGEAdABpAGIAaQBsAGkAdAB5ANAAAhoD0AMBLQTQBQYaB9AHCBoBRQcJCNAACRoERQoLBAQAAAAHAAAAAAAAAAAAAADQDAutAgAAANANAS0O0A8BLRDQAAkaBEUKCwQEAAAABwAAAAAAAAAAAAAA0AwLrQEAAADQDQEtEdAPAS0Q0AAJGgRFCgsEBAAAAAcAAAAAAAAAAAAAANAMC60CAAAA0A0BLRLQDwEtENAACRoERQoLBAQAAAAHAAAAAAAAAAAAAADQDAutAgAAANANAS0T0A8BLRDQAAkaBEUKCwQEAAAABwAAAAAAAAAAAAAA0AwLrQIAAADQDQEtFNAPAS0Q0AAJGgRFCgsEBAAAAAcAAAAAAAAAAAAAANAMC60CAAAA0A0BLRXQDwEtENAACRoERQoLBAQAAAAHAAAAAAAAAAAAAADQDAutAgAAANANAS0W0A8BLRDQAAkaBEUKCwQEAAAABwAAAAAAAAAAAAAA0AwLrQQAAADQDQEtF9APAS0Q0BgZrQFFGhsB0AAbGgJFHAsEBAAAAAIAAAAAAAAAAAAAANAdHi0f0CAhGgJFIiMC0AAkGgVFCgsEAwAAAAMAAAAAAAAACgAAANAlC60AAAAA0AMBLSbQJwEtEdAoAS0Q0AAkGgVFCgsEAwAAAAMAAAAAAAAACgAAANAlC60BAAAA0AMBLSbQJwEtEdAoAS0QmikqAUUAAQLQAAEtK9AAAS0s0AAeLS3QLi8aA9AwC60BAAAA0DELrSQAAADQMhmtANAzLxoD0DALrQIAAADQMQutBgAAANAyGa0A0DQZrQDQNRmtAA=="</v>
+          </d>
+        </o>
+        <v>{535658C0-5AF5-460d-99A4-BFFB984A829A}</v>
+        <o>
+          <v n="Name">"{535658C0-5AF5-460d-99A4-BFFB984A829A}"</v>
+          <d n="SubKeys" t="Hashtable" />
+          <d n="Values" t="Hashtable" ckt="String" cvt="ExactVersionConstraintToSave">
+            <v>VersionConstraint</v>
+            <o>
+              <v n="TheVersion">"3.1.4024.0"</v>
+            </o>
+          </d>
+        </o>
+        <v>{8A0FB252-96EB-4DCC-A5B4-B4804D05E2D6}</v>
+        <o>
+          <v n="Name">"{8A0FB252-96EB-4DCC-A5B4-B4804D05E2D6}"</v>
+          <d n="SubKeys" t="Hashtable" />
+          <d n="Values" t="Hashtable" ckt="String" cvt="Boolean">
+            <v>WriteLineIDs</v>
+            <v>True</v>
+          </d>
+        </o>
+        <v>{8F99A816-E488-41E4-9FA3-846536012284}</v>
+        <o>
+          <v n="Name">"{8F99A816-E488-41E4-9FA3-846536012284}"</v>
+          <d n="SubKeys" t="Hashtable" />
+          <d n="Values" t="Hashtable" ckt="String" cvt="String">
+            <v>DisabledWarningIds</v>
+            <v>5410</v>
+          </d>
+        </o>
+        <v>{E709B08B-B6E4-4966-8EED-D793A13114C6}</v>
+        <o>
+          <v n="Name">"{E709B08B-B6E4-4966-8EED-D793A13114C6}"</v>
+          <d n="SubKeys" t="Hashtable" />
+          <d n="Values" t="Hashtable" ckt="String" cvt="Int32">
+            <v>MaxCompilerWarnings</v>
+            <v>2147483647</v>
+          </d>
+        </o>
+        <v>{F66C7017-BDD8-4114-926C-81D6D687E35F}</v>
+        <o>
+          <v n="Name">"{F66C7017-BDD8-4114-926C-81D6D687E35F}"</v>
+          <d n="SubKeys" t="Hashtable" />
+          <d n="Values" t="Hashtable" ckt="String" cvt="Boolean">
+            <v>CalcActiveTransOnly</v>
+            <v>True</v>
+          </d>
+        </o>
+      </d>
+      <d n="Values" t="Hashtable" />
+    </o>
+  </Data>
+  <TypeList>
+    <Type n="Boolean">System.Boolean</Type>
+    <Type n="ExactVersionConstraintToSave">{f9079115-a4ba-4f30-bf7c-9e76613146fc}</Type>
+    <Type n="Hashtable">System.Collections.Hashtable</Type>
+    <Type n="Int32">System.Int32</Type>
+    <Type n="OptionKey">{54dd0eac-a6d8-46f2-8c27-2f43c7e49861}</Type>
+    <Type n="String">System.String</Type>
+  </TypeList>
+</XmlArchive>
+    </PlcProjectOptions>
+  </ProjectExtensions>
+</Project>

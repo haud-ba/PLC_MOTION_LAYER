@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <DUT Name="U_AXIS_STATE" Id="{b336f0d2-020d-0c01-1f6f-4c95c36c4b3a}">
+    <Declaration><![CDATA[TYPE U_AXIS_STATE :
+UNION
+
+  stState             : ARRAY[1..MAX_AXIS] OF ST_AXIS_STATE;
+
+{IF defined (AXIS_MAP)}
+  {info 'U_AXIS_STATE mapping activated'}
+  byState   AT %Q*    : ARRAY[1..MAX_AXIS] OF
+                        ARRAY[1..SIZEOF(ST_AXIS_STATE)] OF BYTE;
+{ELSE}
+  byState             : ARRAY[1..MAX_AXIS] OF
+                        ARRAY[1..SIZEOF(ST_AXIS_STATE)] OF BYTE;
+{END_IF}
+END_UNION
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

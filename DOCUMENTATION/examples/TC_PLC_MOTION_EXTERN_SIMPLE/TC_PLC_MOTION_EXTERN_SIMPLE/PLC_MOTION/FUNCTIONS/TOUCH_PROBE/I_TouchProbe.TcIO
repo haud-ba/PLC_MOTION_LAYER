@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.13">
+  <Itf Name="I_TouchProbe" Id="{9976887e-7cd7-458b-91c8-8839ede1cec5}">
+    <Declaration><![CDATA[INTERFACE I_TouchProbe
+]]></Declaration>
+    <Property Name="Ctrl" Id="{d4ee0523-7039-4c1d-8c73-efe5c2f36848}">
+      <Declaration><![CDATA[PROPERTY Ctrl : REFERENCE TO ARRAY [1..MAX_TOUCH_PROBE] OF ST_CTRL_TOUCH_PROBE]]></Declaration>
+      <Set Name="Set" Id="{bd88cf08-0b83-4442-b45f-5558e251a5ef}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Method Name="Cycle" Id="{9b1badec-4de3-4dd6-9039-73125714d6bf}">
+      <Declaration><![CDATA[METHOD Cycle : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+    </Method>
+    <Property Name="Index" Id="{e10bbae3-05eb-4d1f-968d-876aa616a00a}">
+      <Declaration><![CDATA[PROPERTY Index : udint]]></Declaration>
+      <Get Name="Get" Id="{8d2b2c5a-f0b7-4371-beaf-21fc2c252e60}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+      <Set Name="Set" Id="{c0c3fb54-3960-425a-a34a-f8aa0e420e13}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="Input" Id="{a62aae1b-efe6-40ec-a9aa-51930682fb77}">
+      <Declaration><![CDATA[PROPERTY Input : pointer TO ARRAY [1..MAX_TOUCH_PROBE] OF ST_MTI_Input]]></Declaration>
+      <Set Name="Set" Id="{5335ac69-442f-4507-bb52-9d0b3ff43b50}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="InputState" Id="{f1029e41-31f3-4c1a-bb03-66443b3fb598}">
+      <Declaration><![CDATA[PROPERTY InputState : pointer TO ARRAY [1..MAX_TOUCH_PROBE] OF ST_MTI_STATUS]]></Declaration>
+      <Set Name="Set" Id="{9860a703-16a3-4d23-b7cf-bbed60786b36}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="ItfAxis" Id="{f22108c2-2eba-408b-937e-b8ab87da0fbc}">
+      <Declaration><![CDATA[PROPERTY ItfAxis : ARRAY[1..MAX_AXIS]       OF I_McAxis]]></Declaration>
+      <Set Name="Set" Id="{487153d6-b12e-4438-8daa-070a322ec755}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="MessageLevel" Id="{ec62e763-7bd6-4158-82bf-794e66c29390}">
+      <Declaration><![CDATA[PROPERTY MessageLevel : e_messagetype]]></Declaration>
+      <Get Name="Get" Id="{00aaa4fb-da2c-4b3d-ae68-a506e99825ce}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+      <Set Name="Set" Id="{e987aa04-9f5b-437c-89fe-4a6e79697c29}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="State" Id="{8e46bd41-6ab1-4419-88ae-e80f7153ae3f}">
+      <Declaration><![CDATA[PROPERTY State :  REFERENCE TO ARRAY[1..MAX_TOUCH_PROBE] OF ST_STATE_TOUCH_PROBE;]]></Declaration>
+      <Set Name="Set" Id="{9bc46a6d-98a8-4ad1-ab51-26d18f774049}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+  </Itf>
+</TcPlcObject>

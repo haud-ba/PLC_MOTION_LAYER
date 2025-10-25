@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="fb_LocalTime" Id="{90178b84-1a25-4e7e-8051-3efbf38466c5}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK fb_LocalTime
+VAR_INPUT
+
+END_VAR
+VAR_OUTPUT
+  sLocalTime  : STRING;
+  dtLocalTime : DT;
+END_VAR
+VAR
+  GetSysTime    : FW_GetSystemTime;
+  strFileTime   : T_FILETIME;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[GetSysTime(dwTimeLo=> strFileTime.dwLowDateTime, dwTimeHi=> strFileTime.dwHighDateTime);
+
+sLocalTime := SYSTEMTIME_TO_STRING( FILETIME_TO_SYSTEMTIME( strFileTime ) );
+dtLocalTime := systemtime_to_dt( FILETIME_TO_SYSTEMTIME( strFileTime ) );
+
+
+]]></ST>
+    </Implementation>
+    <LineIds Name="fb_LocalTime">
+      <LineId Id="1" Count="6" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

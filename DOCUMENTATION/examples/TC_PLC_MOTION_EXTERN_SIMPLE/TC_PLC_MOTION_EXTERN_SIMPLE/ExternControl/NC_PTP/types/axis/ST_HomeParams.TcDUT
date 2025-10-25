@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <DUT Name="ST_HomeParams" Id="{8d4df221-3961-0403-37f1-2546c02fdcbf}">
+    <Declaration><![CDATA[TYPE ST_HomeParams :
+STRUCT
+  Position              : LREAL;
+  HomingMode            : Tc2_MC2.MC_HomingMode;
+  Options               : Tc2_MC2.ST_HomingOptions;
+
+  InvertHomeSensor      : BIT := FALSE;   //Set to true,  NormallyClosed home sensor
+  SimulateHomeSensor    : BIT := FALSE;   //Set to true,  homed on encoder index only. The homing methode 'hardware sync' must be used then.
+
+  UseLimitMin           : BIT := TRUE;    //Set to false, no negative limit sensor.
+
+  InvertLimitMin        : BIT := FALSE;   //Set to true,  NC negative limit sensor
+  HomeOnLimitMin        : BIT := FALSE;   //Set to true,  homed on negative limit sensor 
+
+  UseLimitMax           : BIT := TRUE;    //Set to false, no positive limit sensor.
+
+  InvertLimitMax        : BIT := FALSE;   //Set to true,  NC positive limit sensor
+  HomeOnLimitMax        : BIT := FALSE;   //Set to true,  homed on positive limit sensor 
+  
+  // It is not allowed to use more than 1 of the 3 switches: SimulateHomeSensor, HomeOnLimitMin, HomeOnLimitMax
+  
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

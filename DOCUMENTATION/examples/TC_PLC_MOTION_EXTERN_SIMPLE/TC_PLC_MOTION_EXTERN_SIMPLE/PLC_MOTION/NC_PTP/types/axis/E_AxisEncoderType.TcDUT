@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <DUT Name="E_AxisEncoderType" Id="{83e7881c-a322-0206-3ad1-2056a5048bfb}">
+    <Declaration><![CDATA[{attribute 'to_string'}
+TYPE E_AxisEncoderType :
+(
+  NoEncoder := 0,
+  
+  Simulation_Encoder,
+  
+  M3000_Enc,
+  M31x0_M2000_Enc,
+  MDP_511_Enc,
+  MDP_500_501_Enc,
+  MDP_510_Enc,
+  KL30xx_Enc,
+  SERCOS_EtherCAT_SoE_Pos,
+  SERCOS_EtherCAT_SoE_Pos_Velo,
+  Binary_Enc,
+  M2510_Enc,
+  FOX50_Enc                     := 12,
+  AX2000_Lightbus               := 14,
+  Provi_DriveMC_Simodrive_611U,
+  Universal_Encoder_varBitmask,
+  NC_Backplane,
+  spec_CANopen_Typ,
+  MDP_513_DS402,
+  AX2xx_B900,
+  KL5151_Encoder                := 21,
+  IP5209_Encoder                := 24,
+  KL2531_KL2541_Encoder,
+  KL2532_KL2542_Encoder,
+  Time_Base_Encoder,
+  TCom_Encoder_SoftDrive
+)UDINT;
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

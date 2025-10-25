@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Refactors>
+  <Renames>
+    <RenamedType>
+      <Type guid="ef256c7b-3e45-4ad6-a165-ce55775dde7e">MAPPING_OUTT</Type>
+      <From>MAPPING_outt</From>
+      <To>MAPPING_out</To>
+    </RenamedType>
+  </Renames>
+</Refactors>

@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.13">
+  <DUT Name="ST_CTRL_TOUCH_PROBE" Id="{d7da8db9-a21f-47e4-bc8c-b3cca1e7dcb4}">
+    <Declaration><![CDATA[TYPE ST_CTRL_TOUCH_PROBE :
+STRUCT
+  Enable        : BIT;
+
+  AxisId        : UDINT;      // TwinCAT NC Axis ID
+
+  SensorIndex   : UDINT;      // sensor select; 1 := upper , 2 := lower, 0 := default upper 
+
+  Direction     : INT := 1;   // typeof(MC_DIRECTION)
+                                // MC_Positive_Direction := 1,   -(set trigger when crossing moving in pos dir)
+                                // MC_Shortest_Way,               (not used in TouchProbe or TriggerBox)
+                                // MC_Negative_Direction := 3,   -(set trigger when crossing moving in neg dir)
+                                // MC_Current_Direction  := 4,    (not used in TouchProbe or TriggerBox)
+                                // MC_Undefined_Direction := 128  (not used in TouchProbe or TriggerBox)
+
+  PositionStart : LREAL; // axis has to reach this position in order to start the check for change in input timestamp
+  PositionEnd   : LREAL; // axis must not reach this position without state change on input --> error
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

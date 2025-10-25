@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.13">
+  <DUT Name="U_TRIGGER_STATE" Id="{35650911-8512-48a2-bc22-a1ad57c4a64c}">
+    <Declaration><![CDATA[TYPE U_TRIGGER_STATE :
+UNION
+  stState              : ARRAY[1..MAX_TRIGGER_BOX] OF ST_STATE_TRIGGER;
+
+{IF defined (TRIGGER_MAP)}
+  {info 'U_TRIGGER_STATE mapping activated'}
+  byState    AT %Q*   : ARRAY[1..MAX_TRIGGER_BOX] OF
+                        ARRAY[1..SIZEOF(ST_STATE_TRIGGER)] OF BYTE;
+{ELSE}
+  byState             : ARRAY[1..MAX_TRIGGER_BOX] OF
+                        ARRAY[1..SIZEOF(ST_STATE_TRIGGER)] OF BYTE;
+{END_IF}
+END_UNION
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

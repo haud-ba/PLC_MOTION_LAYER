@@ -1,0 +1,45 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <Itf Name="I_Nci_Ctrl" Id="{07cae18a-edd8-0c79-0290-3533a7fb6aa9}">
+    <Declaration><![CDATA[INTERFACE I_Nci_Ctrl
+]]></Declaration>
+    <Folder Name="methods" Id="{f1063346-b567-0cec-37b4-73f99aec2ce1}" />
+    <Folder Name="properties" Id="{6bb05a48-4492-06ad-3aa6-7c1fec9724c9}" />
+    <Property Name="ChnCtrl" Id="{dc7c87b0-9bb0-011e-23ef-77cdee822593}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY ChnCtrl : pointer to ST_CTRL_NCI]]></Declaration>
+      <Set Name="Set" Id="{57f9e537-6c07-0708-15b1-e5a7392f4d9c}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="ChnId" Id="{2797eaef-bdb3-042d-1853-089453060b95}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY ChnId : udint]]></Declaration>
+      <Get Name="Get" Id="{5ff53833-6dd7-0140-067d-b287999221bb}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+    </Property>
+    <Property Name="ChnState" Id="{a32ebca0-842e-08d7-1ffd-11afd9c70dd2}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY ChnState : pointer to ST_STATE_NCI]]></Declaration>
+      <Set Name="Set" Id="{78ef849a-da51-043d-03cf-a62d985589c1}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Method Name="Cycle" Id="{05ec7737-5f93-0b30-38ee-c896f70763b2}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD Cycle : E_PROGRESS
+VAR_INPUT
+END_VAR
+]]></Declaration>
+    </Method>
+    <Property Name="ItfChannel" Id="{7c8bb5a4-2b8e-0496-100f-076666c21ed6}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY ItfChannel : I_NciChannel]]></Declaration>
+      <Get Name="Get" Id="{bf11b5d2-83e6-08ae-2089-ad406c3ba89a}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+    </Property>
+    <Property Name="M_FunctionScope" Id="{29d0f606-91f9-0c21-0a1e-3d382fbf613e}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY M_FunctionScope : pointer to st_nci_m_func]]></Declaration>
+      <Set Name="Set" Id="{4d73b4a4-cf13-07fd-3db6-7a5ca6072830}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+  </Itf>
+</TcPlcObject>

@@ -1,0 +1,45 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.13">
+  <GVL Name="GVL_MSG" Id="{b3a28587-1927-0d9d-1797-03bc06048b00}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL CONSTANT
+  //-----------------------------------------------------------------------------
+  // file paths for message system
+  //  - compiler define option WIN switches to Windows file paths
+  //-----------------------------------------------------------------------------
+{IF NOT defined (BSD)}
+  {info 'PLC_MOTION_LAYER: WIN'}
+  LOG_DIR               : STRING  := 'C:\TwinCAT\#MsgFiles\';
+{ELSE}
+  {info 'PLC_MOTION_LAYER: BSD'}
+  LOG_DIR               : STRING  := '/usr/local/etc/TwinCAT/#MsgFiles/';
+{END_IF}
+
+  LOG_FILE              : STRING  := 'MSG_PLC_';
+
+  MAX_MESSAGE           : UINT     := 200; // max entry in message list
+END_VAR
+VAR_GLOBAL
+  fbLocalTime                     : fb_LocalTime;
+  dtLocalTime                     : DT;
+  sLocalTime                      : STRING;
+
+  Messages                        : ARRAY[1..MAX_MESSAGE] OF ST_Message;
+  MessageIndex                    : UINT := 0; // message index
+  MessageError                    : UINT := 0; // error counter
+
+  MessageLevelAxisPtp             : E_MessageType := E_MessageType.eMessageError;
+  MessageLevelAxisCam             : E_MessageType := E_MessageType.eMessageError;
+  MessageLevelNciChn              : E_MessageType := E_MessageType.eMessageError;
+
+  MessageLevelTriggerBox          : ARRAY[1..PLC_CONSTANT.MAX_TRIGGER_BOX]  OF E_MessageType;
+  MessageLevelTouchProbe          : ARRAY[1..PLC_CONSTANT.MAX_TOUCH_PROBE]  OF E_MessageType;
+
+
+  // diag data
+  dbg_AxisIdxGearIn               : ARRAY[1..PLC_CONSTANT.MAX_AXIS]      OF BYTE; // diag for Axis gear in
+  dbg_AxisIdxGearInMultiMaster    : ARRAY[1..PLC_CONSTANT.MAX_AXIS,1..4] OF BYTE; // diag for Axis gear in multi master
+  dbg_AxisIdxCamIn                : ARRAY[1..PLC_CONSTANT.MAX_AXIS]      OF BYTE; // diag for Axis cam in
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

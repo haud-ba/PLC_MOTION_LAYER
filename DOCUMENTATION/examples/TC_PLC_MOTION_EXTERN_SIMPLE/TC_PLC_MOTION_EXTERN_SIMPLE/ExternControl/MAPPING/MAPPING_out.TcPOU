@@ -1,0 +1,70 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="MAPPING_out" Id="{ef256c7b-3e45-4ad6-a165-ce55775dde7e}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM MAPPING_out
+VAR
+  bFirstCycle       : BOOL := TRUE;
+
+  AxisCtrl          : U_AXIS_CTRL;
+  AxisMoveData      : U_AXIS_MOVE_DATA;
+  AxisMotionOptions : U_AXIS_MOTION_OPTIONS;
+
+  AxisGearInData    : U_AXIS_GEAR_IN;
+  AxisHoming        : U_AXIS_HOMING;
+  AxisParameterWrt  : U_AXIS_NC_PARAMETER_WRT;
+
+  szAxisPara,
+  szAxisHoming,
+  szAxisGearData,
+  szAxisMotionOptions,
+  szAxisMoveData,
+  szAxisCtrl          : ARRAY[1..2] OF UDINT;
+
+  szCamCtrl           : ARRAY[1..2] OF UDINT;
+
+  szCtrlTouchProbe,
+  szCtrlTrigger       :  ARRAY[1..2] OF UDINT;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[
+IF (bFirstCycle)
+THEN
+  bFirstCycle             := FALSE;
+
+  szAxisCtrl[1]           := SIZEOF(AxisCtrl);
+  szAxisCtrl[2]           := SIZEOF(GVL_AXIS.Ctrl);
+  
+  szAxisMoveData [1]      := SIZEOF(AxisMoveData);
+  szAxisMoveData [2]      := SIZEOF(GVL_AXIS.Data);
+  
+  szAxisMotionOptions [1] := SIZEOF(AxisMotionOptions);
+  szAxisMotionOptions [2] := SIZEOF(GVL_AXIS.MotionOptions);
+  
+  szAxisGearData [1]      := SIZEOF(AxisGearInData);
+  szAxisGearData [2]      := SIZEOF(GVL_AXIS.GearInParameter);
+  
+  szAxisHoming [1]        := SIZEOF(AxisHoming);
+  szAxisHoming [2]        := SIZEOF(GVL_AXIS.HomeParameter);
+  
+  szAxisPara [1]          := SIZEOF(AxisParameterWrt);
+  szAxisPara [2]          := SIZEOF(GVL_AXIS.NcParameterWrt);
+  
+END_IF
+
+  memcpy(ADR(AxisCtrl),                 ADR(GVL_AXIS.Ctrl),             SIZEOF(AxisCTrl));
+  memcpy(ADR(AxisMoveData),             ADR(GVL_AXIS.Data),             SIZEOF(AxisMoveData));
+  memcpy(ADR(AxisMotionOptions),        ADR(GVL_AXIS.MotionOptions),    SIZEOF(AxisMotionOptions));
+  
+  memcpy(ADR(AxisGearInData),           ADR(GVL_AXIS.GearInParameter),  SIZEOF(AxisGearInData));
+  memcpy(ADR(AxisHoming),               ADR(GVL_AXIS.HomeParameter),    SIZEOF(AxisHoming));
+  memcpy(ADR(AxisParameterWrt),         ADR(GVL_AXIS.NcParameterWrt),   SIZEOF(AxisParameterWrt));
+
+
+]]></ST>
+    </Implementation>
+    <LineIds Name="MAPPING_out">
+      <LineId Id="1" Count="34" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

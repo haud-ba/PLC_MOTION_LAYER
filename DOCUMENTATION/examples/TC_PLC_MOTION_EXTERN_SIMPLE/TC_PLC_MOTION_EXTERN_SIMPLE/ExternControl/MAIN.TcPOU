@@ -1,0 +1,45 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="MAIN" Id="{9bc05cf8-27df-4baf-8c2e-8597e29fd5e7}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM MAIN
+VAR
+  nAxis     : UINT;
+
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[
+
+
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+// react to operation modes (how to do it in an easy self documenting way)
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+CASE (GVL_AXIS.State[nAxis].eState MOD E_PROGRESS.PROGRESS_DONE)
+OF
+  E_AXIS_STATE.AXIS_INIT:
+    ;// do something after success  
+
+  E_AXIS_STATE.AXIS_MOVE_POS:
+    ;// do something after success
+ELSE
+  CASE (GVL_AXIS.State[nAxis].eState MOD E_PROGRESS.PROGRESS_ERROR)
+  OF
+    E_AXIS_STATE.AXIS_INIT:
+      ;// do something after success  
+  
+    E_AXIS_STATE.AXIS_MOVE_POS:
+      ;// do something after success
+  ELSE
+    ;// down the rabbit hole you go from here
+  END_CASE
+END_CASE
+
+]]></ST>
+    </Implementation>
+    <LineIds Name="MAIN">
+      <LineId Id="1" Count="28" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

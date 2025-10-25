@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="f_MessageSet" Id="{7583d39e-0669-4501-abff-f421354cff14}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION f_MessageSet : BOOL
+VAR_INPUT
+  stMessage   : ST_Message;
+END_VAR
+VAR
+  _uiIndex   : uINT;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[stMessage.tTime                     := GVL_MSG.sLocalTime;
+
+FOR _uiIndex := 1 TO GVL_MSG.MAX_MESSAGE
+DO
+  IF (GVL_MSG.Messages[_uiIndex].eType = e_MessageType.eMessageEmpty)
+  THEN
+    GVL_MSG.Messages[_uiIndex]      := stMessage;
+    GVL_MSG.MessageIndex            := _uiIndex;
+    EXIT;
+  END_IF
+END_FOR
+
+IF (stMessage.eType = E_MessageType.eMessageError)
+THEN
+  // in case of error: increment counter
+  GVL_MSG.MessageError := GVL_MSG.MessageError + 1;
+END_IF
+
+]]></ST>
+    </Implementation>
+    <LineIds Name="f_MessageSet">
+      <LineId Id="1" Count="18" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

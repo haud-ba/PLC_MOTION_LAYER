@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <DUT Name="T_TriggerControlBits" Id="{4828f844-afb4-414a-a9fa-fceec57cf98c}">
+    <Declaration><![CDATA[TYPE T_TriggerControlBits :
+STRUCT
+  Enable        : BIT;
+  Init          : BIT;
+  NoFeedback    : BIT;
+{attribute 'hide'} 
+  b3            : BIT;
+{attribute 'hide'} 
+  b4            : BIT;
+{attribute 'hide'} 
+  b5            : BIT;
+{attribute 'hide'} 
+  b6            : BIT;
+{attribute 'hide'} 
+  b7            : BIT;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

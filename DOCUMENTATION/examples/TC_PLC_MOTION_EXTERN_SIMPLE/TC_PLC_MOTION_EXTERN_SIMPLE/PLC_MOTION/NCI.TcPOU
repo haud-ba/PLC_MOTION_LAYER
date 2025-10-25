@@ -1,0 +1,188 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.13">
+  <POU Name="NCI" Id="{da86f3fe-4721-09d7-2e2d-987f1b92458d}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM NCI
+VAR
+  bInit                     : BOOL;
+  eInit                     : E_PROGRESS;
+
+  nChn,
+  nChnInit,
+  nAxis,
+  nAxisInit                 : UINT;
+
+  stMsg                     : ST_Message;
+
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[//-----------------------------------------------------------------------------------------------------------------
+// check if compiler define is present [PLC_STATE_DRIVE/CompilerDefines/Manual: NCI]
+// see PLC_CONSTANT for conditional pragma
+//-----------------------------------------------------------------------------------------------------------------
+IF NOT PLC_CONSTANT.NCI_ACTIVE THEN eInit   := E_PROGRESS.PROGRESS_NOT_EXIST; RETURN; END_IF
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+// check for MAIN.eInit
+//-----------------------------------------------------------------------------------------------------------------
+IF NOT (MAIN.eInit = E_PROGRESS.PROGRESS_DONE) THEN eInit   := E_PROGRESS.PROGRESS_INVALID; RETURN; END_IF
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+// /assign dataflow
+//-----------------------------------------------------------------------------------------------------------------
+FOR nChn := 1 TO MAX_NCI_CH
+DO
+  // NCI axis configuration --> NC AxisId used
+  GVL_NCI.fbNciCtrl[nChn].ItfChannel.CfgAxes          := ADR(GVL_NCI.stAxisConfig[nChn]);
+
+  // R Parameter properties
+  GVL_NCI.fbNciCtrl[nChn].ItfChannel.R_ParameterRead  := ADR(GVL_NCI.R_ParameterRead[nChn]);
+  GVL_NCI.fbNciCtrl[nChn].ItfChannel.R_ParameterWrite := ADR(GVL_NCI.R_ParameterWrite[nChn]);
+
+  // ProgName for channel
+  GVL_NCI.fbNciCtrl[nChn].ItfChannel.Prog             := GVL_NCI.sProgName[nChn];
+
+  // check REAL value to avoid exception
+  IF NOT IsFinite(F_Real(GVL_NCI.stChannelCtrl[nChn].rOverride))
+  THEN
+    GVL_NCI.fbNciCtrl[nChn].ItfChannel.Override       := 0.0;
+  ELSE
+    GVL_NCI.fbNciCtrl[nChn].ItfChannel.Override       := GVL_NCI.stChannelCtrl[nChn].rOverride;
+  END_IF
+
+  // command and state structure assignement
+  GVL_NCI.fbNciCtrl[nChn].ChnCtrl                     := ADR(GVL_NCI.stChannelCtrl[nChn]);
+  GVL_NCI.fbNciCtrl[nChn].ChnState                    := ADR(GVL_NCI.stChannelState[nChn]);
+END_FOR
+//-----------------------------------------------------------------------------------------------------------------
+// assign dataflow/
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+// /INIT
+//-----------------------------------------------------------------------------------------------------------------
+IF NOT bInit
+THEN
+  CASE eInit
+  OF
+    E_PROGRESS.PROGRESS_INVALID,
+    E_PROGRESS.PROGRESS_DONE:
+      FOR nChn := 1 TO MAX_NCI_CH
+      DO
+        GVL_NCI.fbNciCtrl[nChn].ItfChannel.MessageLevel     := GVL_MSG.MessageLevelNciChn;
+      END_FOR
+      nChnInit                                    := 1;
+      eInit                                       := E_PROGRESS.PROGRESS_INIT;
+
+
+    E_PROGRESS.PROGRESS_INIT:
+      stMsg.eType                                 := E_MessageType.eMessageVerbose;
+      stMsg.eDevice                               := e_Device.NciChannelCtrl;
+      stMsg.eSubdevice                            := e_SubDevice.NciStartUp;
+      stMsg.iErrorNumber                          := nChnInit;
+
+      stMsg.sText                                 := concat('NCI.eInit: ', TO_STRING(eInit));
+      f_MessageSet(stMsg);
+
+      GVL_NCI.stChannelCtrl[nChnInit].eCmd        := E_NCI_CTRL.NULL;
+      eInit                                       := E_PROGRESS.PROGRESS_BUSY;
+
+
+    E_PROGRESS.PROGRESS_BUSY:
+      GVL_NCI.stChannelCtrl[nChnInit].eCmd        := E_NCI_CTRL.INIT;
+
+      IF (GVL_NCI.stChannelState[nChnInit].eState = E_NCI_STATE.INIT + E_PROGRESS.PROGRESS_ERROR)
+      THEN
+        eInit                                     := E_PROGRESS.PROGRESS_ERROR;
+
+        stMsg.eType                               := E_MessageType.eMessageError;
+        stMsg.eDevice                             := e_Device.NciChannelCtrl;
+        stMsg.eSubdevice                          := e_SubDevice.NciStartUp;
+        stMsg.iErrorNumber                        := nChnInit;
+
+        stMsg.sText                               := concat('NCI.eInit ERROR at Index: ', TO_STRING(nChnInit));
+        f_MessageSet(stMsg);
+
+      ELSIF (GVL_NCI.stChannelState[nChnInit].eState = E_NCI_STATE.INIT + E_PROGRESS.PROGRESS_DONE)
+      THEN
+        eInit                                     := E_PROGRESS.PROGRESS_CHECK;
+      END_IF
+
+
+    E_PROGRESS.PROGRESS_CHECK:
+      IF (nChnInit > PLC_CONSTANT.MAX_NCI_CH-1)
+      THEN
+        bInit                                     := TRUE;
+        eInit                                     := E_PROGRESS.PROGRESS_DONE;
+
+        stMsg.eType                               := E_MessageType.eMessageInfo;
+        stMsg.eDevice                             := e_Device.NciChannelCtrl;
+        stMsg.eSubdevice                          := e_SubDevice.NciStartUp;
+        stMsg.iErrorNumber                        := MAX_NCI_CH;
+
+        stMsg.sText                               := concat('NCI.eInit: ', TO_STRING(eInit));
+        f_MessageSet(stMsg);
+
+      ELSE
+        nChnInit                                  := nChnInit + 1;
+        eInit                                     := E_PROGRESS.PROGRESS_INIT;
+      END_IF
+  END_CASE
+END_IF
+//-----------------------------------------------------------------------------------------------------------------
+// INIT/
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+// /CYCLE
+//-----------------------------------------------------------------------------------------------------------------
+FOR nChn := 1 TO MAX_NCI_CH
+DO
+  // call nci channel controller
+  GVL_NCI.fbNciCtrl[nChn].Cycle();
+
+  GVL_NCI.sProgNameActive[nChn]             := GVL_NCI.fbNciCtrl[nChn].ItfChannel.GetLoadedProg();
+  GVL_NCI.fbNciCtrl[nChn].M_FunctionScope   := ADR(GVL_NCI.M_FunctionCyclic[nChn]);
+END_FOR
+//-----------------------------------------------------------------------------------------------------------------
+// CYCLE/
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+]]></ST>
+    </Implementation>
+    <LineIds Name="NCI">
+      <LineId Id="12" Count="1" />
+      <LineId Id="345" Count="0" />
+      <LineId Id="14" Count="1" />
+      <LineId Id="11" Count="0" />
+      <LineId Id="165" Count="0" />
+      <LineId Id="359" Count="0" />
+      <LineId Id="299" Count="0" />
+      <LineId Id="360" Count="0" />
+      <LineId Id="374" Count="0" />
+      <LineId Id="300" Count="4" />
+      <LineId Id="306" Count="16" />
+      <LineId Id="332" Count="0" />
+      <LineId Id="323" Count="2" />
+      <LineId Id="329" Count="2" />
+      <LineId Id="298" Count="0" />
+      <LineId Id="195" Count="8" />
+      <LineId Id="389" Count="2" />
+      <LineId Id="388" Count="0" />
+      <LineId Id="208" Count="11" />
+      <LineId Id="270" Count="0" />
+      <LineId Id="220" Count="0" />
+      <LineId Id="222" Count="10" />
+      <LineId Id="271" Count="2" />
+      <LineId Id="236" Count="32" />
+      <LineId Id="287" Count="0" />
+      <LineId Id="282" Count="2" />
+      <LineId Id="274" Count="1" />
+      <LineId Id="277" Count="4" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="296" Count="1" />
+      <LineId Id="7" Count="0" />
+      <LineId Id="285" Count="0" />
+      <LineId Id="6" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

@@ -1,0 +1,149 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.13">
+  <POU Name="MAPPING_out" Id="{f452c8f5-5dcb-0f99-160c-afb3c9dfaf6c}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM MAPPING_out
+VAR CONSTANT
+{IF defined (AXIS_MAP)}
+  {info 'MAPPING_out - AXIS_MAP'}
+  bBypassMappingAxis        : BOOL  := FALSE;
+{ELSE}
+  bBypassMappingAxis        : BOOL  := TRUE;
+{END_IF}
+{IF defined (CAM_MAP)}
+  {info 'MAPPING_out - CAM_MAP'}
+  bBypassMappingCam         : BOOL  := FALSE;
+{ELSE}
+  bBypassMappingCam         : BOOL  := TRUE;
+{END_IF}
+{IF defined (TRIGGER_MAP)}
+  {info 'MAPPING_out - TRIGGER_MAP'}
+  bBypassMappingTrigger     : BOOL  := FALSE;
+{ELSE}
+  bBypassMappingTrigger     : BOOL  := TRUE;
+{END_IF}
+END_VAR
+VAR
+  bFirstCycle       : BOOL := TRUE;
+{IF defined (AXIS_MAP)}
+  AxisState         : U_AXIS_STATE;
+  AxisInfo          : U_AXIS_INFO;
+  AxisParameterRd   : U_AXIS_NC_PARAMETER_RD;
+{ELSE}
+  AxisState         : BYTE;
+  AxisInfo          : BYTE;
+  AxisParameterRd   : BYTE;
+{END_IF}
+{IF defined (CAM_MAP)}
+  CamState          : U_CAM_STATE;
+  CamData           : U_CAM_DATA;
+  CamInfo           : U_CAM_INFO;
+{ELSE}
+  CamState          : BYTE;
+  CamData           : BYTE;
+  CamInfo           : BYTE;
+{END_IF}
+{IF defined (TRIGGER_MAP)}
+  TriggerState      : U_TRIGGER_STATE;
+  TouchProbeState   : U_TOUCH_PROBE_STATE;
+{ELSE}
+  TriggerState      : BYTE;
+  TouchProbeState   : BYTE;
+{END_IF}
+
+  szAxisPara,
+  szAxisInfo,
+  szAxisState           : ARRAY[1..2] OF UDINT;
+
+  szCamInfo,
+  szCamData,
+  szCamState            : ARRAY[1..2] OF UDINT;
+
+  szStateTouchProbe,
+  szStateTrigger	      :  ARRAY[1..2] OF UDINT;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[
+IF (bFirstCycle)
+THEN
+  bFirstCycle         := FALSE;
+  
+  szAxisState[1]      := SIZEOF(AxisState);
+  szAxisState[2]      := SIZEOF(GVL_AXIS.State);
+  
+  szAxisInfo [1]      := SIZEOF(AxisInfo);
+  szAxisInfo [2]      := SIZEOF(GVL_AXIS.Info);
+  
+  szAxisPara [1]      := SIZEOF(AxisParameterRd);
+  szAxisPara [2]      := SIZEOF(GVL_AXIS.NcParameterRd);
+  
+  
+  szCamInfo  [1]      := SIZEOF(CamInfo);
+  szCamInfo  [2]      := SIZEOF(GVL_CAM.Info);
+  
+  szCamData  [1]      := SIZEOF(CamData);
+  szCamData  [2]      := SIZEOF(GVL_CAM.Data);
+  
+  szCamState [1]      := SIZEOF(CamState);
+  szCamState [2]      := SIZEOF(GVL_CAM.State);
+  
+  szStateTrigger [1]  := SIZEOF(TriggerState);
+  szStateTrigger [2]  := SIZEOF(GVL_FUNCTIONS.StateTrigger);
+  
+  szStateTouchProbe [1]  := SIZEOF(TouchProbeState);
+  szStateTouchProbe [2]  := SIZEOF(GVL_FUNCTIONS.StateTouchProbe);
+END_IF
+
+IF NOT bBypassMappingAxis
+THEN
+  memcpy(ADR(AxisState),         ADR(GVL_AXIS.State),             SIZEOF(AxisState));
+  memcpy(ADR(AxisInfo),          ADR(GVL_AXIS.Info),              SIZEOF(AxisInfo));
+  memcpy(ADR(AxisParameterRd),   ADR(GVL_AXIS.NcParameterRd),     SIZEOF(AxisParameterRd));
+END_IF
+
+IF NOT bBypassMappingCam
+THEN
+  memcpy(ADR(CamInfo),    ADR(GVL_CAM.Info),    SIZEOF(CamInfo));
+  memcpy(ADR(CamData),    ADR(GVL_CAM.Data),    SIZEOF(CamData));
+  memcpy(ADR(CamState),   ADR(GVL_CAM.State),   SIZEOF(CamState));
+END_IF
+
+IF NOT bBypassMappingTrigger
+THEN
+  memcpy(ADR(TriggerState),     ADR(GVL_FUNCTIONS.StateTrigger),    SIZEOF(TriggerState));
+  memcpy(ADR(TouchProbeState),  ADR(GVL_FUNCTIONS.StateTouchProbe), SIZEOF(TouchProbeState));
+END_IF
+
+]]></ST>
+    </Implementation>
+    <LineIds Name="MAPPING_out">
+      <LineId Id="278" Count="0" />
+      <LineId Id="78" Count="0" />
+      <LineId Id="279" Count="2" />
+      <LineId Id="74" Count="0" />
+      <LineId Id="79" Count="0" />
+      <LineId Id="85" Count="0" />
+      <LineId Id="80" Count="1" />
+      <LineId Id="84" Count="0" />
+      <LineId Id="82" Count="1" />
+      <LineId Id="130" Count="0" />
+      <LineId Id="139" Count="0" />
+      <LineId Id="73" Count="0" />
+      <LineId Id="131" Count="0" />
+      <LineId Id="133" Count="5" />
+      <LineId Id="140" Count="2" />
+      <LineId Id="214" Count="2" />
+      <LineId Id="132" Count="0" />
+      <LineId Id="282" Count="0" />
+      <LineId Id="186" Count="1" />
+      <LineId Id="206" Count="2" />
+      <LineId Id="195" Count="3" />
+      <LineId Id="209" Count="2" />
+      <LineId Id="200" Count="4" />
+      <LineId Id="217" Count="0" />
+      <LineId Id="205" Count="0" />
+      <LineId Id="145" Count="0" />
+      <LineId Id="144" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

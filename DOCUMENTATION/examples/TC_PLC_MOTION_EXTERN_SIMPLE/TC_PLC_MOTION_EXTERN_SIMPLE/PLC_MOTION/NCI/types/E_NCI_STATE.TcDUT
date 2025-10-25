@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <DUT Name="E_NCI_STATE" Id="{2b055dfa-b4d9-043d-259a-9033afd60d84}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+//{attribute 'strict'}
+{attribute 'to_string'}
+TYPE E_NCI_STATE :
+(
+  NULL,
+  INIT,
+  IDLE,
+  RESET,
+  LOAD_PROG,
+  FEED_TABLE,
+  BUILD_GROUP,
+  CLEAR_GROUP,
+
+  START         := 10,
+  STOP,
+  STO_STOP,
+  RESTART_STEP_ON,
+
+  M_FUNC_QUIT   := 20,
+
+  READ_R_PARA   := 30,
+  WRITE_R_PARA  := 40
+
+)UINT;
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>
