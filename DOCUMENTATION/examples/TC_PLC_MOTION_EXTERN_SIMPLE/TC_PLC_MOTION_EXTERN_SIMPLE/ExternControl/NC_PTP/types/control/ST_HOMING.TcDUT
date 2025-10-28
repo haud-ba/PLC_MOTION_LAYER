@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
-  <DUT Name="ST_HOMING" Id="{5851bdcf-da46-02aa-01b5-d61c3f131726}">
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="ST_HOMING" Id="{c0b7f83d-ffb7-48fc-81fb-80efc1ccd895}">
     <Declaration><![CDATA[{attribute 'pack_mode' := '2'}
 TYPE ST_HOMING :
 STRUCT

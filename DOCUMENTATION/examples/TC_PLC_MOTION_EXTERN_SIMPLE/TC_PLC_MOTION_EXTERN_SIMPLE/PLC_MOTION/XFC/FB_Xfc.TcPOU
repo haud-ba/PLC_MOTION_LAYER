@@ -8,7 +8,7 @@
 // 18.07.2024
 // - encapsulation of XFC library: Tc2_MC2_XFC
 //-----------------------------------------------------------------------------------------------------------
-FUNCTION_BLOCK FB_Xfc
+FUNCTION_BLOCK abstract FB_Xfc
 VAR
   _eDeviceFunction            : e_Device;
   _eDeviceAxis                : e_Device;

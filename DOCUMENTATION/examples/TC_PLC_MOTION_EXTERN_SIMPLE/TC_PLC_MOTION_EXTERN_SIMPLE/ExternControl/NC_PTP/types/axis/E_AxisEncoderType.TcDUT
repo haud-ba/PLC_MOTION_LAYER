@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
-  <DUT Name="E_AxisEncoderType" Id="{83e7881c-a322-0206-3ad1-2056a5048bfb}">
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="E_AxisEncoderType" Id="{8d69e9f5-c24f-40e1-8b67-d15c17ae39f3}">
     <Declaration><![CDATA[{attribute 'to_string'}
 TYPE E_AxisEncoderType :
 (

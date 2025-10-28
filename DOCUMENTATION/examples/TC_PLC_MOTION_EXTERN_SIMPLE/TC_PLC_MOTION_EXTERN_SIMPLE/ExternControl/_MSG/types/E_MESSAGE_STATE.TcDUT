@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
-  <DUT Name="E_MESSAGE_STATE" Id="{2412e125-a598-0bcc-2195-fba68045e2fe}">
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="E_MESSAGE_STATE" Id="{6251af82-bd27-4435-bc1a-cf2156d5ddae}">
     <Declaration><![CDATA[{attribute 'strict'}
 TYPE E_MESSAGE_STATE :
 (

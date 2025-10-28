@@ -1512,7 +1512,7 @@ External Setpoint Generation:
 			</SubItem>
 		</DataType>
 		<DataType>
-			<Name IecBaseType="true">ARRAY [1..12] OF ST_DC_State</Name>
+			<Name GUID="{FB4A053D-D65E-5592-5B7A-CE51DE2B3CA9}" IecBaseType="true" AutoDeleteType="true">ARRAY [1..12] OF ST_DC_State</Name>
 			<BitSize>1536</BitSize>
 			<BaseType GUID="{FB1926EE-10E1-66A4-2606-D6D6BD51ECFA}">ST_DC_State</BaseType>
 			<ArrayInfo>
@@ -1549,7 +1549,7 @@ External Setpoint Generation:
 			</SubItem>
 		</DataType>
 		<DataType>
-			<Name IecBaseType="true">ARRAY [1..12] OF ST_DC_Input</Name>
+			<Name GUID="{3441D623-627F-8E25-F47A-2FACB016A267}" IecBaseType="true" AutoDeleteType="true">ARRAY [1..12] OF ST_DC_Input</Name>
 			<Comment><![CDATA[ distributed clock digital input with timestamps positive & negative]]></Comment>
 			<BitSize>2304</BitSize>
 			<BaseType GUID="{3EDD5613-A12B-B69D-D15F-34BE81F2E37B}">ST_DC_Input</BaseType>
@@ -1575,7 +1575,7 @@ External Setpoint Generation:
 			</SubItem>
 		</DataType>
 		<DataType>
-			<Name IecBaseType="true">ARRAY [1..12] OF ST_MTI_INPUT</Name>
+			<Name GUID="{4E48576F-1551-779E-31BE-411D9C7FCA78}" IecBaseType="true" AutoDeleteType="true">ARRAY [1..12] OF ST_MTI_INPUT</Name>
 			<Comment><![CDATA[ multi time stamp, one channel]]></Comment>
 			<BitSize>768</BitSize>
 			<BaseType GUID="{2DA1CE76-F875-8108-C342-49F59C7F80F6}">ST_MTI_INPUT</BaseType>
@@ -1641,7 +1641,7 @@ External Setpoint Generation:
 			</SubItem>
 		</DataType>
 		<DataType>
-			<Name IecBaseType="true">ARRAY [1..12] OF ST_MTI_STATUS</Name>
+			<Name GUID="{4853C4EA-22CB-BF02-DA41-B003927CFE82}" IecBaseType="true" AutoDeleteType="true">ARRAY [1..12] OF ST_MTI_STATUS</Name>
 			<Comment><![CDATA[ multi time stamp status from terminal]]></Comment>
 			<BitSize>480</BitSize>
 			<BaseType GUID="{B43F33C0-1597-9839-2E7B-9DB4E0A02B0D}">ST_MTI_STATUS</BaseType>
@@ -1718,7 +1718,7 @@ External Setpoint Generation:
 			</SubItem>
 		</DataType>
 		<DataType>
-			<Name IecBaseType="true">ARRAY [1..12] OF ST_DC_Output</Name>
+			<Name GUID="{ECDFD6AE-38AB-39CF-643C-0C978175EB31}" IecBaseType="true" AutoDeleteType="true">ARRAY [1..12] OF ST_DC_Output</Name>
 			<BitSize>1536</BitSize>
 			<BaseType GUID="{06147818-728D-5192-678D-4930B1B5136A}">ST_DC_Output</BaseType>
 			<ArrayInfo>
@@ -1738,6 +1738,11 @@ External Setpoint Generation:
 				<Cpu CpuId="6"/>
 				<Cpu CpuId="7"/>
 			</Settings>
+			<Licenses>
+				<Target>
+					<ManualSelect>{6C4B2C28-7A9E-41AD-B5FE-6D61422A73D6}</ManualSelect>
+				</Target>
+			</Licenses>
 			<Tasks>
 				<Task Id="5" Priority="20" CycleTime="100000" AmsPort="350" AdtTasks="true">
 					<Name>PlcTask</Name>
@@ -1829,6 +1834,7 @@ External Setpoint Generation:
 					<Drive Name="Drive" DrvType="5">
 						<DrvPara>
 							<Analog TorqueSetpointScale="10" ScaleFactorActTorque="0.1"/>
+							<TimeComp TaskDelayCycles="1"/>
 						</DrvPara>
 						<Vars VarGrpType="1">
 							<Name>Inputs</Name>
@@ -1982,6 +1988,7 @@ External Setpoint Generation:
 					<Drive Name="Drive" DrvType="5">
 						<DrvPara>
 							<Analog TorqueSetpointScale="10" ScaleFactorActTorque="0.1"/>
+							<TimeComp TaskDelayCycles="1"/>
 						</DrvPara>
 						<Vars VarGrpType="1">
 							<Name>Inputs</Name>
@@ -2135,6 +2142,7 @@ External Setpoint Generation:
 					<Drive Name="Drive" DrvType="5">
 						<DrvPara>
 							<Analog TorqueSetpointScale="10" ScaleFactorActTorque="0.1"/>
+							<TimeComp TaskDelayCycles="1"/>
 						</DrvPara>
 						<Vars VarGrpType="1">
 							<Name>Inputs</Name>
@@ -2288,6 +2296,7 @@ External Setpoint Generation:
 					<Drive Name="Drive" DrvType="5">
 						<DrvPara>
 							<Analog TorqueSetpointScale="10" ScaleFactorActTorque="0.1"/>
+							<TimeComp TaskDelayCycles="1"/>
 						</DrvPara>
 						<Vars VarGrpType="1">
 							<Name>Inputs</Name>
@@ -2441,6 +2450,7 @@ External Setpoint Generation:
 					<Drive Name="Drive" DrvType="5">
 						<DrvPara>
 							<Analog TorqueSetpointScale="10" ScaleFactorActTorque="0.1"/>
+							<TimeComp TaskDelayCycles="1"/>
 						</DrvPara>
 						<Vars VarGrpType="1">
 							<Name>Inputs</Name>
@@ -2594,6 +2604,7 @@ External Setpoint Generation:
 					<Drive Name="Drive" DrvType="5">
 						<DrvPara>
 							<Analog TorqueSetpointScale="10" ScaleFactorActTorque="0.1"/>
+							<TimeComp TaskDelayCycles="1"/>
 						</DrvPara>
 						<Vars VarGrpType="1">
 							<Name>Inputs</Name>
@@ -2685,8 +2696,8 @@ External Setpoint Generation:
 			</NC>
 		</Motion>
 		<Plc>
-			<Project GUID="{15B1A673-79C3-4349-91F3-F549A08073E6}" Name="PLC_MOTION" PrjFilePath="PLC_MOTION\PLC_MOTION.plcproj" TmcFilePath="PLC_MOTION\PLC_MOTION.tmc" CompilerDefines="AXIS_MAP, BSD" ReloadTmc="true" AmsPort="851" FileArchiveSettings="#x000e" SymbolicMapping="true">
-				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcHash="{1F090D67-61CD-B386-F2AB-36FDA9E0FBF8}" TmcPath="PLC_MOTION\PLC_MOTION.tmc">
+			<Project GUID="{15B1A673-79C3-4349-91F3-F549A08073E6}" Name="PLC_MOTION" PrjFilePath="PLC_MOTION\PLC_MOTION.plcproj" TmcFilePath="PLC_MOTION\PLC_MOTION.tmc" CompilerDefines="CAM, NCI, XFC, AXIS_MAP, BSD" ReloadTmc="true" AmsPort="851" FileArchiveSettings="#x000e" SymbolicMapping="true">
+				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcHash="{3FC13160-0B4B-91AB-B8A6-F4475AB4ABD8}" TmcPath="PLC_MOTION\PLC_MOTION.tmc">
 					<Name>PLC_MOTION Instance</Name>
 					<CLSID ClassFactory="TcPlc30">{08500001-0000-0000-F000-000000000064}</CLSID>
 					<Vars VarGrpType="2" AreaNo="1">
@@ -2909,15 +2920,23 @@ External Setpoint Generation:
 				</Instance>
 			</Project>
 			<Project GUID="{FF61B10C-B72E-4A7C-A8B2-8A4CC1B13313}" Name="ExternControl" PrjFilePath="ExternControl\ExternControl.plcproj" TmcFilePath="ExternControl\ExternControl.tmc" ReloadTmc="true" AmsPort="852" FileArchiveSettings="#x000e" SymbolicMapping="true">
-				<Instance Id="#x08502040" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2">
+				<Instance Id="#x08502040" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcHash="{6991E8CA-924F-F21C-48A3-BEEED198BAC1}" TmcPath="ExternControl\ExternControl.tmc">
 					<Name>ExternControl Instance</Name>
 					<CLSID ClassFactory="TcPlc30">{08500001-0000-0000-F000-000000000064}</CLSID>
 					<Contexts>
 						<Context>
-							<Id>1</Id>
-							<Name>Default</Name>
+							<Id>0</Id>
+							<Name>PlcTask</Name>
+							<ManualConfig>
+								<OTCID>#x02010060</OTCID>
+							</ManualConfig>
+							<Priority>21</Priority>
+							<CycleTime>10000000</CycleTime>
 						</Context>
 					</Contexts>
+					<TaskPouOids>
+						<TaskPouOid Prio="21" OTCID="#x08502041"/>
+					</TaskPouOids>
 				</Instance>
 			</Project>
 		</Plc>
@@ -2926,8 +2945,10 @@ External Setpoint Generation:
 			<ImageId>437</ImageId>
 			<XmlProps><![CDATA[<Address>Hauptstraße 5, 32567 Berlin</Address><Latitude>123.41</Latitude><Longitude>43.4555</Longitude><SystemIdAlias /><DeviceProps></DeviceProps><SelectedDriverVersion>3.3.211.0</SelectedDriverVersion><StreamTargets><StreamTargetItem Id="bf2f2d22-dae3-4b65-a541-189469238937"><Name>Stream Target 1</Name><Type>FILE</Type><Directory>%TC_BOOTPRJPATH%</Directory><MqttConnectionSettings><Broker>127.0.0.1</Broker><BrokerPort>1883</BrokerPort><UserID /><WithCertificates>false</WithCertificates><CA_Certificate /><Cert_Certificate /><Key_Certificate /><CommunicationTimeout>30000000</CommunicationTimeout><KeepAlivePeriod>600000000</KeepAlivePeriod><TcpBufferSize>32768</TcpBufferSize><SecurityType>NO_SECURITY</SecurityType><Insecure>false</Insecure><IgnoreExpiration>false</IgnoreExpiration><IsPskIdCaseSensitive>false</IsPskIdCaseSensitive><IgnoreCnMismatch>false</IgnoreCnMismatch><TargetPaths>false</TargetPaths><PskMode>HexKey</PskMode></MqttConnectionSettings><TimeType>None</TimeType></StreamTargetItem></StreamTargets><ActivateAlyLogger>false</ActivateAlyLogger>]]></XmlProps>
 		</Analytics>
+		<Io/>
 	</Project>
 	<Mappings>
+		<MappingInfo Identifier="{05000010-2001-0850-1000-040300205008}" Id="#x02030010" Watchdog="14000000040000000400000004000000"/>
 		<OwnerA Name="TIPC^PLC_MOTION^PLC_MOTION Instance">
 			<OwnerB Name="TINC^NC-Task 1 SAF^Axes^Axis 1">
 				<Link VarA="PlcTask Inputs^GVL_AXIS.AxisRef[1].NcToPlc" VarB="Outputs^ToPlc"/>

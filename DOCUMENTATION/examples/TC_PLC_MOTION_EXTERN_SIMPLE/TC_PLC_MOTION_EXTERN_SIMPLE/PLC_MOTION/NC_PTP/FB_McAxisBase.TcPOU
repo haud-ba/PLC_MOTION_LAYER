@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.13">
   <POU Name="FB_McAxisBase" Id="{b0a70715-8745-098e-33e9-cc5f7a367c73}" SpecialFunc="None">
-    <Declaration><![CDATA[FUNCTION_BLOCK ABSTRACT FB_McAxisBase
+    <Declaration><![CDATA[FUNCTION_BLOCK ABSTRACT FB_McAxisBase  IMPLEMENTS I_McAxis
 VAR
   _AxisRef                      : REFERENCE TO Tc2_MC2.AXIS_REF;
   _pCalibrationCam              : POINTER TO BOOL;

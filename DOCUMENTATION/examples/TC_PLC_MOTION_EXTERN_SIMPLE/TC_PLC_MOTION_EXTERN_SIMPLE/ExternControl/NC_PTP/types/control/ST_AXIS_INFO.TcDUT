@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
-  <DUT Name="ST_AXIS_INFO" Id="{d905bf4f-290d-085d-17a5-01c56d7a672e}">
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="ST_AXIS_INFO" Id="{5bee5d0f-183c-4186-93c3-f289c8743962}">
     <Declaration><![CDATA[{attribute 'pack_mode' := '2'}
 TYPE ST_AXIS_INFO :
 STRUCT
