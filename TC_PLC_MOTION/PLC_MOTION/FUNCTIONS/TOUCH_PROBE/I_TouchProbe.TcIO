@@ -4,7 +4,7 @@
     <Declaration><![CDATA[INTERFACE I_TouchProbe
 ]]></Declaration>
     <Property Name="Ctrl" Id="{d4ee0523-7039-4c1d-8c73-efe5c2f36848}">
-      <Declaration><![CDATA[PROPERTY Ctrl : REFERENCE TO ARRAY [1..MAX_TOUCH_PROBE] OF ST_TouchProbe]]></Declaration>
+      <Declaration><![CDATA[PROPERTY Ctrl : REFERENCE TO ARRAY [1..MAX_TOUCH_PROBE] OF ST_CTRL_TOUCH_PROBE]]></Declaration>
       <Set Name="Set" Id="{bd88cf08-0b83-4442-b45f-5558e251a5ef}">
         <Declaration><![CDATA[]]></Declaration>
       </Set>
@@ -48,6 +48,12 @@ END_VAR
         <Declaration><![CDATA[]]></Declaration>
       </Get>
       <Set Name="Set" Id="{e987aa04-9f5b-437c-89fe-4a6e79697c29}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="State" Id="{8e46bd41-6ab1-4419-88ae-e80f7153ae3f}">
+      <Declaration><![CDATA[PROPERTY State :  REFERENCE TO ARRAY[1..MAX_TOUCH_PROBE] OF ST_STATE_TOUCH_PROBE;]]></Declaration>
+      <Set Name="Set" Id="{9bc46a6d-98a8-4ad1-ab51-26d18f774049}">
         <Declaration><![CDATA[]]></Declaration>
       </Set>
     </Property>

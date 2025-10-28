@@ -6,7 +6,7 @@
     <Folder Name="methods" Id="{7af41f99-8ef5-4244-9eb8-ff90b93413e0}" />
     <Folder Name="properties" Id="{f9d6d2c4-bae8-4e76-a211-8aef3feb2d2a}" />
     <Property Name="Ctrl" Id="{a02c71a9-7eb9-4ade-8151-99c1cb874075}" FolderPath="properties\">
-      <Declaration><![CDATA[PROPERTY Ctrl : REFERENCE TO ARRAY [1..MAX_TRIGGER_BOX] OF ST_TriggerBox]]></Declaration>
+      <Declaration><![CDATA[PROPERTY Ctrl : REFERENCE TO ARRAY [1..MAX_TRIGGER_BOX] OF ST_CTRL_TRIGGER]]></Declaration>
       <Set Name="Set" Id="{ccf37769-c021-4db9-8510-ab1051e1376b}">
         <Declaration><![CDATA[]]></Declaration>
       </Set>
@@ -56,6 +56,12 @@ END_VAR
     <Property Name="Output_2252" Id="{40855d71-34b8-4c3d-a561-8d2cb5dea8dd}" FolderPath="properties\">
       <Declaration><![CDATA[PROPERTY Output_2252 : pointer TO ARRAY [1..MAX_TRIGGER_BOX] OF ST_DC_Output]]></Declaration>
       <Set Name="Set" Id="{d7ea2af2-976c-4642-9146-6cc4930d60d1}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="State" Id="{ca4ad042-dcb6-4829-9fd9-a6f4ad30bdb7}">
+      <Declaration><![CDATA[PROPERTY State : REFERENCE TO ARRAY[1..MAX_TRIGGER_BOX] OF ST_STATE_TRIGGER]]></Declaration>
+      <Set Name="Set" Id="{2fb782ea-7e95-47ae-a49c-4dc567e86f20}">
         <Declaration><![CDATA[]]></Declaration>
       </Set>
     </Property>
