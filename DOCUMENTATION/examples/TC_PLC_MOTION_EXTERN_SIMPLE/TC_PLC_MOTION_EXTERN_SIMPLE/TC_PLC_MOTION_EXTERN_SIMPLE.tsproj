@@ -2920,9 +2920,51 @@ External Setpoint Generation:
 				</Instance>
 			</Project>
 			<Project GUID="{FF61B10C-B72E-4A7C-A8B2-8A4CC1B13313}" Name="ExternControl" PrjFilePath="ExternControl\ExternControl.plcproj" TmcFilePath="ExternControl\ExternControl.tmc" ReloadTmc="true" AmsPort="852" FileArchiveSettings="#x000e" SymbolicMapping="true">
-				<Instance Id="#x08502040" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcHash="{6991E8CA-924F-F21C-48A3-BEEED198BAC1}" TmcPath="ExternControl\ExternControl.tmc">
+				<Instance Id="#x08502040" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcHash="{828C4E82-58D9-4B20-0F6C-374BD7D21FD2}" TmcPath="ExternControl\ExternControl.tmc">
 					<Name>ExternControl Instance</Name>
 					<CLSID ClassFactory="TcPlc30">{08500001-0000-0000-F000-000000000064}</CLSID>
+					<Vars VarGrpType="2" AreaNo="1">
+						<Name>PlcTask Outputs</Name>
+						<Var>
+							<Name>MAPPING_out.AxisCtrl.byCtrl</Name>
+							<Type GUID="{5B1D07B4-9F19-08A8-437B-EF2F36392A5A}">ARRAY [1..6] OF ARRAY [1..4] OF BYTE</Type>
+						</Var>
+						<Var>
+							<Name>MAPPING_out.AxisMoveData.byCtrl</Name>
+							<Type GUID="{5E8AF281-7CD9-0572-AFB2-C5F65EF1152E}">ARRAY [1..6] OF ARRAY [1..50] OF BYTE</Type>
+						</Var>
+						<Var>
+							<Name>MAPPING_out.AxisMotionOptions.byCtrl</Name>
+							<Type GUID="{5D0481D0-25C0-7560-F931-87B2FC0AC3A0}">ARRAY [1..6] OF ARRAY [1..10] OF BYTE</Type>
+						</Var>
+						<Var>
+							<Name>MAPPING_out.AxisGearInData.byCtrl</Name>
+							<Type GUID="{DA95159B-7A92-EAE9-635C-AC4A2531F5A7}">ARRAY [1..6] OF ARRAY [1..36] OF BYTE</Type>
+						</Var>
+						<Var>
+							<Name>MAPPING_out.AxisHoming.byCtrl</Name>
+							<Type GUID="{42E648E5-E474-022D-241C-F9DAA31145EF}">ARRAY [1..6] OF ARRAY [1..66] OF BYTE</Type>
+						</Var>
+						<Var>
+							<Name>MAPPING_out.AxisParameterWrt.byCtrl</Name>
+							<Type GUID="{5D0481D0-25C0-7560-F931-87B2FC0AC3A0}">ARRAY [1..6] OF ARRAY [1..10] OF BYTE</Type>
+						</Var>
+					</Vars>
+					<Vars VarGrpType="1">
+						<Name>PlcTask Inputs</Name>
+						<Var>
+							<Name>MAPPING_in.AxisState.byState</Name>
+							<Type GUID="{A5496B58-EE0C-DFBC-437B-0A924951543B}">ARRAY [1..6] OF ARRAY [1..6] OF BYTE</Type>
+						</Var>
+						<Var>
+							<Name>MAPPING_in.AxisInfo.byState</Name>
+							<Type GUID="{2B5C121A-3AC3-57FB-B731-2331FD47E935}">ARRAY [1..6] OF ARRAY [1..38] OF BYTE</Type>
+						</Var>
+						<Var>
+							<Name>MAPPING_in.AxisParameterRd.byState</Name>
+							<Type GUID="{5D0481D0-25C0-7560-F931-87B2FC0AC3A0}">ARRAY [1..6] OF ARRAY [1..10] OF BYTE</Type>
+						</Var>
+					</Vars>
 					<Contexts>
 						<Context>
 							<Id>0</Id>
