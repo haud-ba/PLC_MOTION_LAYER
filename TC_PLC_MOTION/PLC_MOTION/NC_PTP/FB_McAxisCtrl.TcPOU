@@ -285,7 +285,7 @@ _Info^[_nAxisIndex].nNcAxisId       := _AxisRef.NcToPlc.AxisId;
 END_VAR
 ]]></Declaration>
         <Implementation>
-          <ST><![CDATA[_Axes := Axes;
+          <ST><![CDATA[_Axes REF= Axes;
 ]]></ST>
         </Implementation>
       </Set>
@@ -2131,7 +2131,7 @@ END_IF
 //-----------------------------------------------------------------------------
 // get my AXIS_REF pointer for use in base class
 //-----------------------------------------------------------------------------
-_AxisRef                  := _Axes[_nAxisIndex];
+_AxisRef                  ref= _Axes[_nAxisIndex];
 //-----------------------------------------------------------------------------
 
 IF NOT (_Ctrl <> 0)
