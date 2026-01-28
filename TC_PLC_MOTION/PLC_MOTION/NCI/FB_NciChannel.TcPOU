@@ -1252,7 +1252,10 @@ MFunc := TO_INT(_NciChannelRef^.NcToPlc.HskMFuncNo);
 END_VAR
 ]]></Declaration>
         <Implementation>
-          <ST><![CDATA[Override := Tc2_NCI.ItpGetOverridePercent(_NciChannelRef^.PlcToNc);
+          <ST><![CDATA[IF (_NciChannelRef <> 0)
+THEN
+  Override := Tc2_NCI.ItpGetOverridePercent(_NciChannelRef^.PlcToNc);
+END_IF
 ]]></ST>
         </Implementation>
       </Get>
@@ -1261,7 +1264,10 @@ END_VAR
 END_VAR
 ]]></Declaration>
         <Implementation>
-          <ST><![CDATA[Tc2_NCI.ItpSetOverridePercent(Override, _NciChannelRef^.PlcToNc);
+          <ST><![CDATA[IF (_NciChannelRef <> 0)
+THEN
+  Tc2_NCI.ItpSetOverridePercent(Override, _NciChannelRef^.PlcToNc);
+END_IF
 ]]></ST>
         </Implementation>
       </Set>

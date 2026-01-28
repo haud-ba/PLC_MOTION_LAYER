@@ -45,7 +45,7 @@ END_VAR
 END_VAR
 ]]></Declaration>
         <Implementation>
-          <ST><![CDATA[_Axes := Axes;
+          <ST><![CDATA[_Axes REF= Axes;
 ]]></ST>
         </Implementation>
       </Set>
@@ -808,10 +808,17 @@ THEN
   _eCheck                 := E_CHECK_STATE.AXIS_INDEX_OUT_OF_RANGE;
   RETURN;
 END_IF
+
+IF NOT __ISVALIDREF(_Axes)
+THEN
+  _eCheck                 := E_CHECK_STATE.AXIS_REF_POINTER_INVALID;
+  RETURN;
+END_IF
+
 //-----------------------------------------------------------------------------
 // get my AXIS_REF pointer for use in base class
 //-----------------------------------------------------------------------------
-_AxisSlave                := _Axes[_nAxisIndex];
+_AxisSlave                ref= _Axes[_nAxisIndex];
 //-----------------------------------------------------------------------------
 
 IF NOT (_ItfMcAxis[_nAxisIndex] <> 0)
@@ -1549,6 +1556,13 @@ END_VAR
     <LineIds Name="FB_CamCtrl.Check">
       <LineId Id="164" Count="0" />
       <LineId Id="167" Count="6" />
+      <LineId Id="201" Count="0" />
+      <LineId Id="200" Count="0" />
+      <LineId Id="202" Count="0" />
+      <LineId Id="205" Count="0" />
+      <LineId Id="204" Count="0" />
+      <LineId Id="203" Count="0" />
+      <LineId Id="206" Count="0" />
       <LineId Id="175" Count="5" />
       <LineId Id="174" Count="0" />
       <LineId Id="181" Count="3" />
