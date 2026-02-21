@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
-  <DUT Name="ST_STATE_NCI" Id="{f7beadfd-24e7-0d45-397c-ffc8ba50f566}">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.13">
+  <DUT Name="ST_NCI_STATE" Id="{f7beadfd-24e7-0d45-397c-ffc8ba50f566}">
     <Declaration><![CDATA[{attribute 'pack_mode' := '2'}
-TYPE ST_STATE_NCI :
+TYPE ST_NCI_STATE :
 STRUCT
   eState        : E_NCI_STATE; // eCmd with offsets E_PROGRESS
 
@@ -32,8 +32,8 @@ STRUCT
                             17 = Flush buffers
                           *) 
 
-  rAxisOverride : LREAL; // active override in cyclic NCI interface
-
+  rAxisOverride       : LREAL; // active override in cyclic NCI interface
+  sProgramNameActive  : STRING(255);
 END_STRUCT
 END_TYPE
 ]]></Declaration>

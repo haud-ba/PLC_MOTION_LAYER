@@ -6,7 +6,7 @@
     <Folder Name="methods" Id="{f1063346-b567-0cec-37b4-73f99aec2ce1}" />
     <Folder Name="properties" Id="{6bb05a48-4492-06ad-3aa6-7c1fec9724c9}" />
     <Property Name="ChnCtrl" Id="{dc7c87b0-9bb0-011e-23ef-77cdee822593}" FolderPath="properties\">
-      <Declaration><![CDATA[PROPERTY ChnCtrl : pointer to ST_CTRL_NCI]]></Declaration>
+      <Declaration><![CDATA[PROPERTY ChnCtrl : pointer to ST_NCI_CTRL]]></Declaration>
       <Set Name="Set" Id="{57f9e537-6c07-0708-15b1-e5a7392f4d9c}">
         <Declaration><![CDATA[]]></Declaration>
       </Set>
@@ -18,7 +18,7 @@
       </Get>
     </Property>
     <Property Name="ChnState" Id="{a32ebca0-842e-08d7-1ffd-11afd9c70dd2}" FolderPath="properties\">
-      <Declaration><![CDATA[PROPERTY ChnState : pointer to ST_STATE_NCI]]></Declaration>
+      <Declaration><![CDATA[PROPERTY ChnState : pointer to ST_NCI_STATE]]></Declaration>
       <Set Name="Set" Id="{78ef849a-da51-043d-03cf-a62d985589c1}">
         <Declaration><![CDATA[]]></Declaration>
       </Set>

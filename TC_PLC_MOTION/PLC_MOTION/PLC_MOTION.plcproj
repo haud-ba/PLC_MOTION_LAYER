@@ -166,6 +166,24 @@
     <Compile Include="MAPPING\types\U_CAM_STATE.TcDUT">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="MAPPING\types\U_NCI_AXIS_ID_GROUP.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MAPPING\types\U_NCI_CTRL.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MAPPING\types\U_NCI_INDEX_GROUP.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MAPPING\types\U_NCI_R_PARAMETER_I.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MAPPING\types\U_NCI_R_PARAMETER_Q.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MAPPING\types\U_NCI_STATE.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="MAPPING\types\U_TOUCH_PROBE_CTRL.TcDUT">
       <SubType>Code</SubType>
     </Compile>
@@ -215,7 +233,7 @@
       <SubType>Code</SubType>
       <CompilerDefines>NCI</CompilerDefines>
     </Compile>
-    <Compile Include="NCI\types\ST_CTRL_NCI.TcDUT">
+    <Compile Include="NCI\types\ST_NCI_CTRL.TcDUT">
       <SubType>Code</SubType>
       <CompilerDefines>NCI</CompilerDefines>
     </Compile>
@@ -235,11 +253,11 @@
       <SubType>Code</SubType>
       <CompilerDefines>NCI</CompilerDefines>
     </Compile>
-    <Compile Include="NCI\types\ST_R_Parameter.TcDUT">
+    <Compile Include="NCI\types\ST_NCI_STATE.TcDUT">
       <SubType>Code</SubType>
       <CompilerDefines>NCI</CompilerDefines>
     </Compile>
-    <Compile Include="NCI\types\ST_STATE_NCI.TcDUT">
+    <Compile Include="NCI\types\ST_R_Parameter.TcDUT">
       <SubType>Code</SubType>
       <CompilerDefines>NCI</CompilerDefines>
     </Compile>
@@ -437,20 +455,20 @@
     <PlaceholderReference Include="Tc2_MC2_XFC">
       <DefaultResolution>Tc2_MC2_XFC, * (Beckhoff Automation GmbH)</DefaultResolution>
       <Namespace>Tc2_MC2_XFC</Namespace>
-      <Condition>XFC</Condition>
       <Optional>true</Optional>
+      <Condition>XFC</Condition>
     </PlaceholderReference>
     <PlaceholderReference Include="Tc2_NCI">
       <DefaultResolution>Tc2_NCI, * (Beckhoff Automation GmbH)</DefaultResolution>
       <Namespace>Tc2_NCI</Namespace>
-      <Condition>NCI</Condition>
       <Optional>true</Optional>
+      <Condition>NCI</Condition>
     </PlaceholderReference>
     <PlaceholderReference Include="Tc2_PlcInterpolation">
       <DefaultResolution>Tc2_PlcInterpolation, * (Beckhoff Automation GmbH)</DefaultResolution>
       <Namespace>Tc2_PlcInterpolation</Namespace>
-      <Condition>NCI</Condition>
       <Optional>true</Optional>
+      <Condition>NCI</Condition>
     </PlaceholderReference>
     <PlaceholderReference Include="Tc2_Standard">
       <DefaultResolution>Tc2_Standard, * (Beckhoff Automation GmbH)</DefaultResolution>

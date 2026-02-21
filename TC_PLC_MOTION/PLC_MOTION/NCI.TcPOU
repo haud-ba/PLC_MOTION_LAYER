@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.13">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.13">
   <POU Name="NCI" Id="{da86f3fe-4721-09d7-2e2d-987f1b92458d}" SpecialFunc="None">
     <Declaration><![CDATA[PROGRAM NCI
 VAR
@@ -33,26 +33,26 @@ IF NOT (MAIN.eInit = E_PROGRESS.PROGRESS_DONE) THEN eInit   := E_PROGRESS.PROGRE
 FOR nChn := 1 TO MAX_NCI_CH
 DO
   // NCI axis configuration --> NC AxisId used
-  GVL_NCI.fbNciCtrl[nChn].ItfChannel.CfgAxes          := ADR(GVL_NCI.stAxisConfig[nChn]);
+  GVL_NCI.NciCtrl[nChn].ItfChannel.CfgAxes          := ADR(GVL_NCI.AxisConfig[nChn]);
 
   // R Parameter properties
-  GVL_NCI.fbNciCtrl[nChn].ItfChannel.R_ParameterRead  := ADR(GVL_NCI.R_ParameterRead[nChn]);
-  GVL_NCI.fbNciCtrl[nChn].ItfChannel.R_ParameterWrite := ADR(GVL_NCI.R_ParameterWrite[nChn]);
+  GVL_NCI.NciCtrl[nChn].ItfChannel.R_ParameterRead  := ADR(GVL_NCI.R_ParameterRead[nChn]);
+  GVL_NCI.NciCtrl[nChn].ItfChannel.R_ParameterWrite := ADR(GVL_NCI.R_ParameterWrite[nChn]);
 
   // ProgName for channel
-  GVL_NCI.fbNciCtrl[nChn].ItfChannel.Prog             := GVL_NCI.sProgName[nChn];
+  GVL_NCI.NciCtrl[nChn].ItfChannel.Prog             := GVL_NCI.ChannelCtrl[nChn].sProgramName;
 
   // check REAL value to avoid exception
-  IF NOT IsFinite(F_Real(GVL_NCI.stChannelCtrl[nChn].rOverride))
+  IF NOT IsFinite(F_Real(GVL_NCI.ChannelCtrl[nChn].rOverride))
   THEN
-    GVL_NCI.fbNciCtrl[nChn].ItfChannel.Override       := 0.0;
+    GVL_NCI.NciCtrl[nChn].ItfChannel.Override       := 0.0;
   ELSE
-    GVL_NCI.fbNciCtrl[nChn].ItfChannel.Override       := GVL_NCI.stChannelCtrl[nChn].rOverride;
+    GVL_NCI.NciCtrl[nChn].ItfChannel.Override       := GVL_NCI.ChannelCtrl[nChn].rOverride;
   END_IF
 
   // command and state structure assignement
-  GVL_NCI.fbNciCtrl[nChn].ChnCtrl                     := ADR(GVL_NCI.stChannelCtrl[nChn]);
-  GVL_NCI.fbNciCtrl[nChn].ChnState                    := ADR(GVL_NCI.stChannelState[nChn]);
+  GVL_NCI.NciCtrl[nChn].ChnCtrl                     := ADR(GVL_NCI.ChannelCtrl[nChn]);
+  GVL_NCI.NciCtrl[nChn].ChnState                    := ADR(GVL_NCI.ChannelState[nChn]);
 END_FOR
 //-----------------------------------------------------------------------------------------------------------------
 // assign dataflow/
@@ -68,7 +68,7 @@ THEN
     E_PROGRESS.PROGRESS_DONE:
       FOR nChn := 1 TO MAX_NCI_CH
       DO
-        GVL_NCI.fbNciCtrl[nChn].ItfChannel.MessageLevel     := GVL_MSG.MessageLevelNciChn;
+        GVL_NCI.NciCtrl[nChn].ItfChannel.MessageLevel     := GVL_MSG.MessageLevelNciChn;
       END_FOR
       nChnInit                                    := 1;
       eInit                                       := E_PROGRESS.PROGRESS_INIT;
@@ -83,14 +83,14 @@ THEN
       stMsg.sText                                 := concat('NCI.eInit: ', TO_STRING(eInit));
       f_MessageSet(stMsg);
 
-      GVL_NCI.stChannelCtrl[nChnInit].eCmd        := E_NCI_CTRL.NULL;
+      GVL_NCI.ChannelCtrl[nChnInit].eCmd        := E_NCI_CTRL.NULL;
       eInit                                       := E_PROGRESS.PROGRESS_BUSY;
 
 
     E_PROGRESS.PROGRESS_BUSY:
-      GVL_NCI.stChannelCtrl[nChnInit].eCmd        := E_NCI_CTRL.INIT;
+      GVL_NCI.ChannelCtrl[nChnInit].eCmd        := E_NCI_CTRL.INIT;
 
-      IF (GVL_NCI.stChannelState[nChnInit].eState = E_NCI_STATE.INIT + E_PROGRESS.PROGRESS_ERROR)
+      IF (GVL_NCI.ChannelState[nChnInit].eState = E_NCI_STATE.INIT + E_PROGRESS.PROGRESS_ERROR)
       THEN
         eInit                                     := E_PROGRESS.PROGRESS_ERROR;
 
@@ -102,7 +102,7 @@ THEN
         stMsg.sText                               := concat('NCI.eInit ERROR at Index: ', TO_STRING(nChnInit));
         f_MessageSet(stMsg);
 
-      ELSIF (GVL_NCI.stChannelState[nChnInit].eState = E_NCI_STATE.INIT + E_PROGRESS.PROGRESS_DONE)
+      ELSIF (GVL_NCI.ChannelState[nChnInit].eState = E_NCI_STATE.INIT + E_PROGRESS.PROGRESS_DONE)
       THEN
         eInit                                     := E_PROGRESS.PROGRESS_CHECK;
       END_IF
@@ -138,10 +138,11 @@ END_IF
 FOR nChn := 1 TO MAX_NCI_CH
 DO
   // call nci channel controller
-  GVL_NCI.fbNciCtrl[nChn].Cycle();
+  GVL_NCI.NciCtrl[nChn].Cycle();
 
-  GVL_NCI.sProgNameActive[nChn]             := GVL_NCI.fbNciCtrl[nChn].ItfChannel.GetLoadedProg();
-  GVL_NCI.fbNciCtrl[nChn].M_FunctionScope   := ADR(GVL_NCI.M_FunctionCyclic[nChn]);
+  GVL_NCI.ProgramNameActive[nChn]               := GVL_NCI.NciCtrl[nChn].ItfChannel.GetLoadedProg();
+  GVL_NCI.ChannelState[nChn].sProgramNameActive := GVL_NCI.ProgramNameActive[nChn];
+  GVL_NCI.NciCtrl[nChn].M_FunctionScope         := ADR(GVL_NCI.M_FunctionCyclic[nChn]);
 END_FOR
 //-----------------------------------------------------------------------------------------------------------------
 // CYCLE/
@@ -150,38 +151,7 @@ END_FOR
 ]]></ST>
     </Implementation>
     <LineIds Name="NCI">
-      <LineId Id="12" Count="1" />
-      <LineId Id="345" Count="0" />
-      <LineId Id="14" Count="1" />
-      <LineId Id="11" Count="0" />
-      <LineId Id="165" Count="0" />
-      <LineId Id="359" Count="0" />
-      <LineId Id="299" Count="0" />
-      <LineId Id="360" Count="0" />
-      <LineId Id="374" Count="0" />
-      <LineId Id="300" Count="4" />
-      <LineId Id="306" Count="16" />
-      <LineId Id="332" Count="0" />
-      <LineId Id="323" Count="2" />
-      <LineId Id="329" Count="2" />
-      <LineId Id="298" Count="0" />
-      <LineId Id="195" Count="8" />
-      <LineId Id="389" Count="2" />
-      <LineId Id="388" Count="0" />
-      <LineId Id="208" Count="11" />
-      <LineId Id="270" Count="0" />
-      <LineId Id="220" Count="0" />
-      <LineId Id="222" Count="10" />
-      <LineId Id="271" Count="2" />
-      <LineId Id="236" Count="32" />
-      <LineId Id="287" Count="0" />
-      <LineId Id="282" Count="2" />
-      <LineId Id="274" Count="1" />
-      <LineId Id="277" Count="4" />
-      <LineId Id="5" Count="0" />
-      <LineId Id="296" Count="1" />
-      <LineId Id="7" Count="0" />
-      <LineId Id="285" Count="0" />
+      <LineId Id="392" Count="131" />
       <LineId Id="6" Count="0" />
     </LineIds>
   </POU>

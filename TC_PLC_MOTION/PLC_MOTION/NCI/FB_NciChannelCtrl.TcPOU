@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.13">
   <POU Name="FB_NciChannelCtrl" Id="{08de930f-89ec-0b64-0188-963be0624f4a}" SpecialFunc="None">
     <Declaration><![CDATA[(*
 -------------------------------------------------------------------------------
@@ -33,8 +33,8 @@ VAR
   _eResultOld           : E_PROGRESS;
 
   // control and state struct from outside world
-  _Ctrl                 : POINTER TO ST_CTRL_NCI;
-  _State                : POINTER TO ST_STATE_NCI;
+  _Ctrl                 : POINTER TO ST_NCI_CTRL;
+  _State                : POINTER TO ST_NCI_STATE;
 
   // M function to fetch for scope/debugging
   _MFuncScope           : POINTER TO ST_NCI_M_FUNC;
@@ -90,7 +90,7 @@ Check                         := TRUE;
       </Implementation>
     </Method>
     <Property Name="ChnCtrl" Id="{8ba6e329-872d-00e7-0614-e9246ddef2fe}" FolderPath="properties\">
-      <Declaration><![CDATA[PROPERTY ChnCtrl : pointer to ST_CTRL_NCI]]></Declaration>
+      <Declaration><![CDATA[PROPERTY ChnCtrl : pointer to ST_NCI_CTRL]]></Declaration>
       <Set Name="Set" Id="{9bcb6298-736a-03aa-34f9-c23240802100}">
         <Declaration><![CDATA[VAR
 END_VAR
@@ -114,7 +114,7 @@ END_VAR
       </Get>
     </Property>
     <Property Name="ChnState" Id="{96be0409-6b12-073c-317f-f6f3dd8307a9}" FolderPath="properties\">
-      <Declaration><![CDATA[PROPERTY ChnState : pointer to ST_STATE_NCI]]></Declaration>
+      <Declaration><![CDATA[PROPERTY ChnState : pointer to ST_NCI_STATE]]></Declaration>
       <Set Name="Set" Id="{7d2cf0ac-e5f6-0e29-29b8-528a35ff2472}">
         <Declaration><![CDATA[VAR
 END_VAR

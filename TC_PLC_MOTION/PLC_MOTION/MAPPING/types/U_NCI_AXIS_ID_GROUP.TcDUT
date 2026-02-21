@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.13">
+  <DUT Name="U_NCI_AXIS_ID_GROUP" Id="{0af6e67c-5dcb-4720-9c25-6373971edd9e}">
+    <Declaration><![CDATA[TYPE U_NCI_AXIS_ID_GROUP :
+UNION
+
+  stCtrl              : ARRAY[1..MAX_NCI_CH] OF ST_3D_Group;
+
+{IF defined (NCI_MAP)}
+  {info 'U_NCI_AXIS_ID_GROUP mapping activated'}
+  byCtrl    AT %I*    : ARRAY[1..MAX_NCI_CH] OF
+                        ARRAY[1..SIZEOF(ST_3D_Group)] OF BYTE;
+{ELSE}
+  byCtrl              : ARRAY[1..MAX_NCI_CH] OF
+                        ARRAY[1..SIZEOF(ST_3D_Group)] OF BYTE;
+{END_IF}
+END_UNION
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

@@ -2173,11 +2173,15 @@ WriteRParams                        := _eState;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.Override.Get">
+      <LineId Id="4" Count="1" />
       <LineId Id="3" Count="0" />
+      <LineId Id="6" Count="0" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.Override.Set">
+      <LineId Id="4" Count="1" />
       <LineId Id="3" Count="0" />
+      <LineId Id="6" Count="0" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannel.PathVelo.Get">

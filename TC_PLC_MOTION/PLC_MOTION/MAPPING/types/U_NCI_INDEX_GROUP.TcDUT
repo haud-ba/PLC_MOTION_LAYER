@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.13">
+  <DUT Name="U_NCI_INDEX_GROUP" Id="{4f76dffa-ccc5-4511-bec3-0a1300c831ea}">
+    <Declaration><![CDATA[TYPE U_NCI_INDEX_GROUP :
+UNION
+
+  stCtrl              : ARRAY[1..MAX_NCI_CH] OF ST_Index_Group;
+
+{IF defined (NCI_MAP)}
+  {info 'U_NCI_INDEX_GROUP mapping activated'}
+  byCtrl    AT %I*    : ARRAY[1..MAX_NCI_CH] OF
+                        ARRAY[1..SIZEOF(ST_Index_Group)] OF BYTE;
+{ELSE}
+  byCtrl              : ARRAY[1..MAX_NCI_CH] OF
+                        ARRAY[1..SIZEOF(ST_Index_Group)] OF BYTE;
+{END_IF}
+END_UNION
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

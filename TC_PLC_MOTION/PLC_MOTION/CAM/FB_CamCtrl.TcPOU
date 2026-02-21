@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.13">
   <POU Name="FB_CamCtrl" Id="{527605ca-3a86-0df1-134f-058287ba4975}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_CamCtrl EXTENDS FB_CamAxis IMPLEMENTS I_Cam_Ctrl
 VAR
@@ -818,7 +818,7 @@ END_IF
 //-----------------------------------------------------------------------------
 // get my AXIS_REF pointer for use in base class
 //-----------------------------------------------------------------------------
-_AxisSlave                ref= _Axes[_nAxisIndex];
+_AxisSlave                REF= _Axes[_nAxisIndex];
 //-----------------------------------------------------------------------------
 
 IF NOT (_ItfMcAxis[_nAxisIndex] <> 0)

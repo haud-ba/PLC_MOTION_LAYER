@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.13">
+  <DUT Name="U_NCI_R_PARAMETER_Q" Id="{8b585f98-2ac5-4949-bad0-ca874120f678}">
+    <Declaration><![CDATA[TYPE U_NCI_R_PARAMETER_Q :
+UNION
+
+  stCtrl              : ARRAY[1..MAX_NCI_CH] OF ST_R_Parameter;
+
+{IF defined (NCI_MAP)}
+  {info 'U_NCI_R_PARAMETER_Q mapping activated'}
+  byCtrl    AT %Q*    : ARRAY[1..MAX_NCI_CH] OF
+                        ARRAY[1..SIZEOF(ST_R_Parameter)] OF BYTE;
+{ELSE}
+  byCtrl              : ARRAY[1..MAX_NCI_CH] OF
+                        ARRAY[1..SIZEOF(ST_R_Parameter)] OF BYTE;
+{END_IF}
+END_UNION
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>
