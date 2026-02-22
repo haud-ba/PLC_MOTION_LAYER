@@ -3,6 +3,9 @@
   <POU Name="MAPPING_out" Id="{f452c8f5-5dcb-0f99-160c-afb3c9dfaf6c}" SpecialFunc="None">
     <Declaration><![CDATA[PROGRAM MAPPING_out
 VAR CONSTANT
+//-----------------------------------------------------------------------------------------------------------------
+//  - compiler defines, where?: plc project properties
+//-----------------------------------------------------------------------------------------------------------------
 {IF defined (AXIS_MAP)}
   {info 'PLC_MOTION_LAYER: AXIS_MAP'}
   bBypassMappingAxis        : BOOL  := FALSE;
@@ -35,10 +38,10 @@ VAR CONSTANT
 {END_IF}
 END_VAR
 VAR
+  sMappingCheck             : STRING;
 //-----------------------------------------------------------------------------------------------------------------
 //  - mapping datafields
 //-----------------------------------------------------------------------------------------------------------------
-  bFirstCycle               : BOOL := TRUE;
 {IF defined (AXIS_MAP)}
   AxisState                 : U_AXIS_STATE;
   AxisInfo                  : U_AXIS_INFO;
@@ -97,43 +100,10 @@ VAR
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[//-----------------------------------------------------------------------------------------------------------------
+      <ST><![CDATA[//--------------------------------------------------------------------------------------------
 //  - datafield size check
-//-----------------------------------------------------------------------------------------------------------------
-IF (bFirstCycle)
-THEN
-  bFirstCycle               := FALSE;
-  
-  szAxisState[1]            := SIZEOF(AxisState);
-  szAxisState[2]            := SIZEOF(GVL_AXIS.State);
-
-  szAxisInfo [1]            := SIZEOF(AxisInfo);
-  szAxisInfo [2]            := SIZEOF(GVL_AXIS.Info);
-
-  szAxisPara [1]            := SIZEOF(AxisParameterRd);
-  szAxisPara [2]            := SIZEOF(GVL_AXIS.NcParameterRd);
-
-  szNciRparameters [1]      := SIZEOF(NciRparameters);
-  szNciRparameters [2]      := SIZEOF(GVL_NCI.R_ParameterWrite);
-
-  szNciState [1]            := SIZEOF(NciState);
-  szNciState [2]            := SIZEOF(GVL_NCI.ChannelState);
-
-  szCamInfo  [1]            := SIZEOF(CamInfo);
-  szCamInfo  [2]            := SIZEOF(GVL_CAM.Info);
-
-  szCamData  [1]            := SIZEOF(CamData);
-  szCamData  [2]            := SIZEOF(GVL_CAM.Data);
-
-  szCamState [1]            := SIZEOF(CamState);
-  szCamState [2]            := SIZEOF(GVL_CAM.State);
-
-  szStateTrigger [1]        := SIZEOF(TriggerState);
-  szStateTrigger [2]        := SIZEOF(GVL_FUNCTIONS.StateTrigger);
-
-  szStateTouchProbe [1]     := SIZEOF(TouchProbeState);
-  szStateTouchProbe [2]     := SIZEOF(GVL_FUNCTIONS.StateTouchProbe);
-END_IF
+//--------------------------------------------------------------------------------------------
+IF NOT Check() THEN RETURN; END_IF
 //--------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------
 //           destination,           source,                                size
@@ -172,50 +142,131 @@ END_IF
 //--------------------------------------------------------------------------------------------
 ]]></ST>
     </Implementation>
+    <Method Name="Check" Id="{47ea6e57-41ae-4d67-bbaa-d544238ad7a3}">
+      <Declaration><![CDATA[METHOD Check : bool
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//--------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------
+szAxisState[1]          := SIZEOF(AxisState);
+szAxisState[2]          := SIZEOF(GVL_AXIS.State);
+
+szAxisInfo [1]          := SIZEOF(AxisInfo);
+szAxisInfo [2]          := SIZEOF(GVL_AXIS.Info);
+
+szAxisPara [1]          := SIZEOF(AxisParameterRd);
+szAxisPara [2]          := SIZEOF(GVL_AXIS.NcParameterRd);
+
+IF NOT (bBypassMappingAxis)
+THEN
+  IF NOT (szAxisState[1] = szAxisState[2])
+  THEN
+    sMappingCheck       := 'AxisState CHECK_ERROR';
+    RETURN;
+  END_IF
+
+  IF NOT (szAxisInfo[1] = szAxisInfo[2])
+  THEN
+    sMappingCheck       := 'AxisInfo CHECK_ERROR';
+    RETURN;
+  END_IF
+
+  IF NOT (szAxisPara[1] = szAxisPara[2])
+  THEN
+    sMappingCheck       := 'AxisParameterRd CHECK_ERROR';
+    RETURN;
+  END_IF
+END_IF
+//--------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------
+szNciRparameters [1]    := SIZEOF(NciRparameters);
+szNciRparameters [2]    := SIZEOF(GVL_NCI.R_ParameterRead);
+
+szNciState [1]          := SIZEOF(NciState);
+szNciState [2]          := SIZEOF(GVL_NCI.ChannelState);
+
+IF NOT (bBypassMappingNci)
+THEN
+  IF NOT (szNciRparameters[1] = szNciRparameters[2])
+  THEN
+    sMappingCheck       := 'NciRparameters CHECK_ERROR';
+    RETURN;
+  END_IF
+
+  IF NOT (szNciState[1] = szNciState[2])
+  THEN
+    sMappingCheck       := 'NciState CHECK_ERROR';
+    RETURN;
+  END_IF
+END_IF
+//--------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------
+szCamInfo  [1]          := SIZEOF(CamInfo);
+szCamInfo  [2]          := SIZEOF(GVL_CAM.Info);
+
+szCamData  [1]          := SIZEOF(CamData);
+szCamData  [2]          := SIZEOF(GVL_CAM.Data);
+
+szCamState [1]          := SIZEOF(CamState);
+szCamState [2]          := SIZEOF(GVL_CAM.State);
+
+IF NOT (bBypassMappingCam)
+THEN
+  IF NOT (szCamInfo[1] = szCamInfo[2])
+  THEN
+    sMappingCheck       := 'CamInfo CHECK_ERROR';
+    RETURN;
+  END_IF
+
+  IF NOT (szCamData[1] = szCamData[2])
+  THEN
+    sMappingCheck       := 'CamData CHECK_ERROR';
+    RETURN;
+  END_IF
+
+  IF NOT (szCamState[1] = szCamState[2])
+  THEN
+    sMappingCheck       := 'CamState CHECK_ERROR';
+    RETURN;
+  END_IF
+END_IF
+//--------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------
+szStateTrigger [1]      := SIZEOF(TriggerState);
+szStateTrigger [2]      := SIZEOF(GVL_FUNCTIONS.StateTrigger);
+
+szStateTouchProbe [1]   := SIZEOF(TouchProbeState);
+szStateTouchProbe [2]   := SIZEOF(GVL_FUNCTIONS.StateTouchProbe);
+
+IF NOT (bBypassMappingTrigger)
+THEN
+  IF NOT (szStateTrigger[1] = szStateTrigger[2])
+  THEN
+    sMappingCheck       := 'TriggerState CHECK_ERROR';
+    RETURN;
+  END_IF
+
+  IF NOT (szStateTouchProbe[1] = szStateTouchProbe[2])
+  THEN
+    sMappingCheck       := 'TouchProbeState CHECK_ERROR';
+    RETURN;
+  END_IF
+END_IF
+//--------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------
+sMappingCheck           := 'CHECK_DONE';
+Check                   := TRUE;
+//--------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------]]></ST>
+      </Implementation>
+    </Method>
     <LineIds Name="MAPPING_out">
-      <LineId Id="316" Count="2" />
-      <LineId Id="78" Count="0" />
-      <LineId Id="279" Count="2" />
-      <LineId Id="74" Count="0" />
-      <LineId Id="79" Count="0" />
-      <LineId Id="300" Count="0" />
-      <LineId Id="80" Count="1" />
-      <LineId Id="301" Count="0" />
-      <LineId Id="290" Count="2" />
-      <LineId Id="82" Count="1" />
-      <LineId Id="283" Count="0" />
-      <LineId Id="285" Count="1" />
-      <LineId Id="302" Count="0" />
-      <LineId Id="73" Count="0" />
-      <LineId Id="131" Count="0" />
-      <LineId Id="303" Count="0" />
-      <LineId Id="134" Count="1" />
-      <LineId Id="304" Count="0" />
-      <LineId Id="137" Count="1" />
-      <LineId Id="305" Count="0" />
-      <LineId Id="141" Count="1" />
-      <LineId Id="306" Count="0" />
-      <LineId Id="215" Count="1" />
-      <LineId Id="132" Count="0" />
-      <LineId Id="311" Count="0" />
-      <LineId Id="308" Count="2" />
-      <LineId Id="186" Count="1" />
-      <LineId Id="206" Count="2" />
-      <LineId Id="195" Count="1" />
-      <LineId Id="312" Count="0" />
-      <LineId Id="293" Count="3" />
-      <LineId Id="298" Count="1" />
-      <LineId Id="313" Count="0" />
-      <LineId Id="197" Count="1" />
-      <LineId Id="209" Count="2" />
-      <LineId Id="200" Count="1" />
-      <LineId Id="314" Count="0" />
-      <LineId Id="202" Count="2" />
-      <LineId Id="217" Count="0" />
-      <LineId Id="205" Count="0" />
-      <LineId Id="145" Count="0" />
-      <LineId Id="319" Count="2" />
-      <LineId Id="315" Count="0" />
+      <LineId Id="1" Count="40" />
+    </LineIds>
+    <LineIds Name="MAPPING_out.Check">
+      <LineId Id="1" Count="113" />
     </LineIds>
   </POU>
 </TcPlcObject>

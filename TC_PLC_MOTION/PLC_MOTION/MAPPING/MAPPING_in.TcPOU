@@ -41,7 +41,7 @@ VAR CONSTANT
 {END_IF}
 END_VAR
 VAR
-  bFirstCycle               : BOOL := TRUE;
+  sMappingCheck             : STRING;
 //-----------------------------------------------------------------------------------------------------------------
 //  Ask me the questions, bridgekeeper. I'm not afraid.
 //-----------------------------------------------------------------------------------------------------------------
@@ -121,46 +121,7 @@ END_VAR
       <ST><![CDATA[//-----------------------------------------------------------------------------------------------------------------
 //  - datafield size check
 //-----------------------------------------------------------------------------------------------------------------
-IF (bFirstCycle)
-THEN
-  bFirstCycle             := FALSE;
-
-  szAxisCtrl[1]           := SIZEOF(AxisCtrl);
-  szAxisCtrl[2]           := SIZEOF(GVL_AXIS.Ctrl);
-  
-  szAxisMoveData [1]      := SIZEOF(AxisMoveData);
-  szAxisMoveData [2]      := SIZEOF(GVL_AXIS.Data);
-  
-  szAxisMotionOptions [1] := SIZEOF(AxisMotionOptions);
-  szAxisMotionOptions [2] := SIZEOF(GVL_AXIS.MotionOptions);
-  
-  szAxisGearData [1]      := SIZEOF(AxisGearInData);
-  szAxisGearData [2]      := SIZEOF(GVL_AXIS.GearInParameter);
-  
-  szAxisHoming [1]        := SIZEOF(AxisHoming);
-  szAxisHoming [2]        := SIZEOF(GVL_AXIS.HomeParameter);
-  
-  szAxisPara [1]          := SIZEOF(AxisParameterWrt);
-  szAxisPara [2]          := SIZEOF(GVL_AXIS.NcParameterWrt);
- 
-  szNciRparameters[1]     := SIZEOF(NciRparameters);
-  szNciRparameters[2]     := SIZEOF(GVL_NCI.R_ParameterWrite);
-
-  szNciAxisGroup  [1]     := SIZEOF(NciAxisGroup);
-  szNciAxisGroup  [2]     := SIZEOF(GVL_NCI.AxisConfig);
-
-  szNciCtrl[1]            := SIZEOF(NciControl);
-  szNciCtrl[2]            := SIZEOF(GVL_NCI.ChannelCtrl);
- 
-  szCamCtrl [1]           := SIZEOF(CamControl);
-  szCamCtrl [2]           := SIZEOF(GVL_CAM.Ctrl);
-  
-  szCtrlTrigger[1]        := SIZEOF(TriggerControl);
-  szCtrlTrigger[2]        := SIZEOF(GVL_FUNCTIONS.CtrlTrigger);
-  
-  szCtrlTouchProbe[1]     := SIZEOF(TouchProbeControl);
-  szCtrlTouchProbe[2]     := SIZEOF(GVL_FUNCTIONS.CtrlTouchProbe);
-END_IF
+IF NOT Check() THEN RETURN; END_IF
 //--------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------
 //  What do you mean? An African or European swallow?
@@ -212,62 +173,143 @@ END_IF
 //--------------------------------------------------------------------------------------------
 ]]></ST>
     </Implementation>
+    <Method Name="Check" Id="{a1c052b1-6e55-411f-a2c0-17538f2c45b9}">
+      <Declaration><![CDATA[METHOD Check : bool
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//--------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------
+szAxisCtrl[1]           := SIZEOF(AxisCtrl);
+szAxisCtrl[2]           := SIZEOF(GVL_AXIS.Ctrl);
+
+szAxisMoveData [1]      := SIZEOF(AxisMoveData);
+szAxisMoveData [2]      := SIZEOF(GVL_AXIS.Data);
+
+szAxisMotionOptions [1] := SIZEOF(AxisMotionOptions);
+szAxisMotionOptions [2] := SIZEOF(GVL_AXIS.MotionOptions);
+
+szAxisGearData [1]      := SIZEOF(AxisGearInData);
+szAxisGearData [2]      := SIZEOF(GVL_AXIS.GearInParameter);
+
+szAxisHoming [1]        := SIZEOF(AxisHoming);
+szAxisHoming [2]        := SIZEOF(GVL_AXIS.HomeParameter);
+
+szAxisPara [1]          := SIZEOF(AxisParameterWrt);
+szAxisPara [2]          := SIZEOF(GVL_AXIS.NcParameterWrt);
+
+IF NOT (bBypassMappingAxis)
+THEN
+  IF NOT (szAxisCtrl[1] = szAxisCtrl[2])
+  THEN
+    sMappingCheck       := 'AxisCtrl CHECK_ERROR';
+    RETURN;
+  END_IF
+
+  IF NOT (szAxisMoveData[1] = szAxisMoveData[2])
+  THEN
+    sMappingCheck       := 'AxisMoveData CHECK_ERROR';
+    RETURN;
+  END_IF
+
+  IF NOT (szAxisMotionOptions[1] = szAxisMotionOptions[2])
+  THEN
+    sMappingCheck       := 'AxisMotionOptions CHECK_ERROR';
+    RETURN;
+  END_IF
+
+  IF NOT (szAxisGearData[1] = szAxisGearData[2])
+  THEN
+    sMappingCheck       := 'AxisGearInData CHECK_ERROR';
+    RETURN;
+  END_IF
+
+  IF NOT (szAxisHoming[1] = szAxisHoming[2])
+  THEN
+    sMappingCheck       := 'AxisHoming CHECK_ERROR';
+    RETURN;
+  END_IF
+END_IF
+//--------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------
+szNciCtrl[1]            := SIZEOF(NciControl);
+szNciCtrl[2]            := SIZEOF(GVL_NCI.ChannelCtrl);
+
+szNciAxisGroup  [1]     := SIZEOF(NciAxisGroup);
+szNciAxisGroup  [2]     := SIZEOF(GVL_NCI.AxisConfig);
+
+szNciRparameters[1]     := SIZEOF(NciRparameters);
+szNciRparameters[2]     := SIZEOF(GVL_NCI.R_ParameterWrite);
+
+IF NOT (bBypassMappingNci)
+THEN
+  IF NOT (szNciCtrl[1] = szNciCtrl[2])
+  THEN
+    sMappingCheck       := 'NciControl CHECK_ERROR';
+    RETURN;
+  END_IF
+
+  IF NOT (szNciAxisGroup[1] = szNciAxisGroup[2])
+  THEN
+    sMappingCheck       := 'NciAxisGroup CHECK_ERROR';
+    RETURN;
+  END_IF
+
+  IF NOT (szNciRparameters[1] = szNciRparameters[2])
+  THEN
+    sMappingCheck       := 'NciRparameters CHECK_ERROR';
+    RETURN;
+  END_IF
+END_IF
+//--------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------
+szCamCtrl [1]           := SIZEOF(CamControl);
+szCamCtrl [2]           := SIZEOF(GVL_CAM.Ctrl);
+
+IF NOT (bBypassMappingCam)
+THEN
+  IF NOT (szCamCtrl[1] = szCamCtrl[2])
+  THEN
+    sMappingCheck       := 'CamControl CHECK_ERROR';
+    RETURN;
+  END_IF
+END_IF
+//--------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------
+szCtrlTrigger[1]        := SIZEOF(TriggerControl);
+szCtrlTrigger[2]        := SIZEOF(GVL_FUNCTIONS.CtrlTrigger);
+
+szCtrlTouchProbe[1]     := SIZEOF(TouchProbeControl);
+szCtrlTouchProbe[2]     := SIZEOF(GVL_FUNCTIONS.CtrlTouchProbe);
+
+IF NOT (bBypassMappingTrigger)
+THEN
+  IF NOT (szCtrlTrigger[1] = szCtrlTrigger[2])
+  THEN
+    sMappingCheck       := 'TriggerControl CHECK_ERROR';
+    RETURN;
+  END_IF
+
+  IF NOT (szCtrlTouchProbe[1] = szCtrlTouchProbe[2])
+  THEN
+    sMappingCheck       := 'TouchProbeControl CHECK_ERROR';
+    RETURN;
+  END_IF
+END_IF
+//--------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------
+sMappingCheck           := 'CHECK_DONE';
+Check                   := TRUE;
+//--------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------]]></ST>
+      </Implementation>
+    </Method>
     <LineIds Name="MAPPING_in">
-      <LineId Id="345" Count="2" />
-      <LineId Id="120" Count="0" />
-      <LineId Id="321" Count="0" />
-      <LineId Id="323" Count="1" />
-      <LineId Id="121" Count="16" />
-      <LineId Id="201" Count="0" />
-      <LineId Id="327" Count="0" />
-      <LineId Id="331" Count="0" />
-      <LineId Id="337" Count="0" />
-      <LineId Id="329" Count="0" />
-      <LineId Id="333" Count="0" />
-      <LineId Id="335" Count="0" />
-      <LineId Id="330" Count="0" />
-      <LineId Id="334" Count="0" />
-      <LineId Id="325" Count="0" />
-      <LineId Id="182" Count="0" />
-      <LineId Id="202" Count="1" />
-      <LineId Id="180" Count="1" />
-      <LineId Id="119" Count="0" />
-      <LineId Id="252" Count="1" />
-      <LineId Id="54" Count="0" />
-      <LineId Id="366" Count="3" />
-      <LineId Id="365" Count="0" />
-      <LineId Id="370" Count="0" />
-      <LineId Id="372" Count="0" />
-      <LineId Id="371" Count="0" />
-      <LineId Id="374" Count="0" />
-      <LineId Id="373" Count="0" />
-      <LineId Id="348" Count="3" />
-      <LineId Id="55" Count="0" />
-      <LineId Id="242" Count="0" />
-      <LineId Id="33" Count="0" />
-      <LineId Id="66" Count="1" />
-      <LineId Id="353" Count="0" />
-      <LineId Id="68" Count="0" />
-      <LineId Id="70" Count="1" />
-      <LineId Id="208" Count="0" />
-      <LineId Id="354" Count="1" />
-      <LineId Id="339" Count="2" />
-      <LineId Id="343" Count="1" />
-      <LineId Id="342" Count="0" />
-      <LineId Id="356" Count="1" />
-      <LineId Id="243" Count="0" />
-      <LineId Id="245" Count="0" />
-      <LineId Id="138" Count="0" />
-      <LineId Id="246" Count="0" />
-      <LineId Id="358" Count="1" />
-      <LineId Id="210" Count="0" />
-      <LineId Id="248" Count="0" />
-      <LineId Id="209" Count="0" />
-      <LineId Id="254" Count="0" />
-      <LineId Id="249" Count="0" />
-      <LineId Id="360" Count="0" />
-      <LineId Id="362" Count="2" />
-      <LineId Id="361" Count="0" />
+      <LineId Id="1" Count="53" />
+    </LineIds>
+    <LineIds Name="MAPPING_in.Check">
+      <LineId Id="1" Count="125" />
     </LineIds>
   </POU>
 </TcPlcObject>
