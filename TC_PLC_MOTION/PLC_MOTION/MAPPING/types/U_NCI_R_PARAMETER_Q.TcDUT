@@ -6,14 +6,8 @@ UNION
 
   stCtrl              : ARRAY[1..MAX_NCI_CH] OF ST_R_Parameter;
 
-{IF defined (NCI_MAP)}
-  {info 'U_NCI_R_PARAMETER_Q mapping activated'}
   byCtrl    AT %Q*    : ARRAY[1..MAX_NCI_CH] OF
                         ARRAY[1..SIZEOF(ST_R_Parameter)] OF BYTE;
-{ELSE}
-  byCtrl              : ARRAY[1..MAX_NCI_CH] OF
-                        ARRAY[1..SIZEOF(ST_R_Parameter)] OF BYTE;
-{END_IF}
 END_UNION
 END_TYPE
 ]]></Declaration>

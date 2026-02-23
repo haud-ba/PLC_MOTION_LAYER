@@ -68,63 +68,84 @@ THEN
     E_PROGRESS.PROGRESS_DONE:
       FOR nChn := 1 TO MAX_NCI_CH
       DO
-        GVL_NCI.NciCtrl[nChn].ItfChannel.MessageLevel     := GVL_MSG.MessageLevelNciChn;
+        GVL_MSG.MessageLevelNciChn[nChn]            := E_MessageType.eMessageVerbose;//GVL_MSG.MessageLevel;
       END_FOR
-      nChnInit                                    := 1;
-      eInit                                       := E_PROGRESS.PROGRESS_INIT;
-
-
+      nChnInit                                      := 1;
+      eInit                                         := E_PROGRESS.PROGRESS_INIT;
+    //-----------------------------------------------------------------------------
+    //-----------------------------------------------------------------------------
     E_PROGRESS.PROGRESS_INIT:
-      stMsg.eType                                 := E_MessageType.eMessageVerbose;
-      stMsg.eDevice                               := e_Device.NciChannelCtrl;
-      stMsg.eSubdevice                            := e_SubDevice.NciStartUp;
-      stMsg.iErrorNumber                          := nChnInit;
+      stMsg.eType                                   := E_MessageType.eMessageInfo;
+      stMsg.eDevice                                 := e_Device.Device_Main;
+      stMsg.eSubdevice                              := e_SubDevice.MainInit;
+      stMsg.iErrorNumber                            := MAX_AXIS;
+      stMsg.sText                                   := concat('NCI.eInit: ', TO_STRING(eInit));
+      f_MessageSet(stMsg);                          
 
-      stMsg.sText                                 := concat('NCI.eInit: ', TO_STRING(eInit));
-      f_MessageSet(stMsg);
-
-      GVL_NCI.ChannelCtrl[nChnInit].eCmd        := E_NCI_CTRL.NULL;
-      eInit                                       := E_PROGRESS.PROGRESS_BUSY;
-
-
+      eInit                                         := E_PROGRESS.PROGRESS_BUSY;
+    //-----------------------------------------------------------------------------
+    //-----------------------------------------------------------------------------
     E_PROGRESS.PROGRESS_BUSY:
-      GVL_NCI.ChannelCtrl[nChnInit].eCmd        := E_NCI_CTRL.INIT;
+      eInit                                         := E_PROGRESS.PROGRESS_PREPARE;
+    //-----------------------------------------------------------------------------
+    //-----------------------------------------------------------------------------
+    E_PROGRESS.PROGRESS_PREPARE:
+      stMsg.eType                                   := E_MessageType.eMessageVerbose;
+      stMsg.eDevice                                 := e_Device.NciChannelCtrl;
+      stMsg.eSubdevice                              := e_SubDevice.NciStartUp;
+      stMsg.iErrorNumber                            := nChnInit;
+      stMsg.sText                                   := concat('nChnInit: ', TO_STRING(nChnInit));
+
+      IF (GVL_MSG.MessageLevelNciChn[nChnInit] = E_MessageType.eMessageVerbose)
+      THEN
+        f_MessageSet(stMsg);
+      END_IF
+
+      GVL_NCI.ChannelCtrl[nChnInit].eCmd            := E_NCI_CTRL.NULL;
+      eInit                                         := E_PROGRESS.PROGRESS_STARTUP;
+    //-----------------------------------------------------------------------------
+    //-----------------------------------------------------------------------------
+    E_PROGRESS.PROGRESS_STARTUP:
+      GVL_NCI.ChannelCtrl[nChnInit].eCmd            := E_NCI_CTRL.INIT;
 
       IF (GVL_NCI.ChannelState[nChnInit].eState = E_NCI_STATE.INIT + E_PROGRESS.PROGRESS_ERROR)
       THEN
-        eInit                                     := E_PROGRESS.PROGRESS_ERROR;
+        eInit                                       := E_PROGRESS.PROGRESS_ERROR;
 
-        stMsg.eType                               := E_MessageType.eMessageError;
-        stMsg.eDevice                             := e_Device.NciChannelCtrl;
-        stMsg.eSubdevice                          := e_SubDevice.NciStartUp;
-        stMsg.iErrorNumber                        := nChnInit;
-
-        stMsg.sText                               := concat('NCI.eInit ERROR at Index: ', TO_STRING(nChnInit));
+        stMsg.eType                                 := E_MessageType.eMessageError;
+        stMsg.eDevice                               := e_Device.NciChannelCtrl;
+        stMsg.eSubdevice                            := e_SubDevice.NciStartUp;
+        stMsg.iErrorNumber                          := nChnInit;
+        stMsg.sText                                 := concat('NCI.eInit ERROR at Index: ', TO_STRING(nChnInit));
         f_MessageSet(stMsg);
 
       ELSIF (GVL_NCI.ChannelState[nChnInit].eState = E_NCI_STATE.INIT + E_PROGRESS.PROGRESS_DONE)
       THEN
-        eInit                                     := E_PROGRESS.PROGRESS_CHECK;
+        eInit                                       := E_PROGRESS.PROGRESS_CHECK;
       END_IF
-
-
+    //-----------------------------------------------------------------------------
+    //-----------------------------------------------------------------------------
     E_PROGRESS.PROGRESS_CHECK:
       IF (nChnInit > PLC_CONSTANT.MAX_NCI_CH-1)
       THEN
-        bInit                                     := TRUE;
-        eInit                                     := E_PROGRESS.PROGRESS_DONE;
+        bInit                                       := TRUE;
+        eInit                                       := E_PROGRESS.PROGRESS_DONE;
 
-        stMsg.eType                               := E_MessageType.eMessageInfo;
-        stMsg.eDevice                             := e_Device.NciChannelCtrl;
-        stMsg.eSubdevice                          := e_SubDevice.NciStartUp;
-        stMsg.iErrorNumber                        := MAX_NCI_CH;
-
-        stMsg.sText                               := concat('NCI.eInit: ', TO_STRING(eInit));
+        stMsg.eType                                 := E_MessageType.eMessageInfo;
+        stMsg.eDevice                               := e_Device.NciChannelCtrl;
+        stMsg.eSubdevice                            := e_SubDevice.NciStartUp;
+        stMsg.iErrorNumber                          := MAX_NCI_CH;
+        stMsg.sText                                 := concat('NCI.eInit: ', TO_STRING(eInit));
         f_MessageSet(stMsg);
 
+        FOR nChn := 1 TO MAX_NCI_CH
+        DO
+          GVL_MSG.MessageLevelNciChn[nChn]          := GVL_MSG.MessageLevel;
+        END_FOR
+
       ELSE
-        nChnInit                                  := nChnInit + 1;
-        eInit                                     := E_PROGRESS.PROGRESS_INIT;
+        nChnInit                                    := nChnInit + 1;
+        eInit                                       := E_PROGRESS.PROGRESS_PREPARE;
       END_IF
   END_CASE
 END_IF
@@ -140,9 +161,9 @@ DO
   // call nci channel controller
   GVL_NCI.NciCtrl[nChn].Cycle();
 
-  GVL_NCI.ProgramNameActive[nChn]               := GVL_NCI.NciCtrl[nChn].ItfChannel.GetLoadedProg();
-  GVL_NCI.ChannelState[nChn].sProgramNameActive := GVL_NCI.ProgramNameActive[nChn];
-  GVL_NCI.NciCtrl[nChn].M_FunctionScope         := ADR(GVL_NCI.M_FunctionCyclic[nChn]);
+  GVL_NCI.ProgramNameActive[nChn]                   := GVL_NCI.NciCtrl[nChn].ItfChannel.GetLoadedProg();
+  GVL_NCI.ChannelState[nChn].sProgramNameActive     := GVL_NCI.ProgramNameActive[nChn];
+  GVL_NCI.NciCtrl[nChn].M_FunctionScope             := ADR(GVL_NCI.M_FunctionCyclic[nChn]);
 END_FOR
 //-----------------------------------------------------------------------------------------------------------------
 // CYCLE/
@@ -151,7 +172,51 @@ END_FOR
 ]]></ST>
     </Implementation>
     <LineIds Name="NCI">
-      <LineId Id="392" Count="131" />
+      <LineId Id="12" Count="1" />
+      <LineId Id="345" Count="0" />
+      <LineId Id="14" Count="1" />
+      <LineId Id="11" Count="0" />
+      <LineId Id="165" Count="0" />
+      <LineId Id="359" Count="0" />
+      <LineId Id="299" Count="0" />
+      <LineId Id="360" Count="0" />
+      <LineId Id="374" Count="0" />
+      <LineId Id="300" Count="4" />
+      <LineId Id="306" Count="16" />
+      <LineId Id="332" Count="0" />
+      <LineId Id="323" Count="2" />
+      <LineId Id="329" Count="2" />
+      <LineId Id="298" Count="0" />
+      <LineId Id="195" Count="8" />
+      <LineId Id="389" Count="2" />
+      <LineId Id="388" Count="0" />
+      <LineId Id="208" Count="1" />
+      <LineId Id="411" Count="10" />
+      <LineId Id="404" Count="5" />
+      <LineId Id="427" Count="4" />
+      <LineId Id="433" Count="0" />
+      <LineId Id="441" Count="4" />
+      <LineId Id="435" Count="2" />
+      <LineId Id="439" Count="1" />
+      <LineId Id="410" Count="0" />
+      <LineId Id="226" Count="6" />
+      <LineId Id="271" Count="2" />
+      <LineId Id="237" Count="6" />
+      <LineId Id="446" Count="1" />
+      <LineId Id="246" Count="9" />
+      <LineId Id="257" Count="1" />
+      <LineId Id="448" Count="4" />
+      <LineId Id="259" Count="9" />
+      <LineId Id="287" Count="0" />
+      <LineId Id="282" Count="2" />
+      <LineId Id="274" Count="1" />
+      <LineId Id="277" Count="3" />
+      <LineId Id="392" Count="0" />
+      <LineId Id="281" Count="0" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="296" Count="1" />
+      <LineId Id="7" Count="0" />
+      <LineId Id="285" Count="0" />
       <LineId Id="6" Count="0" />
     </LineIds>
   </POU>

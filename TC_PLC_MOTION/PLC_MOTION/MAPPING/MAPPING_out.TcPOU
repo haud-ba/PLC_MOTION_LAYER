@@ -148,6 +148,16 @@ END_IF
       <Implementation>
         <ST><![CDATA[//--------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------
+IF bBypassMappingAxis AND
+   bBypassMappingNci  AND
+   bBypassMappingCam  AND
+   bBypassMappingTrigger
+THEN
+  sMappingCheck         := 'NO_MAPPING_ACTIVE';
+  RETURN;
+END_IF
+//--------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------
 szAxisState[1]          := SIZEOF(AxisState);
 szAxisState[2]          := SIZEOF(GVL_AXIS.State);
 
@@ -263,10 +273,30 @@ Check                   := TRUE;
       </Implementation>
     </Method>
     <LineIds Name="MAPPING_out">
-      <LineId Id="1" Count="40" />
+      <LineId Id="316" Count="2" />
+      <LineId Id="322" Count="0" />
+      <LineId Id="311" Count="0" />
+      <LineId Id="308" Count="2" />
+      <LineId Id="186" Count="1" />
+      <LineId Id="206" Count="2" />
+      <LineId Id="195" Count="1" />
+      <LineId Id="312" Count="0" />
+      <LineId Id="293" Count="3" />
+      <LineId Id="298" Count="1" />
+      <LineId Id="313" Count="0" />
+      <LineId Id="197" Count="1" />
+      <LineId Id="209" Count="2" />
+      <LineId Id="200" Count="1" />
+      <LineId Id="314" Count="0" />
+      <LineId Id="202" Count="2" />
+      <LineId Id="217" Count="0" />
+      <LineId Id="205" Count="0" />
+      <LineId Id="145" Count="0" />
+      <LineId Id="319" Count="2" />
+      <LineId Id="315" Count="0" />
     </LineIds>
     <LineIds Name="MAPPING_out.Check">
-      <LineId Id="1" Count="113" />
+      <LineId Id="1" Count="123" />
     </LineIds>
   </POU>
 </TcPlcObject>

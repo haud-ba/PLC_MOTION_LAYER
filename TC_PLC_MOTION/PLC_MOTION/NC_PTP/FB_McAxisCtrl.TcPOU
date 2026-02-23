@@ -28,6 +28,7 @@ VAR
 
   _MotionOptions            : POINTER TO ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_MOTION_OPTIONS;
 
+  _LimitSwitches            : POINTER TO ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_AXIS_LIMIT_SWITCHES;
 
   // local copies of command
   _eCmd,
@@ -48,12 +49,6 @@ VAR
 
   // calibration options with limit switches and simulation
   _bCalibrationCam                : BOOL;
-
-  // mapping inputs
-  _bLimitMin,
-  _bLimitMax,
-  _bCalibrationInput     AT %I*   : BOOL;
-
 
   // placeholder dummies in case count of Multimaster ases <> 4
   {attribute 'hide'}
@@ -2188,6 +2183,12 @@ THEN
   RETURN;
 END_IF
 
+IF NOT (_LimitSwitches <> 0)
+THEN
+  _eCheck                 := E_CHECK_STATE.AXIS_LIMIT_SWITCHES_POINTER_INVALID;
+  RETURN;
+END_IF
+
 //-----------------------------------------------------------------------------
 //  NaN INF check
 //-----------------------------------------------------------------------------
@@ -2419,13 +2420,16 @@ THEN
 	END_IF
 ELSIF _HomeParameter^[_nAxisIndex].stHomingParam.HomeOnLimitMin
 THEN
-	_bCal := _bLimitMin XOR _HomeParameter^[_nAxisIndex].stHomingParam.InvertHomeSensor;
+	_bCal := _LimitSwitches^[_nAxisIndex].bMinimum   XOR 
+           _HomeParameter^[_nAxisIndex].stHomingParam.InvertHomeSensor;
 
 ELSIF _HomeParameter^[_nAxisIndex].stHomingParam.HomeOnLimitMax
 THEN
-	_bCal := _bLimitMax XOR _HomeParameter^[_nAxisIndex].stHomingParam.InvertHomeSensor;
+	_bCal := _LimitSwitches^[_nAxisIndex].bMaximum   XOR 
+           _HomeParameter^[_nAxisIndex].stHomingParam.InvertHomeSensor;
 ELSE
-	_bCal := _bCalibrationInput XOR _HomeParameter^[_nAxisIndex].stHomingParam.InvertHomeSensor;
+	_bCal := _LimitSwitches^[_nAxisIndex].bCalibrate XOR 
+           _HomeParameter^[_nAxisIndex].stHomingParam.InvertHomeSensor;
 END_IF
 
 GetCalibrationCam := _bCal;
@@ -2440,6 +2444,18 @@ END_VAR
 ]]></Declaration>
         <Implementation>
           <ST><![CDATA[_HomeParameter := HomingParameter;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="LimitSwitches" Id="{096c0036-fbbc-46cc-85ef-e2a48cead826}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY LimitSwitches : pointer to ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_AXIS_LIMIT_SWITCHES]]></Declaration>
+      <Set Name="Set" Id="{97220ef7-85ef-4bf6-8b4e-9da9415ded67}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_LimitSwitches := LimitSwitches;
 ]]></ST>
         </Implementation>
       </Set>
@@ -3276,6 +3292,7 @@ END_VAR
       <LineId Id="72" Count="4" />
       <LineId Id="49" Count="0" />
       <LineId Id="82" Count="4" />
+      <LineId Id="163" Count="5" />
       <LineId Id="94" Count="0" />
       <LineId Id="96" Count="0" />
       <LineId Id="98" Count="1" />
@@ -3406,12 +3423,21 @@ END_VAR
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.GetCalibrationCam">
       <LineId Id="60" Count="1" />
-      <LineId Id="36" Count="19" />
+      <LineId Id="36" Count="10" />
+      <LineId Id="62" Count="0" />
+      <LineId Id="47" Count="3" />
+      <LineId Id="63" Count="0" />
+      <LineId Id="51" Count="1" />
+      <LineId Id="64" Count="0" />
+      <LineId Id="53" Count="2" />
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.HomingParameter.Set">
       <LineId Id="2" Count="0" />
       <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_McAxisCtrl.LimitSwitches.Set">
+      <LineId Id="1" Count="1" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.LogControl">
       <LineId Id="35" Count="8" />

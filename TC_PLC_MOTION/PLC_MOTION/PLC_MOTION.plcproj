@@ -288,6 +288,9 @@
     <Compile Include="NC_PTP\types\control\ST_AXIS_INFO.TcDUT">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="NC_PTP\types\control\ST_AXIS_LIMIT_SWITCHES.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="NC_PTP\types\control\ST_AXIS_STATE.TcDUT">
       <SubType>Code</SubType>
     </Compile>
@@ -316,6 +319,12 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="_DUT\E_PROGRESS.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_DUT\f_GetProgress.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_DUT\f_GetState.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="_GVL\GlobalTextList.TcGTLO">
@@ -355,16 +364,34 @@
     <Compile Include="_MSG\fb_LocalTime.TcPOU">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="_MSG\fb_MessageData.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_MSG\fb_MessageDataCtrl.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="_MSG\f_MessageSet.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="_MSG\MessageData.TcPOU">
+    <Compile Include="_MSG\I_MessageData.TcIO">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="_MSG\types\e_Device.TcDUT">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="_MSG\types\E_MessageType.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_MSG\types\E_MESSAGE_BATCH.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_MSG\types\E_MESSAGE_CHECK.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_MSG\types\E_MESSAGE_CTRL.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_MSG\types\E_MESSAGE_FLOW.TcDUT">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="_MSG\types\E_MESSAGE_STATE.TcDUT">
@@ -382,9 +409,14 @@
     <Compile Include="Visualization Manager.TcVMO">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="_MSG\T_MESSAGE_LIST.TcVIS">
+    <Compile Include="_MSG\types\ST_MESSAGE_CTRL.TcDUT">
       <SubType>Code</SubType>
-      <DependentUpon>Visualization Manager.TcVMO</DependentUpon>
+    </Compile>
+    <Compile Include="_MSG\types\ST_MESSAGE_STATE.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_MSG\types\TL_E_MESSAGETYPE.TcTLO">
+      <SubType>Code</SubType>
     </Compile>
     <Compile Include="_UML\CD_PLC_MOTION.TcCD">
       <SubType>Code</SubType>
@@ -399,7 +431,7 @@
       <ResolverGuid>2717eb6a-dd07-4c66-8d8d-cacebd7b18ae</ResolverGuid>
     </PlaceholderReference>
     <PlaceholderReference Include="System_VisuElems">
-      <DefaultResolution>VisuElems, 4.7.0.0 (System)</DefaultResolution>
+      <DefaultResolution>VisuElems, 4.8.0.0 (System)</DefaultResolution>
       <Namespace>VisuElems</Namespace>
       <SystemLibrary>true</SystemLibrary>
       <ResolverGuid>2717eb6a-dd07-4c66-8d8d-cacebd7b18ae</ResolverGuid>
@@ -411,13 +443,13 @@
       <ResolverGuid>2717eb6a-dd07-4c66-8d8d-cacebd7b18ae</ResolverGuid>
     </PlaceholderReference>
     <PlaceholderReference Include="System_VisuElemsWinControls">
-      <DefaultResolution>VisuElemsWinControls, 4.7.0.0 (System)</DefaultResolution>
+      <DefaultResolution>VisuElemsWinControls, 4.8.0.0 (System)</DefaultResolution>
       <Namespace>VisuElemsWinControls</Namespace>
       <SystemLibrary>true</SystemLibrary>
       <ResolverGuid>2717eb6a-dd07-4c66-8d8d-cacebd7b18ae</ResolverGuid>
     </PlaceholderReference>
     <PlaceholderReference Include="System_VisuElemTextEditor">
-      <DefaultResolution>VisuElemTextEditor, 4.7.0.0 (System)</DefaultResolution>
+      <DefaultResolution>VisuElemTextEditor, 4.8.0.0 (System)</DefaultResolution>
       <Namespace>VisuElemTextEditor</Namespace>
       <SystemLibrary>true</SystemLibrary>
       <ResolverGuid>2717eb6a-dd07-4c66-8d8d-cacebd7b18ae</ResolverGuid>
@@ -429,7 +461,7 @@
       <ResolverGuid>2717eb6a-dd07-4c66-8d8d-cacebd7b18ae</ResolverGuid>
     </PlaceholderReference>
     <PlaceholderReference Include="System_VisuNativeControl">
-      <DefaultResolution>VisuNativeControl, 4.7.0.0 (System)</DefaultResolution>
+      <DefaultResolution>VisuNativeControl, 4.8.0.0 (System)</DefaultResolution>
       <Namespace>VisuNativeControl</Namespace>
       <SystemLibrary>true</SystemLibrary>
       <ResolverGuid>2717eb6a-dd07-4c66-8d8d-cacebd7b18ae</ResolverGuid>
@@ -445,8 +477,6 @@
     <PlaceholderReference Include="Tc2_MC2_Camming">
       <DefaultResolution>Tc2_MC2_Camming, * (Beckhoff Automation GmbH)</DefaultResolution>
       <Namespace>Tc2_MC2_Camming</Namespace>
-      <Condition>CAM</Condition>
-      <Optional>true</Optional>
     </PlaceholderReference>
     <PlaceholderReference Include="Tc2_MC2_Drive">
       <DefaultResolution>Tc2_MC2_Drive, * (Beckhoff Automation GmbH)</DefaultResolution>
@@ -455,20 +485,14 @@
     <PlaceholderReference Include="Tc2_MC2_XFC">
       <DefaultResolution>Tc2_MC2_XFC, * (Beckhoff Automation GmbH)</DefaultResolution>
       <Namespace>Tc2_MC2_XFC</Namespace>
-      <Optional>true</Optional>
-      <Condition>XFC</Condition>
     </PlaceholderReference>
     <PlaceholderReference Include="Tc2_NCI">
       <DefaultResolution>Tc2_NCI, * (Beckhoff Automation GmbH)</DefaultResolution>
       <Namespace>Tc2_NCI</Namespace>
-      <Optional>true</Optional>
-      <Condition>NCI</Condition>
     </PlaceholderReference>
     <PlaceholderReference Include="Tc2_PlcInterpolation">
       <DefaultResolution>Tc2_PlcInterpolation, * (Beckhoff Automation GmbH)</DefaultResolution>
       <Namespace>Tc2_PlcInterpolation</Namespace>
-      <Optional>true</Optional>
-      <Condition>NCI</Condition>
     </PlaceholderReference>
     <PlaceholderReference Include="Tc2_Standard">
       <DefaultResolution>Tc2_Standard, * (Beckhoff Automation GmbH)</DefaultResolution>

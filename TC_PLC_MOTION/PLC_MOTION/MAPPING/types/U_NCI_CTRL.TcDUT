@@ -6,14 +6,8 @@ UNION
 
   stCtrl              : ARRAY[1..MAX_NCI_CH] OF ST_NCI_CTRL;
 
-{IF defined (NCI_MAP)}
-  {info 'U_NCI_CTRL mapping activated'}
   byCtrl    AT %I*    : ARRAY[1..MAX_NCI_CH] OF
                         ARRAY[1..SIZEOF(ST_NCI_CTRL)] OF BYTE;
-{ELSE}
-  byCtrl              : ARRAY[1..MAX_NCI_CH] OF
-                        ARRAY[1..SIZEOF(ST_NCI_CTRL)] OF BYTE;
-{END_IF}
 END_UNION
 END_TYPE
 ]]></Declaration>

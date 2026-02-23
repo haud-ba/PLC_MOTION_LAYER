@@ -1,10 +1,16 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
-  <DUT Name="e_Device" Id="{4f07530f-18fb-0dc6-20fc-45bddec0ddd2}">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.13">
+  <DUT Name="e_Device" Id="{5aecdf23-ec31-4920-a93d-3978559a61b7}">
     <Declaration><![CDATA[{attribute 'to_string'}
 TYPE e_Device :
 (
-  Device_Null,
+  // txt file logging LOG_FILE
+  Device_Null,                // NULL           - not to be used
+  Device_Main,                // MAIN(PRG)      - reserved for MAIN(PRG)
+  Device_Nci,                 // NCI(PRG)       - reserved for NCI(PRG)
+  Device_Cam,                 // CAM(PRG        - reserved for CAM(PRG)
+  Device_Functions,           // FUNCTIONS(PRG) - reserved for FUNCTIONS(PRG)
+
   General           :=  1000,
   CaGroup           :=  2000,
   Xpu               :=  3000,
@@ -21,10 +27,19 @@ TYPE e_Device :
   NciChannelCtrl    := 13000,
   Axis              := 14000,
   XfcAxis           := 15000,
-  Data              := 16000,
 
+  // txt file logging LOG_FILE_METRICS
+  Metrics           := 16000,
+
+  // txt file logging LOG_FILE_APP
   Process           := 20000,
-  Application       := 30000
+  ProcessListCtrl   := 21000,
+  TicketListCtrl    := 22000,
+
+  Application       := 30000,
+
+  // txt file logging LOG_FILE_PRODUCT - this is for you to use
+  DataProduct       := 40000
 )UDINT;
 END_TYPE
 ]]></Declaration>

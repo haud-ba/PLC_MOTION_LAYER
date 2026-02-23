@@ -6,14 +6,8 @@ UNION
 
   stState             : ARRAY[1..MAX_NCI_CH] OF ST_NCI_STATE;
 
-{IF defined (NCI_MAP)}
-  {info 'U_NCI_STATE mapping activated'}
   byState   AT %Q*    : ARRAY[1..MAX_NCI_CH] OF
                         ARRAY[1..SIZEOF(ST_NCI_STATE)] OF BYTE;
-{ELSE}
-  byState             : ARRAY[1..MAX_NCI_CH] OF
-                        ARRAY[1..SIZEOF(ST_NCI_STATE)] OF BYTE;
-{END_IF}
 END_UNION
 END_TYPE
 ]]></Declaration>

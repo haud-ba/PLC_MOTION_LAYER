@@ -1,15 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.13">
-  <DUT Name="E_MESSAGE_STATE" Id="{556415cb-690d-4aa0-b64e-fa894fad2fa5}">
+  <DUT Name="E_MESSAGE_BATCH" Id="{94dc2f68-cbc6-4ce3-a8a3-e4d638817d69}">
     <Declaration><![CDATA[{attribute 'qualified_only'}
-//{attribute 'strict'}
+{attribute 'strict'}
 {attribute 'to_string'}
-TYPE E_MESSAGE_STATE :
+TYPE E_MESSAGE_BATCH :
 (
-	MSG_STATE_NULL,
-  MSG_STATE_INIT    := 10,
-  MSG_STATE_IDLE    := 30,
-  MSG_STATE_WRITE   := 50
+	MSG_BATCH_NULL,
+  MSG_BATCH_JOB_STARTED,
+  MSG_BATCH_NEXT_IN_JOB,
+  MSG_BATCH_JOB_DONE
 )UINT;
 END_TYPE
 ]]></Declaration>

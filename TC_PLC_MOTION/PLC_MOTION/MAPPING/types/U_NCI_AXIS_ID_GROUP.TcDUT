@@ -6,14 +6,8 @@ UNION
 
   stCtrl              : ARRAY[1..MAX_NCI_CH] OF ST_3D_Group;
 
-{IF defined (NCI_MAP)}
-  {info 'U_NCI_AXIS_ID_GROUP mapping activated'}
   byCtrl    AT %I*    : ARRAY[1..MAX_NCI_CH] OF
                         ARRAY[1..SIZEOF(ST_3D_Group)] OF BYTE;
-{ELSE}
-  byCtrl              : ARRAY[1..MAX_NCI_CH] OF
-                        ARRAY[1..SIZEOF(ST_3D_Group)] OF BYTE;
-{END_IF}
 END_UNION
 END_TYPE
 ]]></Declaration>
