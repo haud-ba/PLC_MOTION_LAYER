@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.13">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
   <POU Name="FB_McAxisCtrl" Id="{999335a0-5af6-0c1d-15bd-a65b83fb504c}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_McAxisCtrl EXTENDS FB_McAxisBase
 VAR
@@ -2464,7 +2464,7 @@ END_VAR
       <Declaration><![CDATA[METHOD PRIVATE LogControl
 VAR_INST
   _sResult,
-  _sCtrl            : STRING(30);
+  _sCtrl            : STRING(40);
 
   _stMsg            : ST_Message;
 END_VAR
@@ -2492,7 +2492,7 @@ END_VAR
       <Declaration><![CDATA[METHOD PRIVATE LogResult
 VAR_INST
   _sResult,
-  _sCtrl            : STRING(30);
+  _sCtrl            : STRING(40);
 
   _stMsg            : ST_Message;
 END_VAR
@@ -2507,11 +2507,10 @@ END_VAR
   _sCtrl                     := concat('E_AXIS_CTRL', '.');
   _sCtrl                     := concat(_sCtrl, TO_STRING(_eCmd));
 
-  _sResult                   := concat('E_PROGRESS', '.');
-  _sResult                   := concat(_sResult, TO_STRING(_eResult));
+  _sResult                   := TO_STRING(_eResult);
 
-  _stMsg.sText               := concat(_sCtrl, ' ');
-  _stMsg.sText               := concat(_sCtrl, _sResult);
+  _stMsg.sText               := concat(_sCtrl, ': ');
+  _stMsg.sText               := concat(_stMsg.sText, _sResult);
 
   IF (_MessageLevel > E_MessageType.eMessageError)
   THEN
@@ -3453,7 +3452,7 @@ END_VAR
       <LineId Id="21" Count="0" />
       <LineId Id="23" Count="0" />
       <LineId Id="31" Count="0" />
-      <LineId Id="33" Count="1" />
+      <LineId Id="34" Count="0" />
       <LineId Id="20" Count="0" />
       <LineId Id="13" Count="0" />
       <LineId Id="35" Count="0" />

@@ -1,0 +1,128 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="MAIN" Id="{9bc05cf8-27df-4baf-8c2e-8597e29fd5e7}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM MAIN
+VAR
+  nAxis           : UINT := 1;  // you choose
+
+  bStartAxis,
+  bStartCam       : BOOL;
+
+  eStateAxis,
+  eStateCam       : E_PROGRESS;
+
+  eCtrlFunction   : E_AXIS_CTRL   := E_AXIS_CTRL.AXIS_ENABLE;   // for you to set
+  eStateFunction  : E_AXIS_STATE  := E_AXIS_STATE.AXIS_ENABLE;  // for you to set so the result can be checked correctly
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+// BASIC EXAMPLE for controlling PLC_MOTION_LAYER
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+// HOW to... PtP axis
+//  - you have to use the data and parameter fields in the matching GVL
+//-----------------------------------------------------------------------------------------------------------------
+IF NOT bStartAxis
+THEN
+  // this is for cleaning up your state machine
+  eStateAxis                      := E_PROGRESS.PROGRESS_INIT;
+END_IF
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+CASE eStateAxis 
+OF
+  E_PROGRESS.PROGRESS_INIT:
+    IF bStartAxis                 // do not forget to set the motion data for the chosen axis, GVL_AXIS.Data etc. 
+    THEN
+      GVL_AXIS.Ctrl[nAxis].eCmd   := eCtrlFunction;
+
+      eStateAxis                  := E_PROGRESS.PROGRESS_BUSY;
+    END_IF
+
+
+  E_PROGRESS.PROGRESS_BUSY:
+    IF (GVL_AXIS.State[nAxis].eState = eStateFunction + E_PROGRESS.PROGRESS_DONE)
+    THEN
+      eStateAxis                  := E_PROGRESS.PROGRESS_DONE;
+
+    ELSIF (GVL_AXIS.State[nAxis].eState = eStateFunction + E_PROGRESS.PROGRESS_ERROR)
+    THEN
+      eStateAxis                  := E_PROGRESS.PROGRESS_ERROR;
+    END_IF
+END_CASE
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+// HOW to... CAM axis
+//  - you have to use the data and parameter fields in the matching GVL
+//-----------------------------------------------------------------------------------------------------------------
+IF NOT bStartCam
+THEN
+  // this is for cleaning up your state machine
+  eStateCam                       := E_PROGRESS.PROGRESS_INIT;
+END_IF
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+CASE eStateCam
+OF
+  E_PROGRESS.PROGRESS_INIT:
+    IF bStartCam                 // do not forget to set the motion data for the chosen axis, GVL_AXIS.Data etc. 
+    THEN
+      GVL_CAM.Ctrl[nAxis].eCmd    := eCtrlFunction;
+
+      eStateCam                   := E_PROGRESS.PROGRESS_BUSY;
+    END_IF
+
+
+  E_PROGRESS.PROGRESS_BUSY:
+    IF (GVL_AXIS.State[nAxis].eState = eStateFunction + E_PROGRESS.PROGRESS_DONE)
+    THEN
+      eStateCam                   := E_PROGRESS.PROGRESS_DONE;
+
+    ELSIF (GVL_AXIS.State[nAxis].eState = eStateFunction + E_PROGRESS.PROGRESS_ERROR)
+    THEN
+      eStateCam                   := E_PROGRESS.PROGRESS_ERROR;
+    END_IF
+END_CASE
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+
+]]></ST>
+    </Implementation>
+    <LineIds Name="MAIN">
+      <LineId Id="4" Count="4" />
+      <LineId Id="41" Count="0" />
+      <LineId Id="65" Count="1" />
+      <LineId Id="42" Count="0" />
+      <LineId Id="75" Count="1" />
+      <LineId Id="79" Count="0" />
+      <LineId Id="77" Count="1" />
+      <LineId Id="72" Count="1" />
+      <LineId Id="32" Count="0" />
+      <LineId Id="36" Count="2" />
+      <LineId Id="46" Count="0" />
+      <LineId Id="49" Count="0" />
+      <LineId Id="55" Count="0" />
+      <LineId Id="52" Count="0" />
+      <LineId Id="47" Count="0" />
+      <LineId Id="54" Count="0" />
+      <LineId Id="53" Count="0" />
+      <LineId Id="50" Count="0" />
+      <LineId Id="35" Count="0" />
+      <LineId Id="56" Count="0" />
+      <LineId Id="59" Count="0" />
+      <LineId Id="63" Count="0" />
+      <LineId Id="60" Count="2" />
+      <LineId Id="64" Count="0" />
+      <LineId Id="34" Count="0" />
+      <LineId Id="82" Count="34" />
+      <LineId Id="118" Count="1" />
+      <LineId Id="117" Count="0" />
+      <LineId Id="29" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

@@ -1,0 +1,360 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.13">
+  <POU Name="MAPPING_in" Id="{e84de69b-ba26-07ad-1592-7be68e226b51}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM MAPPING_in
+VAR CONSTANT
+//-----------------------------------------------------------------------------------------------------------------
+//  Stop! Who approacheth the Bridge of Death must answer me these questions three, ere the other side he see
+//-----------------------------------------------------------------------------------------------------------------
+{IF defined (AXIS_MAP)}
+  {info 'PLC_MOTION_LAYER: AXIS_MAP'}
+  bBypassMappingAxis        : BOOL  := FALSE;
+{ELSE}
+  bBypassMappingAxis        : BOOL  := TRUE;
+{END_IF}
+//-----------------------------------------------------------------------------------------------------------------
+//  What... is your name?
+//-----------------------------------------------------------------------------------------------------------------
+{IF defined (NCI_MAP)}
+  {info 'PLC_MOTION_LAYER: NCI_MAP'}
+  bBypassMappingNci         : BOOL  := FALSE;
+{ELSE}
+  bBypassMappingNci         : BOOL  := TRUE;
+{END_IF}
+//-----------------------------------------------------------------------------------------------------------------
+//  What... is your quest?
+//-----------------------------------------------------------------------------------------------------------------
+{IF defined (CAM_MAP)}
+  {info 'PLC_MOTION_LAYER: CAM_MAP'}
+  bBypassMappingCam         : BOOL  := FALSE;
+{ELSE}
+  bBypassMappingCam         : BOOL  := TRUE;
+{END_IF}
+//-----------------------------------------------------------------------------------------------------------------
+//  What... is the capital of Assyria?
+//-----------------------------------------------------------------------------------------------------------------
+{IF defined (TRIGGER_MAP)}
+  {info 'PLC_MOTION_LAYER: TRIGGER_MAP'}
+  bBypassMappingTrigger     : BOOL  := FALSE;
+{ELSE}
+  bBypassMappingTrigger     : BOOL  := TRUE;
+{END_IF}
+END_VAR
+VAR
+  sMappingCheck             : STRING;
+//-----------------------------------------------------------------------------------------------------------------
+//  Ask me the questions, bridgekeeper. I'm not afraid.
+//-----------------------------------------------------------------------------------------------------------------
+{IF defined (AXIS_MAP)}
+  AxisCtrl                  : U_AXIS_CTRL;
+  AxisMoveData              : U_AXIS_MOVE_DATA;
+  AxisMotionOptions         : U_AXIS_MOTION_OPTIONS;
+
+  AxisGearInData            : U_AXIS_GEAR_IN;
+  AxisHoming                : U_AXIS_HOMING;
+  AxisParameterWrt          : U_AXIS_NC_PARAMETER_WRT;
+{ELSE}
+  AxisCtrl                  : BYTE;
+  AxisMoveData              : BYTE;
+  AxisMotionOptions         : BYTE;
+
+  AxisGearInData            : BYTE;
+  AxisHoming                : BYTE;
+  AxisParameterWrt          : BYTE;
+{END_IF}
+//-----------------------------------------------------------------------------------------------------------------
+//  Sir Robin of Camelot.
+//-----------------------------------------------------------------------------------------------------------------
+{IF defined (NCI_MAP)}
+  NciControl                : U_NCI_CTRL;
+  NciAxisGroup              : U_NCI_AXIS_ID_GROUP;
+  NciRparameters            : U_NCI_R_PARAMETER_I;
+{ELSE}
+  NciControl                : BYTE;
+  NciAxisGroup              : BYTE;
+  NciRparameters            : BYTE;
+{END_IF}
+//-----------------------------------------------------------------------------------------------------------------
+//  To seek the Holy Grail.
+//-----------------------------------------------------------------------------------------------------------------
+{IF defined (CAM_MAP)}
+  CamControl                : U_CAM_CTRL;
+{ELSE}
+  CamControl                : BYTE;
+{END_IF}
+//-----------------------------------------------------------------------------------------------------------------
+//  .....
+//-----------------------------------------------------------------------------------------------------------------
+{IF defined (TRIGGER_MAP)}
+  TriggerControl            : U_TRIGGER_CTRL;
+  TouchProbeControl         : U_TOUCH_PROBE_CTRL;
+{ELSE}
+  //  I don't know that! Auuuuuuuugh!
+  TriggerControl            : BYTE;
+  TouchProbeControl         : BYTE;
+{END_IF}
+//-----------------------------------------------------------------------------------------------------------------
+//   What... is the air-speed velocity of an unladen swallow?
+//-----------------------------------------------------------------------------------------------------------------
+  bMappingBlocked           : BOOL;   //  How do know so much about swallows?
+//-----------------------------------------------------------------------------------------------------------------
+//  - datafield size check
+//-----------------------------------------------------------------------------------------------------------------
+  szAxisPara,
+  szAxisHoming,
+  szAxisGearData,
+  szAxisMotionOptions,
+  szAxisMoveData,
+  szAxisCtrl                : ARRAY[1..2] OF UDINT;
+
+  szNciRparameters,
+  szNciAxisGroup,
+  szNciCtrl                 : ARRAY[1..2] OF UDINT;
+
+  szCamCtrl                 : ARRAY[1..2] OF UDINT;
+
+  szCtrlTouchProbe,
+  szCtrlTrigger             : ARRAY[1..2] OF UDINT;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[//-----------------------------------------------------------------------------------------------------------------
+//  - datafield size check
+//-----------------------------------------------------------------------------------------------------------------
+IF NOT Check() THEN RETURN; END_IF
+//--------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------
+//  What do you mean? An African or European swallow?
+//--------------------------------------------------------------------------------------------
+IF bMappingBlocked
+THEN
+  RETURN; // Huh? I-- I don't know that. Auuuuuuuugh!
+END_IF
+//--------------------------------------------------------------------------------------------
+//  Well, you have to know these things when you're a king, you know.
+//--------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------
+//           destination,                         source,                      size
+//--------------------------------------------------------------------------------------------
+IF NOT bBypassMappingAxis
+THEN
+  memcpy(ADR(GVL_AXIS.Ctrl),                 ADR(AxisCtrl),             SIZEOF(AxisCTrl));
+  memcpy(ADR(GVL_AXIS.Data),                 ADR(AxisMoveData),         SIZEOF(AxisMoveData));
+  memcpy(ADR(GVL_AXIS.MotionOptions),        ADR(AxisMotionOptions),    SIZEOF(AxisMotionOptions));
+
+  memcpy(ADR(GVL_AXIS.GearInParameter),      ADR(AxisGearInData),       SIZEOF(AxisGearInData));
+  memcpy(ADR(GVL_AXIS.HomeParameter),        ADR(AxisHoming),           SIZEOF(AxisHoming));
+  memcpy(ADR(GVL_AXIS.NcParameterWrt),       ADR(AxisParameterWrt),     SIZEOF(AxisParameterWrt));
+END_IF
+//--------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------
+IF NOT bBypassMappingNci
+THEN
+  memcpy(ADR(GVL_NCI.ChannelCtrl),           ADR(NciControl),           SIZEOF(NciControl));
+  memcpy(ADR(GVL_NCI.AxisConfig),            ADR(NciAxisGroup),         SIZEOF(NciAxisGroup));
+  memcpy(ADR(GVL_NCI.R_ParameterWrite),      ADR(NciRparameters),       SIZEOF(NciRparameters));
+END_IF
+//--------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------
+IF NOT bBypassMappingCam
+THEN
+  memcpy(ADR(GVL_CAM.Ctrl),                  ADR(CamControl),           SIZEOF(CamControl));
+END_IF
+//--------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------
+IF NOT bBypassMappingTrigger
+THEN
+  memcpy(ADR(GVL_FUNCTIONS.CtrlTrigger),     ADR(TriggerControl),       SIZEOF(TriggerControl));
+  memcpy(ADR(GVL_FUNCTIONS.CtrlTouchProbe),  ADR(TouchProbeControl),    SIZEOF(TouchProbeControl));
+END_IF
+//--------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------
+//           destination,                         source,                      size
+//--------------------------------------------------------------------------------------------
+]]></ST>
+    </Implementation>
+    <Method Name="Check" Id="{a1c052b1-6e55-411f-a2c0-17538f2c45b9}">
+      <Declaration><![CDATA[METHOD Check : bool
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//--------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------
+IF bBypassMappingAxis AND
+   bBypassMappingNci  AND
+   bBypassMappingCam  AND
+   bBypassMappingTrigger
+THEN
+  sMappingCheck         := 'NO_MAPPING_ACTIVE';
+  RETURN;
+END_IF
+//--------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------
+szAxisCtrl[1]           := SIZEOF(AxisCtrl);
+szAxisCtrl[2]           := SIZEOF(GVL_AXIS.Ctrl);
+
+szAxisMoveData [1]      := SIZEOF(AxisMoveData);
+szAxisMoveData [2]      := SIZEOF(GVL_AXIS.Data);
+
+szAxisMotionOptions [1] := SIZEOF(AxisMotionOptions);
+szAxisMotionOptions [2] := SIZEOF(GVL_AXIS.MotionOptions);
+
+szAxisGearData [1]      := SIZEOF(AxisGearInData);
+szAxisGearData [2]      := SIZEOF(GVL_AXIS.GearInParameter);
+
+szAxisHoming [1]        := SIZEOF(AxisHoming);
+szAxisHoming [2]        := SIZEOF(GVL_AXIS.HomeParameter);
+
+szAxisPara [1]          := SIZEOF(AxisParameterWrt);
+szAxisPara [2]          := SIZEOF(GVL_AXIS.NcParameterWrt);
+
+IF NOT (bBypassMappingAxis)
+THEN
+  IF NOT (szAxisCtrl[1] = szAxisCtrl[2])
+  THEN
+    sMappingCheck       := 'AxisCtrl CHECK_ERROR';
+    RETURN;
+  END_IF
+
+  IF NOT (szAxisMoveData[1] = szAxisMoveData[2])
+  THEN
+    sMappingCheck       := 'AxisMoveData CHECK_ERROR';
+    RETURN;
+  END_IF
+
+  IF NOT (szAxisMotionOptions[1] = szAxisMotionOptions[2])
+  THEN
+    sMappingCheck       := 'AxisMotionOptions CHECK_ERROR';
+    RETURN;
+  END_IF
+
+  IF NOT (szAxisGearData[1] = szAxisGearData[2])
+  THEN
+    sMappingCheck       := 'AxisGearInData CHECK_ERROR';
+    RETURN;
+  END_IF
+
+  IF NOT (szAxisHoming[1] = szAxisHoming[2])
+  THEN
+    sMappingCheck       := 'AxisHoming CHECK_ERROR';
+    RETURN;
+  END_IF
+END_IF
+//--------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------
+szNciCtrl[1]            := SIZEOF(NciControl);
+szNciCtrl[2]            := SIZEOF(GVL_NCI.ChannelCtrl);
+
+szNciAxisGroup  [1]     := SIZEOF(NciAxisGroup);
+szNciAxisGroup  [2]     := SIZEOF(GVL_NCI.AxisConfig);
+
+szNciRparameters[1]     := SIZEOF(NciRparameters);
+szNciRparameters[2]     := SIZEOF(GVL_NCI.R_ParameterWrite);
+
+IF NOT (bBypassMappingNci)
+THEN
+  IF NOT (szNciCtrl[1] = szNciCtrl[2])
+  THEN
+    sMappingCheck       := 'NciControl CHECK_ERROR';
+    RETURN;
+  END_IF
+
+  IF NOT (szNciAxisGroup[1] = szNciAxisGroup[2])
+  THEN
+    sMappingCheck       := 'NciAxisGroup CHECK_ERROR';
+    RETURN;
+  END_IF
+
+  IF NOT (szNciRparameters[1] = szNciRparameters[2])
+  THEN
+    sMappingCheck       := 'NciRparameters CHECK_ERROR';
+    RETURN;
+  END_IF
+END_IF
+//--------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------
+szCamCtrl [1]           := SIZEOF(CamControl);
+szCamCtrl [2]           := SIZEOF(GVL_CAM.Ctrl);
+
+IF NOT (bBypassMappingCam)
+THEN
+  IF NOT (szCamCtrl[1] = szCamCtrl[2])
+  THEN
+    sMappingCheck       := 'CamControl CHECK_ERROR';
+    RETURN;
+  END_IF
+END_IF
+//--------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------
+szCtrlTrigger[1]        := SIZEOF(TriggerControl);
+szCtrlTrigger[2]        := SIZEOF(GVL_FUNCTIONS.CtrlTrigger);
+
+szCtrlTouchProbe[1]     := SIZEOF(TouchProbeControl);
+szCtrlTouchProbe[2]     := SIZEOF(GVL_FUNCTIONS.CtrlTouchProbe);
+
+IF NOT (bBypassMappingTrigger)
+THEN
+  IF NOT (szCtrlTrigger[1] = szCtrlTrigger[2])
+  THEN
+    sMappingCheck       := 'TriggerControl CHECK_ERROR';
+    RETURN;
+  END_IF
+
+  IF NOT (szCtrlTouchProbe[1] = szCtrlTouchProbe[2])
+  THEN
+    sMappingCheck       := 'TouchProbeControl CHECK_ERROR';
+    RETURN;
+  END_IF
+END_IF
+//--------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------
+sMappingCheck           := 'CHECK_DONE';
+Check                   := TRUE;
+//--------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="MAPPING_in">
+      <LineId Id="345" Count="2" />
+      <LineId Id="375" Count="0" />
+      <LineId Id="366" Count="3" />
+      <LineId Id="365" Count="0" />
+      <LineId Id="370" Count="0" />
+      <LineId Id="372" Count="0" />
+      <LineId Id="371" Count="0" />
+      <LineId Id="374" Count="0" />
+      <LineId Id="373" Count="0" />
+      <LineId Id="348" Count="3" />
+      <LineId Id="55" Count="0" />
+      <LineId Id="242" Count="0" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="66" Count="1" />
+      <LineId Id="353" Count="0" />
+      <LineId Id="68" Count="0" />
+      <LineId Id="70" Count="1" />
+      <LineId Id="208" Count="0" />
+      <LineId Id="354" Count="1" />
+      <LineId Id="339" Count="2" />
+      <LineId Id="343" Count="1" />
+      <LineId Id="342" Count="0" />
+      <LineId Id="356" Count="1" />
+      <LineId Id="243" Count="0" />
+      <LineId Id="245" Count="0" />
+      <LineId Id="138" Count="0" />
+      <LineId Id="246" Count="0" />
+      <LineId Id="358" Count="1" />
+      <LineId Id="210" Count="0" />
+      <LineId Id="248" Count="0" />
+      <LineId Id="209" Count="0" />
+      <LineId Id="254" Count="0" />
+      <LineId Id="249" Count="0" />
+      <LineId Id="360" Count="0" />
+      <LineId Id="362" Count="2" />
+      <LineId Id="361" Count="0" />
+    </LineIds>
+    <LineIds Name="MAPPING_in.Check">
+      <LineId Id="1" Count="135" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

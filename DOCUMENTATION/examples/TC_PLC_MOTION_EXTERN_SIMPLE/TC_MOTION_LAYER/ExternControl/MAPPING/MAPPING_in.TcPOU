@@ -1,0 +1,70 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="MAPPING_in" Id="{9c1c55cc-539c-4e24-8b74-c3ec7fa50c1e}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM MAPPING_in
+VAR
+  bFirstCycle           : BOOL := TRUE;
+
+  AxisState             : U_AXIS_STATE;
+  AxisInfo              : U_AXIS_INFO;
+  AxisParameterRd       : U_AXIS_NC_PARAMETER_RD;
+
+  CamState              : U_CAM_STATE;
+  CamInfo               : U_CAM_INFO;
+
+  TriggerState          : U_TRIGGER_STATE;
+
+  TouchState            : U_TOUCH_PROBE_STATE;
+
+
+  szAxisPara,
+  szAxisInfo,
+  szAxisState           : ARRAY[1..2] OF UDINT;
+
+  szCamInfo,
+  szCamData,
+  szCamState            : ARRAY[1..2] OF UDINT;
+
+  szStateTouchProbe,
+  szStateTrigger	      :  ARRAY[1..2] OF UDINT;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[
+IF (bFirstCycle)
+THEN
+  bFirstCycle         := FALSE;
+  
+  szAxisState[1]      := SIZEOF(AxisState);
+  szAxisState[2]      := SIZEOF(GVL_AXIS.State);
+  
+  szAxisInfo [1]      := SIZEOF(AxisInfo);
+  szAxisInfo [2]      := SIZEOF(GVL_AXIS.Info);
+  
+  szAxisPara [1]      := SIZEOF(AxisParameterRd);
+  szAxisPara [2]      := SIZEOF(GVL_AXIS.NcParameterRd);
+END_IF
+
+  memcpy(ADR(GVL_AXIS.State),             ADR(AxisState),              SIZEOF(AxisState));
+  memcpy(ADR(GVL_AXIS.Info),              ADR(AxisInfo),               SIZEOF(AxisInfo));
+  memcpy(ADR(GVL_AXIS.NcParameterRd),     ADR(AxisParameterRd),        SIZEOF(AxisParameterRd));
+
+  memcpy(ADR(GVL_CAM.State),              ADR(CamState),               SIZEOF(CamState));
+  memcpy(ADR(GVL_CAM.Info),               ADR(CamInfo),                SIZEOF(CamInfo));
+
+  memcpy(ADR(GVL_FUNCTIONS.StateTrigger),    ADR(TriggerState),        SIZEOF(TriggerState));
+  memcpy(ADR(GVL_FUNCTIONS.StateTouchProbe), ADR(TouchState),          SIZEOF(TouchState));
+
+]]></ST>
+    </Implementation>
+    <LineIds Name="MAPPING_in">
+      <LineId Id="22" Count="0" />
+      <LineId Id="2" Count="19" />
+      <LineId Id="24" Count="0" />
+      <LineId Id="23" Count="0" />
+      <LineId Id="25" Count="0" />
+      <LineId Id="27" Count="0" />
+      <LineId Id="26" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

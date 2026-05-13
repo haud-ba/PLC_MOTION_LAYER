@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="ST_CAM_READ_VALUES_PARAMETER" Id="{34c23c0d-4bc7-4948-9bbf-39499366ab62}">
+    <Declaration><![CDATA[{attribute 'pack_mode' := '2'}
+TYPE ST_CAM_READ_VALUES_PARAMETER :
+STRUCT
+  nValueSelectMask        : UINT;   // ReadMotionFunctionValues
+  rValueMasterStart       : LREAL;  // ReadMotionFunctionValues
+  rValueMasterEnd         : LREAL;  // ReadMotionFunctionValues
+  rIncrement              : LREAL;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

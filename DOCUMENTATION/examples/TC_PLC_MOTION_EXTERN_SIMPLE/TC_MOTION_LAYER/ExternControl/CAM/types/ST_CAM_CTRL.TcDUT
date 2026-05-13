@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="ST_CAM_CTRL" Id="{89086dd7-6c6d-4cf5-bffd-bd05092d4632}">
+    <Declaration><![CDATA[{attribute 'pack_mode' := '2'}
+TYPE ST_CAM_CTRL :
+STRUCT
+  eCmd               : E_AXIS_CTRL;    // commanded axis function
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="E_NCI_CTRL" Id="{01ef061a-b196-4d2c-8100-1ec97214f5ca}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+{attribute 'to_string'}
+TYPE E_NCI_CTRL :
+(
+  NULL,
+  INIT,
+  IDLE,
+  RESET,
+  LOAD_PROG,
+  FEED_TABLE,
+  BUILD_GROUP,
+  CLEAR_GROUP,
+
+  START         := 10,
+  STOP,
+  STO_STOP,
+  RESTART_STEP_ON,
+
+  M_FUNC_QUIT   := 20,
+
+  READ_R_PARA   := 30,
+  WRITE_R_PARA  := 40
+
+)UINT;
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

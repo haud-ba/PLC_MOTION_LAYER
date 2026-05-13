@@ -9,7 +9,7 @@
     <WriteProductVersion>true</WriteProductVersion>
     <GenerateTpy>false</GenerateTpy>
     <Name>PLC_MOTION</Name>
-    <ProgramVersion>3.1.4026.19</ProgramVersion>
+    <ProgramVersion>3.1.4026.22</ProgramVersion>
     <Application>{0b9ad4b8-9b21-46d2-af23-75ba528d74dd}</Application>
     <TypeSystem>{2f650832-3b33-41ac-8655-4702718764fe}</TypeSystem>
     <Implicit_Task_Info>{a12b3f72-932e-4f0c-8ca2-137c1e731cc8}</Implicit_Task_Info>

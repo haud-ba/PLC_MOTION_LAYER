@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.13">
+  <DUT Name="U_NCI_STATE" Id="{9b8e352c-e3e1-45c0-a459-bd2e18ff0cf6}">
+    <Declaration><![CDATA[TYPE U_NCI_STATE :
+UNION
+
+  stState             : ARRAY[1..MAX_NCI_CH] OF ST_NCI_STATE;
+
+  byState   AT %Q*    : ARRAY[1..MAX_NCI_CH] OF
+                        ARRAY[1..SIZEOF(ST_NCI_STATE)] OF BYTE;
+END_UNION
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

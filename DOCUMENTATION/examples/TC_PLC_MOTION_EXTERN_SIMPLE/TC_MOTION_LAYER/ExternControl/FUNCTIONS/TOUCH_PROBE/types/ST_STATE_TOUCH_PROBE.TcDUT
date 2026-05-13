@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="ST_STATE_TOUCH_PROBE" Id="{2e352e52-a8fd-40b6-be4a-87fbd9b98b92}">
+    <Declaration><![CDATA[TYPE ST_STATE_TOUCH_PROBE :
+STRUCT
+  State           : UINT;   // 0 := deactivated, 100 := BUSY, 1000 := DONE, 9000 := ERROR
+  LatchPositive   : LREAL;  // rising edge
+  LatchNegative   : LREAL;  // falling edge
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

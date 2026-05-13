@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="U_CAM_CTRL" Id="{78bbb5c5-0bde-4a31-81a3-ee0ae2f729e4}">
+    <Declaration><![CDATA[TYPE U_CAM_CTRL :
+UNION
+  stCtrl              : ARRAY[1..MAX_AXIS] OF ST_CAM_CTRL;
+
+  byCtrl    AT %q*    : ARRAY[1..MAX_AXIS] OF
+                        ARRAY[1..SIZEOF(ST_CAM_CTRL)] OF BYTE;
+END_UNION
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

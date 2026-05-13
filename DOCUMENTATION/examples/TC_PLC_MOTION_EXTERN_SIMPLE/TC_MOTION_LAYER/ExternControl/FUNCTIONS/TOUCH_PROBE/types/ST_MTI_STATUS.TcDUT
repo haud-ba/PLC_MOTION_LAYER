@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="ST_MTI_STATUS" Id="{ea99a0e6-9189-4da5-9d3b-fde812558013}">
+    <Declaration><![CDATA[TYPE ST_MTI_STATUS :
+STRUCT
+  EventCount            : USINT;
+  InputState            : BIT;
+  InputBufferOverflow   : BIT;
+  InputCycleCounter     : ST_2BIT;
+  CountsInBuffer        : USINT;
+  InputOrderFeedback    : usint;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

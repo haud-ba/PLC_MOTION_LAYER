@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="ST_Interface_Group" Id="{fffc1ee8-4665-479f-8cb0-9dee2549cd49}">
+    <Declaration><![CDATA[{attribute 'pack_mode' := '2'}
+TYPE ST_Interface_Group :
+STRUCT
+  I_Idx_XAxis     : I_McAxis;
+  I_Idx_YAxis     : I_McAxis;
+  I_Idx_ZAxis     : I_McAxis;
+
+  I_Idx_Q1Axis    : I_McAxis;
+  I_Idx_Q2Axis    : I_McAxis;
+  I_Idx_Q3Axis    : I_McAxis;
+  I_Idx_Q4Axis    : I_McAxis;
+  I_Idx_Q5Axis    : I_McAxis;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="ST_CAM_OPTIONS" Id="{0f52dc2e-f17f-4197-a214-47d38a261bd9}">
+    <Declaration><![CDATA[{attribute 'pack_mode' := '2'}
+TYPE ST_CAM_OPTIONS :
+STRUCT
+  nInterpolationType      : UINT;
+  nCamOperationMode       : UINT;
+  nReferenceCamTableId    : UDINT;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

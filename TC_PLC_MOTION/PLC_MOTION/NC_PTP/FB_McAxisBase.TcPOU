@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.13">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
   <POU Name="FB_McAxisBase" Id="{b0a70715-8745-098e-33e9-cc5f7a367c73}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK ABSTRACT FB_McAxisBase  IMPLEMENTS I_McAxis
 VAR
@@ -1553,7 +1553,7 @@ OF
     
       f_MessageSet(_stMsg);
     
-    ELSIF (Velocity <> _rValue)
+    ELSIF (_fbMoveVelocity[1].Velocity <> Velocity)
     THEN
       _eState                       := E_PROGRESS.PROGRESS_CHECK;
 
@@ -1607,7 +1607,7 @@ OF
 
     ELSIF (_fbMoveVelocity[2].Busy)
     THEN
-      _eState                       := E_PROGRESS.PROGRESS_PREPARE;
+      _eState                       := E_PROGRESS.PROGRESS_OCCUPIED;
 
       _stMsg.eType                  := E_MessageType.eMessageVerbose;
       _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
@@ -1623,7 +1623,7 @@ OF
 
     ELSIF (_fbMoveVelocity[2].CommandAborted)
     THEN
-      _eState                       := E_PROGRESS.PROGRESS_PREPARE;
+      _eState                       := E_PROGRESS.PROGRESS_OCCUPIED;
 
       _stMsg.eType                  := E_MessageType.eMessageError;
       _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
@@ -1636,7 +1636,7 @@ OF
 
     ELSIF (_fbMoveVelocity[2].InVelocity)
     THEN
-      _eState                       := E_PROGRESS.PROGRESS_PREPARE;
+      _eState                       := E_PROGRESS.PROGRESS_OCCUPIED;
 
       _stMsg.eType                  := E_MessageType.eMessageVerbose;
       _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
@@ -1671,7 +1671,7 @@ OF
     
       _eState                       := E_PROGRESS.PROGRESS_ERROR;
 
-    ELSIF (Velocity <> _rValue)
+    ELSIF (_fbMoveVelocity[2].Velocity <> Velocity)
     THEN
       _eState                       := E_PROGRESS.PROGRESS_STARTUP;
 
@@ -2944,7 +2944,7 @@ WriteParameterPersistent            := _eState;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_McAxisBase.MoveVeloBuffer">
-      <LineId Id="1505" Count="284" />
+      <LineId Id="1790" Count="284" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_McAxisBase.Override.Get">

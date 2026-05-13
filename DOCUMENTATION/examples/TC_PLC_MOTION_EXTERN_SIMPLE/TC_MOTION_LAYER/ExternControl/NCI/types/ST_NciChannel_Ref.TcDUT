@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="ST_NciChannel_Ref" Id="{5ecaff0b-3068-4424-8c91-d0e03978c987}">
+    <Declaration><![CDATA[TYPE ST_NciChannel_Ref :
+STRUCT
+  NcToPlc AT %I*: NcToPlc_NciChannel_Ref;   //  Externer Datentyp!
+  PlcToNc AT %Q*: PlcToNc_NciChannel_Ref;   //  Externer Datentyp!
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

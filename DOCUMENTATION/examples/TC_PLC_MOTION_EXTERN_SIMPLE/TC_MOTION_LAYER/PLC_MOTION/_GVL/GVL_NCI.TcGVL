@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.13">
+  <GVL Name="GVL_NCI" Id="{fb0ea162-1b4f-012e-0c6b-68867ef723da}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL
+  AxisConfig                  : ARRAY[1..MAX_NCI_CH] OF ST_3D_Group;     // NC Axis Id to build NCI group
+
+  ChannelCtrl                 : ARRAY[1..MAX_NCI_CH] OF ST_NCI_CTRL;
+  ChannelState                : ARRAY[1..MAX_NCI_CH] OF ST_NCI_STATE;
+
+
+{IF NOT defined (BSD)}
+  {info 'PLC_MOTION_LAYER: WIN'}
+  ProgramName                 : ARRAY[1..MAX_NCI_CH] OF STRING(255):= ['C:\TwinCAT\Mc\Nci\Test_GST.nc'];
+{ELSE}
+  {info 'PLC_MOTION_LAYER: BSD'}
+  ProgramName                 : ARRAY[1..MAX_NCI_CH] OF STRING(255):= ['/usr/local/etc/TwinCAT/Mc/Nci/Test_GST.nc'];
+{END_IF}
+
+  ProgramNameActive           : ARRAY[1..MAX_NCI_CH] OF STRING(255);
+
+  R_ParameterRead             : ARRAY[1..MAX_NCI_CH] OF ST_R_Parameter;
+  R_ParameterWrite            : ARRAY[1..MAX_NCI_CH] OF ST_R_Parameter;
+
+  M_FunctionCyclic            : ARRAY[1..MAX_NCI_CH] OF ST_NCI_M_FUNC; // scope variable for M function tests
+
+{IF defined (NCI)}
+  {info 'PLC_MOTION_LAYER: NCI'}
+  NciCtrl                     : ARRAY[1..MAX_NCI_CH] OF FB_NciChannelCtrl;
+{ELSE}
+  NciCtrl                     : ARRAY[1..MAX_NCI_CH] OF I_Nci_Ctrl;
+{END_IF}
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

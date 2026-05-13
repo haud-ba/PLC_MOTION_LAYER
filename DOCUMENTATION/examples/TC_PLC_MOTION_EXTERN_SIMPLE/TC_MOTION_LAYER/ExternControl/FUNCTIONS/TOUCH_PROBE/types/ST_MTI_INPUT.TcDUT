@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="ST_MTI_INPUT" Id="{01d45eee-7b2b-4d7d-8948-542ca7a9cf59}">
+    <Declaration><![CDATA[TYPE ST_MTI_INPUT :
+STRUCT
+  EventState            : BIT;
+  EventTime             : UDINT;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>
