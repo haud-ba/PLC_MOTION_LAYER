@@ -67,12 +67,16 @@ END_IF
   memcpy(ADR(AxisHoming),               ADR(GVL_AXIS.HomeParameter),    SIZEOF(AxisHoming));
   memcpy(ADR(AxisParameterWrt),         ADR(GVL_AXIS.NcParameterWrt),   SIZEOF(AxisParameterWrt));
 
+  memcpy(ADR(CamCtrl),                  ADR(GVL_CAM.Ctrl),              SIZEOF(CamCtrl));
+  memcpy(ADR(CamData),                  ADR(GVL_CAM.Data),              SIZEOF(CamData));
 
 ]]></ST>
     </Implementation>
     <LineIds Name="MAPPING_out">
       <LineId Id="36" Count="0" />
-      <LineId Id="2" Count="33" />
+      <LineId Id="2" Count="31" />
+      <LineId Id="37" Count="1" />
+      <LineId Id="34" Count="1" />
     </LineIds>
   </POU>
 </TcPlcObject>

@@ -16,6 +16,7 @@
     <Implicit_KindOfTask>{b2247656-578a-45d9-a298-9877434d17ef}</Implicit_KindOfTask>
     <Implicit_Jitter_Distribution>{24f1e6bc-2731-4423-b4c3-000e2b8bce3e}</Implicit_Jitter_Distribution>
     <LibraryReferences>{4caeeeae-a865-49f9-be8b-dc567d016f1c}</LibraryReferences>
+    <CompilerDefines />
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="CAM\types\ST_CAM_CTRL.TcDUT">
@@ -249,7 +250,16 @@
     <Compile Include="PlcTask.TcTTO">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="TEST_MOTION\TEST.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Visualization Manager.TcVMO">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_DUT\f_GetProgress.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_DUT\f_GetState.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="_GVL\GVL_AXIS.TcGVL">
@@ -281,16 +291,34 @@
     <Compile Include="_MSG\fb_LocalTime.TcPOU">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="_MSG\fb_MessageData.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_MSG\fb_MessageDataCtrl.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="_MSG\f_MessageSet.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="_MSG\MessageData.TcPOU">
+    <Compile Include="_MSG\I_MessageData.TcIO">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="_MSG\types\e_Device.TcDUT">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="_MSG\types\E_MessageType.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_MSG\types\E_MESSAGE_BATCH.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_MSG\types\E_MESSAGE_CHECK.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_MSG\types\E_MESSAGE_CTRL.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_MSG\types\E_MESSAGE_FLOW.TcDUT">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="_MSG\types\E_MESSAGE_STATE.TcDUT">
@@ -302,9 +330,14 @@
     <Compile Include="_MSG\types\ST_Message.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="_MSG\T_MESSAGE_LIST.TcVIS">
+    <Compile Include="_MSG\types\ST_MESSAGE_CTRL.TcDUT">
       <SubType>Code</SubType>
-      <DependentUpon>Visualization Manager.TcVMO</DependentUpon>
+    </Compile>
+    <Compile Include="_MSG\types\ST_MESSAGE_STATE.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_MSG\types\TL_E_MESSAGETYPE.TcTLO">
+      <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
   <ItemGroup>
@@ -324,6 +357,7 @@
     <Folder Include="NC_PTP\types" />
     <Folder Include="NC_PTP\types\axis" />
     <Folder Include="NC_PTP\types\control" />
+    <Folder Include="TEST_MOTION" />
     <Folder Include="_DUT" />
     <Folder Include="_GVL" />
     <Folder Include="_MSG" />
@@ -403,8 +437,8 @@
   <ProjectExtensions>
     <PlcProjectOptions>
       <XmlArchive>
-  <Data>
-    <o xml:space="preserve" t="OptionKey">
+        <Data>
+          <o xml:space="preserve" t="OptionKey">
       <v n="Name">"&lt;ProjectRoot&gt;"</v>
       <d n="SubKeys" t="Hashtable" ckt="String" cvt="OptionKey">
         <v>{192FAD59-8248-4824-A8DE-9177C94C195A}</v>
@@ -510,16 +544,16 @@
       </d>
       <d n="Values" t="Hashtable" />
     </o>
-  </Data>
-  <TypeList>
-    <Type n="Boolean">System.Boolean</Type>
-    <Type n="ExactVersionConstraintToSave">{f9079115-a4ba-4f30-bf7c-9e76613146fc}</Type>
-    <Type n="Hashtable">System.Collections.Hashtable</Type>
-    <Type n="Int32">System.Int32</Type>
-    <Type n="OptionKey">{54dd0eac-a6d8-46f2-8c27-2f43c7e49861}</Type>
-    <Type n="String">System.String</Type>
-  </TypeList>
-</XmlArchive>
+        </Data>
+        <TypeList>
+          <Type n="Boolean">System.Boolean</Type>
+          <Type n="ExactVersionConstraintToSave">{f9079115-a4ba-4f30-bf7c-9e76613146fc}</Type>
+          <Type n="Hashtable">System.Collections.Hashtable</Type>
+          <Type n="Int32">System.Int32</Type>
+          <Type n="OptionKey">{54dd0eac-a6d8-46f2-8c27-2f43c7e49861}</Type>
+          <Type n="String">System.String</Type>
+        </TypeList>
+      </XmlArchive>
     </PlcProjectOptions>
   </ProjectExtensions>
 </Project>

@@ -71,7 +71,7 @@
               <v n="Modifiers">7</v>
               <v n="DevType">4096</v>
               <v n="DevId">"1002 0004"</v>
-              <v n="DevVersion">"1.0.0.8"</v>
+              <v n="DevVersion">"1.0.0.11"</v>
               <v n="BaseProvider">{cb73a13e-6ccc-4bc6-8859-f5aa98bb116b}</v>
               <l n="Keys" t="ArrayList" cet="DeviceBasedHotkeyItem">
                 <o>

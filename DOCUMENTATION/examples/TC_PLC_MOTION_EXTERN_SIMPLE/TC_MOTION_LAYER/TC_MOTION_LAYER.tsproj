@@ -1541,6 +1541,19 @@ External Setpoint Generation:
 			</ArrayInfo>
 		</DataType>
 		<DataType>
+			<Name GUID="{625A9843-6117-74FB-375F-32385DBE7CF9}" IecBaseType="true" AutoDeleteType="true">ARRAY [1..6] OF ARRAY [1..110] OF BYTE</Name>
+			<BitSize>5280</BitSize>
+			<BaseType GUID="{18071995-0000-0000-0000-000000000001}">BYTE</BaseType>
+			<ArrayInfo>
+				<LBound>1</LBound>
+				<Elements>6</Elements>
+			</ArrayInfo>
+			<ArrayInfo Level="1">
+				<LBound>1</LBound>
+				<Elements>110</Elements>
+			</ArrayInfo>
+		</DataType>
+		<DataType>
 			<Name GUID="{E18DB378-FBFC-83D3-CB8E-9657AB103123}" IecBaseType="true" AutoDeleteType="true">ARRAY [1..12] OF ARRAY [1..48] OF BYTE</Name>
 			<BitSize>4608</BitSize>
 			<BaseType GUID="{18071995-0000-0000-0000-000000000001}">BYTE</BaseType>
@@ -1567,19 +1580,6 @@ External Setpoint Generation:
 			</ArrayInfo>
 		</DataType>
 		<DataType>
-			<Name GUID="{625A9843-6117-74FB-375F-32385DBE7CF9}" IecBaseType="true" AutoDeleteType="true">ARRAY [1..6] OF ARRAY [1..110] OF BYTE</Name>
-			<BitSize>5280</BitSize>
-			<BaseType GUID="{18071995-0000-0000-0000-000000000001}">BYTE</BaseType>
-			<ArrayInfo>
-				<LBound>1</LBound>
-				<Elements>6</Elements>
-			</ArrayInfo>
-			<ArrayInfo Level="1">
-				<LBound>1</LBound>
-				<Elements>110</Elements>
-			</ArrayInfo>
-		</DataType>
-		<DataType>
 			<Name GUID="{FB1926EE-10E1-66A4-2606-D6D6BD51ECFA}" AutoDeleteType="true">ST_DC_State</Name>
 			<BitSize>128</BitSize>
 			<SubItem>
@@ -1603,7 +1603,7 @@ External Setpoint Generation:
 			</SubItem>
 		</DataType>
 		<DataType>
-			<Name IecBaseType="true">ARRAY [1..12] OF ST_DC_State</Name>
+			<Name GUID="{FB4A053D-D65E-5592-5B7A-CE51DE2B3CA9}" IecBaseType="true" AutoDeleteType="true">ARRAY [1..12] OF ST_DC_State</Name>
 			<BitSize>1536</BitSize>
 			<BaseType GUID="{FB1926EE-10E1-66A4-2606-D6D6BD51ECFA}">ST_DC_State</BaseType>
 			<ArrayInfo>
@@ -1640,7 +1640,7 @@ External Setpoint Generation:
 			</SubItem>
 		</DataType>
 		<DataType>
-			<Name IecBaseType="true">ARRAY [1..12] OF ST_DC_Input</Name>
+			<Name GUID="{3441D623-627F-8E25-F47A-2FACB016A267}" IecBaseType="true" AutoDeleteType="true">ARRAY [1..12] OF ST_DC_Input</Name>
 			<Comment><![CDATA[ distributed clock digital input with timestamps positive & negative]]></Comment>
 			<BitSize>2304</BitSize>
 			<BaseType GUID="{3EDD5613-A12B-B69D-D15F-34BE81F2E37B}">ST_DC_Input</BaseType>
@@ -1666,7 +1666,7 @@ External Setpoint Generation:
 			</SubItem>
 		</DataType>
 		<DataType>
-			<Name IecBaseType="true">ARRAY [1..12] OF ST_MTI_INPUT</Name>
+			<Name GUID="{4E48576F-1551-779E-31BE-411D9C7FCA78}" IecBaseType="true" AutoDeleteType="true">ARRAY [1..12] OF ST_MTI_INPUT</Name>
 			<Comment><![CDATA[ multi time stamp, one channel]]></Comment>
 			<BitSize>768</BitSize>
 			<BaseType GUID="{2DA1CE76-F875-8108-C342-49F59C7F80F6}">ST_MTI_INPUT</BaseType>
@@ -1732,7 +1732,7 @@ External Setpoint Generation:
 			</SubItem>
 		</DataType>
 		<DataType>
-			<Name IecBaseType="true">ARRAY [1..12] OF ST_MTI_STATUS</Name>
+			<Name GUID="{4853C4EA-22CB-BF02-DA41-B003927CFE82}" IecBaseType="true" AutoDeleteType="true">ARRAY [1..12] OF ST_MTI_STATUS</Name>
 			<Comment><![CDATA[ multi time stamp status from terminal]]></Comment>
 			<BitSize>480</BitSize>
 			<BaseType GUID="{B43F33C0-1597-9839-2E7B-9DB4E0A02B0D}">ST_MTI_STATUS</BaseType>
@@ -1874,7 +1874,7 @@ External Setpoint Generation:
 			</SubItem>
 		</DataType>
 		<DataType>
-			<Name IecBaseType="true">ARRAY [1..12] OF ST_DC_Output</Name>
+			<Name GUID="{ECDFD6AE-38AB-39CF-643C-0C978175EB31}" IecBaseType="true" AutoDeleteType="true">ARRAY [1..12] OF ST_DC_Output</Name>
 			<BitSize>1536</BitSize>
 			<BaseType GUID="{06147818-728D-5192-678D-4930B1B5136A}">ST_DC_Output</BaseType>
 			<ArrayInfo>
@@ -2844,7 +2844,7 @@ External Setpoint Generation:
 		</Motion>
 		<Plc>
 			<Project GUID="{15B1A673-79C3-4349-91F3-F549A08073E6}" Name="PLC_MOTION" PrjFilePath="PLC_MOTION\PLC_MOTION.plcproj" TmcFilePath="PLC_MOTION\PLC_MOTION.tmc" CompilerDefines="TEST, CAM, XFC, NCI, BSD, AXIS_MAP, CAM_MAP, NCI_MAP, TRIGGER_MAP" ReloadTmc="true" AmsPort="851" FileArchiveSettings="#x000e" SymbolicMapping="true">
-				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcHash="{DD73A295-A678-BBCC-E24C-42BD359E2F3B}" TmcPath="PLC_MOTION\PLC_MOTION.tmc">
+				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcHash="{5F2CDC33-A205-C865-305F-A83674789EA4}" TmcPath="PLC_MOTION\PLC_MOTION.tmc">
 					<Name>PLC_MOTION Instance</Name>
 					<CLSID ClassFactory="TcPlc30">{08500001-0000-0000-F000-000000000064}</CLSID>
 					<Vars VarGrpType="2" AreaNo="1">
@@ -2957,16 +2957,16 @@ External Setpoint Generation:
 							<Type GUID="{06FD5805-D0D7-94D3-79B9-E8163A9175FF}">ARRAY [1..6] OF ARRAY [1..2] OF BYTE</Type>
 						</Var>
 						<Var>
+							<Name>MAPPING_in.CamData.byCtrl</Name>
+							<Type GUID="{625A9843-6117-74FB-375F-32385DBE7CF9}">ARRAY [1..6] OF ARRAY [1..110] OF BYTE</Type>
+						</Var>
+						<Var>
 							<Name>MAPPING_in.TriggerControl.byCtrl</Name>
 							<Type GUID="{E18DB378-FBFC-83D3-CB8E-9657AB103123}">ARRAY [1..12] OF ARRAY [1..48] OF BYTE</Type>
 						</Var>
 						<Var>
 							<Name>MAPPING_in.TouchProbeControl.byCtrl</Name>
 							<Type GUID="{32E882A5-2BD7-CC13-A9FB-03B6A492DC73}">ARRAY [1..12] OF ARRAY [1..32] OF BYTE</Type>
-						</Var>
-						<Var>
-							<Name>MAPPING_out.CamData.byCtrl</Name>
-							<Type GUID="{625A9843-6117-74FB-375F-32385DBE7CF9}">ARRAY [1..6] OF ARRAY [1..110] OF BYTE</Type>
 						</Var>
 						<Var>
 							<Name>GVL_AXIS.AxisRef[1].NcToPlc</Name>
@@ -3012,6 +3012,13 @@ External Setpoint Generation:
 							<Type GUID="{4853C4EA-22CB-BF02-DA41-B003927CFE82}">ARRAY [1..12] OF ST_MTI_STATUS</Type>
 						</Var>
 					</Vars>
+					<UnrestoredVarLinks ImportTime="2026-05-14T06:22:36">
+						<OwnerA Name="InputDst" Prefix="TIPC^PLC_MOTION^PLC_MOTION Instance" Type="1">
+							<OwnerB Name="TIPC^ExternControl^ExternControl Instance">
+								<Link VarA="MAPPING_out.CamData.byCtrl" TypeA="ARRAY [1..6] OF ARRAY [1..110] OF BYTE" InOutA="0" GuidA="{625A9843-6117-74FB-375F-32385DBE7CF9}" VarB="PlcTask Outputs^MAPPING_out.CamData.byCtrl" RestoreInfo="ANotFound"/>
+							</OwnerB>
+						</OwnerA>
+					</UnrestoredVarLinks>
 					<Contexts>
 						<Context>
 							<Id>0</Id>
@@ -3029,7 +3036,7 @@ External Setpoint Generation:
 				</Instance>
 			</Project>
 			<Project GUID="{FF61B10C-B72E-4A7C-A8B2-8A4CC1B13313}" Name="ExternControl" PrjFilePath="ExternControl\ExternControl.plcproj" TmcFilePath="ExternControl\ExternControl.tmc" CompilerDefines="BSD" ReloadTmc="true" AmsPort="852" FileArchiveSettings="#x000e" SymbolicMapping="true">
-				<Instance Id="#x08502040" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcHash="{0ED9607C-58E0-1D1D-08F0-B78A1D15AE7E}" TmcPath="ExternControl\ExternControl.tmc">
+				<Instance Id="#x08502040" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcHash="{1B3CDE78-6DBF-02A3-E724-0BBA858B1E5C}" TmcPath="ExternControl\ExternControl.tmc">
 					<Name>ExternControl Instance</Name>
 					<CLSID ClassFactory="TcPlc30">{08500001-0000-0000-F000-000000000064}</CLSID>
 					<Vars VarGrpType="2" AreaNo="1">
@@ -3144,7 +3151,7 @@ External Setpoint Generation:
 				<Link VarA="PlcTask Outputs^MAPPING_out.AxisMoveData.byCtrl" VarB="PlcTask Inputs^MAPPING_in.AxisMoveData.byCtrl"/>
 				<Link VarA="PlcTask Outputs^MAPPING_out.AxisParameterWrt.byCtrl" VarB="PlcTask Inputs^MAPPING_in.AxisParameterWrt.byCtrl"/>
 				<Link VarA="PlcTask Outputs^MAPPING_out.CamCtrl.byCtrl" VarB="PlcTask Inputs^MAPPING_in.CamControl.byCtrl"/>
-				<Link VarA="PlcTask Outputs^MAPPING_out.CamData.byCtrl" VarB="PlcTask Inputs^MAPPING_out.CamData.byCtrl"/>
+				<Link VarA="PlcTask Outputs^MAPPING_out.CamData.byCtrl" VarB="PlcTask Inputs^MAPPING_in.CamData.byCtrl"/>
 				<Link VarA="PlcTask Outputs^MAPPING_out.TouchCtrl.byCtrl" VarB="PlcTask Inputs^MAPPING_in.TouchProbeControl.byCtrl"/>
 				<Link VarA="PlcTask Outputs^MAPPING_out.TriggerCtrl.byCtrl" VarB="PlcTask Inputs^MAPPING_in.TriggerControl.byCtrl"/>
 			</OwnerB>

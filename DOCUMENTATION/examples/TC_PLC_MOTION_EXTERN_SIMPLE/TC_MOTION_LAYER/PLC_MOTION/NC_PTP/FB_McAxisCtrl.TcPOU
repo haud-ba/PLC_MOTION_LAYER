@@ -2464,7 +2464,7 @@ END_VAR
       <Declaration><![CDATA[METHOD PRIVATE LogControl
 VAR_INST
   _sResult,
-  _sCtrl            : STRING(30);
+  _sCtrl            : STRING(40);
 
   _stMsg            : ST_Message;
 END_VAR
@@ -2492,7 +2492,7 @@ END_VAR
       <Declaration><![CDATA[METHOD PRIVATE LogResult
 VAR_INST
   _sResult,
-  _sCtrl            : STRING(30);
+  _sCtrl            : STRING(40);
 
   _stMsg            : ST_Message;
 END_VAR

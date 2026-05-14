@@ -1,0 +1,203 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="TEST" Id="{4737159f-1622-48b6-9a70-000d99d356e0}" SpecialFunc="None">
+    <Declaration><![CDATA[//-----------------------------------------------------------------------------------------------------------------
+// ExternControl: EXT_MOTION_CONTROL
+//
+// BASIC SEQUENCES for controlling PLC_MOTION_LAYER
+//-----------------------------------------------------------------------------------------------------------------
+PROGRAM TEST
+VAR
+  bStart        : BOOL;
+  nState,
+  nStateNext    : UINT;
+
+  nModulo       : UINT := 10_000;
+
+  nCount,
+  nCycle,
+  nWait         : UINT;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+// examples to illustrate Ctrl/State use
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+CASE nState
+OF
+  0,
+  10:
+    IF bStart
+    THEN
+      nCount                    :=   0;
+      nCycle                    :=   5;
+      nState                    := 100;
+    END_IF
+
+
+  100:
+    GVL_AXIS.Ctrl[1].eCmd       := E_AXIS_CTRL.AXIS_ENABLE;
+    IF (GVL_AXIS.State[1].eState = E_AXIS_STATE.AXIS_ENABLE + E_PROGRESS.PROGRESS_ERROR)
+    THEN
+      nState                    := 9000;  // error reaction required, e.g. RESET
+
+    ELSIF (GVL_AXIS.State[1].eState = E_AXIS_STATE.AXIS_ENABLE + E_PROGRESS.PROGRESS_DONE)
+    THEN
+      nState                    := 101;
+    END_IF
+
+  101:
+    GVL_AXIS.Ctrl[2].eCmd       := E_AXIS_CTRL.AXIS_ENABLE;
+    IF (GVL_AXIS.State[2].eState = E_AXIS_STATE.AXIS_ENABLE + E_PROGRESS.PROGRESS_ERROR)
+    THEN
+      nState                    := 9001;  // error reaction required, e.g. RESET
+
+    ELSIF (GVL_AXIS.State[2].eState = E_AXIS_STATE.AXIS_ENABLE + E_PROGRESS.PROGRESS_DONE)
+    THEN
+      nState                    := 102;
+    END_IF
+
+  102:
+    GVL_AXIS.Ctrl[3].eCmd       := E_AXIS_CTRL.AXIS_ENABLE;
+    IF (GVL_AXIS.State[3].eState = E_AXIS_STATE.AXIS_ENABLE + E_PROGRESS.PROGRESS_ERROR)
+    THEN
+      nState                    := 9002;  // error reaction required, e.g. RESET
+
+    ELSIF (GVL_AXIS.State[3].eState = E_AXIS_STATE.AXIS_ENABLE + E_PROGRESS.PROGRESS_DONE)
+    THEN
+      nState                    := 110;
+    END_IF
+
+  110:
+    GVL_AXIS.Data[1].rSetPos    :=   3141.59;
+    GVL_AXIS.Data[1].rSetVelo   :=    271.82;
+    GVL_AXIS.Data[1].rAcc       :=   9810.00;
+    GVL_AXIS.Data[1].rDec       :=   9810.00;
+    GVL_AXIS.Data[1].rJerk      := 299792.46;
+
+    GVL_AXIS.Ctrl[1].eCmd       := E_AXIS_CTRL.AXIS_MOVE_POS;
+    IF (GVL_AXIS.State[1].eState = E_AXIS_STATE.AXIS_MOVE_POS + E_PROGRESS.PROGRESS_ERROR)
+    THEN
+      nState                    := 9010;  // error reaction required, e.g. RESET
+
+    ELSIF (GVL_AXIS.State[1].eState = E_AXIS_STATE.AXIS_MOVE_POS + E_PROGRESS.PROGRESS_DONE)
+    THEN
+      nState                    := 120;
+    END_IF
+
+  120:
+    GVL_AXIS.Data[2].rSetVelo   :=    666.00;
+    GVL_AXIS.Data[2].rAcc       :=  15000.00;
+    GVL_AXIS.Data[2].rDec       :=  15000.00;
+    GVL_AXIS.Data[2].rJerk      := 300000.00;
+    GVL_AXIS.Data[2].iDirection :=      1;
+
+    GVL_AXIS.Ctrl[2].eCmd       := E_AXIS_CTRL.AXIS_MOVE_VELO;
+    IF (GVL_AXIS.State[2].eState = E_AXIS_STATE.AXIS_MOVE_VELO + E_PROGRESS.PROGRESS_ERROR)
+    THEN
+      nState                    := 9020;  // error reaction required, e.g. RESET
+
+    ELSIF (GVL_AXIS.State[2].eState = E_AXIS_STATE.AXIS_MOVE_VELO + E_PROGRESS.PROGRESS_DONE)
+    THEN
+      nState                    := 1000;
+      nStateNext                :=  130;
+    END_IF
+
+  130:
+    GVL_AXIS.Data[3].rSetVelo   :=   1234.00;
+    GVL_AXIS.Data[3].rAcc       :=  15000.00;
+    GVL_AXIS.Data[3].rDec       :=  15000.00;
+    GVL_AXIS.Data[3].rJerk      := 300000.00;
+    GVL_AXIS.Data[3].iDirection :=     -1;
+
+    GVL_AXIS.Ctrl[3].eCmd       := E_AXIS_CTRL.AXIS_MOVE_BUFFER_VELO;
+    IF (GVL_AXIS.State[3].eState = E_AXIS_STATE.AXIS_MOVE_BUFFER_VELO + E_PROGRESS.PROGRESS_ERROR)
+    THEN
+      nState                    := 9300;  // error reaction required, e.g. RESET
+
+    ELSIF (GVL_AXIS.State[3].eState = E_AXIS_STATE.AXIS_MOVE_BUFFER_VELO + E_PROGRESS.PROGRESS_WORKING)
+    THEN
+      nState                    := 1000;
+      nStateNext                :=  140;
+    END_IF
+
+  140:
+    GVL_AXIS.Data[3].rSetVelo   :=   1414.00;
+    GVL_AXIS.Data[3].rAcc       :=  15000.00;
+    GVL_AXIS.Data[3].rDec       :=  15000.00;
+    GVL_AXIS.Data[3].rJerk      := 300000.00;
+    GVL_AXIS.Data[3].iDirection :=     -1;
+
+    GVL_AXIS.Ctrl[3].eCmd       := E_AXIS_CTRL.AXIS_MOVE_BUFFER_VELO;
+    IF (GVL_AXIS.State[3].eState = E_AXIS_STATE.AXIS_MOVE_BUFFER_VELO + E_PROGRESS.PROGRESS_ERROR)
+    THEN
+      nState                    := 9301;  // error reaction required, e.g. RESET
+
+    ELSIF (GVL_AXIS.State[3].eState = E_AXIS_STATE.AXIS_MOVE_BUFFER_VELO + E_PROGRESS.PROGRESS_WORKING)
+    THEN
+      nState                    := 1000;
+      nStateNext                :=  130;
+      nCount                    := nCount + 1;
+    END_IF
+
+  200:
+    GVL_AXIS.Data[3].rSetVelo   :=      0.00;
+    GVL_AXIS.Data[3].rAcc       :=  15000.00;
+    GVL_AXIS.Data[3].rDec       :=  15000.00;
+    GVL_AXIS.Data[3].rJerk      := 300000.00;
+
+    GVL_AXIS.Ctrl[3].eCmd       := E_AXIS_CTRL.AXIS_HALT;
+    IF (GVL_AXIS.State[3].eState = E_AXIS_STATE.AXIS_HALT + E_PROGRESS.PROGRESS_ERROR)
+    THEN
+      nState                    := 9400;  // error reaction required, e.g. RESET
+
+    ELSIF (GVL_AXIS.State[3].eState = E_AXIS_STATE.AXIS_HALT + E_PROGRESS.PROGRESS_DONE)
+    THEN
+      nState                    :=  201;
+    END_IF
+
+  201:
+    GVL_AXIS.Data[2].rSetVelo   :=      0.00;
+    GVL_AXIS.Data[2].rAcc       :=  15000.00;
+    GVL_AXIS.Data[2].rDec       :=  15000.00;
+    GVL_AXIS.Data[2].rJerk      := 300000.00;
+
+    GVL_AXIS.Ctrl[2].eCmd       := E_AXIS_CTRL.AXIS_HALT;
+    IF (GVL_AXIS.State[2].eState = E_AXIS_STATE.AXIS_HALT + E_PROGRESS.PROGRESS_ERROR)
+    THEN
+      nState                    := 9500;  // error reaction required, e.g. RESET
+
+    ELSIF (GVL_AXIS.State[2].eState = E_AXIS_STATE.AXIS_HALT + E_PROGRESS.PROGRESS_DONE)
+    THEN
+      nState                    := 10000;
+    END_IF
+
+
+  1000:
+    nWait                       := nWait + 1;
+    IF (nWait MOD nModulo = 0)
+    THEN
+      nWait                     := 0;
+      nState                    := nStateNext;
+
+      IF (nCount > nCycle-1)
+      THEN
+        nState                  := 200;
+      END_IF
+    END_IF
+
+  10000:
+    IF bStart
+    THEN
+      nState                    := 10; // repeat
+    END_IF
+END_CASE
+]]></ST>
+    </Implementation>
+    <LineIds Name="TEST">
+      <LineId Id="1" Count="174" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

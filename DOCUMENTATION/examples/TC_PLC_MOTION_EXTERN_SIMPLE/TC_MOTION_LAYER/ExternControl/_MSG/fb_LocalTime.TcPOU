@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1">
-  <POU Name="fb_LocalTime" Id="{90178b84-1a25-4e7e-8051-3efbf38466c5}" SpecialFunc="None">
+  <POU Name="fb_LocalTime" Id="{1881e48d-b735-46ac-af5d-f819229e98a8}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK fb_LocalTime
 VAR_INPUT
 

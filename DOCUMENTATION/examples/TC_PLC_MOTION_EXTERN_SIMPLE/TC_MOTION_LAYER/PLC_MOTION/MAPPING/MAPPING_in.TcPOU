@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.13">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
   <POU Name="MAPPING_in" Id="{e84de69b-ba26-07ad-1592-7be68e226b51}" SpecialFunc="None">
     <Declaration><![CDATA[PROGRAM MAPPING_in
 VAR CONSTANT
@@ -79,8 +79,10 @@ VAR
 //-----------------------------------------------------------------------------------------------------------------
 {IF defined (CAM_MAP)}
   CamControl                : U_CAM_CTRL;
+  CamData                   : U_CAM_DATA;
 {ELSE}
   CamControl                : BYTE;
+  CamData                   : byte;
 {END_IF}
 //-----------------------------------------------------------------------------------------------------------------
 //  .....
@@ -159,6 +161,7 @@ END_IF
 IF NOT bBypassMappingCam
 THEN
   memcpy(ADR(GVL_CAM.Ctrl),                  ADR(CamControl),           SIZEOF(CamControl));
+  memcpy(ADR(GVL_CAM.Data),                  ADR(CamData),              SIZEOF(CamData));
 END_IF
 //--------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------
@@ -342,6 +345,7 @@ Check                   := TRUE;
       <LineId Id="243" Count="0" />
       <LineId Id="245" Count="0" />
       <LineId Id="138" Count="0" />
+      <LineId Id="376" Count="0" />
       <LineId Id="246" Count="0" />
       <LineId Id="358" Count="1" />
       <LineId Id="210" Count="0" />

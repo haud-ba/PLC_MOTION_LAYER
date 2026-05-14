@@ -1,7 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1">
   <POU Name="MAIN" Id="{9bc05cf8-27df-4baf-8c2e-8597e29fd5e7}" SpecialFunc="None">
-    <Declaration><![CDATA[PROGRAM MAIN
+    <Declaration><![CDATA[//-----------------------------------------------------------------------------------------------------------------
+// ExternControl: EXT_MOTION_CONTROL
+//
+// BASIC EXAMPLE for controlling PLC_MOTION_LAYER
+//-----------------------------------------------------------------------------------------------------------------
+PROGRAM MAIN
 VAR
   nAxis           : UINT := 1;  // you choose
 
@@ -13,10 +18,26 @@ VAR
 
   eCtrlFunction   : E_AXIS_CTRL   := E_AXIS_CTRL.AXIS_ENABLE;   // for you to set
   eStateFunction  : E_AXIS_STATE  := E_AXIS_STATE.AXIS_ENABLE;  // for you to set so the result can be checked correctly
+
+  stMsg           : ST_Message;
+  eMsgState       : e_message_state;
+  eMsgProgress    : E_PROGRESS;
 END_VAR
 ]]></Declaration>
     <Implementation>
       <ST><![CDATA[//-----------------------------------------------------------------------------------------------------------------
+// Local time; used for timestamps
+//-----------------------------------------------------------------------------------------------------------------
+GVL_MSG.fbLocalTime(
+                    sLocalTime                => GVL_MSG.sLocalTime, 
+                    dtLocalTime               => GVL_MSG.dtLocalTime);
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+// BASIC SEQUENCE for controlling PLC_MOTION_LAYER
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+TEST();
+//-----------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------
 // BASIC EXAMPLE for controlling PLC_MOTION_LAYER
 //-----------------------------------------------------------------------------------------------------------------
@@ -89,11 +110,65 @@ END_CASE
 //-----------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------
+//  /logging
+//    - all life is problem solving
+//-----------------------------------------------------------------------------------------------------------------
+GVL_MSG.MotionMessageData.Ctrl                REF= GVL_MSG.MotionMessageCtrl;
+GVL_MSG.MotionMessageData.State               REF= GVL_MSG.MotionMessageState;
+
+GVL_MSG.MotionMessageData.MessageIndex        REF= GVL_MSG.MessageMotionIndex;
+GVL_MSG.MotionMessageData.ErrorIndex          REF= GVL_MSG.MessageMotionError;
+
+GVL_MSG.MotionMessageData.DirRoot             :=   ADR(GVL_MSG.LOG_DIR);
+GVL_MSG.MotionMessageData.FileRoot            :=   ADR(GVL_MSG.LOG_FILE);
+
+GVL_MSG.MotionMessageData.MsgList             :=   ADR(GVL_MSG.MotionMessages);
+GVL_MSG.MotionMessageData.LocalTime           :=   ADR(GVL_MSG.dtLocalTime);
+
+GVL_MSG.MotionMessageData();               
+
+eMsgState                                     :=   f_GetState   (GVL_MSG.MotionMessageState.State);
+eMsgProgress                                  :=   f_GetProgress(GVL_MSG.MotionMessageState.State);
+
+CASE eMsgState
+OF
+  E_MESSAGE_STATE.MSG_STATE_NULL:
+    CASE eMsgProgress
+    OF
+      E_PROGRESS.PROGRESS_INVALID,
+      E_PROGRESS.PROGRESS_DONE:
+        IF (GVL_MSG.MessageMotionIndex > GVL_MSG.MAX_MESSAGE/100) OR
+           (GVL_MSG.MessageMotionError > 0)
+        THEN
+          GVL_MSG.MotionMessageCtrl.Cmd       := E_MESSAGE_CTRL.MSG_CTRL_WRITE;
+        END_IF
+    END_CASE
+
+  E_MESSAGE_STATE.MSG_STATE_WRITE:
+    CASE eMsgProgress
+    OF
+      E_PROGRESS.PROGRESS_ERROR,
+      E_PROGRESS.PROGRESS_DONE:
+        GVL_MSG.MotionMessageCtrl.Cmd         := E_MESSAGE_CTRL.MSG_CTRL_NULL;
+    END_CASE
+
+ELSE
+    CASE eMsgProgress
+    OF
+      E_PROGRESS.PROGRESS_DONE:
+        GVL_MSG.MotionMessageCtrl.Cmd         := E_MESSAGE_CTRL.MSG_CTRL_NULL;
+    END_CASE
+END_CASE
+//-----------------------------------------------------------------------------------------------------------------
+//  logging/
+//-----------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------
 
 ]]></ST>
     </Implementation>
     <LineIds Name="MAIN">
+      <LineId Id="120" Count="5" />
+      <LineId Id="180" Count="5" />
       <LineId Id="4" Count="4" />
       <LineId Id="41" Count="0" />
       <LineId Id="65" Count="1" />
@@ -120,7 +195,7 @@ END_CASE
       <LineId Id="64" Count="0" />
       <LineId Id="34" Count="0" />
       <LineId Id="82" Count="34" />
-      <LineId Id="118" Count="1" />
+      <LineId Id="126" Count="53" />
       <LineId Id="117" Count="0" />
       <LineId Id="29" Count="0" />
     </LineIds>

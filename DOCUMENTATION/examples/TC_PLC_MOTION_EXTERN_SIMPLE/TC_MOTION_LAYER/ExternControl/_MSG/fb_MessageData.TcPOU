@@ -1,0 +1,598 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="fb_MessageData" Id="{21e1a4c0-0557-4b6b-ab1d-a417e15a0ea4}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK ABSTRACT fb_MessageData IMPLEMENTS I_MessageData
+VAR CONSTANT
+{attribute 'hide'}
+  STR_LEN       : UDINT := 524_288;
+END_VAR
+VAR
+  _eCheck       : E_MESSAGE_CHECK;            // pointer check state
+
+  _pFileRoot    : POINTER TO STRING(255);     // you decide (example in GVL_MSG.LOG_FILE)
+  _pDirRoot     : POINTER TO STRING(255);     // see GVL_MSG.LOG_DIR
+
+  _nMsgIndex    : REFERENCE TO UINT;          // Hypnos IS the only one in the village, if there are more you need more villages
+  _nErrIndex    : REFERENCE TO UINT;          // Thanatos, Hypnos stern and more serious brother
+
+  _dtLocalTime  : POINTER TO DT;
+  _pMsgList     : POINTER TO ARRAY[1..GVL_MSG.MAX_MESSAGE] OF ST_Message; // attach your list here
+
+	_rtrigReset   : Tc2_Standard.R_TRIG;
+	_aWriteList   : ARRAY[1..GVL_MSG.MAX_MESSAGE] OF ST_Message;
+	_sWriteData   : STRING(STR_LEN);
+	_sNewLine     : STRING := '$N';
+	_sTab         : STRING := '$T';
+	_iCount, 
+	_iStart, 
+	_iEnd         : UINT;
+
+	_fbCreateDir  : Tc2_System.FB_CreateDir;
+	_sTmp         : STRING(256);
+	_sFilename    : STRING(256);
+	_sFolderDate  : STRING;
+	_bFileCreated : BOOL;
+
+	_fbFileOpen   : Tc2_System.FB_FileOpen;
+	_fbFileWrite  : Tc2_System.FB_FileWrite;
+	_fbFileClose  : Tc2_System.FB_FileClose;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Folder Name="methods" Id="{5b4fc9c5-14b4-4ce0-a6ea-6af0ddc64c60}" />
+    <Folder Name="properties" Id="{ce97754e-c8ec-43a2-a65f-d52225911f81}" />
+    <Method Name="Builder" Id="{16745f76-22e9-40cb-bd28-a5f3ae9e5f4b}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD Builder : BOOL // string concat for length > 255
+VAR_INPUT
+  pInString   : POINTER TO STRING;
+  pOutString  : POINTER TO STRING(STR_LEN);
+  Length      : UINT;
+END_VAR
+VAR
+  Counter     : UDINT;
+  pInWork     : POINTER TO BYTE;
+  pOutWork    : POINTER TO BYTE;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[pOutWork := pOutString;
+pInWork := pInString;
+Counter := 0;
+
+(*check termination*)
+WHILE (pOutWork^ <> 0) AND
+      (Counter < STR_LEN+1)
+DO
+  Counter := Counter + 1;
+  pOutWork := pOutWork + 1;
+END_WHILE
+
+(* append only if data fits into output *)
+IF (Counter + Length < STR_LEN+1)
+THEN
+
+  (* append data *)
+  FOR Counter := 1 TO Length
+  DO
+    pOutWork^ := pInWork^;
+    pOutWork := pOutWork + 1;
+    pInWork := pInWork + 1;
+  END_FOR
+
+  (* terminate *)
+  pOutWork := pOutWork + 1;
+  pOutWork^ := 0;
+END_IF
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Check" Id="{be42be65-4431-4233-83ab-07c798e16111}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD Check : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[
+IF NOT (_dtLocalTime <> 0)
+THEN
+  _eCheck       := E_MESSAGE_CHECK.MSG_CHECK_INVALID_POINTER_TIME;
+  RETURN;
+END_IF
+
+IF NOT (_pMsgList <> 0)
+THEN
+  _eCheck       := E_MESSAGE_CHECK.MSG_CHECK_INVALID_POINTER_LIST;
+  RETURN;
+END_IF
+
+IF NOT (_pFileRoot <> 0)
+THEN
+  _eCheck       := E_MESSAGE_CHECK.MSG_CHECK_INVALID_POINTER_ROOT_FILE;
+  RETURN;
+END_IF
+
+IF NOT (_pDirRoot <> 0)
+THEN
+  _eCheck       := E_MESSAGE_CHECK.MSG_CHECK_INVALID_POINTER_ROOT_DIR;
+  RETURN;
+END_IF
+
+IF NOT __ISVALIDREF(_nMsgIndex)
+THEN
+  _eCheck       := E_MESSAGE_CHECK.MSG_CHECK_INVALID_POINTER_MSG_IDX;
+  RETURN;
+END_IF
+
+IF NOT __ISVALIDREF(_nErrIndex)
+THEN
+  _eCheck       := E_MESSAGE_CHECK.MSG_CHECK_INVALID_POINTER_ERR_IDX;
+  RETURN;
+END_IF
+
+
+_eCheck         := E_MESSAGE_CHECK.MSG_CHECK_DONE;
+Check           := TRUE;
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Device_to_String" Id="{6b93d30c-2690-4e86-a40f-f011df4614cf}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD Device_to_String : string
+VAR_INPUT
+  eMsgDevice    : e_Device;
+END_VAR
+VAR
+  sId                 : STRING := '_ID_';
+  nId                 : UDINT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF (eMsgDevice < e_device.General)
+THEN
+  // below general case
+  nId := TO_UDINT(eMsgDevice);
+  sId := concat(sId, TO_STRING(nId));
+
+  Device_to_String := concat(TO_STRING(eMsgDevice), sId);
+
+ELSE
+  IF (eMsgDevice >= e_Device.DataProduct)
+  THEN
+    nId := eMsgDevice MOD e_Device.DataProduct;
+    sId := concat(sId, TO_STRING(nId));
+ 
+    Device_to_String := concat(TO_STRING(e_Device.DataProduct), sId);
+
+  ELSIF (eMsgDevice >= e_Device.Application)
+  THEN
+    nId := eMsgDevice MOD e_Device.Application;
+    sId := concat(sId, TO_STRING(nId));
+ 
+    Device_to_String := concat(TO_STRING(e_Device.Application), sId);
+
+  ELSIF (eMsgDevice >= e_Device.Process)
+  THEN
+    nId := eMsgDevice MOD e_Device.Process;
+    sId := concat(sId, TO_STRING(nId));
+ 
+    Device_to_String := concat(TO_STRING(e_Device.Process), sId);
+
+  ELSIF (eMsgDevice >= e_Device.Metrics)
+  THEN
+    nId := eMsgDevice MOD e_Device.Metrics;
+    sId := concat(sId, TO_STRING(nId));
+ 
+    Device_to_String := concat(TO_STRING(e_device.Metrics), sId);
+
+  ELSIF (eMsgDevice >= e_device.XfcAxis)
+  THEN
+    nId := eMsgDevice MOD e_device.XfcAxis;
+    sId := concat(sId, TO_STRING(nId));
+ 
+    Device_to_String := concat(TO_STRING(e_device.XfcAxis), sId);
+
+  ELSIF (eMsgDevice >= e_device.Axis)
+  THEN
+    nId := eMsgDevice MOD e_device.Axis;
+    sId := concat(sId, TO_STRING(nId));
+ 
+    Device_to_String := concat(TO_STRING(e_device.Axis), sId);
+
+  ELSIF (eMsgDevice >= e_device.NciChannelCtrl)
+  THEN
+    nId := eMsgDevice MOD e_device.NciChannelCtrl;
+    sId := concat(sId, TO_STRING(nId));
+ 
+    Device_to_String := concat(TO_STRING(e_device.NciChannelCtrl), sId);
+
+  ELSIF (eMsgDevice >= e_device.NciChannel)
+  THEN
+    nId := eMsgDevice MOD e_device.NciChannel;
+    sId := concat(sId, TO_STRING(nId));
+ 
+    Device_to_String := concat(TO_STRING(e_device.NciChannel), sId);
+
+  ELSIF (eMsgDevice >= e_Device.Camming)
+  THEN
+    nId := eMsgDevice MOD e_Device.Camming;
+    sId := concat(sId, TO_STRING(nId));
+ 
+    Device_to_String := concat(TO_STRING(e_device.Camming), sId);
+
+  ELSIF (eMsgDevice >= e_Device.XtsStation)
+  THEN
+    nId := eMsgDevice MOD e_Device.XtsStation;
+    sId := concat(sId, TO_STRING(nId));
+ 
+    Device_to_String := concat(TO_STRING(e_device.XtsStation), sId);
+
+  ELSIF (eMsgDevice >= e_Device.XfcTouchProbe)
+  THEN
+    nId := eMsgDevice MOD e_Device.XfcTouchProbe;
+    sId := concat(sId, TO_STRING(nId));
+ 
+    Device_to_String := concat(TO_STRING(e_device.XfcTouchProbe), sId);
+
+  ELSIF (eMsgDevice >= e_Device.XfcTriggerBox)
+  THEN
+    nId := eMsgDevice MOD e_Device.XfcTriggerBox;
+    sId := concat(sId, TO_STRING(nId));
+ 
+    Device_to_String := concat(TO_STRING(e_device.XfcTriggerBox), sId);
+
+  ELSIF (eMsgDevice >= e_Device.XtsTransportUnit)
+  THEN
+    nId := eMsgDevice MOD e_Device.XtsTransportUnit;
+    sId := concat(sId, TO_STRING(nId));
+ 
+    Device_to_String := concat(TO_STRING(e_device.XtsTransportUnit), sId);
+
+  ELSIF (eMsgDevice >= e_Device.MoverCtrl)
+  THEN
+    nId := eMsgDevice MOD e_Device.MoverCtrl;
+    sId := concat(sId, TO_STRING(nId));
+ 
+    Device_to_String := concat(TO_STRING(e_device.MoverCtrl), sId);
+
+  ELSIF (eMsgDevice >= e_Device.Mover)
+  THEN
+    nId := eMsgDevice MOD e_Device.Mover;
+    sId := concat(sId, TO_STRING(nId));
+ 
+    Device_to_String := concat(TO_STRING(e_device.Mover), sId);
+
+  ELSIF (eMsgDevice >= e_Device.XpuCtrl)
+  THEN
+    nId := eMsgDevice MOD e_Device.XpuCtrl;
+    sId := concat(sId, TO_STRING(nId));
+ 
+    Device_to_String := concat(TO_STRING(e_device.XpuCtrl), sId);
+
+  ELSIF (eMsgDevice >= e_Device.Xpu)
+  THEN
+    nId := eMsgDevice MOD e_Device.Xpu;
+    sId := concat(sId, TO_STRING(nId));
+ 
+    Device_to_String := concat(TO_STRING(e_device.Xpu), sId);
+
+  ELSIF (eMsgDevice >= e_Device.CaGroup)
+  THEN
+    nId := eMsgDevice MOD e_Device.CaGroup;
+    sId := concat(sId, TO_STRING(nId));
+ 
+    Device_to_String := concat(TO_STRING(e_device.CaGroup), sId);
+
+  ELSIF (eMsgDevice >= e_Device.General)
+  THEN
+    nId := eMsgDevice MOD e_Device.General;
+    sId := concat(sId, TO_STRING(nId));
+ 
+    Device_to_String := concat(TO_STRING(e_device.General), sId);
+
+  ELSE
+    Device_to_String := TO_STRING(eMsgDevice);
+  END_IF
+END_IF
+]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="DirRoot" Id="{d5d8cf7d-1f4e-41cb-8a48-b2fc6bc53f7a}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY DirRoot : POINTER to string(255)]]></Declaration>
+      <Set Name="Set" Id="{17c5626d-ab61-4bd3-ac03-a939882dcdc8}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_pDirRoot := DirRoot;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="ErrorIndex" Id="{fa7ff7ae-a401-4caf-b6e2-35a150369dc8}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY ErrorIndex : reference to uint]]></Declaration>
+      <Set Name="Set" Id="{bb0b6c10-9df5-4330-82bd-78c3a6ef9aee}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_nErrIndex  REF= ErrorIndex;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="FileRoot" Id="{9dcde919-f9f3-4718-aaff-c6ea5223d0ff}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY FileRoot : pointer to string(255)]]></Declaration>
+      <Set Name="Set" Id="{366f56a7-71bf-435e-bca3-0dff4d916440}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_pFileRoot := FileRoot;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Method Name="FolderDate" Id="{c1b15c24-5fda-4604-946e-d2f14784a2ff}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD FolderDate : STRING
+VAR_INPUT
+	LocalTime   : POINTER TO DT;
+END_VAR
+VAR
+	sTmp        : STRING;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT (LocalTime <> 0)
+THEN
+	FolderDate := 'NULL';
+	RETURN;
+END_IF
+
+sTmp := DT_TO_STRING(LocalTime^);
+
+// cut off #dt literal
+sTmp := right(sTmp, len(sTmp)-3);
+
+sTmp := replace(sTmp, '_', 1, 5);
+sTmp := replace(sTmp, '_', 1, 8);
+
+sTmp := left(sTmp,10);	// year_month_day
+
+FolderDate := sTmp;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="LocalTime" Id="{c82784a8-860a-4da2-a136-0e352dd4b36e}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY LocalTime : pointer to DT]]></Declaration>
+      <Set Name="Set" Id="{1eeb3ebe-7d79-40da-a23a-42c0a2958591}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_dtLocalTime := LocalTime;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="MessageIndex" Id="{12cb2bd0-0495-477f-b642-e9ddb64529d3}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY MessageIndex : reference to uint]]></Declaration>
+      <Set Name="Set" Id="{ff58ab39-095c-485d-9238-3f1f541bcaaf}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_nMsgIndex   REF= MessageIndex;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="MsgList" Id="{c95e8ee5-92d3-424c-bdbb-b0f7330c65a8}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY MsgList : pointer to ARRAY[1..GVL_MSG.MAX_MESSAGE] OF st_message]]></Declaration>
+      <Set Name="Set" Id="{3eb256ab-685d-40a3-b406-e8871c3c48ca}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_pMsgList := MsgList;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Method Name="StringLen" Id="{0eea7e10-7748-4e94-95a6-7d7a0eae46ee}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD StringLen : UINT // 	string length for len > 255
+VAR_INPUT
+  pInString		: POINTER TO STRING(STR_LEN);
+END_VAR
+VAR
+	Counter			: UINT;
+	pInWork			: POINTER TO BYTE;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[pInWork := pInString;
+Counter := 0;
+
+WHILE (pInWork^ <> 0) AND
+			(Counter < STR_LEN)
+DO
+	Counter := Counter + 1;
+	pInWork := pInWork + 1;
+END_WHILE
+
+StringLen := Counter;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="WriteData" Id="{8ff99d1b-4219-4e4a-8e3d-f2feda0e4486}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD WriteData  : e_progress
+VAR_INPUT
+  bExecute        : BOOL;
+END_VAR
+VAR_INST
+  _eState         : e_progress;
+  _bError         : BOOL;
+  _nErrorId       : UDINT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT bExecute
+THEN
+  _eState                     := E_PROGRESS.PROGRESS_INIT;
+END_IF
+
+CASE _eState 
+OF
+
+	E_PROGRESS.PROGRESS_INIT:
+		_fbFileOpen.bExecute      := FALSE;
+		_fbFileWrite.bExecute	    := FALSE;
+		_fbFileClose.bExecute	    := FALSE;
+
+		IF bExecute
+		THEN
+      _nErrorId               := 0;
+      _eState                 := E_PROGRESS.PROGRESS_BUSY;
+		END_IF
+
+	E_PROGRESS.PROGRESS_BUSY:
+		_fbFileOpen.bExecute      := TRUE;
+
+    IF _fbFileOpen.bError
+    THEN
+		  _fbFileOpen.bExecute    := FALSE;
+      _nErrorId               := _fbFileOpen.nErrId;
+      _eState                 := E_PROGRESS.PROGRESS_ERROR;
+
+		ELSIF _fbFileOpen.bBusy
+		THEN
+      _eState                 := E_PROGRESS.PROGRESS_PREPARE;
+		END_IF
+
+	E_PROGRESS.PROGRESS_PREPARE:
+		IF NOT _fbFileOpen.bBusy
+		THEN
+		  _fbFileOpen.bExecute    := FALSE;
+			_fbFileWrite.bExecute   := TRUE;
+      _eState                 := E_PROGRESS.PROGRESS_STARTUP;
+		END_IF
+
+	E_PROGRESS.PROGRESS_STARTUP:
+    IF _fbFileWrite.bError
+    THEN
+			_fbFileWrite.bExecute   := FALSE;
+      _nErrorId               := _fbFileWrite.nErrId;
+      _eState                 := E_PROGRESS.PROGRESS_ERROR;
+
+		ELSIF _fbFileWrite.bBusy
+		THEN
+      _eState                 := E_PROGRESS.PROGRESS_CHECK;
+		END_IF
+
+	E_PROGRESS.PROGRESS_CHECK:
+		IF NOT _fbFileWrite.bBusy
+		THEN
+			_fbFileWrite.bExecute   := FALSE;
+			_fbFileClose.bExecute   := TRUE;
+      _eState                 := E_PROGRESS.PROGRESS_OCCUPIED;
+		END_IF
+
+	E_PROGRESS.PROGRESS_OCCUPIED:
+    IF _fbFileClose.bError
+    THEN
+			_fbFileClose.bExecute   := FALSE;
+      _nErrorId               := _fbFileClose.nErrId;
+      _eState                 := E_PROGRESS.PROGRESS_ERROR;
+
+		ELSIF _fbFileClose.bBusy
+		THEN
+      _eState                 := E_PROGRESS.PROGRESS_WORKING;
+		END_IF
+
+	E_PROGRESS.PROGRESS_WORKING:
+		IF NOT _fbFileClose.bBusy
+		THEN
+			_fbFileClose.bExecute   := FALSE;
+      _eState                 := E_PROGRESS.PROGRESS_DONE;
+		END_IF
+END_CASE
+
+
+_fbFileOpen(
+	sNetId:= , 
+	sPathName:= _sFilename, 
+	nMode:= FOPEN_MODEAPPEND OR FOPEN_MODEPLUS, 
+	ePath:= PATH_GENERIC, 
+	bExecute:= , 
+	tTimeout:= T#10S, 
+	bBusy=> , 
+	bError=> , 
+	nErrId=> , 
+	hFile=> );
+
+_fbFileWrite(
+	sNetId:= , 
+	hFile:= _fbFileOpen.hFile, 
+	pWriteBuff:= ADR(_sWriteData), 
+	cbWriteLen:= StringLen(ADR(_sWriteData)), 
+	bExecute:= , 
+	tTimeout:= T#10S, 
+	bBusy=> , 
+	bError=> , 
+	nErrId=> , 
+	cbWrite=> );
+
+_fbFileClose(
+	sNetId:= , 
+	hFile:= _fbFileOpen.hFile, 
+	bExecute:= , 
+	tTimeout:= T#10S, 
+	bBusy=> , 
+	bError=> , 
+	nErrId=> );
+
+WriteData                     := _eState;
+]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="fb_MessageData">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="fb_MessageData.Builder">
+      <LineId Id="1" Count="28" />
+    </LineIds>
+    <LineIds Name="fb_MessageData.Check">
+      <LineId Id="1" Count="41" />
+    </LineIds>
+    <LineIds Name="fb_MessageData.Device_to_String">
+      <LineId Id="1" Count="146" />
+    </LineIds>
+    <LineIds Name="fb_MessageData.DirRoot.Set">
+      <LineId Id="1" Count="1" />
+    </LineIds>
+    <LineIds Name="fb_MessageData.ErrorIndex.Set">
+      <LineId Id="1" Count="1" />
+    </LineIds>
+    <LineIds Name="fb_MessageData.FileRoot.Set">
+      <LineId Id="1" Count="1" />
+    </LineIds>
+    <LineIds Name="fb_MessageData.FolderDate">
+      <LineId Id="1" Count="17" />
+    </LineIds>
+    <LineIds Name="fb_MessageData.LocalTime.Set">
+      <LineId Id="1" Count="1" />
+    </LineIds>
+    <LineIds Name="fb_MessageData.MessageIndex.Set">
+      <LineId Id="1" Count="1" />
+    </LineIds>
+    <LineIds Name="fb_MessageData.MsgList.Set">
+      <LineId Id="1" Count="1" />
+    </LineIds>
+    <LineIds Name="fb_MessageData.StringLen">
+      <LineId Id="1" Count="10" />
+    </LineIds>
+    <LineIds Name="fb_MessageData.WriteData">
+      <LineId Id="1" Count="116" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

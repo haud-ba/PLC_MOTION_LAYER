@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.13">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
   <POU Name="MAPPING_out" Id="{f452c8f5-5dcb-0f99-160c-afb3c9dfaf6c}" SpecialFunc="None">
     <Declaration><![CDATA[PROGRAM MAPPING_out
 VAR CONSTANT
@@ -64,11 +64,9 @@ VAR
 //-----------------------------------------------------------------------------------------------------------------
 {IF defined (CAM_MAP)}
   CamState                  : U_CAM_STATE;
-  CamData                   : U_CAM_DATA;
   CamInfo                   : U_CAM_INFO;
 {ELSE}
   CamState                  : BYTE;
-  CamData                   : BYTE;
   CamInfo                   : BYTE;
 {END_IF}
 //-----------------------------------------------------------------------------------------------------------------
@@ -126,7 +124,6 @@ END_IF
 IF NOT bBypassMappingCam
 THEN
   memcpy(ADR(CamInfo),          ADR(GVL_CAM.Info),                  SIZEOF(CamInfo));
-  memcpy(ADR(CamData),          ADR(GVL_CAM.Data),                  SIZEOF(CamData));
   memcpy(ADR(CamState),         ADR(GVL_CAM.State),                 SIZEOF(CamState));
 END_IF
 //--------------------------------------------------------------------------------------------
@@ -214,9 +211,6 @@ END_IF
 szCamInfo  [1]          := SIZEOF(CamInfo);
 szCamInfo  [2]          := SIZEOF(GVL_CAM.Info);
 
-szCamData  [1]          := SIZEOF(CamData);
-szCamData  [2]          := SIZEOF(GVL_CAM.Data);
-
 szCamState [1]          := SIZEOF(CamState);
 szCamState [2]          := SIZEOF(GVL_CAM.State);
 
@@ -225,12 +219,6 @@ THEN
   IF NOT (szCamInfo[1] = szCamInfo[2])
   THEN
     sMappingCheck       := 'CamInfo CHECK_ERROR';
-    RETURN;
-  END_IF
-
-  IF NOT (szCamData[1] = szCamData[2])
-  THEN
-    sMappingCheck       := 'CamData CHECK_ERROR';
     RETURN;
   END_IF
 
@@ -285,7 +273,8 @@ Check                   := TRUE;
       <LineId Id="298" Count="1" />
       <LineId Id="313" Count="0" />
       <LineId Id="197" Count="1" />
-      <LineId Id="209" Count="2" />
+      <LineId Id="209" Count="0" />
+      <LineId Id="211" Count="0" />
       <LineId Id="200" Count="1" />
       <LineId Id="314" Count="0" />
       <LineId Id="202" Count="2" />
@@ -296,7 +285,9 @@ Check                   := TRUE;
       <LineId Id="315" Count="0" />
     </LineIds>
     <LineIds Name="MAPPING_out.Check">
-      <LineId Id="1" Count="123" />
+      <LineId Id="1" Count="67" />
+      <LineId Id="72" Count="10" />
+      <LineId Id="89" Count="35" />
     </LineIds>
   </POU>
 </TcPlcObject>
