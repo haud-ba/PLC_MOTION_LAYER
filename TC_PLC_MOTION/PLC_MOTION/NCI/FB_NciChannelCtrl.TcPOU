@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.13">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
   <POU Name="FB_NciChannelCtrl" Id="{08de930f-89ec-0b64-0188-963be0624f4a}" SpecialFunc="None">
     <Declaration><![CDATA[(*
 -------------------------------------------------------------------------------
@@ -21,6 +21,7 @@
 
 FUNCTION_BLOCK FB_NciChannelCtrl EXTENDS FB_NciChannel IMPLEMENTS I_Nci_Ctrl
 VAR
+  _stChannelRef         : ST_NciChannel_Ref;
   _nChnId               : UINT;
 
   _eCtrl,
@@ -1052,9 +1053,20 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[
+        <ST><![CDATA[//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+// cyclic pointer to NCI wrapper
+//-----------------------------------------------------------------------------
+ChannelRef    := ADR(_stChannelRef);
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+// cyclic pointer check
+//-----------------------------------------------------------------------------
 IF NOT Check() THEN Cycle := _eCycle := _eResult := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
-
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+// message device for logging
+//-----------------------------------------------------------------------------
 ChannelDevice := e_Device.NciChannel + TO_UINT(ChnId);
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -1419,7 +1431,11 @@ Template_1 := _eState;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.Cycle">
-      <LineId Id="3" Count="111" />
+      <LineId Id="123" Count="4" />
+      <LineId Id="115" Count="3" />
+      <LineId Id="4" Count="0" />
+      <LineId Id="119" Count="3" />
+      <LineId Id="6" Count="108" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.ItfChannel.Get">
