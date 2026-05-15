@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.13">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
   <POU Name="MAIN" Id="{b9c2507d-2926-4719-8f82-549e0347748a}" SpecialFunc="None">
     <Declaration><![CDATA[PROGRAM MAIN
 VAR
   bInit                     : BOOL;         // shall be checked by controlling entity, before using Ctrl/State structs
-  eInit                     : E_PROGRESS;   // shall be checked by controlling entity, before using Ctrl/State structs
+  eInit         at %Q*      : E_PROGRESS;   // shall be checked by controlling entity, before using Ctrl/State structs
 
   nAxis,
   nAxisInit                 : UINT;

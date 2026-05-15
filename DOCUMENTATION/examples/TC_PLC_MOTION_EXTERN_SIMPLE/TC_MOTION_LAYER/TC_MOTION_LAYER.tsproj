@@ -1742,6 +1742,77 @@ External Setpoint Generation:
 			</ArrayInfo>
 		</DataType>
 		<DataType>
+			<Name GUID="{E5B4B710-2AC3-1039-86D5-33777854E02B}" AutoDeleteType="true">E_PROGRESS</Name>
+			<Comment><![CDATA[{attribute 'strict'}]]></Comment>
+			<BitSize>16</BitSize>
+			<BaseType GUID="{18071995-0000-0000-0000-000000000005}">UINT</BaseType>
+			<EnumInfo>
+				<Text><![CDATA[PROGRESS_INVALID]]></Text>
+				<Enum>0</Enum>
+				<Comment><![CDATA[ progress has 2 use cases
+ 1. as offset to cyclic interface's state 
+    for the requested command/function
+    e.g. State := <Enum equivalent to eCmd> + E_PROGRESS
+
+ 2. as state feedback (result) from (any) method]]></Comment>
+			</EnumInfo>
+			<EnumInfo>
+				<Text><![CDATA[PROGRESS_NOT_EXIST]]></Text>
+				<Enum>100</Enum>
+			</EnumInfo>
+			<EnumInfo>
+				<Text><![CDATA[PROGRESS_INIT]]></Text>
+				<Enum>1000</Enum>
+			</EnumInfo>
+			<EnumInfo>
+				<Text><![CDATA[PROGRESS_BUSY]]></Text>
+				<Enum>2000</Enum>
+			</EnumInfo>
+			<EnumInfo>
+				<Text><![CDATA[PROGRESS_PREPARE]]></Text>
+				<Enum>3000</Enum>
+			</EnumInfo>
+			<EnumInfo>
+				<Text><![CDATA[PROGRESS_STARTUP]]></Text>
+				<Enum>4000</Enum>
+			</EnumInfo>
+			<EnumInfo>
+				<Text><![CDATA[PROGRESS_CHECK]]></Text>
+				<Enum>5000</Enum>
+			</EnumInfo>
+			<EnumInfo>
+				<Text><![CDATA[PROGRESS_OCCUPIED]]></Text>
+				<Enum>6000</Enum>
+			</EnumInfo>
+			<EnumInfo>
+				<Text><![CDATA[PROGRESS_WORKING]]></Text>
+				<Enum>7000</Enum>
+			</EnumInfo>
+			<EnumInfo>
+				<Text><![CDATA[PROGRESS_STILL_WORKING]]></Text>
+				<Enum>8000</Enum>
+			</EnumInfo>
+			<EnumInfo>
+				<Text><![CDATA[PROGRESS_ERROR]]></Text>
+				<Enum>9000</Enum>
+			</EnumInfo>
+			<EnumInfo>
+				<Text><![CDATA[PROGRESS_DONE]]></Text>
+				<Enum>10000</Enum>
+			</EnumInfo>
+			<Properties>
+				<Property>
+					<Name>qualified_only</Name>
+				</Property>
+				<Property>
+					<Name>to_string</Name>
+				</Property>
+				<Property>
+					<Name>generate_implicit_init_function</Name>
+				</Property>
+			</Properties>
+		</DataType>
+		<DataType>
 			<Name GUID="{A5496B58-EE0C-DFBC-437B-0A924951543B}" IecBaseType="true" AutoDeleteType="true">ARRAY [1..6] OF ARRAY [1..6] OF BYTE</Name>
 			<BitSize>288</BitSize>
 			<BaseType GUID="{18071995-0000-0000-0000-000000000001}">BYTE</BaseType>
@@ -2844,11 +2915,16 @@ External Setpoint Generation:
 		</Motion>
 		<Plc>
 			<Project GUID="{15B1A673-79C3-4349-91F3-F549A08073E6}" Name="PLC_MOTION" PrjFilePath="PLC_MOTION\PLC_MOTION.plcproj" TmcFilePath="PLC_MOTION\PLC_MOTION.tmc" CompilerDefines="TEST, CAM, XFC, NCI, BSD, AXIS_MAP, CAM_MAP, NCI_MAP, TRIGGER_MAP" ReloadTmc="true" AmsPort="851" FileArchiveSettings="#x000e" SymbolicMapping="true">
-				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcHash="{5F2CDC33-A205-C865-305F-A83674789EA4}" TmcPath="PLC_MOTION\PLC_MOTION.tmc">
+				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcHash="{D69876D9-5196-B8B6-31DE-8B601EBB51C4}" TmcPath="PLC_MOTION\PLC_MOTION.tmc">
 					<Name>PLC_MOTION Instance</Name>
 					<CLSID ClassFactory="TcPlc30">{08500001-0000-0000-F000-000000000064}</CLSID>
 					<Vars VarGrpType="2" AreaNo="1">
 						<Name>PlcTask Outputs</Name>
+						<Var>
+							<Name>MAIN.eInit</Name>
+							<Comment><![CDATA[ shall be checked by controlling entity, before using Ctrl/State structs]]></Comment>
+							<Type GUID="{E5B4B710-2AC3-1039-86D5-33777854E02B}">E_PROGRESS</Type>
+						</Var>
 						<Var>
 							<Name>MAPPING_out.AxisState.byState</Name>
 							<Type GUID="{A5496B58-EE0C-DFBC-437B-0A924951543B}">ARRAY [1..6] OF ARRAY [1..6] OF BYTE</Type>
@@ -3036,7 +3112,7 @@ External Setpoint Generation:
 				</Instance>
 			</Project>
 			<Project GUID="{FF61B10C-B72E-4A7C-A8B2-8A4CC1B13313}" Name="ExternControl" PrjFilePath="ExternControl\ExternControl.plcproj" TmcFilePath="ExternControl\ExternControl.tmc" CompilerDefines="BSD" ReloadTmc="true" AmsPort="852" FileArchiveSettings="#x000e" SymbolicMapping="true">
-				<Instance Id="#x08502040" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcHash="{1B3CDE78-6DBF-02A3-E724-0BBA858B1E5C}" TmcPath="ExternControl\ExternControl.tmc">
+				<Instance Id="#x08502040" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcHash="{9084E6F2-B43C-DC58-4D6D-20E75B373C69}" TmcPath="ExternControl\ExternControl.tmc">
 					<Name>ExternControl Instance</Name>
 					<CLSID ClassFactory="TcPlc30">{08500001-0000-0000-F000-000000000064}</CLSID>
 					<Vars VarGrpType="2" AreaNo="1">
@@ -3105,6 +3181,11 @@ External Setpoint Generation:
 							<Type GUID="{53B14C2B-11FF-B714-286D-1E1C0BC25CF2}">ARRAY [1..6] OF ARRAY [1..196] OF BYTE</Type>
 						</Var>
 						<Var>
+							<Name>MAIN.eInitPlcMotion</Name>
+							<Comment><![CDATA[ startup indicator from PLC_MOTION plc]]></Comment>
+							<Type GUID="{E5B4B710-2AC3-1039-86D5-33777854E02B}">E_PROGRESS</Type>
+						</Var>
+						<Var>
 							<Name>MAPPING_in.TriggerState.byState</Name>
 							<Type GUID="{80428B00-588B-BBC4-BBEC-6AD6FE028B55}">ARRAY [1..12] OF ARRAY [1..40] OF BYTE</Type>
 						</Var>
@@ -3137,6 +3218,7 @@ External Setpoint Generation:
 		<MappingInfo Identifier="{05000010-2001-0850-1000-040300205008}" Id="#x02030020" Watchdog="04000000080000000400000004000000"/>
 		<OwnerA Name="TIPC^ExternControl^ExternControl Instance">
 			<OwnerB Name="TIPC^PLC_MOTION^PLC_MOTION Instance">
+				<Link VarA="PlcTask Inputs^MAIN.eInitPlcMotion" VarB="PlcTask Outputs^MAIN.eInit"/>
 				<Link VarA="PlcTask Inputs^MAPPING_in.AxisInfo.byState" VarB="PlcTask Outputs^MAPPING_out.AxisInfo.byState"/>
 				<Link VarA="PlcTask Inputs^MAPPING_in.AxisParameterRd.byState" VarB="PlcTask Outputs^MAPPING_out.AxisParameterRd.byState"/>
 				<Link VarA="PlcTask Inputs^MAPPING_in.AxisState.byState" VarB="PlcTask Outputs^MAPPING_out.AxisState.byState"/>

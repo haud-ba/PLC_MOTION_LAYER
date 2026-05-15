@@ -482,6 +482,10 @@
       <DefaultResolution>Tc2_MC2_Drive, * (Beckhoff Automation GmbH)</DefaultResolution>
       <Namespace>Tc2_MC2_Drive</Namespace>
     </PlaceholderReference>
+    <PlaceholderReference Include="Tc2_MC2_FlyingSaw">
+      <DefaultResolution>Tc2_MC2_FlyingSaw, * (Beckhoff Automation GmbH)</DefaultResolution>
+      <Namespace>Tc2_MC2_FlyingSaw</Namespace>
+    </PlaceholderReference>
     <PlaceholderReference Include="Tc2_MC2_XFC">
       <DefaultResolution>Tc2_MC2_XFC, * (Beckhoff Automation GmbH)</DefaultResolution>
       <Namespace>Tc2_MC2_XFC</Namespace>
@@ -524,6 +528,7 @@
     <Folder Include="NC_PTP\types\axis" />
     <Folder Include="MAPPING" />
     <Folder Include="FUNCTIONS" />
+    <Folder Include="FLYING_SAW" />
     <Folder Include="XFC" />
     <Folder Include="XFC\types" />
     <Folder Include="_UML" />

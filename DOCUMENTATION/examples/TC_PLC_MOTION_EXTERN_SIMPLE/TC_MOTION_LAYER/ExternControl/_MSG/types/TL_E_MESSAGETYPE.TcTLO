@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.13">
-  <TextList Name="TL_E_MESSAGETYPE" Id="{f0419335-f227-4c5e-ab76-e1f19fdc6038}">
+<TcPlcObject Version="1.1.0.1">
+  <TextList Name="TL_E_MESSAGETYPE" Id="{aab85940-c774-4fa2-9a99-58d135e39408}">
     <XmlArchive>
       <Data>
         <o xml:space="preserve" t="TextListObject">

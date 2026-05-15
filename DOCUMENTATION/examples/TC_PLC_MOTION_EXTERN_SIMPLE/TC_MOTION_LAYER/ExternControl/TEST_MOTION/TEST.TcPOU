@@ -179,7 +179,7 @@ OF
     nWait                       := nWait + 1;
     IF (nWait MOD nModulo = 0)
     THEN
-      nWait                     := 0;
+      nWait                     := 1;
       nState                    := nStateNext;
 
       IF (nCount > nCycle-1)
@@ -197,7 +197,8 @@ END_CASE
 ]]></ST>
     </Implementation>
     <LineIds Name="TEST">
-      <LineId Id="1" Count="174" />
+      <LineId Id="176" Count="0" />
+      <LineId Id="2" Count="173" />
     </LineIds>
   </POU>
 </TcPlcObject>

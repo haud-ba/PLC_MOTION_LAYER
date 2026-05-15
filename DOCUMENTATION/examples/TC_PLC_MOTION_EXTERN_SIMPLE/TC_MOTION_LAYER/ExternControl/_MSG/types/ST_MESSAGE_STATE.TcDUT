@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.13">
-  <DUT Name="ST_MESSAGE_STATE" Id="{66776ab3-c1ca-4413-82ec-f5637de005d9}">
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="ST_MESSAGE_STATE" Id="{cc766e32-cab0-4f1b-bc0c-916b18690223}">
     <Declaration><![CDATA[TYPE ST_MESSAGE_STATE :
 STRUCT
   State         : E_MESSAGE_STATE;  // as always... combined value of Cmd equivalent and e_progress
