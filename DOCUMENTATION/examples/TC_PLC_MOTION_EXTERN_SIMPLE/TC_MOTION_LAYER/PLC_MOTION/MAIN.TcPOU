@@ -40,8 +40,8 @@ DO
   GVL_AXIS.Control[nAxis].AxisData            := ADR(GVL_AXIS.Data);          // position and dynamic constraints for movement
   GVL_AXIS.Control[nAxis].AxisGearInParameter := ADR(GVL_AXIS.GearInParameter);
 
-  GVL_AXIS.Control[nAxis].WriteNcParameter    := ADR(GVL_AXIS.NcParameterWrt);
-  GVL_AXIS.Control[nAxis].ReadNcParameter     := ADR(GVL_AXIS.NcParameterRd);
+  GVL_AXIS.Control[nAxis].NcParameterOut      := ADR(GVL_AXIS.NcParameterOut);
+  GVL_AXIS.Control[nAxis].NcParameterIn       := ADR(GVL_AXIS.NcParameterIn);
 
   GVL_AXIS.Control[nAxis].HomingParameter     := ADR(GVL_AXIS.HomeParameter);
   GVL_AXIS.Control[nAxis].MotionOptions       := ADR(GVL_AXIS.MotionOptions);

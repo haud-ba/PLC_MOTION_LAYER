@@ -45,7 +45,7 @@ VAR
 {IF defined (AXIS_MAP)}
   AxisState                 : U_AXIS_STATE;
   AxisInfo                  : U_AXIS_INFO;
-  AxisParameterRd           : U_AXIS_NC_PARAMETER_RD;
+  AxisParameterOut          : U_AXIS_NC_PARAMETER_RD;
 {ELSE}
   AxisState                 : BYTE;
   AxisInfo                  : BYTE;
@@ -110,7 +110,7 @@ IF NOT bBypassMappingAxis
 THEN
   memcpy(ADR(AxisState),        ADR(GVL_AXIS.State),                SIZEOF(AxisState));
   memcpy(ADR(AxisInfo),         ADR(GVL_AXIS.Info),                 SIZEOF(AxisInfo));
-  memcpy(ADR(AxisParameterRd),  ADR(GVL_AXIS.NcParameterRd),        SIZEOF(AxisParameterRd));
+  memcpy(ADR(AxisParameterOut), ADR(GVL_AXIS.NcParameterOut),       SIZEOF(AxisParameterOut));
 END_IF
 //--------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------
@@ -161,8 +161,8 @@ szAxisState[2]          := SIZEOF(GVL_AXIS.State);
 szAxisInfo [1]          := SIZEOF(AxisInfo);
 szAxisInfo [2]          := SIZEOF(GVL_AXIS.Info);
 
-szAxisPara [1]          := SIZEOF(AxisParameterRd);
-szAxisPara [2]          := SIZEOF(GVL_AXIS.NcParameterRd);
+szAxisPara [1]          := SIZEOF(AxisParameterOut);
+szAxisPara [2]          := SIZEOF(GVL_AXIS.NcParameterOut);
 
 IF NOT (bBypassMappingAxis)
 THEN

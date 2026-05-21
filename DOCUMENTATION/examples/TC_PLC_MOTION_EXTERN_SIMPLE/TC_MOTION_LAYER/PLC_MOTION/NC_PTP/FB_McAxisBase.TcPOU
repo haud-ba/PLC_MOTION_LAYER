@@ -2478,12 +2478,13 @@ OF
   E_PROGRESS.PROGRESS_BUSY:
     _eState                         := E_PROGRESS.PROGRESS_STARTUP;
     _nParameter                     := ParameterNumber;
+    _rValue                         := Value;
 
     _fbWriteParameter(
                     Axis            := _AxisRef, 
                     Execute         := FALSE, 
                     ParameterNumber := ParameterNumber, 
-                    Value           := Value);
+                    Value           := _rValue);
 END_CASE
 CASE _eState
 OF
@@ -2493,7 +2494,7 @@ OF
                     Axis            := _AxisRef, 
                     Execute         := TRUE, 
                     ParameterNumber := ParameterNumber, 
-                    Value           := Value);
+                    Value           := _rValue);
 
 END_CASE
 CASE _eState
@@ -2502,7 +2503,7 @@ OF
     _fbWriteParameter(
                     Axis            := _AxisRef, 
                     ParameterNumber := ParameterNumber, 
-                    Value           := Value);
+                    Value           := _rValue);
 
     IF _fbWriteParameter.Error
     THEN
@@ -2519,14 +2520,13 @@ OF
                     Axis            := _AxisRef,
                     Execute         := FALSE, 
                     ParameterNumber := ParameterNumber, 
-                    Value           := Value);
+                    Value           := _rValue);
 
 
       _eState                       := E_PROGRESS.PROGRESS_ERROR;
     ELSE
       IF _fbWriteParameter.Done
       THEN
-        _rValue                     := _fbWriteParameter.Value;
         _eState                     := E_PROGRESS.PROGRESS_WORKING;
       END_IF
     END_IF
@@ -3195,7 +3195,9 @@ WriteParameterPersistent            := _eState;
       <LineId Id="575" Count="7" />
       <LineId Id="732" Count="0" />
       <LineId Id="583" Count="8" />
-      <LineId Id="734" Count="1" />
+      <LineId Id="734" Count="0" />
+      <LineId Id="778" Count="0" />
+      <LineId Id="735" Count="0" />
       <LineId Id="677" Count="3" />
       <LineId Id="676" Count="0" />
       <LineId Id="598" Count="3" />
@@ -3220,7 +3222,6 @@ WriteParameterPersistent            := _eState;
       <LineId Id="712" Count="0" />
       <LineId Id="707" Count="0" />
       <LineId Id="727" Count="1" />
-      <LineId Id="730" Count="0" />
       <LineId Id="709" Count="0" />
       <LineId Id="729" Count="0" />
       <LineId Id="700" Count="0" />

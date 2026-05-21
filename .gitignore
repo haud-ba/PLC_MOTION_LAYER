@@ -15,6 +15,7 @@
 *.tszip
 
 TC_PlcOpenDrive/
+TC_PLC_MOTION_EXTERN_NCI/
 
 # Build results
 [Dd]ebug/

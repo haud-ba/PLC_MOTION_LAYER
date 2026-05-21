@@ -1954,15 +1954,11 @@ External Setpoint Generation:
 			</ArrayInfo>
 		</DataType>
 	</DataTypes>
-	<Project ProjectGUID="{08BC3537-5373-48FE-AA9D-69587F9B5691}" TargetNetId="5.163.199.237.1.1" Target64Bit="true" ShowHideConfigurations="#x6">
+	<Project ProjectGUID="{08BC3537-5373-48FE-AA9D-69587F9B5691}" TargetNetId="192.168.1.70.1.1" Target64Bit="true" ShowHideConfigurations="#x6">
 		<System>
-			<Settings MaxCpus="8" NonWinCpus="6" RouterMemory="134217728" MaxStackSize="512">
+			<Settings MaxCpus="4" NonWinCpus="3" RouterMemory="134217728" MaxStackSize="512">
 				<Cpu CpuId="2"/>
 				<Cpu CpuId="3"/>
-				<Cpu CpuId="4"/>
-				<Cpu CpuId="5"/>
-				<Cpu CpuId="6"/>
-				<Cpu CpuId="7"/>
 			</Settings>
 			<Tasks>
 				<Task Id="3" Priority="20" CycleTime="10000" AmsPort="350" AdtTasks="true">
@@ -2915,7 +2911,7 @@ External Setpoint Generation:
 		</Motion>
 		<Plc>
 			<Project GUID="{15B1A673-79C3-4349-91F3-F549A08073E6}" Name="PLC_MOTION" PrjFilePath="PLC_MOTION\PLC_MOTION.plcproj" TmcFilePath="PLC_MOTION\PLC_MOTION.tmc" CompilerDefines="TEST, CAM, XFC, NCI, BSD, AXIS_MAP, CAM_MAP, NCI_MAP, TRIGGER_MAP" ReloadTmc="true" AmsPort="851" FileArchiveSettings="#x000e" SymbolicMapping="true">
-				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcHash="{D69876D9-5196-B8B6-31DE-8B601EBB51C4}" TmcPath="PLC_MOTION\PLC_MOTION.tmc">
+				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcHash="{EAC78435-DC0F-F798-11F1-ED9595AC1D5F}" TmcPath="PLC_MOTION\PLC_MOTION.tmc">
 					<Name>PLC_MOTION Instance</Name>
 					<CLSID ClassFactory="TcPlc30">{08500001-0000-0000-F000-000000000064}</CLSID>
 					<Vars VarGrpType="2" AreaNo="1">
@@ -2934,7 +2930,7 @@ External Setpoint Generation:
 							<Type GUID="{2B5C121A-3AC3-57FB-B731-2331FD47E935}">ARRAY [1..6] OF ARRAY [1..38] OF BYTE</Type>
 						</Var>
 						<Var>
-							<Name>MAPPING_out.AxisParameterRd.byState</Name>
+							<Name>MAPPING_out.AxisParameterOut.byState</Name>
 							<Type GUID="{5D0481D0-25C0-7560-F931-87B2FC0AC3A0}">ARRAY [1..6] OF ARRAY [1..10] OF BYTE</Type>
 						</Var>
 						<Var>
@@ -3013,7 +3009,7 @@ External Setpoint Generation:
 							<Type GUID="{42E648E5-E474-022D-241C-F9DAA31145EF}">ARRAY [1..6] OF ARRAY [1..66] OF BYTE</Type>
 						</Var>
 						<Var>
-							<Name>MAPPING_in.AxisParameterWrt.byCtrl</Name>
+							<Name>MAPPING_in.AxisParameterIn.byCtrl</Name>
 							<Type GUID="{5D0481D0-25C0-7560-F931-87B2FC0AC3A0}">ARRAY [1..6] OF ARRAY [1..10] OF BYTE</Type>
 						</Var>
 						<Var>
@@ -3088,9 +3084,15 @@ External Setpoint Generation:
 							<Type GUID="{4853C4EA-22CB-BF02-DA41-B003927CFE82}">ARRAY [1..12] OF ST_MTI_STATUS</Type>
 						</Var>
 					</Vars>
-					<UnrestoredVarLinks ImportTime="2026-05-14T06:22:36">
+					<UnrestoredVarLinks ImportTime="2026-05-21T14:30:57">
+						<OwnerA Name="OutputSrc" Prefix="TIPC^PLC_MOTION^PLC_MOTION Instance" Type="2">
+							<OwnerB Name="TIPC^ExternControl^ExternControl Instance">
+								<Link VarA="MAPPING_out.AxisParameterRd.byState" TypeA="ARRAY [1..6] OF ARRAY [1..10] OF BYTE" InOutA="1" GuidA="{5D0481D0-25C0-7560-F931-87B2FC0AC3A0}" VarB="PlcTask Inputs^MAPPING_in.AxisParameterRd.byState" RestoreInfo="ANotFound"/>
+							</OwnerB>
+						</OwnerA>
 						<OwnerA Name="InputDst" Prefix="TIPC^PLC_MOTION^PLC_MOTION Instance" Type="1">
 							<OwnerB Name="TIPC^ExternControl^ExternControl Instance">
+								<Link VarA="MAPPING_in.AxisParameterWrt.byCtrl" TypeA="ARRAY [1..6] OF ARRAY [1..10] OF BYTE" InOutA="0" GuidA="{5D0481D0-25C0-7560-F931-87B2FC0AC3A0}" VarB="PlcTask Outputs^MAPPING_out.AxisParameterWrt.byCtrl" RestoreInfo="ANotFound"/>
 								<Link VarA="MAPPING_out.CamData.byCtrl" TypeA="ARRAY [1..6] OF ARRAY [1..110] OF BYTE" InOutA="0" GuidA="{625A9843-6117-74FB-375F-32385DBE7CF9}" VarB="PlcTask Outputs^MAPPING_out.CamData.byCtrl" RestoreInfo="ANotFound"/>
 							</OwnerB>
 						</OwnerA>
@@ -3214,13 +3216,13 @@ External Setpoint Generation:
 		<Io/>
 	</Project>
 	<Mappings>
-		<MappingInfo Identifier="{00000000-2001-0850-0020-500840205008}" Id="#x02030010"/>
-		<MappingInfo Identifier="{05000010-2001-0850-1000-040300205008}" Id="#x02030020" Watchdog="04000000080000000400000004000000"/>
+		<MappingInfo Identifier="{00000000-2001-0850-0020-500840205008}" Id="#x02030020"/>
+		<MappingInfo Identifier="{05000010-2001-0850-1000-040300205008}" Id="#x02030010" Watchdog="04000000080000000400000004000000"/>
 		<OwnerA Name="TIPC^ExternControl^ExternControl Instance">
 			<OwnerB Name="TIPC^PLC_MOTION^PLC_MOTION Instance">
 				<Link VarA="PlcTask Inputs^MAIN.eInitPlcMotion" VarB="PlcTask Outputs^MAIN.eInit"/>
 				<Link VarA="PlcTask Inputs^MAPPING_in.AxisInfo.byState" VarB="PlcTask Outputs^MAPPING_out.AxisInfo.byState"/>
-				<Link VarA="PlcTask Inputs^MAPPING_in.AxisParameterRd.byState" VarB="PlcTask Outputs^MAPPING_out.AxisParameterRd.byState"/>
+				<Link VarA="PlcTask Inputs^MAPPING_in.AxisParameterRd.byState" VarB="PlcTask Outputs^MAPPING_out.AxisParameterOut.byState"/>
 				<Link VarA="PlcTask Inputs^MAPPING_in.AxisState.byState" VarB="PlcTask Outputs^MAPPING_out.AxisState.byState"/>
 				<Link VarA="PlcTask Inputs^MAPPING_in.CamInfo.byState" VarB="PlcTask Outputs^MAPPING_out.CamInfo.byState"/>
 				<Link VarA="PlcTask Inputs^MAPPING_in.CamState.byState" VarB="PlcTask Outputs^MAPPING_out.CamState.byState"/>
@@ -3231,7 +3233,7 @@ External Setpoint Generation:
 				<Link VarA="PlcTask Outputs^MAPPING_out.AxisHoming.byCtrl" VarB="PlcTask Inputs^MAPPING_in.AxisHoming.byCtrl"/>
 				<Link VarA="PlcTask Outputs^MAPPING_out.AxisMotionOptions.byCtrl" VarB="PlcTask Inputs^MAPPING_in.AxisMotionOptions.byCtrl"/>
 				<Link VarA="PlcTask Outputs^MAPPING_out.AxisMoveData.byCtrl" VarB="PlcTask Inputs^MAPPING_in.AxisMoveData.byCtrl"/>
-				<Link VarA="PlcTask Outputs^MAPPING_out.AxisParameterWrt.byCtrl" VarB="PlcTask Inputs^MAPPING_in.AxisParameterWrt.byCtrl"/>
+				<Link VarA="PlcTask Outputs^MAPPING_out.AxisParameterWrt.byCtrl" VarB="PlcTask Inputs^MAPPING_in.AxisParameterIn.byCtrl"/>
 				<Link VarA="PlcTask Outputs^MAPPING_out.CamCtrl.byCtrl" VarB="PlcTask Inputs^MAPPING_in.CamControl.byCtrl"/>
 				<Link VarA="PlcTask Outputs^MAPPING_out.CamData.byCtrl" VarB="PlcTask Inputs^MAPPING_in.CamData.byCtrl"/>
 				<Link VarA="PlcTask Outputs^MAPPING_out.TouchCtrl.byCtrl" VarB="PlcTask Inputs^MAPPING_in.TouchProbeControl.byCtrl"/>
