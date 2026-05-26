@@ -5,6 +5,7 @@
 // ExternControl: EXT_MOTION_CONTROL
 //
 // BASIC SEQUENCES for controlling PLC_MOTION_LAYER
+//  - rudimentary error handling only
 //-----------------------------------------------------------------------------------------------------------------
 PROGRAM TEST
 VAR
@@ -106,7 +107,7 @@ OF
     END_IF
 
   130:
-    GVL_AXIS.Data[3].rSetVelo   :=   1234.00;
+    GVL_AXIS.Data[3].rSetVelo   :=    707.00;
     GVL_AXIS.Data[3].rAcc       :=  15000.00;
     GVL_AXIS.Data[3].rDec       :=  15000.00;
     GVL_AXIS.Data[3].rJerk      := 300000.00;

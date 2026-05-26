@@ -45,7 +45,7 @@ VAR
 {IF defined (AXIS_MAP)}
   AxisState                 : U_AXIS_STATE;
   AxisInfo                  : U_AXIS_INFO;
-  AxisParameterRd           : U_AXIS_NC_PARAMETER_RD;
+  AxisParameterOut          : U_AXIS_NC_PARAMETER_RD;
 {ELSE}
   AxisState                 : BYTE;
   AxisInfo                  : BYTE;
@@ -110,7 +110,7 @@ IF NOT bBypassMappingAxis
 THEN
   memcpy(ADR(AxisState),        ADR(GVL_AXIS.State),                SIZEOF(AxisState));
   memcpy(ADR(AxisInfo),         ADR(GVL_AXIS.Info),                 SIZEOF(AxisInfo));
-  memcpy(ADR(AxisParameterRd),  ADR(GVL_AXIS.NcParameterRd),        SIZEOF(AxisParameterRd));
+  memcpy(ADR(AxisParameterOut), ADR(GVL_AXIS.NcParameterOut),       SIZEOF(AxisParameterOut));
 END_IF
 //--------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------
@@ -161,8 +161,8 @@ szAxisState[2]          := SIZEOF(GVL_AXIS.State);
 szAxisInfo [1]          := SIZEOF(AxisInfo);
 szAxisInfo [2]          := SIZEOF(GVL_AXIS.Info);
 
-szAxisPara [1]          := SIZEOF(AxisParameterRd);
-szAxisPara [2]          := SIZEOF(GVL_AXIS.NcParameterRd);
+szAxisPara [1]          := SIZEOF(AxisParameterOut);
+szAxisPara [2]          := SIZEOF(GVL_AXIS.NcParameterOut);
 
 IF NOT (bBypassMappingAxis)
 THEN
@@ -211,9 +211,6 @@ END_IF
 szCamInfo  [1]          := SIZEOF(CamInfo);
 szCamInfo  [2]          := SIZEOF(GVL_CAM.Info);
 
-szCamData  [1]          := SIZEOF(CamData);
-szCamData  [2]          := SIZEOF(GVL_CAM.Data);
-
 szCamState [1]          := SIZEOF(CamState);
 szCamState [2]          := SIZEOF(GVL_CAM.State);
 
@@ -222,12 +219,6 @@ THEN
   IF NOT (szCamInfo[1] = szCamInfo[2])
   THEN
     sMappingCheck       := 'CamInfo CHECK_ERROR';
-    RETURN;
-  END_IF
-
-  IF NOT (szCamData[1] = szCamData[2])
-  THEN
-    sMappingCheck       := 'CamData CHECK_ERROR';
     RETURN;
   END_IF
 
@@ -270,11 +261,12 @@ Check                   := TRUE;
       </Implementation>
     </Method>
     <LineIds Name="MAPPING_out">
-      <LineId Id="323" Count="38" />
+      <LineId Id="362" Count="38" />
       <LineId Id="315" Count="0" />
     </LineIds>
     <LineIds Name="MAPPING_out.Check">
-      <LineId Id="1" Count="123" />
+      <LineId Id="248" Count="113" />
+      <LineId Id="124" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>

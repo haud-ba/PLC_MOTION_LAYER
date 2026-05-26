@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.13">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
   <POU Name="FB_CamAxis" Id="{38a8250f-db6d-0d34-236a-d4cf6b05092d}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK abstract FB_CamAxis
 VAR

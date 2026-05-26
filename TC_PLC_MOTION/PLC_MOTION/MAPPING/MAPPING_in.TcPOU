@@ -52,7 +52,7 @@ VAR
 
   AxisGearInData            : U_AXIS_GEAR_IN;
   AxisHoming                : U_AXIS_HOMING;
-  AxisParameterWrt          : U_AXIS_NC_PARAMETER_WRT;
+  AxisParameterIn           : U_AXIS_NC_PARAMETER_WRT;
 {ELSE}
   AxisCtrl                  : BYTE;
   AxisMoveData              : BYTE;
@@ -146,7 +146,7 @@ THEN
 
   memcpy(ADR(GVL_AXIS.GearInParameter),      ADR(AxisGearInData),       SIZEOF(AxisGearInData));
   memcpy(ADR(GVL_AXIS.HomeParameter),        ADR(AxisHoming),           SIZEOF(AxisHoming));
-  memcpy(ADR(GVL_AXIS.NcParameterWrt),       ADR(AxisParameterWrt),     SIZEOF(AxisParameterWrt));
+  memcpy(ADR(GVL_AXIS.NcParameterIn),       ADR(AxisParameterIn),     SIZEOF(AxisParameterIn));
 END_IF
 //--------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------
@@ -207,8 +207,8 @@ szAxisGearData [2]      := SIZEOF(GVL_AXIS.GearInParameter);
 szAxisHoming [1]        := SIZEOF(AxisHoming);
 szAxisHoming [2]        := SIZEOF(GVL_AXIS.HomeParameter);
 
-szAxisPara [1]          := SIZEOF(AxisParameterWrt);
-szAxisPara [2]          := SIZEOF(GVL_AXIS.NcParameterWrt);
+szAxisPara [1]          := SIZEOF(AxisParameterIn);
+szAxisPara [2]          := SIZEOF(GVL_AXIS.NcParameterIn);
 
 IF NOT (bBypassMappingAxis)
 THEN
@@ -319,11 +319,12 @@ Check                   := TRUE;
       </Implementation>
     </Method>
     <LineIds Name="MAPPING_in">
-      <LineId Id="376" Count="53" />
+      <LineId Id="430" Count="53" />
       <LineId Id="361" Count="0" />
     </LineIds>
     <LineIds Name="MAPPING_in.Check">
-      <LineId Id="1" Count="135" />
+      <LineId Id="137" Count="134" />
+      <LineId Id="136" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>

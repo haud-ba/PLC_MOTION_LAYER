@@ -517,6 +517,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="CAM\types" />
+    <Folder Include="FLYING_SAW\types" />
     <Folder Include="FUNCTIONS\TOUCH_PROBE" />
     <Folder Include="FUNCTIONS\TOUCH_PROBE\types" />
     <Folder Include="FUNCTIONS\TRIGGER_BOX" />
