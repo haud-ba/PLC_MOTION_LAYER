@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.13">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
   <DUT Name="E_CHECK_STATE" Id="{1ade6feb-94c7-01c0-0791-138199d866b6}">
     <Declaration><![CDATA[{attribute 'qualified_only'}
 {attribute 'strict'}
@@ -38,6 +38,13 @@ TYPE E_CHECK_STATE :
   CAM_MOTION_FUNCTION_POINTER_INVALID,
   CAM_MOTION_FUNCTION_POINT_POINTER_INVALID,
   AXIS_LIMIT_SWITCHES_POINTER_INVALID,
+
+  FLYING_SAW_NOT_ACTIVATED        := 400,
+  FLYING_SLAVE_ITF_MC_AXIS_INVALID,
+  FLYING_MASTER_AXIS_REF_INVALID,
+  FLYING_FLY_DATA_POINTER_INVALID,
+  FLYING_MOVE_DATA_POINTER_INVALID,
+  FLYING_OPTIONS_POINTER_INVALID,
 
   CHECK_DONE                      := 10000
   

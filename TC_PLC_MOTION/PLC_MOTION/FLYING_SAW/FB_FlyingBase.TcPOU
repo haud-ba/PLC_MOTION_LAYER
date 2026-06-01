@@ -1,0 +1,458 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <POU Name="FB_FlyingBase" Id="{86dcc0cc-c619-4cf3-a8fb-dd8062daa261}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK abstract FB_FlyingBase
+VAR
+  _eCheck           : E_CHECK_STATE;
+  _bError           : BOOL;
+  _nErrorId         : UDINT;
+
+  _ItfAxis          : I_McAxis;               // slave to the rythm.
+  _Master           : REFERENCE TO AXIS_REF;  // obey I must
+
+  _rModulo          : LREAL;                  // modulo length/angle of NC axis.
+  SyncMode          : ST_SyncMode;
+
+  _stFlyData        : ST_FLY_DATA;
+  _stMoveData       : ST_MOVE_DATA;
+  _stOptions        : ST_FLY_OPTIONS;
+
+  _fbGearInPos      : Tc2_MC2_FlyingSaw.MC_GearInPos;   // position based gearing
+  _fbGearInVelo     : Tc2_MC2_FlyingSaw.MC_GearInVelo;  // velocity based gearing
+  //_fbReadCharacter  : Tc2_MC2_FlyingSaw.MC_ReadFlyingSawCharacteristics; 
+
+  _MessageLevel     : E_MessageType;
+  _stMsg            : ST_Message;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Folder Name="methods" Id="{608bed0b-32e7-45ae-8191-54ea3d9b989c}" />
+    <Folder Name="properties" Id="{d01f30b3-daa9-4973-8211-b87183d3fae6}" />
+    <Property Name="AxisModulo" Id="{fa7d2e7f-df3c-49d5-bc43-a5ffce6c775d}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY AxisModulo : lreal]]></Declaration>
+      <Set Name="Set" Id="{19581ea4-e32b-45a7-871e-18a7b24dbfaf}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_rModulo := AxisModulo;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Method Name="GearInPos" Id="{1420a175-40e0-489e-92fe-2ab56883c746}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD GearInPos : E_PROGRESS
+VAR_INPUT
+  Execute             : BOOL;
+  stMoveData          : ST_MOVE_DATA;
+  stGearData          : ST_FLY_DATA;
+  stOptions           : ST_FLY_OPTIONS; 
+END_VAR
+VAR_INST
+  _nErrorId           : UDINT;
+  _rPosLate,
+  _rPos               : LREAL;
+  _eState             : E_PROGRESS;
+
+  _stOptions          : Tc2_MC2_FlyingSaw.ST_GearInPosOptions;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT Execute THEN _eState       := E_PROGRESS.PROGRESS_INIT; END_IF
+ 
+IF NOT (_ItfAxis <> 0)         THEN GearInPos    := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT (__ISVALIDREF(_Master)) THEN GearInPos    := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+
+
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_INIT:
+    IF Execute
+    THEN
+      memcpy(ADR(_stOptions), ADR(stOptions), SIZEOF(_stOptions));
+
+      _rPosLate               := 0.0;
+      _nErrorId               := 0;
+      _eState                 := E_PROGRESS.PROGRESS_BUSY;
+
+      IF NOT __ISVALIDREF(_Master)
+      THEN
+        _bError               := TRUE;
+        _nErrorId             := 666;
+        _eState               := E_PROGRESS.PROGRESS_ERROR;
+
+        _stMsg.eType          := E_MessageType.eMessageError;
+        _stMsg.eSubdevice     := e_Subdevice.fbGearInPos;
+        _stMsg.iErrorNumber   := _nErrorId;
+        _stMsg.sText          := concat('Invalid Master Ref: ', TO_STRING(_eState));
+        f_MessageSet(_stMsg);
+
+      ELSIF (_ItfAxis.AxisRef.NcToPlc.ModuloActPos > stGearData.rModuloSyncPosSlave + stGearData.rDelta)
+      THEN
+        _bError               := TRUE;
+        _rPosLate             := _ItfAxis.AxisRef.NcToPlc.ModuloActPos;
+        _rPos                 := stGearData.rModuloSyncPosSlave + stGearData.rDelta;
+
+        _nErrorId             := 667;
+        _eState               := E_PROGRESS.PROGRESS_ERROR;
+
+        _stMsg.eType          := E_MessageType.eMessageError;
+        _stMsg.eSubdevice     := e_Subdevice.fbGearInPos;
+        _stMsg.iErrorNumber   := _nErrorId;
+        _stMsg.sText          := concat('ModuloActPos: ', TO_STRING(_rPosLate));
+        _stMsg.sText          := concat(_stMsg.sText, '; ModuloSyncPosSlave + stGearData.rDelta: ');
+        _stMsg.sText          := concat(_stMsg.sText, TO_STRING(_rPos));
+        f_MessageSet(_stMsg);
+      END_IF
+    END_IF
+END_CASE
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_BUSY:
+    _eState                   := E_PROGRESS.PROGRESS_PREPARE;
+
+    _fbGearInPos(
+        Master                := _Master, 
+        Slave                 := _ItfAxis.AxisRef, 
+        Execute               := FALSE, 
+
+        RatioNumerator        := stGearData.rGearNumerator, 
+        RatioDenominator      := stGearData.iGearDenumerator, 
+
+        MasterSyncPosition    := _Master.NcToPlc.ActPos 
+                               + stGearData.rDeltaToMasterPos,                            // absolute position
+
+        SlaveSyncPosition     := ABS(_ItfAxis.AxisRef.NcToPlc.ModuloActTurns)*_rModulo
+                               + stGearData.rModuloSyncPosSlave,                          // absolute position
+
+        SyncMode              := ,
+        MasterStartDistance   := stGearData.rMasterStartDistance,                         // if <> 0 --> master has to move before this fb does anything
+        Velocity              := stMoveData.rSetVelo, 
+        Acceleration          := stMoveData.rAcc, 
+        Deceleration          := stMoveData.rAcc, 
+        Jerk                  := stMoveData.rJerk, 
+        BufferMode            := Tc2_MC2.MC_BufferMode.MC_Aborting, 
+        Options               := _stOptions, 
+        ErrorID               => _nErrorId);
+
+        IF (_MessageLevel = E_MessageType.eMessageVerbose)
+        THEN
+          _stMsg.eType        := E_MessageType.eMessageVerbose;
+          _stMsg.eSubdevice   := e_Subdevice.fbGearInPos;
+          _stMsg.iErrorNumber := _nErrorId;
+          _stMsg.sText        := TO_STRING(_eState);
+          f_MessageSet(_stMsg);
+        END_IF
+END_CASE
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_PREPARE:
+    _fbGearInPos(
+        Master                := _Master, 
+        Slave                 := _ItfAxis.AxisRef, 
+        Execute               := TRUE);
+
+    IF _fbGearInPos.Error
+    THEN
+      _bError                 := TRUE;
+      _nErrorId               := _fbGearInPos.ErrorId;
+
+      _fbGearInPos(
+        Master                := _Master, 
+        Slave                 := _ItfAxis.AxisRef, 
+        Execute               := FALSE);
+
+      _eState                 := E_PROGRESS.PROGRESS_ERROR;
+
+      _stMsg.eType            := E_MessageType.eMessageError;
+      _stMsg.eSubdevice       := e_Subdevice.fbGearInPos;
+      _stMsg.iErrorNumber     := _nErrorId;
+      _stMsg.sText            := TO_STRING(_eState);
+      f_MessageSet(_stMsg);
+
+    ELSIF _fbGearInPos.CommandAborted
+    THEN
+      _bError                 := TRUE;
+      _eState                 := E_PROGRESS.PROGRESS_OCCUPIED;
+
+      _stMsg.eType            := E_MessageType.eMessageWarning;
+      _stMsg.eSubdevice       := e_Subdevice.fbGearInPos;
+      _stMsg.iErrorNumber     := _nErrorId;
+      _stMsg.sText            := concat(TO_STRING(_eState), ': CommandAborted');
+      f_MessageSet(_stMsg);
+
+    ELSIF _fbGearInPos.InSync
+    THEN
+      _eState                 := E_PROGRESS.PROGRESS_DONE;
+
+      IF (_MessageLevel > E_MessageType.eMessageError)
+      THEN
+        _stMsg.eType          := E_MessageType.eMessageInfo;
+        _stMsg.eSubdevice     := e_Subdevice.fbGearInPos;
+        _stMsg.iErrorNumber   := _nErrorId;
+        _stMsg.sText          := TO_STRING(_eState);
+        f_MessageSet(_stMsg);
+      END_IF
+      _fbGearInPos(
+        Master                := _Master, 
+        Slave                 := _ItfAxis.AxisRef, 
+        Execute               := FALSE);
+    END_IF
+END_CASE
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+GearInPos                     := _eState;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="GearInVelo" Id="{7d3d5e9c-869e-4d6e-a371-b333882c434f}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD GearInVelo : E_PROGRESS
+VAR_INPUT
+  Execute             : BOOL;
+  stMoveData          : ST_MOVE_DATA;
+  stGearData          : ST_FLY_DATA;
+  stOptions           : ST_FLY_OPTIONS; 
+END_VAR
+VAR_INST
+  _nErrorId           : UDINT;
+  _rPosLate,
+  _rPos               : LREAL;
+  _eState             : E_PROGRESS;
+
+  _stOptions          : Tc2_MC2_FlyingSaw.ST_GearInVeloOptions;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT Execute THEN _eState       := E_PROGRESS.PROGRESS_INIT; END_IF
+ 
+IF NOT (_ItfAxis <> 0)         THEN GearInVelo    := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT (__ISVALIDREF(_Master)) THEN GearInVelo    := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+
+
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_INIT:
+    IF Execute
+    THEN
+      memcpy(ADR(_stOptions), ADR(stOptions), SIZEOF(_stOptions));
+
+      _nErrorId               := 0;
+      _eState                 := E_PROGRESS.PROGRESS_BUSY;
+
+      IF NOT __ISVALIDREF(_Master)
+      THEN
+        _bError               := TRUE;
+        _nErrorId             := 666;
+        _eState               := E_PROGRESS.PROGRESS_ERROR;
+
+        _stMsg.eType          := E_MessageType.eMessageError;
+        _stMsg.eSubdevice     := e_Subdevice.fbGearInVelo;
+        _stMsg.iErrorNumber   := _nErrorId;
+        _stMsg.sText          := concat('Invalid Master Ref: ', TO_STRING(_eState));
+        f_MessageSet(_stMsg);
+      END_IF
+    END_IF
+END_CASE
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_BUSY:
+    _eState                   := E_PROGRESS.PROGRESS_PREPARE;
+
+    _fbGearInVelo(
+        Master                := _Master, 
+        Slave                 := _ItfAxis.AxisRef, 
+        Execute               := FALSE, 
+
+        RatioNumerator        := stGearData.rGearNumerator, 
+        RatioDenominator      := stGearData.iGearDenumerator, 
+
+	      SyncMode:= , 
+        Velocity              := stMoveData.rSetVelo, 
+        Acceleration          := stMoveData.rAcc, 
+        Deceleration          := stMoveData.rAcc, 
+        Jerk                  := stMoveData.rJerk, 
+        BufferMode            := Tc2_MC2.MC_BufferMode.MC_Aborting, 
+        Options               := _stOptions, 
+        ErrorID               => _nErrorId);
+
+        IF (_MessageLevel = E_MessageType.eMessageVerbose)
+        THEN
+          _stMsg.eType        := E_MessageType.eMessageVerbose;
+          _stMsg.eSubdevice   := e_Subdevice.fbGearInVelo;
+          _stMsg.iErrorNumber := _nErrorId;
+          _stMsg.sText        := TO_STRING(_eState);
+          f_MessageSet(_stMsg);
+        END_IF
+END_CASE
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_PREPARE:
+    _fbGearInVelo(
+        Master                := _Master, 
+        Slave                 := _ItfAxis.AxisRef, 
+        Execute               := TRUE);
+
+    IF _fbGearInVelo.Error
+    THEN
+      _bError                 := TRUE;
+      _nErrorId               := _fbGearInPos.ErrorId;
+
+      _fbGearInVelo(
+        Master                := _Master, 
+        Slave                 := _ItfAxis.AxisRef, 
+        Execute               := FALSE);
+
+      _eState                 := E_PROGRESS.PROGRESS_ERROR;
+
+      _stMsg.eType            := E_MessageType.eMessageError;
+      _stMsg.eSubdevice       := e_Subdevice.fbGearInVelo;
+      _stMsg.iErrorNumber     := _nErrorId;
+      _stMsg.sText            := TO_STRING(_eState);
+      f_MessageSet(_stMsg);
+
+    ELSIF _fbGearInVelo.CommandAborted
+    THEN
+      _bError                 := TRUE;
+      _eState                 := E_PROGRESS.PROGRESS_OCCUPIED;
+
+      _stMsg.eType            := E_MessageType.eMessageWarning;
+      _stMsg.eSubdevice       := e_Subdevice.fbGearInVelo;
+      _stMsg.iErrorNumber     := _nErrorId;
+      _stMsg.sText            := concat(TO_STRING(_eState), ': CommandAborted');
+      f_MessageSet(_stMsg);
+
+    ELSIF _fbGearInVelo.InSync
+    THEN
+      _eState                 := E_PROGRESS.PROGRESS_DONE;
+
+      IF (_MessageLevel > E_MessageType.eMessageError)
+      THEN
+        _stMsg.eType          := E_MessageType.eMessageInfo;
+        _stMsg.eSubdevice     := e_Subdevice.fbGearInVelo;
+        _stMsg.iErrorNumber   := _nErrorId;
+        _stMsg.sText          := TO_STRING(_eState);
+        f_MessageSet(_stMsg);
+      END_IF
+      _fbGearInVelo(
+        Master                := _Master, 
+        Slave                 := _ItfAxis.AxisRef, 
+        Execute               := FALSE);
+    END_IF
+END_CASE
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+GearInVelo                    := _eState;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="MessageLevel" Id="{08d2ea8c-5238-4fc8-ae70-3c4e99f8afc7}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY MessageLevel : E_MessageType]]></Declaration>
+      <Set Name="Set" Id="{beca9d4b-a8c0-46e8-89fb-759253069974}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_MessageLevel := MessageLevel;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Method Name="Template" Id="{6292f03f-4434-4a65-9f62-e71b987dbc55}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD Template : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+END_VAR
+VAR_INST
+  _eState           : E_PROGRESS;
+  _rValue           : LREAL;
+  _udiErr           : UDINT;
+  _stMsg            : ST_Message;
+
+
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[
+IF NOT __ISVALIDREF(_AxisSlave)
+THEN
+  _eCheck                     := E_CHECK_STATE.CAM_SLAVE_AXIS_REF_INVALID;
+  CamOut                      := E_PROGRESS.ERROR;
+  RETURN;
+END_IF
+
+IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
+
+CASE _eState
+OF
+  E_PROGRESS.INIT:
+    IF Execute 
+    THEN
+      memset(ADR(_stMsg),0,SIZEOF(_stMsg));
+      _udiErr                       := 0;
+      _rValue                       := 0;
+      _eState                       := E_PROGRESS.BUSY;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.BUSY:
+    _eState                         := E_PROGRESS.STARTUP;
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.STARTUP:
+    _eState                         := E_PROGRESS.PREPARE;
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PREPARE:
+    _eState                         := E_PROGRESS.READY;
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.READY:
+    _eState                         := E_PROGRESS.WAITING;
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.WAITING:
+    _eState                         := E_PROGRESS.WORKING;
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.WORKING:
+    _eState                         := E_PROGRESS.DONE;
+END_CASE
+
+Template_1 := _eState;
+]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="FB_FlyingBase">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_FlyingBase.AxisModulo.Set">
+      <LineId Id="1" Count="1" />
+    </LineIds>
+    <LineIds Name="FB_FlyingBase.GearInPos">
+      <LineId Id="1" Count="148" />
+    </LineIds>
+    <LineIds Name="FB_FlyingBase.GearInVelo">
+      <LineId Id="1" Count="123" />
+    </LineIds>
+    <LineIds Name="FB_FlyingBase.MessageLevel.Set">
+      <LineId Id="1" Count="1" />
+    </LineIds>
+    <LineIds Name="FB_FlyingBase.Template">
+      <LineId Id="1" Count="53" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

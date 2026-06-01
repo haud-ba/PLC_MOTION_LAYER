@@ -1,15 +1,16 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.13">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
   <DUT Name="e_Device" Id="{5aecdf23-ec31-4920-a93d-3978559a61b7}">
     <Declaration><![CDATA[{attribute 'to_string'}
 TYPE e_Device :
 (
   // txt file logging LOG_FILE
-  Device_Null,                // NULL           - not to be used
-  Device_Main,                // MAIN(PRG)      - reserved for MAIN(PRG)
-  Device_Nci,                 // NCI(PRG)       - reserved for NCI(PRG)
-  Device_Cam,                 // CAM(PRG        - reserved for CAM(PRG)
-  Device_Functions,           // FUNCTIONS(PRG) - reserved for FUNCTIONS(PRG)
+  Device_Null,                // NULL               - not to be used
+  Device_Main,                // MAIN(PRG)          - reserved for MAIN(PRG)
+  Device_Nci,                 // NCI(PRG)           - reserved for NCI(PRG)
+  Device_Cam,                 // CAM(PRG            - reserved for CAM(PRG)
+  Device_Functions,           // FUNCTIONS(PRG)     - reserved for FUNCTIONS(PRG)
+  Device_FlyingSaw,           // FLYING_SAW(PRG)    - reserved for FLYING_SAW(PRG)
 
   General           :=  1000,
   CaGroup           :=  2000,
@@ -30,6 +31,9 @@ TYPE e_Device :
 
   // txt file logging LOG_FILE_METRICS
   Metrics           := 16000,
+
+  FlyingSaw         := 17000,
+
 
   // txt file logging LOG_FILE_APP
   Process           := 20000,

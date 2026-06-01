@@ -1,9 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.12">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
   <Task Name="PlcTask" Id="{ea306e18-f07d-4cb5-ace7-68bc2dd91240}">
     <!--CycleTime in micro seconds.-->
-    <CycleTime>10000</CycleTime>
-    <Priority>20</Priority>
+    <CycleTime>1000</CycleTime>
+    <Priority>1</Priority>
     <PouCall>
       <Name>MAPPING_in</Name>
     </PouCall>
@@ -18,6 +18,9 @@
     </PouCall>
     <PouCall>
       <Name>CAM</Name>
+    </PouCall>
+    <PouCall>
+      <Name>FLYING_SAW</Name>
     </PouCall>
     <PouCall>
       <Name>MAPPING_out</Name>

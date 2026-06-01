@@ -30,6 +30,12 @@ VAR CONSTANT
 {ELSE}
   bBypassMappingCam         : BOOL  := TRUE;
 {END_IF}
+{IF defined (SAW_MAP)}
+  {info 'PLC_MOTION_LAYER: SAW_MAP'}
+  bBypassMappingFlyingSaw   : BOOL  := FALSE;
+{ELSE}
+  bBypassMappingFlyingSaw   : BOOL  := TRUE;
+{END_IF}
 //-----------------------------------------------------------------------------------------------------------------
 //  What... is the capital of Assyria?
 //-----------------------------------------------------------------------------------------------------------------
@@ -319,12 +325,46 @@ Check                   := TRUE;
       </Implementation>
     </Method>
     <LineIds Name="MAPPING_in">
-      <LineId Id="430" Count="53" />
+      <LineId Id="345" Count="2" />
+      <LineId Id="375" Count="0" />
+      <LineId Id="366" Count="3" />
+      <LineId Id="365" Count="0" />
+      <LineId Id="370" Count="0" />
+      <LineId Id="372" Count="0" />
+      <LineId Id="371" Count="0" />
+      <LineId Id="374" Count="0" />
+      <LineId Id="373" Count="0" />
+      <LineId Id="348" Count="3" />
+      <LineId Id="55" Count="0" />
+      <LineId Id="242" Count="0" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="66" Count="1" />
+      <LineId Id="353" Count="0" />
+      <LineId Id="68" Count="0" />
+      <LineId Id="70" Count="1" />
+      <LineId Id="208" Count="0" />
+      <LineId Id="354" Count="1" />
+      <LineId Id="339" Count="2" />
+      <LineId Id="343" Count="1" />
+      <LineId Id="342" Count="0" />
+      <LineId Id="356" Count="1" />
+      <LineId Id="243" Count="0" />
+      <LineId Id="245" Count="0" />
+      <LineId Id="138" Count="0" />
+      <LineId Id="376" Count="0" />
+      <LineId Id="246" Count="0" />
+      <LineId Id="358" Count="1" />
+      <LineId Id="210" Count="0" />
+      <LineId Id="248" Count="0" />
+      <LineId Id="209" Count="0" />
+      <LineId Id="254" Count="0" />
+      <LineId Id="249" Count="0" />
+      <LineId Id="360" Count="0" />
+      <LineId Id="362" Count="2" />
       <LineId Id="361" Count="0" />
     </LineIds>
     <LineIds Name="MAPPING_in.Check">
-      <LineId Id="137" Count="134" />
-      <LineId Id="136" Count="0" />
+      <LineId Id="1" Count="135" />
     </LineIds>
   </POU>
 </TcPlcObject>

@@ -12,14 +12,8 @@
       </Set>
     </Property>
     <Property Name="AxisCtrl" Id="{b628aab6-43ad-06cd-37b3-8ef1894d8490}" FolderPath="properties\">
-      <Declaration><![CDATA[PROPERTY AxisCtrl : pointer to ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF st_axis_ctrl]]></Declaration>
+      <Declaration><![CDATA[PROPERTY AxisCtrl : pointer to ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_CAM_CTRL]]></Declaration>
       <Set Name="Set" Id="{ab5a31ec-2c82-0876-0f62-23ae259eabe0}">
-        <Declaration><![CDATA[]]></Declaration>
-      </Set>
-    </Property>
-    <Property Name="AxisData" Id="{29e79334-8275-0433-3468-1bd12dc7b2a9}" FolderPath="properties\">
-      <Declaration><![CDATA[PROPERTY AxisData : pointer to ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_CAM_DATA]]></Declaration>
-      <Set Name="Set" Id="{66951bb9-3ec4-042a-108a-c31f69b5b650}">
         <Declaration><![CDATA[]]></Declaration>
       </Set>
     </Property>
@@ -30,7 +24,7 @@
       </Set>
     </Property>
     <Property Name="AxisInfo" Id="{c4e78251-8097-003e-3bad-03f58172a569}" FolderPath="properties\">
-      <Declaration><![CDATA[PROPERTY AxisInfo : pointer to ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_AXIS_INFO]]></Declaration>
+      <Declaration><![CDATA[PROPERTY AxisInfo : pointer to ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_CAM_INFO]]></Declaration>
       <Set Name="Set" Id="{5cb24616-3f31-0aff-1029-27202044ad6a}">
         <Declaration><![CDATA[]]></Declaration>
       </Set>
@@ -67,6 +61,12 @@
     <Property Name="MotionFunctionPoint" Id="{3ccce8b0-462d-0c84-1a27-b7acfc79c954}" FolderPath="properties\">
       <Declaration><![CDATA[PROPERTY MotionFunctionPoint : pointer to array[1..MAX_AXIS] of ST_MOTION_FUNCTION_POINT]]></Declaration>
       <Set Name="Set" Id="{8a11a43b-80fd-00e4-0e64-27354f449965}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="GearData" Id="{29e79334-8275-0433-3468-1bd12dc7b2a9}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY GearData : pointer to ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_CAM_DATA]]></Declaration>
+      <Set Name="Set" Id="{66951bb9-3ec4-042a-108a-c31f69b5b650}">
         <Declaration><![CDATA[]]></Declaration>
       </Set>
     </Property>

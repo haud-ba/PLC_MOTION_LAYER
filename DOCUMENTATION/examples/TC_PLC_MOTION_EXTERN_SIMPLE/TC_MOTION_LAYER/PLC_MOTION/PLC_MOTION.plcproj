@@ -73,6 +73,30 @@
     <Compile Include="CAM\types\ST_MOTION_FUNCTION_POINT.TcDUT">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="FLYING_SAW\FB_FlyingCtrl.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FLYING_SAW\FB_FlyingBase.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FLYING_SAW\I_Fly_Ctrl.TcIO">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FLYING_SAW\types\ST_FLY_CTRL.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FLYING_SAW\types\ST_FLY_DATA.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FLYING_SAW\types\ST_FLY_OPTIONS.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FLYING_SAW\types\ST_FLY_STATE.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FLYING_SAW.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="FUNCTIONS.TcPOU">
       <SubType>Code</SubType>
     </Compile>
@@ -342,6 +366,10 @@
       <SubType>Code</SubType>
       <LinkAlways>true</LinkAlways>
     </Compile>
+    <Compile Include="_GVL\GVL_FLYING_SAW.TcGVL">
+      <SubType>Code</SubType>
+      <LinkAlways>true</LinkAlways>
+    </Compile>
     <Compile Include="_GVL\GVL_MSG.TcGVL">
       <SubType>Code</SubType>
       <LinkAlways>true</LinkAlways>
@@ -548,6 +576,9 @@
       <ExcludeFromBuild>true</ExcludeFromBuild>
     </SubObject>
     <SubObject Include="FB_CamAxis.WriteMotionFunctionPoint" />
+    <SubObject Include="FB_FlyingBase.Template">
+      <ExcludeFromBuild>true</ExcludeFromBuild>
+    </SubObject>
     <SubObject Include="FB_CamCtrl.AxisCamIn" />
     <SubObject Include="FB_McAxisCtrl.AxisGearInMultiMaster" />
     <SubObject Include="FB_McAxisCtrl.Template">

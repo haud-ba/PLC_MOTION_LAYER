@@ -191,13 +191,13 @@ ELSE
       _eResult                      := AxisBufferVelo(TRUE, _Data^[_nAxisIndex]);
   
     E_AXIS_STATE.AXIS_PARAMETER_READ:
-      _eResult                      := AxisParameterRead(TRUE, _NcParameterRd^[_nAxisIndex].ParameterNumber);
-  
+      _eResult                      := AxisParameterRead(TRUE, _eParameterNrRead);
+
     E_AXIS_STATE.AXIS_PARAMETER_WRITE:
-      _eResult                      := AxisParameterWrite(TRUE, _NcParameterWrt^[_nAxisIndex].ParameterNumber);
+      _eResult                      := AxisParameterWrite(TRUE, _eParameterNrWrite);
   
     E_AXIS_STATE.AXIS_PARAMETER_WRITE_PERSISTENT:
-      _eResult                      := AxisParameterWritePersistent(TRUE, _NcParameterWrt^[_nAxisIndex].ParameterNumber);
+      _eResult                      := AxisParameterWritePersistent(FALSE, _eParameterNrWrite);
   
     E_AXIS_STATE.AXIS_GEAR_IN:
       _eResult                      := AxisGearIn(TRUE);
@@ -2685,15 +2685,6 @@ ResetSoE := _eState;
 ]]></ST>
       </Implementation>
     </Method>
-    <Set Name="Set" Id="{35143572-1cc0-0e7a-19af-74d16589d588}">
-      <Declaration><![CDATA[VAR
-END_VAR
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[_NcParameterIn := NcParameterIn;
-]]></ST>
-      </Implementation>
-    </Set>
     <Property Name="TargetWindow" Id="{11d68468-93e3-0097-23b1-e0b3bcb90db4}" FolderPath="properties\">
       <Declaration><![CDATA[PROPERTY TargetWindow : lreal]]></Declaration>
       <Get Name="Get" Id="{0f08b6bc-07d3-0b4c-37b4-d89d0cb7c963}">
@@ -2778,740 +2769,130 @@ Template_1 := _eState;
       </Implementation>
     </Method>
     <LineIds Name="FB_McAxisCtrl">
-      <LineId Id="4877" Count="110" />
-      <LineId Id="5143" Count="2" />
-      <LineId Id="4988" Count="92" />
-      <LineId Id="17" Count="0" />
+      <LineId Id="1" Count="207" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.Axes.Set">
-      <LineId Id="2" Count="0" />
-      <LineId Id="5" Count="0" />
+      <LineId Id="1" Count="1" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.AxisBufferPos">
-      <LineId Id="887" Count="62" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="63" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.AxisBufferVelo">
-      <LineId Id="863" Count="66" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="67" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.AxisCtrl.Set">
-      <LineId Id="2" Count="0" />
-      <LineId Id="5" Count="0" />
+      <LineId Id="1" Count="1" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.AxisData.Set">
-      <LineId Id="2" Count="0" />
-      <LineId Id="5" Count="0" />
+      <LineId Id="1" Count="1" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.AxisDisable">
-      <LineId Id="708" Count="36" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="37" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.AxisEnable">
-      <LineId Id="708" Count="36" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="37" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.AxisGearIn">
-      <LineId Id="674" Count="8" />
-      <LineId Id="751" Count="1" />
-      <LineId Id="683" Count="1" />
-      <LineId Id="775" Count="0" />
-      <LineId Id="774" Count="0" />
-      <LineId Id="776" Count="2" />
-      <LineId Id="788" Count="0" />
-      <LineId Id="787" Count="0" />
-      <LineId Id="779" Count="2" />
-      <LineId Id="792" Count="0" />
-      <LineId Id="891" Count="0" />
-      <LineId Id="893" Count="2" />
-      <LineId Id="892" Count="0" />
-      <LineId Id="783" Count="0" />
-      <LineId Id="794" Count="0" />
-      <LineId Id="784" Count="0" />
-      <LineId Id="898" Count="0" />
-      <LineId Id="785" Count="0" />
-      <LineId Id="896" Count="1" />
-      <LineId Id="789" Count="1" />
-      <LineId Id="858" Count="0" />
-      <LineId Id="860" Count="6" />
-      <LineId Id="786" Count="0" />
-      <LineId Id="686" Count="5" />
-      <LineId Id="795" Count="7" />
-      <LineId Id="811" Count="0" />
-      <LineId Id="692" Count="3" />
-      <LineId Id="813" Count="7" />
-      <LineId Id="829" Count="0" />
-      <LineId Id="844" Count="0" />
-      <LineId Id="830" Count="2" />
-      <LineId Id="899" Count="0" />
-      <LineId Id="834" Count="3" />
-      <LineId Id="839" Count="3" />
-      <LineId Id="847" Count="0" />
-      <LineId Id="843" Count="0" />
-      <LineId Id="845" Count="0" />
-      <LineId Id="696" Count="0" />
-      <LineId Id="846" Count="0" />
-      <LineId Id="697" Count="4" />
-      <LineId Id="869" Count="7" />
-      <LineId Id="901" Count="3" />
-      <LineId Id="906" Count="3" />
-      <LineId Id="915" Count="0" />
-      <LineId Id="702" Count="0" />
-      <LineId Id="718" Count="1" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="118" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.AxisGearInMultiMaster">
-      <LineId Id="674" Count="8" />
-      <LineId Id="877" Count="1" />
-      <LineId Id="914" Count="0" />
-      <LineId Id="683" Count="1" />
-      <LineId Id="775" Count="0" />
-      <LineId Id="774" Count="0" />
-      <LineId Id="776" Count="2" />
-      <LineId Id="788" Count="0" />
-      <LineId Id="787" Count="0" />
-      <LineId Id="779" Count="2" />
-      <LineId Id="792" Count="0" />
-      <LineId Id="952" Count="0" />
-      <LineId Id="793" Count="0" />
-      <LineId Id="953" Count="0" />
-      <LineId Id="782" Count="1" />
-      <LineId Id="794" Count="0" />
-      <LineId Id="784" Count="0" />
-      <LineId Id="1013" Count="0" />
-      <LineId Id="785" Count="0" />
-      <LineId Id="1074" Count="1" />
-      <LineId Id="1011" Count="1" />
-      <LineId Id="1010" Count="0" />
-      <LineId Id="789" Count="1" />
-      <LineId Id="1073" Count="0" />
-      <LineId Id="997" Count="1" />
-      <LineId Id="858" Count="0" />
-      <LineId Id="860" Count="3" />
-      <LineId Id="958" Count="3" />
-      <LineId Id="866" Count="0" />
-      <LineId Id="904" Count="0" />
-      <LineId Id="903" Count="0" />
-      <LineId Id="786" Count="0" />
-      <LineId Id="686" Count="4" />
-      <LineId Id="908" Count="2" />
-      <LineId Id="1076" Count="1" />
-      <LineId Id="975" Count="0" />
-      <LineId Id="974" Count="0" />
-      <LineId Id="1070" Count="1" />
-      <LineId Id="944" Count="1" />
-      <LineId Id="964" Count="9" />
-      <LineId Id="907" Count="0" />
-      <LineId Id="946" Count="0" />
-      <LineId Id="881" Count="0" />
-      <LineId Id="886" Count="7" />
-      <LineId Id="811" Count="0" />
-      <LineId Id="1072" Count="0" />
-      <LineId Id="692" Count="3" />
-      <LineId Id="1054" Count="1" />
-      <LineId Id="1085" Count="0" />
-      <LineId Id="1089" Count="0" />
-      <LineId Id="1086" Count="2" />
-      <LineId Id="1058" Count="0" />
-      <LineId Id="1090" Count="0" />
-      <LineId Id="1068" Count="0" />
-      <LineId Id="1084" Count="0" />
-      <LineId Id="1080" Count="1" />
-      <LineId Id="1091" Count="0" />
-      <LineId Id="1082" Count="1" />
-      <LineId Id="1063" Count="1" />
-      <LineId Id="1056" Count="0" />
-      <LineId Id="948" Count="3" />
-      <LineId Id="1000" Count="9" />
-      <LineId Id="996" Count="0" />
-      <LineId Id="976" Count="18" />
-      <LineId Id="947" Count="0" />
-      <LineId Id="697" Count="0" />
-      <LineId Id="1015" Count="2" />
-      <LineId Id="1051" Count="0" />
-      <LineId Id="1053" Count="0" />
-      <LineId Id="1052" Count="0" />
-      <LineId Id="1018" Count="27" />
-      <LineId Id="1050" Count="0" />
-      <LineId Id="1046" Count="1" />
-      <LineId Id="1049" Count="0" />
-      <LineId Id="698" Count="3" />
-      <LineId Id="869" Count="6" />
-      <LineId Id="999" Count="0" />
-      <LineId Id="876" Count="0" />
-      <LineId Id="702" Count="0" />
-      <LineId Id="718" Count="1" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="209" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.AxisGearInParameter.Set">
-      <LineId Id="2" Count="0" />
-      <LineId Id="5" Count="0" />
+      <LineId Id="1" Count="1" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.AxisGearOut">
-      <LineId Id="674" Count="10" />
-      <LineId Id="858" Count="0" />
-      <LineId Id="923" Count="2" />
-      <LineId Id="989" Count="2" />
-      <LineId Id="993" Count="0" />
-      <LineId Id="917" Count="0" />
-      <LineId Id="916" Count="0" />
-      <LineId Id="1002" Count="0" />
-      <LineId Id="995" Count="6" />
-      <LineId Id="992" Count="0" />
-      <LineId Id="686" Count="4" />
-      <LineId Id="927" Count="2" />
-      <LineId Id="926" Count="0" />
-      <LineId Id="830" Count="2" />
-      <LineId Id="899" Count="0" />
-      <LineId Id="834" Count="3" />
-      <LineId Id="839" Count="3" />
-      <LineId Id="847" Count="0" />
-      <LineId Id="843" Count="0" />
-      <LineId Id="845" Count="0" />
-      <LineId Id="982" Count="6" />
-      <LineId Id="981" Count="0" />
-      <LineId Id="957" Count="1" />
-      <LineId Id="696" Count="0" />
-      <LineId Id="959" Count="0" />
-      <LineId Id="961" Count="0" />
-      <LineId Id="960" Count="0" />
-      <LineId Id="846" Count="0" />
-      <LineId Id="963" Count="4" />
-      <LineId Id="969" Count="2" />
-      <LineId Id="980" Count="0" />
-      <LineId Id="973" Count="6" />
-      <LineId Id="697" Count="0" />
-      <LineId Id="902" Count="2" />
-      <LineId Id="906" Count="0" />
-      <LineId Id="930" Count="2" />
-      <LineId Id="702" Count="0" />
-      <LineId Id="718" Count="1" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="96" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.AxisHalt">
-      <LineId Id="744" Count="16" />
-      <LineId Id="793" Count="0" />
-      <LineId Id="791" Count="0" />
-      <LineId Id="794" Count="2" />
-      <LineId Id="762" Count="0" />
-      <LineId Id="778" Count="2" />
-      <LineId Id="798" Count="3" />
-      <LineId Id="797" Count="0" />
-      <LineId Id="802" Count="6" />
-      <LineId Id="782" Count="4" />
-      <LineId Id="810" Count="3" />
-      <LineId Id="787" Count="2" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="50" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.AxisHome">
-      <LineId Id="674" Count="10" />
-      <LineId Id="743" Count="0" />
-      <LineId Id="738" Count="1" />
-      <LineId Id="685" Count="0" />
-      <LineId Id="740" Count="2" />
-      <LineId Id="686" Count="4" />
-      <LineId Id="737" Count="0" />
-      <LineId Id="733" Count="0" />
-      <LineId Id="848" Count="0" />
-      <LineId Id="734" Count="2" />
-      <LineId Id="692" Count="3" />
-      <LineId Id="760" Count="1" />
-      <LineId Id="746" Count="0" />
-      <LineId Id="758" Count="0" />
-      <LineId Id="747" Count="2" />
-      <LineId Id="745" Count="0" />
-      <LineId Id="750" Count="0" />
-      <LineId Id="696" Count="0" />
-      <LineId Id="751" Count="0" />
-      <LineId Id="697" Count="3" />
-      <LineId Id="827" Count="0" />
-      <LineId Id="834" Count="0" />
-      <LineId Id="829" Count="4" />
-      <LineId Id="702" Count="4" />
-      <LineId Id="789" Count="0" />
-      <LineId Id="707" Count="3" />
-      <LineId Id="814" Count="12" />
-      <LineId Id="712" Count="4" />
-      <LineId Id="813" Count="0" />
-      <LineId Id="808" Count="4" />
-      <LineId Id="717" Count="2" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="92" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.AxisIdle">
-      <LineId Id="674" Count="7" />
-      <LineId Id="780" Count="1" />
-      <LineId Id="758" Count="0" />
-      <LineId Id="685" Count="5" />
-      <LineId Id="727" Count="0" />
-      <LineId Id="729" Count="0" />
-      <LineId Id="728" Count="0" />
-      <LineId Id="730" Count="0" />
-      <LineId Id="809" Count="0" />
-      <LineId Id="696" Count="0" />
-      <LineId Id="731" Count="0" />
-      <LineId Id="697" Count="3" />
-      <LineId Id="733" Count="1" />
-      <LineId Id="701" Count="1" />
-      <LineId Id="786" Count="2" />
-      <LineId Id="805" Count="1" />
-      <LineId Id="804" Count="0" />
-      <LineId Id="791" Count="0" />
-      <LineId Id="807" Count="0" />
-      <LineId Id="795" Count="8" />
-      <LineId Id="792" Count="0" />
-      <LineId Id="703" Count="2" />
-      <LineId Id="735" Count="0" />
-      <LineId Id="811" Count="0" />
-      <LineId Id="810" Count="0" />
-      <LineId Id="812" Count="0" />
-      <LineId Id="737" Count="0" />
-      <LineId Id="813" Count="0" />
-      <LineId Id="736" Count="0" />
-      <LineId Id="738" Count="0" />
-      <LineId Id="760" Count="0" />
-      <LineId Id="706" Count="0" />
-      <LineId Id="744" Count="0" />
-      <LineId Id="741" Count="2" />
-      <LineId Id="778" Count="0" />
-      <LineId Id="770" Count="5" />
-      <LineId Id="784" Count="0" />
-      <LineId Id="783" Count="0" />
-      <LineId Id="776" Count="0" />
-      <LineId Id="782" Count="0" />
-      <LineId Id="777" Count="0" />
-      <LineId Id="739" Count="0" />
-      <LineId Id="707" Count="0" />
-      <LineId Id="718" Count="1" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="83" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.AxisIndex.Set">
-      <LineId Id="2" Count="0" />
-      <LineId Id="5" Count="0" />
+      <LineId Id="1" Count="1" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.AxisInfo.Set">
-      <LineId Id="2" Count="0" />
-      <LineId Id="5" Count="0" />
+      <LineId Id="1" Count="1" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.AxisInit">
-      <LineId Id="17" Count="8" />
-      <LineId Id="71" Count="0" />
-      <LineId Id="26" Count="2" />
-      <LineId Id="72" Count="0" />
-      <LineId Id="29" Count="5" />
-      <LineId Id="88" Count="0" />
-      <LineId Id="35" Count="3" />
-      <LineId Id="90" Count="2" />
-      <LineId Id="210" Count="0" />
-      <LineId Id="208" Count="0" />
-      <LineId Id="93" Count="2" />
-      <LineId Id="189" Count="0" />
-      <LineId Id="180" Count="2" />
-      <LineId Id="184" Count="3" />
-      <LineId Id="179" Count="0" />
-      <LineId Id="96" Count="0" />
-      <LineId Id="40" Count="3" />
-      <LineId Id="211" Count="2" />
-      <LineId Id="98" Count="0" />
-      <LineId Id="106" Count="0" />
-      <LineId Id="99" Count="4" />
-      <LineId Id="196" Count="1" />
-      <LineId Id="104" Count="0" />
-      <LineId Id="107" Count="0" />
-      <LineId Id="192" Count="0" />
-      <LineId Id="105" Count="0" />
-      <LineId Id="214" Count="1" />
-      <LineId Id="218" Count="8" />
-      <LineId Id="217" Count="0" />
-      <LineId Id="216" Count="0" />
-      <LineId Id="45" Count="3" />
-      <LineId Id="227" Count="0" />
-      <LineId Id="110" Count="6" />
-      <LineId Id="125" Count="0" />
-      <LineId Id="117" Count="6" />
-      <LineId Id="50" Count="3" />
-      <LineId Id="141" Count="0" />
-      <LineId Id="143" Count="1" />
-      <LineId Id="267" Count="5" />
-      <LineId Id="265" Count="0" />
-      <LineId Id="130" Count="2" />
-      <LineId Id="175" Count="0" />
-      <LineId Id="264" Count="0" />
-      <LineId Id="145" Count="0" />
-      <LineId Id="166" Count="0" />
-      <LineId Id="169" Count="2" />
-      <LineId Id="177" Count="0" />
-      <LineId Id="172" Count="0" />
-      <LineId Id="176" Count="0" />
-      <LineId Id="173" Count="1" />
-      <LineId Id="259" Count="4" />
-      <LineId Id="167" Count="0" />
-      <LineId Id="135" Count="1" />
-      <LineId Id="146" Count="0" />
-      <LineId Id="140" Count="0" />
-      <LineId Id="266" Count="0" />
-      <LineId Id="55" Count="3" />
-      <LineId Id="243" Count="0" />
-      <LineId Id="202" Count="0" />
-      <LineId Id="204" Count="1" />
-      <LineId Id="201" Count="0" />
-      <LineId Id="200" Count="0" />
-      <LineId Id="156" Count="3" />
-      <LineId Id="155" Count="0" />
-      <LineId Id="148" Count="4" />
-      <LineId Id="287" Count="1" />
-      <LineId Id="242" Count="0" />
-      <LineId Id="303" Count="2" />
-      <LineId Id="154" Count="0" />
-      <LineId Id="60" Count="2" />
-      <LineId Id="5" Count="0" />
+      <LineId Id="1" Count="166" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.AxisMoveToPosition">
-      <LineId Id="924" Count="7" />
-      <LineId Id="935" Count="50" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="59" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.AxisMoveVelocity">
-      <LineId Id="744" Count="7" />
-      <LineId Id="755" Count="5" />
-      <LineId Id="825" Count="0" />
-      <LineId Id="793" Count="6" />
-      <LineId Id="792" Count="0" />
-      <LineId Id="762" Count="0" />
-      <LineId Id="778" Count="2" />
-      <LineId Id="801" Count="14" />
-      <LineId Id="782" Count="4" />
-      <LineId Id="817" Count="7" />
-      <LineId Id="787" Count="2" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="58" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.AxisParameterRead">
-      <LineId Id="829" Count="50" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="51" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.AxisParameterWrite">
-      <LineId Id="851" Count="48" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="49" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.AxisParameterWritePersistent">
-      <LineId Id="850" Count="45" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="46" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.AxisReset">
-      <LineId Id="744" Count="7" />
-      <LineId Id="755" Count="5" />
-      <LineId Id="791" Count="0" />
-      <LineId Id="761" Count="1" />
-      <LineId Id="800" Count="0" />
-      <LineId Id="779" Count="1" />
-      <LineId Id="792" Count="2" />
-      <LineId Id="781" Count="0" />
-      <LineId Id="795" Count="3" />
-      <LineId Id="782" Count="3" />
-      <LineId Id="801" Count="0" />
-      <LineId Id="786" Count="3" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="37" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.AxisSendToPosition">
-      <LineId Id="924" Count="7" />
-      <LineId Id="935" Count="6" />
-      <LineId Id="996" Count="3" />
-      <LineId Id="1004" Count="3" />
-      <LineId Id="995" Count="0" />
-      <LineId Id="950" Count="3" />
-      <LineId Id="1008" Count="8" />
-      <LineId Id="962" Count="12" />
-      <LineId Id="1017" Count="8" />
-      <LineId Id="983" Count="2" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="62" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.AxisState.Set">
-      <LineId Id="2" Count="0" />
-      <LineId Id="5" Count="0" />
+      <LineId Id="1" Count="1" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.AxisStop">
-      <LineId Id="744" Count="7" />
-      <LineId Id="755" Count="6" />
-      <LineId Id="791" Count="2" />
-      <LineId Id="795" Count="0" />
-      <LineId Id="762" Count="0" />
-      <LineId Id="778" Count="2" />
-      <LineId Id="801" Count="11" />
-      <LineId Id="782" Count="4" />
-      <LineId Id="797" Count="3" />
-      <LineId Id="787" Count="2" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="47" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.Check">
-      <LineId Id="146" Count="0" />
-      <LineId Id="87" Count="0" />
-      <LineId Id="89" Count="1" />
-      <LineId Id="92" Count="0" />
-      <LineId Id="91" Count="0" />
-      <LineId Id="32" Count="0" />
-      <LineId Id="93" Count="0" />
-      <LineId Id="33" Count="4" />
-      <LineId Id="156" Count="4" />
-      <LineId Id="11" Count="5" />
-      <LineId Id="18" Count="0" />
-      <LineId Id="17" Count="0" />
-      <LineId Id="19" Count="3" />
-      <LineId Id="126" Count="5" />
-      <LineId Id="38" Count="0" />
-      <LineId Id="55" Count="10" />
-      <LineId Id="133" Count="0" />
-      <LineId Id="135" Count="4" />
-      <LineId Id="66" Count="5" />
-      <LineId Id="48" Count="0" />
-      <LineId Id="72" Count="4" />
-      <LineId Id="49" Count="0" />
-      <LineId Id="82" Count="4" />
-      <LineId Id="163" Count="5" />
-      <LineId Id="94" Count="0" />
-      <LineId Id="96" Count="0" />
-      <LineId Id="98" Count="1" />
-      <LineId Id="101" Count="23" />
-      <LineId Id="161" Count="0" />
-      <LineId Id="95" Count="0" />
-      <LineId Id="9" Count="1" />
-      <LineId Id="153" Count="0" />
-      <LineId Id="5" Count="0" />
-      <LineId Id="162" Count="0" />
+      <LineId Id="1" Count="112" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.Cmd">
-      <LineId Id="154" Count="0" />
-      <LineId Id="11" Count="0" />
-      <LineId Id="13" Count="0" />
-      <LineId Id="201" Count="0" />
-      <LineId Id="84" Count="1" />
-      <LineId Id="94" Count="0" />
-      <LineId Id="86" Count="0" />
-      <LineId Id="100" Count="1" />
-      <LineId Id="242" Count="0" />
-      <LineId Id="102" Count="1" />
-      <LineId Id="97" Count="1" />
-      <LineId Id="200" Count="0" />
-      <LineId Id="15" Count="0" />
-      <LineId Id="81" Count="0" />
-      <LineId Id="16" Count="0" />
-      <LineId Id="199" Count="0" />
-      <LineId Id="18" Count="0" />
-      <LineId Id="17" Count="0" />
-      <LineId Id="82" Count="0" />
-      <LineId Id="19" Count="0" />
-      <LineId Id="198" Count="0" />
-      <LineId Id="29" Count="0" />
-      <LineId Id="32" Count="0" />
-      <LineId Id="283" Count="0" />
-      <LineId Id="282" Count="0" />
-      <LineId Id="83" Count="0" />
-      <LineId Id="51" Count="0" />
-      <LineId Id="197" Count="0" />
-      <LineId Id="52" Count="0" />
-      <LineId Id="33" Count="0" />
-      <LineId Id="115" Count="0" />
-      <LineId Id="53" Count="0" />
-      <LineId Id="196" Count="0" />
-      <LineId Id="54" Count="0" />
-      <LineId Id="34" Count="0" />
-      <LineId Id="124" Count="0" />
-      <LineId Id="55" Count="0" />
-      <LineId Id="195" Count="0" />
-      <LineId Id="56" Count="0" />
-      <LineId Id="35" Count="0" />
-      <LineId Id="125" Count="0" />
-      <LineId Id="57" Count="0" />
-      <LineId Id="303" Count="1" />
-      <LineId Id="306" Count="1" />
-      <LineId Id="194" Count="0" />
-      <LineId Id="58" Count="0" />
-      <LineId Id="36" Count="0" />
-      <LineId Id="156" Count="1" />
-      <LineId Id="114" Count="0" />
-      <LineId Id="59" Count="0" />
-      <LineId Id="193" Count="0" />
-      <LineId Id="60" Count="0" />
-      <LineId Id="37" Count="0" />
-      <LineId Id="126" Count="0" />
-      <LineId Id="61" Count="0" />
-      <LineId Id="192" Count="0" />
-      <LineId Id="62" Count="0" />
-      <LineId Id="38" Count="0" />
-      <LineId Id="127" Count="0" />
-      <LineId Id="39" Count="0" />
-      <LineId Id="191" Count="0" />
-      <LineId Id="185" Count="0" />
-      <LineId Id="63" Count="0" />
-      <LineId Id="40" Count="0" />
-      <LineId Id="141" Count="0" />
-      <LineId Id="64" Count="0" />
-      <LineId Id="190" Count="0" />
-      <LineId Id="184" Count="0" />
-      <LineId Id="67" Count="0" />
-      <LineId Id="41" Count="0" />
-      <LineId Id="142" Count="0" />
-      <LineId Id="65" Count="0" />
-      <LineId Id="189" Count="0" />
-      <LineId Id="183" Count="0" />
-      <LineId Id="68" Count="0" />
-      <LineId Id="45" Count="0" />
-      <LineId Id="134" Count="0" />
-      <LineId Id="308" Count="0" />
-      <LineId Id="143" Count="0" />
-      <LineId Id="46" Count="0" />
-      <LineId Id="187" Count="0" />
-      <LineId Id="179" Count="0" />
-      <LineId Id="128" Count="1" />
-      <LineId Id="135" Count="0" />
-      <LineId Id="137" Count="1" />
-      <LineId Id="130" Count="0" />
-      <LineId Id="188" Count="0" />
-      <LineId Id="178" Count="0" />
-      <LineId Id="131" Count="1" />
-      <LineId Id="136" Count="0" />
-      <LineId Id="139" Count="1" />
-      <LineId Id="133" Count="0" />
-      <LineId Id="180" Count="0" />
-      <LineId Id="47" Count="1" />
-      <LineId Id="177" Count="0" />
-      <LineId Id="69" Count="0" />
-      <LineId Id="181" Count="0" />
-      <LineId Id="70" Count="0" />
-      <LineId Id="49" Count="0" />
-      <LineId Id="222" Count="0" />
-      <LineId Id="71" Count="0" />
-      <LineId Id="182" Count="0" />
-      <LineId Id="72" Count="0" />
-      <LineId Id="50" Count="0" />
-      <LineId Id="172" Count="4" />
-      <LineId Id="171" Count="0" />
-      <LineId Id="30" Count="0" />
-      <LineId Id="202" Count="2" />
-      <LineId Id="243" Count="19" />
-      <LineId Id="14" Count="0" />
-      <LineId Id="104" Count="0" />
-      <LineId Id="91" Count="0" />
-      <LineId Id="216" Count="0" />
-      <LineId Id="22" Count="0" />
-      <LineId Id="20" Count="0" />
-      <LineId Id="5" Count="0" />
+      <LineId Id="1" Count="152" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.GetCalibrationCam">
-      <LineId Id="60" Count="1" />
-      <LineId Id="36" Count="10" />
-      <LineId Id="62" Count="0" />
-      <LineId Id="47" Count="3" />
-      <LineId Id="63" Count="0" />
-      <LineId Id="51" Count="1" />
-      <LineId Id="64" Count="0" />
-      <LineId Id="53" Count="2" />
-      <LineId Id="5" Count="0" />
+      <LineId Id="1" Count="25" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.HomingParameter.Set">
-      <LineId Id="2" Count="0" />
-      <LineId Id="5" Count="0" />
+      <LineId Id="1" Count="1" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.LimitSwitches.Set">
       <LineId Id="1" Count="1" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.LogControl">
-      <LineId Id="35" Count="4" />
-      <LineId Id="63" Count="0" />
-      <LineId Id="41" Count="2" />
-      <LineId Id="53" Count="3" />
-      <LineId Id="62" Count="0" />
-      <LineId Id="45" Count="0" />
-      <LineId Id="5" Count="0" />
+      <LineId Id="1" Count="15" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.LogResult">
-      <LineId Id="7" Count="0" />
-      <LineId Id="9" Count="3" />
-      <LineId Id="22" Count="0" />
-      <LineId Id="21" Count="0" />
-      <LineId Id="23" Count="0" />
-      <LineId Id="31" Count="0" />
-      <LineId Id="34" Count="0" />
-      <LineId Id="20" Count="0" />
-      <LineId Id="13" Count="0" />
-      <LineId Id="35" Count="0" />
-      <LineId Id="43" Count="3" />
-      <LineId Id="52" Count="0" />
-      <LineId Id="5" Count="0" />
+      <LineId Id="1" Count="18" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.MotionOptions.Set">
-      <LineId Id="2" Count="0" />
-      <LineId Id="5" Count="0" />
+      <LineId Id="1" Count="1" />
+    </LineIds>
+    <LineIds Name="FB_McAxisCtrl.NcParameterIn.Set">
+      <LineId Id="1" Count="1" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.NcParameterOut.Set">
-      <LineId Id="3" Count="0" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="1" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.NcParameterValue.Get">
-      <LineId Id="2" Count="0" />
-      <LineId Id="5" Count="0" />
+      <LineId Id="1" Count="1" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.ResetSoE">
-      <LineId Id="17" Count="8" />
-      <LineId Id="165" Count="0" />
-      <LineId Id="26" Count="0" />
-      <LineId Id="153" Count="0" />
-      <LineId Id="27" Count="2" />
-      <LineId Id="31" Count="4" />
-      <LineId Id="92" Count="0" />
-      <LineId Id="80" Count="0" />
-      <LineId Id="126" Count="0" />
-      <LineId Id="90" Count="0" />
-      <LineId Id="81" Count="0" />
-      <LineId Id="83" Count="1" />
-      <LineId Id="89" Count="0" />
-      <LineId Id="38" Count="0" />
-      <LineId Id="54" Count="2" />
-      <LineId Id="96" Count="0" />
-      <LineId Id="127" Count="2" />
-      <LineId Id="97" Count="0" />
-      <LineId Id="99" Count="0" />
-      <LineId Id="101" Count="0" />
-      <LineId Id="104" Count="1" />
-      <LineId Id="132" Count="0" />
-      <LineId Id="106" Count="0" />
-      <LineId Id="133" Count="0" />
-      <LineId Id="136" Count="3" />
-      <LineId Id="162" Count="0" />
-      <LineId Id="161" Count="0" />
-      <LineId Id="163" Count="0" />
-      <LineId Id="144" Count="0" />
-      <LineId Id="140" Count="1" />
-      <LineId Id="166" Count="0" />
-      <LineId Id="142" Count="1" />
-      <LineId Id="131" Count="0" />
-      <LineId Id="107" Count="2" />
-      <LineId Id="146" Count="0" />
-      <LineId Id="145" Count="0" />
-      <LineId Id="147" Count="2" />
-      <LineId Id="151" Count="1" />
-      <LineId Id="150" Count="0" />
-      <LineId Id="155" Count="0" />
-      <LineId Id="154" Count="0" />
-      <LineId Id="156" Count="0" />
-      <LineId Id="158" Count="0" />
-      <LineId Id="157" Count="0" />
-      <LineId Id="110" Count="0" />
-      <LineId Id="58" Count="5" />
-      <LineId Id="70" Count="2" />
-      <LineId Id="5" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_McAxisCtrl.Set">
-      <LineId Id="3" Count="0" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="84" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.TargetWindow.Get">
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="0" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.TargetWindow.Set">
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="0" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.Template">
-      <LineId Id="674" Count="45" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="46" />
     </LineIds>
   </POU>
 </TcPlcObject>

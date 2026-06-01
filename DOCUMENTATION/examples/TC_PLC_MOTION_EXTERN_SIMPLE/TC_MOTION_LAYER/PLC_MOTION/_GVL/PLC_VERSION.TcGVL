@@ -3,7 +3,10 @@
   <GVL Name="PLC_VERSION" Id="{d2395695-97e2-030c-1191-ad6e09085440}">
     <Declaration><![CDATA[{attribute 'qualified_only'}
 VAR_GLOBAL CONSTANT
-  VERSION               : STRING := 'V 01.00.36';
+  VERSION               : STRING := 'V 01.00.38';
+
+  // 2025 05 28 HAUD
+  // Flying Saw wrapper
 
   // 2025 05 13 HAUD
   //

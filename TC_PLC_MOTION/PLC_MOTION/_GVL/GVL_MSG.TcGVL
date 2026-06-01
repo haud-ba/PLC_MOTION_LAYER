@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.13">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
   <GVL Name="GVL_MSG" Id="{b3a28587-1927-0d9d-1797-03bc06048b00}">
     <Declaration><![CDATA[{attribute 'qualified_only'}
 VAR_GLOBAL CONSTANT
@@ -65,13 +65,14 @@ VAR_GLOBAL
   //-----------------------------------------------------------------------------
 {IF defined (TEST)}
   {info 'TEST logging enabled'}
-  MessageLevel                    : E_MessageType := eMessageinfo; // a lot of messages
+  MessageLevel                    : E_MessageType := eMessageverbose; // a lot of messages
 {ELSE}
   MessageLevel                    : E_MessageType := eMessageEmpty; // only errors are written into list 
 {END_IF}
 
   MessageLevelAxisPtp             : ARRAY[1..PLC_CONSTANT.MAX_AXIS]   OF E_MessageType;
   MessageLevelAxisCam             : ARRAY[1..PLC_CONSTANT.MAX_AXIS]   OF E_MessageType;
+  MessageLevelAxisFly             : ARRAY[1..PLC_CONSTANT.MAX_AXIS]   OF E_MessageType;
   MessageLevelNciChn              : ARRAY[1..PLC_CONSTANT.MAX_NCI_CH] OF E_MessageType;
 
   MessageLevelTriggerBox          : ARRAY[1..PLC_CONSTANT.MAX_TRIGGER_BOX]  OF E_MessageType;

@@ -72,6 +72,7 @@ VAR_GLOBAL
 
   MessageLevelAxisPtp             : ARRAY[1..PLC_CONSTANT.MAX_AXIS]   OF E_MessageType;
   MessageLevelAxisCam             : ARRAY[1..PLC_CONSTANT.MAX_AXIS]   OF E_MessageType;
+  MessageLevelAxisFly             : ARRAY[1..PLC_CONSTANT.MAX_AXIS]   OF E_MessageType;
   MessageLevelNciChn              : ARRAY[1..PLC_CONSTANT.MAX_NCI_CH] OF E_MessageType;
 
   MessageLevelTriggerBox          : ARRAY[1..PLC_CONSTANT.MAX_TRIGGER_BOX]  OF E_MessageType;

@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.13">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
   <POU Name="NCI" Id="{da86f3fe-4721-09d7-2e2d-987f1b92458d}" SpecialFunc="None">
     <Declaration><![CDATA[PROGRAM NCI
 VAR
@@ -76,7 +76,7 @@ THEN
     //-----------------------------------------------------------------------------
     E_PROGRESS.PROGRESS_INIT:
       stMsg.eType                                   := E_MessageType.eMessageInfo;
-      stMsg.eDevice                                 := e_Device.Device_Main;
+      stMsg.eDevice                                 := e_Device.Device_Nci;
       stMsg.eSubdevice                              := e_SubDevice.MainInit;
       stMsg.iErrorNumber                            := MAX_AXIS;
       stMsg.sText                                   := concat('NCI.eInit: ', TO_STRING(eInit));
@@ -91,7 +91,7 @@ THEN
     //-----------------------------------------------------------------------------
     E_PROGRESS.PROGRESS_PREPARE:
       stMsg.eType                                   := E_MessageType.eMessageVerbose;
-      stMsg.eDevice                                 := e_Device.NciChannelCtrl;
+      stMsg.eDevice                                 := e_Device.Device_Nci;
       stMsg.eSubdevice                              := e_SubDevice.NciStartUp;
       stMsg.iErrorNumber                            := nChnInit;
       stMsg.sText                                   := concat('nChnInit: ', TO_STRING(nChnInit));
@@ -113,7 +113,7 @@ THEN
         eInit                                       := E_PROGRESS.PROGRESS_ERROR;
 
         stMsg.eType                                 := E_MessageType.eMessageError;
-        stMsg.eDevice                               := e_Device.NciChannelCtrl;
+        stMsg.eDevice                               := e_Device.Device_Nci;
         stMsg.eSubdevice                            := e_SubDevice.NciStartUp;
         stMsg.iErrorNumber                          := nChnInit;
         stMsg.sText                                 := concat('NCI.eInit ERROR at Index: ', TO_STRING(nChnInit));
@@ -132,7 +132,7 @@ THEN
         eInit                                       := E_PROGRESS.PROGRESS_DONE;
 
         stMsg.eType                                 := E_MessageType.eMessageInfo;
-        stMsg.eDevice                               := e_Device.NciChannelCtrl;
+        stMsg.eDevice                               := e_Device.Device_Nci;
         stMsg.eSubdevice                            := e_SubDevice.NciStartUp;
         stMsg.iErrorNumber                          := MAX_NCI_CH;
         stMsg.sText                                 := concat('NCI.eInit: ', TO_STRING(eInit));

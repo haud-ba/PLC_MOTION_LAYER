@@ -20,6 +20,9 @@
       <Name>CAM</Name>
     </PouCall>
     <PouCall>
+      <Name>FLYING_SAW</Name>
+    </PouCall>
+    <PouCall>
       <Name>MAPPING_out</Name>
     </PouCall>
     <TaskFBGuid>{bf8fb095-c9c3-450f-83bf-2568f78c0a27}</TaskFBGuid>

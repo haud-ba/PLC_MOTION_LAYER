@@ -30,6 +30,12 @@ VAR CONSTANT
 {ELSE}
   bBypassMappingCam         : BOOL  := TRUE;
 {END_IF}
+{IF defined (SAW_MAP)}
+  {info 'PLC_MOTION_LAYER: SAW_MAP'}
+  bBypassMappingFlyingSaw   : BOOL  := FALSE;
+{ELSE}
+  bBypassMappingFlyingSaw   : BOOL  := TRUE;
+{END_IF}
 //-----------------------------------------------------------------------------------------------------------------
 //  What... is the capital of Assyria?
 //-----------------------------------------------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.13">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
   <POU Name="CAM" Id="{9788bdef-fe43-088d-22e7-ce2c54a5a9f7}" SpecialFunc="None">
     <Declaration><![CDATA[PROGRAM CAM
 VAR
@@ -39,7 +39,7 @@ DO
   GVL_CAM.Control[nAxis].Axes                 REF=   GVL_AXIS.AxisRef;        // All for one; coupling requires access across all axes
 
   GVL_CAM.Control[nAxis].AxisInfo             := ADR(GVL_CAM.Info);
-  GVL_CAM.Control[nAxis].AxisData             := ADR(GVL_CAM.Data);
+  GVL_CAM.Control[nAxis].GearData             := ADR(GVL_CAM.Data);
 
   GVL_CAM.Control[nAxis].MotionFunction       := ADR(GVL_CAM.MotionFunction);
   GVL_CAM.Control[nAxis].MotionFunctionPoint  := ADR(GVL_CAM.MotionFunctionPoint);
@@ -123,7 +123,7 @@ THEN
         eInit                                 := E_PROGRESS.PROGRESS_DONE;
 
         stMsg.eType                           := E_MessageType.eMessageInfo;
-        stMsg.eDevice                         := e_Device.Camming;
+        stMsg.eDevice                         := e_Device.Device_Cam;
         stMsg.eSubdevice                      := e_SubDevice.CamStartUp;
         stMsg.iErrorNumber                    := MAX_AXIS;
 

@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_FLY_DATA" Id="{62b49c25-99cf-4642-99aa-54562fc6aa4b}">
+    <Declaration><![CDATA[{attribute 'pack_mode' := '2'}
+TYPE ST_FLY_DATA :
+STRUCT
+  rDeltaToMasterPos       : LREAL;
+  rModuloSyncPosSlave     : LREAL;
+  rMasterStartDistance    : LREAL;
+  rDelta                  : LREAL  := 0.1;
+  rGearNumerator          : LREAL;
+  iGearDenumerator        : USINT  := 1;
+  nMasterAxisId           : UDINT; // NC axis ID, index is looked up by Cmd
+  rModulo                 : lreal; // float for modulo calculation, this is independent of the NC on purpose, you may connect the modulo divisor from the NC on the outside of the FlyingSaw class
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

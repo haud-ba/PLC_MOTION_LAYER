@@ -438,6 +438,12 @@ CASE _eState
 OF
   E_PROGRESS.PROGRESS_PREPARE:
     _eState                               := E_PROGRESS.PROGRESS_DONE;
+    // update connected struct data
+    _MFuncScope^.FastMFuncMask            := _NciChannelRef^.NcToPlc.FastMFuncMask;
+    _MFuncScope^.HskMFuncNo               := _NciChannelRef^.NcToPlc.HskMFuncNo;
+    _MFuncScope^.HskMFuncReq              := _NciChannelRef^.NcToPlc.HskMFuncReq;
+    _MFuncScope^.HFuncValue               := _NciChannelRef^.NcToPlc.HFuncValue;
+    _MFuncScope^.MFuncGranted             := _NciChannelRef^.PlcToNc.MFuncGranted;
 END_CASE
 
 Ctrl_ConfirmHsk                            := _eState;
@@ -1060,12 +1066,8 @@ END_VAR
 ChannelRef    := ADR(_stChannelRef);
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-// cyclic pointer check
-//-----------------------------------------------------------------------------
 IF NOT Check() THEN Cycle := _eCycle := _eResult := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
 //-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-// message device for logging
 //-----------------------------------------------------------------------------
 ChannelDevice := e_Device.NciChannel + TO_UINT(ChnId);
 //-----------------------------------------------------------------------------
@@ -1107,12 +1109,14 @@ OF
 
   E_PROGRESS.PROGRESS_ERROR:
     _State^.eState            := _eState + E_PROGRESS.PROGRESS_ERROR;
+    Cycle         := _eCycle  := E_PROGRESS.PROGRESS_ERROR;
 
   E_PROGRESS.PROGRESS_DONE:
     _State^.eState            := _eState + E_PROGRESS.PROGRESS_DONE;
 
 ELSE
     _State^.eState            := _eState + _eResult;
+    Cycle         := _eCycle  := E_PROGRESS.PROGRESS_WORKING;
   CASE _eState
   OF
   E_NCI_STATE.INIT:
@@ -1175,7 +1179,6 @@ _State^.nMFunc                := _NciChannelRef^.NcToPlc.HskMFuncNo;
 _State^.nItpState             := GetItpState();
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-Cycle := _eCycle              := E_PROGRESS.PROGRESS_WORKING;
 ]]></ST>
       </Implementation>
     </Method>
@@ -1387,7 +1390,10 @@ Template_1 := _eState;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.Ctrl_ConfirmHsk">
-      <LineId Id="3" Count="35" />
+      <LineId Id="3" Count="31" />
+      <LineId Id="46" Count="1" />
+      <LineId Id="40" Count="4" />
+      <LineId Id="36" Count="2" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.Ctrl_Idle">
@@ -1431,11 +1437,15 @@ Template_1 := _eState;
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.Cycle">
-      <LineId Id="123" Count="4" />
-      <LineId Id="115" Count="3" />
+      <LineId Id="115" Count="6" />
       <LineId Id="4" Count="0" />
-      <LineId Id="119" Count="3" />
-      <LineId Id="6" Count="108" />
+      <LineId Id="122" Count="1" />
+      <LineId Id="6" Count="39" />
+      <LineId Id="127" Count="0" />
+      <LineId Id="46" Count="5" />
+      <LineId Id="126" Count="0" />
+      <LineId Id="52" Count="59" />
+      <LineId Id="124" Count="1" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_NciChannelCtrl.ItfChannel.Get">

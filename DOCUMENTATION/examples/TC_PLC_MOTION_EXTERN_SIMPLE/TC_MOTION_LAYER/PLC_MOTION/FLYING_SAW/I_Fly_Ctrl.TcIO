@@ -1,0 +1,67 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <Itf Name="I_Fly_Ctrl" Id="{54250d0a-c7ff-4a79-b9e4-e6cbc23a0dae}">
+    <Declaration><![CDATA[INTERFACE I_Fly_Ctrl
+]]></Declaration>
+    <Folder Name="methods" Id="{f4a3033d-7457-4eae-8d48-71de27d23c8b}" />
+    <Folder Name="properties" Id="{ed29119f-fbf8-4cd7-b8bf-a93be7f2f874}" />
+    <Property Name="AxisCtrl" Id="{09b834a7-986b-48db-9874-e0751e614798}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY AxisCtrl : pointer to ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_FLY_CTRL]]></Declaration>
+      <Set Name="Set" Id="{5d014f0c-bbdb-4e16-9202-3993e18c2b82}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="AxisIndex" Id="{fe411ff5-42cc-4a70-bde4-280932d2188b}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY AxisIndex : uint]]></Declaration>
+      <Set Name="Set" Id="{05bbb258-91f8-44af-821e-13588f10b446}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="AxisModulo" Id="{5f0d23e2-c0e7-4232-9370-4c5028d3c396}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY AxisModulo : lreal]]></Declaration>
+      <Set Name="Set" Id="{6278fa87-a719-4095-8d0e-37cc0f8641f7}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="AxisState" Id="{942340b2-eaab-4082-8c03-45e5a3f4dd0b}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY AxisState : pointer to ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_FLY_STATE]]></Declaration>
+      <Set Name="Set" Id="{0bed212b-cb04-4679-9fb4-f4fed0c90140}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Method Name="Cycle" Id="{03df886a-ddc8-4801-8149-8eec9729294c}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD Cycle  : e_progress
+]]></Declaration>
+    </Method>
+    <Property Name="GearData" Id="{d09eee4e-8ff9-47dc-a01c-3138c015a48c}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY GearData : pointer to ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_FLY_DATA]]></Declaration>
+      <Set Name="Set" Id="{d19c65dc-969f-4bd5-ad6c-edec5f9e11e1}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="ItfMcAxes" Id="{dbca4feb-8286-4f39-8f66-39a06ea15156}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY ItfMcAxes : array[1..MAX_AXIS] of I_McAxis]]></Declaration>
+      <Set Name="Set" Id="{e82cb694-2150-4067-935d-b62f297a0744}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="MessageLevel" Id="{1f0a3faf-7291-4ab8-bcfb-3c76b06a07d7}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY MessageLevel : E_MessageType]]></Declaration>
+      <Set Name="Set" Id="{909f98ca-72ae-4eea-a84b-3d5d1dcced23}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="MoveData" Id="{f45fa732-7418-4ec6-b66c-d64524d97625}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY MoveData : pointer to ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_MOVE_DATA]]></Declaration>
+      <Set Name="Set" Id="{17adc8eb-6a9c-4635-9a5d-5d4dc171712a}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="Options" Id="{d6a11d05-4b00-4b80-84ee-71e1e2e03089}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY Options : pointer to ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_FLY_OPTIONS]]></Declaration>
+      <Set Name="Set" Id="{5d6e5837-6bbe-42b8-bfa3-7bcb2360d4f9}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+  </Itf>
+</TcPlcObject>
