@@ -123,7 +123,7 @@ END_VAR
 END_VAR
 ]]></Declaration>
         <Implementation>
-          <ST><![CDATA[AxisRef ref= _AxisRef;
+          <ST><![CDATA[AxisRef REF= _AxisRef;
 ]]></ST>
         </Implementation>
       </Get>

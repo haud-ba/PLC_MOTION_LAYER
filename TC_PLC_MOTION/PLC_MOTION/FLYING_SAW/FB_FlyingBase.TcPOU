@@ -303,7 +303,7 @@ OF
     IF _fbGearInVelo.Error
     THEN
       _bError                 := TRUE;
-      _nErrorId               := _fbGearInPos.ErrorId;
+      _nErrorId               := _fbGearInVelo.ErrorId;
 
       _fbGearInVelo(
         Master                := _Master, 
@@ -446,7 +446,8 @@ Template_1 := _eState;
       <LineId Id="1" Count="148" />
     </LineIds>
     <LineIds Name="FB_FlyingBase.GearInVelo">
-      <LineId Id="1" Count="123" />
+      <LineId Id="125" Count="122" />
+      <LineId Id="124" Count="0" />
     </LineIds>
     <LineIds Name="FB_FlyingBase.MessageLevel.Set">
       <LineId Id="1" Count="1" />

@@ -421,7 +421,7 @@ END_VAR
         <ST><![CDATA[CASE eCmd
 OF
   //-------------------------------------------------------------------------------------
-  E_AXIS_CTRL.CAM_INIT:
+  E_AXIS_CTRL.AXIS_INIT:
     _eInit    := _eResult             := Init(FALSE);
     _estate                           := E_AXIS_STATE.AXIS_INIT;
 ELSE
@@ -674,8 +674,8 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Execute THEN Init := E_PROGRESS.PROGRESS_INIT; END_IF
-IF NOT Check() THEN Init := E_PROGRESS.PROGRESS_ERROR; END_IF
+        <ST><![CDATA[IF NOT Execute THEN Init := _estate := E_PROGRESS.PROGRESS_INIT; END_IF
+IF NOT Check() THEN Init := _estate := E_PROGRESS.PROGRESS_ERROR; END_IF
 
 CASE _eState
 OF
@@ -687,7 +687,6 @@ OF
       _nErrorId                     := 0;
       _rValue                       := 0;
       _eState                       := E_PROGRESS.PROGRESS_BUSY;
-      _eInit                        := _eState;
     END_IF
 END_CASE
 CASE _eState
@@ -783,9 +782,7 @@ END_VAR
     <Method Name="LogCheck" Id="{46c74da4-d3fa-4537-a28d-6d74180013eb}" FolderPath="methods\private\">
       <Declaration><![CDATA[METHOD LogCheck
 VAR_INST
-  _sChck            : STRING(30);
-
-  _stMsg            : ST_Message;
+  _sChck            : STRING(40);
 END_VAR
 ]]></Declaration>
       <Implementation>
@@ -814,9 +811,7 @@ END_VAR
       <Declaration><![CDATA[METHOD PRIVATE LogControl
 VAR_INST
   _sResult,
-  _sCtrl            : STRING(30);
-
-  _stMsg            : ST_Message;
+  _sCtrl            : STRING(40);
 END_VAR
 ]]></Declaration>
       <Implementation>
@@ -846,9 +841,7 @@ END_VAR
       <Declaration><![CDATA[METHOD PRIVATE LogResult
 VAR_INST
   _sResult,
-  _sCtrl            : STRING(30);
-
-  _stMsg            : ST_Message;
+  _sCtrl            : STRING(40);
 END_VAR
 ]]></Declaration>
       <Implementation>
@@ -965,7 +958,8 @@ END_VAR
       <LineId Id="1" Count="12" />
     </LineIds>
     <LineIds Name="FB_FlyingCtrl.Init">
-      <LineId Id="95" Count="79" />
+      <LineId Id="95" Count="12" />
+      <LineId Id="109" Count="65" />
       <LineId Id="176" Count="10" />
       <LineId Id="93" Count="0" />
     </LineIds>

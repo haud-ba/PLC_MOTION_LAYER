@@ -37,6 +37,7 @@ DO
   GVL_FLYING_SAW.Control[nAxis].AxisCtrl      := ADR(GVL_FLYING_SAW.Ctrl);
   GVL_FLYING_SAW.Control[nAxis].AxisState     := ADR(GVL_FLYING_SAW.State);
   GVL_FLYING_SAW.Control[nAxis].GearData      := ADR(GVL_FLYING_SAW.Data);
+  GVL_FLYING_SAW.Control[nAxis].Options       := ADR(GVL_FLYING_SAW.Options);
   GVL_FLYING_SAW.Control[nAxis].MoveData      := ADR(GVL_AXIS.Data);
  END_FOR
 //-----------------------------------------------------------------------------------------------------------------
@@ -151,6 +152,7 @@ END_IF
       <LineId Id="17" Count="0" />
       <LineId Id="124" Count="0" />
       <LineId Id="126" Count="0" />
+      <LineId Id="147" Count="0" />
       <LineId Id="125" Count="0" />
       <LineId Id="118" Count="0" />
       <LineId Id="19" Count="13" />
