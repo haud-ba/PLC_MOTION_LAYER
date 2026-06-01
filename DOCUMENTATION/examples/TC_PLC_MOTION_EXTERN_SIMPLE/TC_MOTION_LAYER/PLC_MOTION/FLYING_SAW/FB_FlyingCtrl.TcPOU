@@ -421,7 +421,7 @@ END_VAR
         <ST><![CDATA[CASE eCmd
 OF
   //-------------------------------------------------------------------------------------
-  E_AXIS_CTRL.CAM_INIT:
+  E_AXIS_CTRL.AXIS_INIT:
     _eInit    := _eResult             := Init(FALSE);
     _estate                           := E_AXIS_STATE.AXIS_INIT;
 ELSE

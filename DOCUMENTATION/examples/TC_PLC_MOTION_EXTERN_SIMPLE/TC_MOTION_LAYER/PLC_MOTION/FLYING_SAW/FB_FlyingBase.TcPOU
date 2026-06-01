@@ -303,7 +303,7 @@ OF
     IF _fbGearInVelo.Error
     THEN
       _bError                 := TRUE;
-      _nErrorId               := _fbGearInPos.ErrorId;
+      _nErrorId               := _fbGearInVelo.ErrorId;
 
       _fbGearInVelo(
         Master                := _Master, 
