@@ -82,7 +82,7 @@ THEN
       stMsg.iErrorNumber                      := nAxisInit;
       stMsg.sText                             := concat('AxisInit: ', TO_STRING(nAxisInit));
 
-      IF (GVL_MSG.MessageLevelAxisCam[nAxisInit] = E_MessageType.eMessageVerbose)
+      IF (GVL_MSG.MessageLevelAxisFly[nAxisInit] = E_MessageType.eMessageVerbose)
       THEN
         f_MessageSet(stMsg);
       END_IF
