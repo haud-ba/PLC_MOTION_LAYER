@@ -54,10 +54,14 @@ VAR
   AxisState                 : U_AXIS_STATE;
   AxisInfo                  : U_AXIS_INFO;
   AxisParameterOut          : U_AXIS_NC_PARAMETER_RD;
+
+  SelectorState             : U_PARAMETER_SELECTOR_STATE;
 {ELSE}
   AxisState                 : BYTE;
   AxisInfo                  : BYTE;
   AxisParameterRd           : BYTE;
+
+  SelectorState             : byte;
 {END_IF}
 //-----------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------
@@ -99,7 +103,8 @@ VAR
 // size does matter
   szAxisPara,
   szAxisInfo,
-  szAxisState               : ARRAY[1..2] OF UDINT;
+  szAxisState,
+  szSelectorState           : ARRAY[1..2] OF UDINT;
 
   szNciRparameters,
   szNciState                : ARRAY[1..2] OF UDINT;
@@ -126,6 +131,8 @@ THEN
   memcpy(ADR(AxisState),        ADR(GVL_AXIS.State),                SIZEOF(AxisState));
   memcpy(ADR(AxisInfo),         ADR(GVL_AXIS.Info),                 SIZEOF(AxisInfo));
   memcpy(ADR(AxisParameterOut), ADR(GVL_AXIS.NcParameterOut),       SIZEOF(AxisParameterOut));
+
+  memcpy(ADR(SelectorState),    ADR(GVL_AXIS.SelectorState),        SIZEOF(SelectorState));
 END_IF
 //--------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------
@@ -185,6 +192,9 @@ szAxisInfo [2]          := SIZEOF(GVL_AXIS.Info);
 szAxisPara [1]          := SIZEOF(AxisParameterOut);
 szAxisPara [2]          := SIZEOF(GVL_AXIS.NcParameterOut);
 
+szSelectorState[1]      := SIZEOF(SelectorState);
+szSelectorState[2]      := SIZEOF(GVL_AXIS.SelectorState);
+
 IF NOT (bBypassMappingAxis)
 THEN
   IF NOT (szAxisState[1] = szAxisState[2])
@@ -202,6 +212,12 @@ THEN
   IF NOT (szAxisPara[1] = szAxisPara[2])
   THEN
     sMappingCheck       := 'AxisParameterRd CHECK_ERROR';
+    RETURN;
+  END_IF
+
+  IF NOT (szSelectorState[1] = szSelectorState[2])
+  THEN
+    sMappingCheck       := 'SelectorState CHECK_ERROR';
     RETURN;
   END_IF
 END_IF
@@ -288,6 +304,8 @@ Check                   := TRUE;
       <LineId Id="308" Count="2" />
       <LineId Id="186" Count="1" />
       <LineId Id="206" Count="2" />
+      <LineId Id="331" Count="0" />
+      <LineId Id="330" Count="0" />
       <LineId Id="195" Count="1" />
       <LineId Id="312" Count="0" />
       <LineId Id="293" Count="3" />
@@ -308,7 +326,15 @@ Check                   := TRUE;
       <LineId Id="315" Count="0" />
     </LineIds>
     <LineIds Name="MAPPING_out.Check">
-      <LineId Id="1" Count="67" />
+      <LineId Id="1" Count="19" />
+      <LineId Id="125" Count="2" />
+      <LineId Id="21" Count="19" />
+      <LineId Id="129" Count="0" />
+      <LineId Id="128" Count="0" />
+      <LineId Id="130" Count="1" />
+      <LineId Id="133" Count="0" />
+      <LineId Id="132" Count="0" />
+      <LineId Id="41" Count="27" />
       <LineId Id="72" Count="10" />
       <LineId Id="89" Count="35" />
     </LineIds>

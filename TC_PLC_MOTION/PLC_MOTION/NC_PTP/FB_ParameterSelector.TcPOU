@@ -8,7 +8,7 @@
 //  - PLC_MOTION_LAYER
 //
 //  fb_ParameterSelector
-//  - execute NC parameter command on specified axis
+//  - get/set NC parameter on specified axis
 //  - one axis at a time
 //  - intended as alternative to using the GVL_AXIS.Control struct
 //  - does not inherit any axis class, I_McAxis is used for parameter R/W execution

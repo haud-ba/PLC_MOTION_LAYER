@@ -59,6 +59,8 @@ VAR
   AxisGearInData            : U_AXIS_GEAR_IN;
   AxisHoming                : U_AXIS_HOMING;
   AxisParameterIn           : U_AXIS_NC_PARAMETER_WRT;
+
+  SelectorCtrl              : U_PARAMETER_SELECTOR_CTRL;
 {ELSE}
   AxisCtrl                  : BYTE;
   AxisMoveData              : BYTE;
@@ -66,7 +68,9 @@ VAR
 
   AxisGearInData            : BYTE;
   AxisHoming                : BYTE;
-  AxisParameterWrt          : BYTE;
+  AxisParameterIn           : BYTE;
+
+  SelectorCtrl              : byte;
 {END_IF}
 //-----------------------------------------------------------------------------------------------------------------
 //  Sir Robin of Camelot.
@@ -121,6 +125,7 @@ VAR
 //-----------------------------------------------------------------------------------------------------------------
 //  - datafield size check
 //-----------------------------------------------------------------------------------------------------------------
+  szSelectorCtrl,
   szAxisPara,
   szAxisHoming,
   szAxisGearData,
@@ -170,6 +175,8 @@ THEN
   memcpy(ADR(GVL_AXIS.GearInParameter),      ADR(AxisGearInData),       SIZEOF(AxisGearInData));
   memcpy(ADR(GVL_AXIS.HomeParameter),        ADR(AxisHoming),           SIZEOF(AxisHoming));
   memcpy(ADR(GVL_AXIS.NcParameterIn),        ADR(AxisParameterIn),      SIZEOF(AxisParameterIn));
+
+  memcpy(ADR(GVL_AXIS.SelectorCtrl),         ADR(SelectorCtrl),         SIZEOF(SelectorCtrl));
 END_IF
 //--------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------
@@ -242,6 +249,9 @@ szAxisHoming [2]        := SIZEOF(GVL_AXIS.HomeParameter);
 szAxisPara [1]          := SIZEOF(AxisParameterIn);
 szAxisPara [2]          := SIZEOF(GVL_AXIS.NcParameterIn);
 
+szSelectorCtrl[1]       := SIZEOF(SelectorCtrl);
+szSelectorCtrl[1]       := SIZEOF(GVL_AXIS.SelectorCtrl);
+
 IF NOT (bBypassMappingAxis)
 THEN
   IF NOT (szAxisCtrl[1] = szAxisCtrl[2])
@@ -272,6 +282,12 @@ THEN
   THEN
     sMappingCheck       := 'AxisHoming CHECK_ERROR';
     RETURN;
+  END_IF
+
+  IF NOT (szSelectorCtrl[1] = szSelectorCtrl[2])
+  THEN
+    sMappingCheck       := 'SelectorCtrl CHECK_ERROR';
+    return;
   END_IF
 END_IF
 //--------------------------------------------------------------------------------------------
@@ -399,6 +415,8 @@ Check                   := TRUE;
       <LineId Id="353" Count="0" />
       <LineId Id="68" Count="0" />
       <LineId Id="70" Count="1" />
+      <LineId Id="386" Count="0" />
+      <LineId Id="385" Count="0" />
       <LineId Id="208" Count="0" />
       <LineId Id="354" Count="1" />
       <LineId Id="339" Count="2" />
@@ -426,7 +444,17 @@ Check                   := TRUE;
     <LineIds Name="MAPPING_in.Check">
       <LineId Id="1" Count="5" />
       <LineId Id="137" Count="0" />
-      <LineId Id="7" Count="121" />
+      <LineId Id="7" Count="22" />
+      <LineId Id="171" Count="0" />
+      <LineId Id="170" Count="0" />
+      <LineId Id="172" Count="0" />
+      <LineId Id="30" Count="31" />
+      <LineId Id="174" Count="0" />
+      <LineId Id="173" Count="0" />
+      <LineId Id="175" Count="0" />
+      <LineId Id="177" Count="1" />
+      <LineId Id="176" Count="0" />
+      <LineId Id="62" Count="66" />
       <LineId Id="143" Count="1" />
       <LineId Id="140" Count="0" />
       <LineId Id="145" Count="1" />

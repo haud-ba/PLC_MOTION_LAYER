@@ -535,6 +535,8 @@
     <PlaceholderReference Include="Tc2_MC2_Camming">
       <DefaultResolution>Tc2_MC2_Camming, * (Beckhoff Automation GmbH)</DefaultResolution>
       <Namespace>Tc2_MC2_Camming</Namespace>
+      <Optional>true</Optional>
+      <Condition>CAM</Condition>
     </PlaceholderReference>
     <PlaceholderReference Include="Tc2_MC2_Drive">
       <DefaultResolution>Tc2_MC2_Drive, * (Beckhoff Automation GmbH)</DefaultResolution>
@@ -543,14 +545,20 @@
     <PlaceholderReference Include="Tc2_MC2_FlyingSaw">
       <DefaultResolution>Tc2_MC2_FlyingSaw, * (Beckhoff Automation GmbH)</DefaultResolution>
       <Namespace>Tc2_MC2_FlyingSaw</Namespace>
+      <Optional>true</Optional>
+      <Condition>SAW</Condition>
     </PlaceholderReference>
     <PlaceholderReference Include="Tc2_MC2_XFC">
       <DefaultResolution>Tc2_MC2_XFC, * (Beckhoff Automation GmbH)</DefaultResolution>
       <Namespace>Tc2_MC2_XFC</Namespace>
+      <Optional>true</Optional>
+      <Condition>XFC</Condition>
     </PlaceholderReference>
     <PlaceholderReference Include="Tc2_NCI">
       <DefaultResolution>Tc2_NCI, * (Beckhoff Automation GmbH)</DefaultResolution>
       <Namespace>Tc2_NCI</Namespace>
+      <Optional>true</Optional>
+      <Condition>NCI</Condition>
     </PlaceholderReference>
     <PlaceholderReference Include="Tc2_PlcInterpolation">
       <DefaultResolution>Tc2_PlcInterpolation, * (Beckhoff Automation GmbH)</DefaultResolution>
