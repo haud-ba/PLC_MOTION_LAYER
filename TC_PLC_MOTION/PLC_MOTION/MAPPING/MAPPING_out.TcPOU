@@ -30,6 +30,14 @@ VAR CONSTANT
 {END_IF}
 //-----------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------
+{IF defined (SAW_MAP)}
+  {info 'PLC_MOTION_LAYER: SAW_MAP'}
+  bBypassMappingFlyingSaw   : BOOL  := FALSE;
+{ELSE}
+  bBypassMappingFlyingSaw   : BOOL  := TRUE;
+{END_IF}
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
 {IF defined (TRIGGER_MAP)}
   {info 'PLC_MOTION_LAYER: TRIGGER_MAP'}
   bBypassMappingTrigger     : BOOL  := FALSE;
@@ -77,6 +85,13 @@ VAR
 {ELSE}
   TriggerState              : BYTE;
   TouchProbeState           : BYTE;
+{END_IF}
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+{IF defined (SAW_MAP)}
+  FlyState                  : U_FLY_STATE;
+{ELSE}
+  FlyState                  : BYTE;
 {END_IF}
 //-----------------------------------------------------------------------------------------------------------------
 //  - datafield size check
@@ -132,6 +147,12 @@ IF NOT bBypassMappingTrigger
 THEN
   memcpy(ADR(TriggerState),     ADR(GVL_FUNCTIONS.StateTrigger),    SIZEOF(TriggerState));
   memcpy(ADR(TouchProbeState),  ADR(GVL_FUNCTIONS.StateTouchProbe), SIZEOF(TouchProbeState));
+END_IF
+//--------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------
+IF NOT bBypassMappingFlyingSaw
+THEN
+  memcpy(ADR(FlyState),         ADR(GVL_FLYING_SAW.State),          SIZEOF(FlyState));
 END_IF
 //--------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------
@@ -280,6 +301,8 @@ Check                   := TRUE;
       <LineId Id="202" Count="2" />
       <LineId Id="217" Count="0" />
       <LineId Id="205" Count="0" />
+      <LineId Id="323" Count="4" />
+      <LineId Id="329" Count="0" />
       <LineId Id="145" Count="0" />
       <LineId Id="319" Count="2" />
       <LineId Id="315" Count="0" />

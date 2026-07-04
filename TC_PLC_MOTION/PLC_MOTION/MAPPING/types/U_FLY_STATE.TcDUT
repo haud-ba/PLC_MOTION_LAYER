@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="U_FLY_STATE" Id="{2ac7239b-97f8-4118-afe8-a11e38e13ab6}">
+    <Declaration><![CDATA[TYPE U_FLY_STATE :
+UNION
+
+  stState             : ARRAY[1..MAX_AXIS] OF ST_FLY_STATE;
+
+  byState   AT %Q*    : ARRAY[1..MAX_AXIS] OF
+                        ARRAY[1..SIZEOF(ST_FLY_STATE)] OF BYTE;
+END_UNION
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

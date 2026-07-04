@@ -72,6 +72,7 @@ OF
     THEN
       memcpy(ADR(_stOptions), ADR(stOptions), SIZEOF(_stOptions));
 
+      _bError                 := FALSE;
       _rPosLate               := 0.0;
       _nErrorId               := 0;
       _eState                 := E_PROGRESS.PROGRESS_BUSY;
@@ -185,6 +186,11 @@ OF
       _stMsg.iErrorNumber     := _nErrorId;
       _stMsg.sText            := concat(TO_STRING(_eState), ': CommandAborted');
       f_MessageSet(_stMsg);
+
+      _fbGearInPos(
+        Master                := _Master, 
+        Slave                 := _ItfAxis.AxisRef, 
+        Execute               := FALSE);
 
     ELSIF _fbGearInPos.InSync
     THEN
@@ -443,11 +449,14 @@ Template_1 := _eState;
       <LineId Id="1" Count="1" />
     </LineIds>
     <LineIds Name="FB_FlyingBase.GearInPos">
-      <LineId Id="1" Count="148" />
+      <LineId Id="1" Count="11" />
+      <LineId Id="155" Count="0" />
+      <LineId Id="13" Count="113" />
+      <LineId Id="150" Count="4" />
+      <LineId Id="127" Count="22" />
     </LineIds>
     <LineIds Name="FB_FlyingBase.GearInVelo">
-      <LineId Id="125" Count="122" />
-      <LineId Id="124" Count="0" />
+      <LineId Id="1" Count="123" />
     </LineIds>
     <LineIds Name="FB_FlyingBase.MessageLevel.Set">
       <LineId Id="1" Count="1" />

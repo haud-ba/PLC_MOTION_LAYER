@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_PARAMETER_SELECTOR_STATE" Id="{39eac4db-60c2-4edc-99de-f5c8a822c18c}">
+    <Declaration><![CDATA[TYPE ST_PARAMETER_SELECTOR_STATE :
+STRUCT
+  AxisIndex   : UINT;             // what you selected mirrored back
+  AxisId      : UDINT;            // matching Id to the index
+  State       : ST_AXIS_STATE;    // result identifier to your command
+  Info        : ST_NC_PARAMETER;  // read data
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

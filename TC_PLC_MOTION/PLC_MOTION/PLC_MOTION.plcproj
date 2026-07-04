@@ -190,6 +190,18 @@
     <Compile Include="MAPPING\types\U_CAM_STATE.TcDUT">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="MAPPING\types\U_FLY_CTRL.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MAPPING\types\U_FLY_DATA.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MAPPING\types\U_FLY_OPTIONS.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MAPPING\types\U_FLY_STATE.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="MAPPING\types\U_NCI_AXIS_ID_GROUP.TcDUT">
       <SubType>Code</SubType>
     </Compile>
@@ -206,6 +218,12 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="MAPPING\types\U_NCI_STATE.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MAPPING\types\U_PARAMETER_SELECTOR_CTRL.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MAPPING\types\U_PARAMETER_SELECTOR_STATE.TcDUT">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="MAPPING\types\U_TOUCH_PROBE_CTRL.TcDUT">
@@ -291,6 +309,9 @@
     <Compile Include="NC_PTP\FB_McAxisCtrl.TcPOU">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="NC_PTP\FB_ParameterSelector.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="NC_PTP\I_McAxis.TcIO">
       <SubType>Code</SubType>
     </Compile>
@@ -301,6 +322,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="NC_PTP\types\control\E_AXIS_CTRL.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="NC_PTP\types\control\E_AXIS_SELECTOR.TcDUT">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="NC_PTP\types\control\E_AXIS_STATE.TcDUT">
@@ -331,6 +355,12 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="NC_PTP\types\control\ST_NC_PARAMETER.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="NC_PTP\types\control\ST_PARAMETER_SELECTOR_CTRL.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="NC_PTP\types\control\ST_PARAMETER_SELECTOR_STATE.TcDUT">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="XFC\FB_Xfc.TcPOU">

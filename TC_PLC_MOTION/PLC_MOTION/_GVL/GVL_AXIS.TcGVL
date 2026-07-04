@@ -52,6 +52,16 @@ VAR_GLOBAL
 //  LimitSwitches     at %I*    : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_AXIS_LIMIT_SWITCHES;  // limit switches and calibration cam
 
   //-----------------------------------------------------------------------------
+  // Parameter Selector
+  // - intended use in parallel to axis control 
+  //    - if you do not want to switch context on Ctrl
+  //    - one axis at a time, only parameter read / write / write persistent(slow)
+  //-----------------------------------------------------------------------------
+  ParameterSelector           : FB_ParameterSelector;
+  SelectorCtrl                : ST_PARAMETER_SELECTOR_CTRL;
+  SelectorState               : ST_PARAMETER_SELECTOR_STATE;
+
+  //-----------------------------------------------------------------------------
   // cyclic interface function block: FB_McAxisCtrl
   //  - PtP MC functions are here
   //  - implements I_McAxis

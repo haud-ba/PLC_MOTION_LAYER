@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
   <Itf Name="I_McAxis" Id="{df9f672e-6c08-07db-39bc-3fcca419c0c5}">
     <Declaration><![CDATA[INTERFACE I_McAxis
 ]]></Declaration>
@@ -40,6 +40,20 @@ END_VAR
         <Declaration><![CDATA[]]></Declaration>
       </Get>
     </Property>
+    <Method Name="ReadParameter" Id="{89506a67-4c73-45c9-a370-bc249ffe7bb9}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD ReadParameter : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+  ParameterNumber   : Tc2_MC2.MC_AxisParameter;
+END_VAR
+]]></Declaration>
+    </Method>
+    <Property Name="ReadParameterValue" Id="{b7f7b90d-c73b-4ac9-b7d8-0512bb3a7546}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY ReadParameterValue : LREAL]]></Declaration>
+      <Get Name="Get" Id="{3d317b6c-4bb7-4802-af8c-d26bc0ad986d}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+    </Property>
     <Method Name="Reset" Id="{b60d6850-a4c7-07c3-05ec-3f927ae74504}" FolderPath="methods\">
       <Declaration><![CDATA[METHOD Reset : E_PROGRESS
 VAR_INPUT
@@ -53,6 +67,24 @@ VAR_INPUT
   Execute           : BOOL;
   Dec               : LREAL;
   Jerk              : LREAL;
+END_VAR
+]]></Declaration>
+    </Method>
+    <Method Name="WriteParameter" Id="{8fd5a67a-ea90-4314-8d4d-f4e5bfad79c4}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD WriteParameter : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+  Value             : LREAL;
+  ParameterNumber   : Tc2_MC2.MC_AxisParameter;
+END_VAR
+]]></Declaration>
+    </Method>
+    <Method Name="WriteParameterPersistent" Id="{ddea80af-6427-4a6e-82a8-634132ea64ed}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD WriteParameterPersistent : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+  Value             : LREAL;
+  ParameterNumber   : Tc2_MC2.MC_AxisParameter;
 END_VAR
 ]]></Declaration>
     </Method>

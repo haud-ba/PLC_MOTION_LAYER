@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="U_PARAMETER_SELECTOR_STATE" Id="{e0aee875-b9b9-43dd-bdae-8b33815f7a3a}">
+    <Declaration><![CDATA[TYPE U_PARAMETER_SELECTOR_STATE :
+UNION
+
+  stState             : ST_PARAMETER_SELECTOR_STATE;
+
+  byState   AT %Q*    : ARRAY[1..SIZEOF(ST_PARAMETER_SELECTOR_STATE)] OF BYTE;
+END_UNION
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

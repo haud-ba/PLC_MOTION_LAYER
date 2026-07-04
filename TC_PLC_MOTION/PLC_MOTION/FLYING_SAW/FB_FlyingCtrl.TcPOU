@@ -189,6 +189,7 @@ OF
         f_MessageSet(_stMsg);
 
       ELSE
+        _Master                     ref= _ItfMcAxis[_nMasterIndex].AxisRef;
         _eState                     := E_PROGRESS.PROGRESS_BUSY;
         _eCk                        := E_CHECK_STATE.CHECK_DONE;
         _eResult                    := GearInPos(FALSE, _stMoveData, _stFlyData, _stOptions);
@@ -200,7 +201,8 @@ OF
   E_PROGRESS.PROGRESS_BUSY:
       _eResult                      := GearInPos(TRUE, _stMoveData, _stFlyData, _stOptions);
 
-    IF (_eResult = E_PROGRESS.PROGRESS_ERROR)
+    IF (_eResult = E_PROGRESS.PROGRESS_ERROR) OR
+       (_eResult = E_PROGRESS.PROGRESS_OCCUPIED)
     THEN
       GearInPos(FALSE, _stMoveData, _stFlyData, _stOptions);
       _eState                       := E_PROGRESS.PROGRESS_ERROR;
@@ -418,7 +420,8 @@ VAR_INST
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[CASE eCmd
+        <ST><![CDATA[_bError                               := FALSE;
+CASE eCmd
 OF
   //-------------------------------------------------------------------------------------
   E_AXIS_CTRL.AXIS_INIT:
@@ -440,6 +443,7 @@ ELSE
       //---------------------------------------------------------------------------------
       E_AXIS_CTRL.FLY_GEAR_IN_POS:
         _IdxMaster                    := GetIndex(_Data^[_nAxisIndex].nMasterAxisId);
+        _nMasterIndex                 := TO_UINT(_IdxMaster);
         _stFlyData                    := _Data^[_nAxisIndex];
         _stMoveData                   := _MoveData^[_nAxisIndex];
         _stOptions                    := _Options^[_nAxisIndex];
@@ -909,7 +913,11 @@ END_VAR
     <LineIds Name="FB_FlyingCtrl.AxisGearInPos">
       <LineId Id="1" Count="8" />
       <LineId Id="11" Count="8" />
-      <LineId Id="21" Count="33" />
+      <LineId Id="21" Count="6" />
+      <LineId Id="55" Count="0" />
+      <LineId Id="28" Count="11" />
+      <LineId Id="56" Count="0" />
+      <LineId Id="40" Count="14" />
     </LineIds>
     <LineIds Name="FB_FlyingCtrl.AxisGearInVelo">
       <LineId Id="1" Count="51" />
@@ -932,8 +940,11 @@ END_VAR
       <LineId Id="66" Count="33" />
     </LineIds>
     <LineIds Name="FB_FlyingCtrl.Cmd">
+      <LineId Id="251" Count="0" />
       <LineId Id="103" Count="18" />
-      <LineId Id="204" Count="22" />
+      <LineId Id="204" Count="2" />
+      <LineId Id="250" Count="0" />
+      <LineId Id="207" Count="19" />
       <LineId Id="128" Count="0" />
       <LineId Id="227" Count="22" />
       <LineId Id="175" Count="11" />
