@@ -6,6 +6,8 @@ TYPE ST_FLY_OPTIONS :
 STRUCT
   PositionLimitMin        : LREAL ; // will additionally be checked if GearInSync_CheckMask_OptionalMinPos is set to TRUE  
   PositionLimitMax        : LREAL ; // will additionally be checked if GearInSync_CheckMask_OptionalMaxPos is set to TRUE
+
+  SyncMode                : ST_FLY_SYNC_MODE;
 END_STRUCT
 END_TYPE
 ]]></Declaration>

@@ -59,7 +59,7 @@ VAR
 {ELSE}
   AxisState                 : BYTE;
   AxisInfo                  : BYTE;
-  AxisParameterRd           : BYTE;
+  AxisParameterOut          : BYTE;
 
   SelectorState             : byte;
 {END_IF}

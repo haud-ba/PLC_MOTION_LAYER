@@ -318,6 +318,15 @@ END_VAR
 ]]></Declaration>
       <Implementation>
         <ST><![CDATA[//-----------------------------------------------------------------------------
+_szSyncMode[1]            := SIZEOF(_stOptions.SyncMode);
+_szSyncMode[2]            := SIZEOF(_stSyncMode);
+
+IF NOT (_szSyncMode[1] = _szSyncMode[2])
+THEN
+  _eCheck                 := E_CHECK_STATE.FLYING_OPTIONS_SYNCMODE_SIZE_NOT_EQUAL;
+  RETURN;
+END_IF
+//-----------------------------------------------------------------------------
 IF (_nAxisIndex < 1) OR
    (_nAxisIndex > PLC_CONSTANT.MAX_AXIS)
 THEN
@@ -929,6 +938,10 @@ END_VAR
       <LineId Id="1" Count="1" />
     </LineIds>
     <LineIds Name="FB_FlyingCtrl.Check">
+      <LineId Id="115" Count="0" />
+      <LineId Id="123" Count="2" />
+      <LineId Id="116" Count="0" />
+      <LineId Id="118" Count="3" />
       <LineId Id="2" Count="6" />
       <LineId Id="20" Count="0" />
       <LineId Id="22" Count="3" />

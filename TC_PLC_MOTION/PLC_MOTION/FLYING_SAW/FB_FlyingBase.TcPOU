@@ -3,26 +3,30 @@
   <POU Name="FB_FlyingBase" Id="{86dcc0cc-c619-4cf3-a8fb-dd8062daa261}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK abstract FB_FlyingBase
 VAR
-  _eCheck           : E_CHECK_STATE;
-  _bError           : BOOL;
-  _nErrorId         : UDINT;
+  _eCheck               : E_CHECK_STATE;
+  _bError               : BOOL;
+  _nErrorId             : UDINT;
 
-  _ItfAxis          : I_McAxis;               // slave to the rythm.
-  _Master           : REFERENCE TO AXIS_REF;  // obey I must
+  _ItfAxis              : I_McAxis;               // slave to the rythm.
+  _Master               : REFERENCE TO AXIS_REF;  // obey I must
 
-  _rModulo          : LREAL;                  // modulo length/angle of NC axis.
-  SyncMode          : ST_SyncMode;
+  _rModulo              : LREAL;                  // modulo length/angle of NC axis.
 
-  _stFlyData        : ST_FLY_DATA;
-  _stMoveData       : ST_MOVE_DATA;
-  _stOptions        : ST_FLY_OPTIONS;
+  _stFlyData            : ST_FLY_DATA;
+  _stMoveData           : ST_MOVE_DATA;
+  _stOptions            : ST_FLY_OPTIONS;
 
-  _fbGearInPos      : Tc2_MC2_FlyingSaw.MC_GearInPos;   // position based gearing
-  _fbGearInVelo     : Tc2_MC2_FlyingSaw.MC_GearInVelo;  // velocity based gearing
-  //_fbReadCharacter  : Tc2_MC2_FlyingSaw.MC_ReadFlyingSawCharacteristics; 
+  _szSyncMode           : ARRAY[1..2] OF UINT;
+  _stSyncMode           : Tc2_MC2_FlyingSaw.ST_SyncMode;
+  _stGearInPosOptions   : Tc2_MC2_FlyingSaw.ST_GearInPosOptions;
+  _stGearInVeloOptions  : Tc2_MC2_FlyingSaw.ST_GearInVeloOptions;
 
-  _MessageLevel     : E_MessageType;
-  _stMsg            : ST_Message;
+  _fbGearInPos          : Tc2_MC2_FlyingSaw.MC_GearInPos;   // position based gearing
+  _fbGearInVelo         : Tc2_MC2_FlyingSaw.MC_GearInVelo;  // velocity based gearing
+  //_fbReadCharacter      : Tc2_MC2_FlyingSaw.MC_ReadFlyingSawCharacteristics; 
+
+  _MessageLevel         : E_MessageType;
+  _stMsg                : ST_Message;
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -55,14 +59,11 @@ VAR_INST
   _rPosLate,
   _rPos               : LREAL;
   _eState             : E_PROGRESS;
-
-  _stOptions          : Tc2_MC2_FlyingSaw.ST_GearInPosOptions;
 END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[IF NOT Execute THEN _eState       := E_PROGRESS.PROGRESS_INIT; END_IF
  
 IF NOT (_ItfAxis <> 0)         THEN GearInPos    := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
-IF NOT (__ISVALIDREF(_Master)) THEN GearInPos    := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
 
 
 CASE _eState
@@ -70,12 +71,15 @@ OF
   E_PROGRESS.PROGRESS_INIT:
     IF Execute
     THEN
-      memcpy(ADR(_stOptions), ADR(stOptions), SIZEOF(_stOptions));
-
       _bError                 := FALSE;
       _rPosLate               := 0.0;
       _nErrorId               := 0;
       _eState                 := E_PROGRESS.PROGRESS_BUSY;
+
+      _stGearInPosOptions.PositionLimitMin  := stOptions.PositionLimitMin;
+      _stGearInPosOptions.PositionLimitMax  := stOptions.PositionLimitMax;
+
+      memcpy(ADR(_stSyncMode), ADR(stOptions.SyncMode), SIZEOF(_stSyncMode));
 
       IF NOT __ISVALIDREF(_Master)
       THEN
@@ -129,14 +133,14 @@ OF
         SlaveSyncPosition     := ABS(_ItfAxis.AxisRef.NcToPlc.ModuloActTurns)*_rModulo
                                + stGearData.rModuloSyncPosSlave,                          // absolute position
 
-        SyncMode              := ,
+        SyncMode              := _stSyncMode,
         MasterStartDistance   := stGearData.rMasterStartDistance,                         // if <> 0 --> master has to move before this fb does anything
         Velocity              := stMoveData.rSetVelo, 
         Acceleration          := stMoveData.rAcc, 
         Deceleration          := stMoveData.rAcc, 
         Jerk                  := stMoveData.rJerk, 
         BufferMode            := Tc2_MC2.MC_BufferMode.MC_Aborting, 
-        Options               := _stOptions, 
+        Options               := _stGearInPosOptions, 
         ErrorID               => _nErrorId);
 
         IF (_MessageLevel = E_MessageType.eMessageVerbose)
@@ -229,14 +233,11 @@ VAR_INST
   _rPosLate,
   _rPos               : LREAL;
   _eState             : E_PROGRESS;
-
-  _stOptions          : Tc2_MC2_FlyingSaw.ST_GearInVeloOptions;
 END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[IF NOT Execute THEN _eState       := E_PROGRESS.PROGRESS_INIT; END_IF
  
 IF NOT (_ItfAxis <> 0)         THEN GearInVelo    := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
-IF NOT (__ISVALIDREF(_Master)) THEN GearInVelo    := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
 
 
 CASE _eState
@@ -244,10 +245,13 @@ OF
   E_PROGRESS.PROGRESS_INIT:
     IF Execute
     THEN
-      memcpy(ADR(_stOptions), ADR(stOptions), SIZEOF(_stOptions));
-
       _nErrorId               := 0;
       _eState                 := E_PROGRESS.PROGRESS_BUSY;
+
+      _stGearInVeloOptions.PositionLimitMin := stOptions.PositionLimitMin;
+      _stGearInVeloOptions.PositionLimitMax := stOptions.PositionLimitMax;
+
+      memcpy(ADR(_stSyncMode), ADR(stOptions.SyncMode), SIZEOF(_stSyncMode));
 
       IF NOT __ISVALIDREF(_Master)
       THEN
@@ -284,7 +288,7 @@ OF
         Deceleration          := stMoveData.rAcc, 
         Jerk                  := stMoveData.rJerk, 
         BufferMode            := Tc2_MC2.MC_BufferMode.MC_Aborting, 
-        Options               := _stOptions, 
+        Options               := _stGearInVeloOptions, 
         ErrorID               => _nErrorId);
 
         IF (_MessageLevel = E_MessageType.eMessageVerbose)
@@ -449,14 +453,24 @@ Template_1 := _eState;
       <LineId Id="1" Count="1" />
     </LineIds>
     <LineIds Name="FB_FlyingBase.GearInPos">
-      <LineId Id="1" Count="11" />
-      <LineId Id="155" Count="0" />
-      <LineId Id="13" Count="113" />
+      <LineId Id="1" Count="2" />
+      <LineId Id="5" Count="6" />
+      <LineId Id="13" Count="3" />
+      <LineId Id="156" Count="0" />
+      <LineId Id="166" Count="2" />
+      <LineId Id="165" Count="0" />
+      <LineId Id="17" Count="109" />
       <LineId Id="150" Count="4" />
       <LineId Id="127" Count="22" />
     </LineIds>
     <LineIds Name="FB_FlyingBase.GearInVelo">
-      <LineId Id="1" Count="123" />
+      <LineId Id="1" Count="2" />
+      <LineId Id="5" Count="6" />
+      <LineId Id="14" Count="1" />
+      <LineId Id="125" Count="0" />
+      <LineId Id="143" Count="2" />
+      <LineId Id="142" Count="0" />
+      <LineId Id="16" Count="108" />
     </LineIds>
     <LineIds Name="FB_FlyingBase.MessageLevel.Set">
       <LineId Id="1" Count="1" />
