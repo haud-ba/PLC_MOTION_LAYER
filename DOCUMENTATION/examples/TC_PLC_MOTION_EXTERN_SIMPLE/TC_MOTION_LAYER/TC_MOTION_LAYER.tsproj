@@ -1489,6 +1489,15 @@ External Setpoint Generation:
 			</ArrayInfo>
 		</DataType>
 		<DataType>
+			<Name GUID="{B4DEC46D-7047-F5C7-016D-2AA61E763847}" IecBaseType="true" AutoDeleteType="true">ARRAY [1..18] OF BYTE</Name>
+			<BitSize>144</BitSize>
+			<BaseType GUID="{18071995-0000-0000-0000-000000000001}">BYTE</BaseType>
+			<ArrayInfo>
+				<LBound>1</LBound>
+				<Elements>18</Elements>
+			</ArrayInfo>
+		</DataType>
+		<DataType>
 			<Name GUID="{4F9624B6-2144-84E8-B002-A92C836E44E5}" IecBaseType="true" AutoDeleteType="true">ARRAY [1..1] OF ARRAY [1..262] OF BYTE</Name>
 			<BitSize>2096</BitSize>
 			<BaseType GUID="{18071995-0000-0000-0000-000000000001}">BYTE</BaseType>
@@ -1577,6 +1586,32 @@ External Setpoint Generation:
 			<ArrayInfo Level="1">
 				<LBound>1</LBound>
 				<Elements>32</Elements>
+			</ArrayInfo>
+		</DataType>
+		<DataType>
+			<Name GUID="{1C058EBC-9C83-D55D-2804-E6E534AC6B22}" IecBaseType="true" AutoDeleteType="true">ARRAY [1..6] OF ARRAY [1..54] OF BYTE</Name>
+			<BitSize>2592</BitSize>
+			<BaseType GUID="{18071995-0000-0000-0000-000000000001}">BYTE</BaseType>
+			<ArrayInfo>
+				<LBound>1</LBound>
+				<Elements>6</Elements>
+			</ArrayInfo>
+			<ArrayInfo Level="1">
+				<LBound>1</LBound>
+				<Elements>54</Elements>
+			</ArrayInfo>
+		</DataType>
+		<DataType>
+			<Name GUID="{2B5C121A-3AC3-57FB-B731-2331FD47E935}" IecBaseType="true" AutoDeleteType="true">ARRAY [1..6] OF ARRAY [1..38] OF BYTE</Name>
+			<BitSize>1824</BitSize>
+			<BaseType GUID="{18071995-0000-0000-0000-000000000001}">BYTE</BaseType>
+			<ArrayInfo>
+				<LBound>1</LBound>
+				<Elements>6</Elements>
+			</ArrayInfo>
+			<ArrayInfo Level="1">
+				<LBound>1</LBound>
+				<Elements>38</Elements>
 			</ArrayInfo>
 		</DataType>
 		<DataType>
@@ -2185,16 +2220,12 @@ External Setpoint Generation:
 			</ArrayInfo>
 		</DataType>
 		<DataType>
-			<Name GUID="{2B5C121A-3AC3-57FB-B731-2331FD47E935}" IecBaseType="true" AutoDeleteType="true">ARRAY [1..6] OF ARRAY [1..38] OF BYTE</Name>
-			<BitSize>1824</BitSize>
+			<Name GUID="{09028F86-A747-EA43-57E9-969912315B28}" IecBaseType="true" AutoDeleteType="true">ARRAY [1..24] OF BYTE</Name>
+			<BitSize>192</BitSize>
 			<BaseType GUID="{18071995-0000-0000-0000-000000000001}">BYTE</BaseType>
 			<ArrayInfo>
 				<LBound>1</LBound>
-				<Elements>6</Elements>
-			</ArrayInfo>
-			<ArrayInfo Level="1">
-				<LBound>1</LBound>
-				<Elements>38</Elements>
+				<Elements>24</Elements>
 			</ArrayInfo>
 		</DataType>
 		<DataType>
@@ -2361,7 +2392,7 @@ External Setpoint Generation:
 		</System>
 		<Motion>
 			<NC>
-				<SafTask Priority="4" CycleTime="20000" AmsPort="501" Affinity="#x00000008" IoAtBegin="true" AmsNetId="192.168.1.70.1.1" SafTaskInfo="256" HighPrioAds="true">
+				<SafTask Priority="4" CycleTime="20000" AmsPort="501" Affinity="#x00000008" IoAtBegin="true" SafTaskInfo="256" HighPrioAds="true">
 					<Name>NC-Task 1 SAF</Name>
 					<Vars VarGrpType="1" InsertType="1">
 						<Name>Inputs</Name>
@@ -3304,7 +3335,7 @@ External Setpoint Generation:
 		</Motion>
 		<Plc>
 			<Project GUID="{15B1A673-79C3-4349-91F3-F549A08073E6}" Name="PLC_MOTION" PrjFilePath="PLC_MOTION\PLC_MOTION.plcproj" TmcFilePath="PLC_MOTION\PLC_MOTION.tmc" CompilerDefines="TEST, CAM, XFC, NCI, BSD, AXIS_MAP, CAM_MAP, NCI_MAP, TRIGGER_MAP, SAW, SAW_MAP" ReloadTmc="true" AmsPort="851" FileArchiveSettings="#x000e" SymbolicMapping="true">
-				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcHash="{889A764A-F337-C2DE-74AD-9806C6967ABA}" TmcPath="PLC_MOTION\PLC_MOTION.tmc">
+				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcHash="{F20D1DF5-0B00-AE6E-87DA-F0FEEA9BB8EF}" TmcPath="PLC_MOTION\PLC_MOTION.tmc">
 					<Name>PLC_MOTION Instance</Name>
 					<CLSID ClassFactory="TcPlc30">{08500001-0000-0000-F000-000000000064}</CLSID>
 					<Vars VarGrpType="2" AreaNo="1">
@@ -3325,6 +3356,10 @@ External Setpoint Generation:
 						<Var>
 							<Name>MAPPING_out.AxisParameterOut.byState</Name>
 							<Type GUID="{5D0481D0-25C0-7560-F931-87B2FC0AC3A0}">ARRAY [1..6] OF ARRAY [1..10] OF BYTE</Type>
+						</Var>
+						<Var>
+							<Name>MAPPING_out.SelectorState.byState</Name>
+							<Type GUID="{09028F86-A747-EA43-57E9-969912315B28}">ARRAY [1..24] OF BYTE</Type>
 						</Var>
 						<Var>
 							<Name>MAPPING_out.NciState.byState</Name>
@@ -3349,6 +3384,10 @@ External Setpoint Generation:
 						<Var>
 							<Name>MAPPING_out.TouchProbeState.byState</Name>
 							<Type GUID="{6867EC71-EC3C-9107-0B93-4B3F25F9B25B}">ARRAY [1..12] OF ARRAY [1..24] OF BYTE</Type>
+						</Var>
+						<Var>
+							<Name>MAPPING_out.FlyState.byState</Name>
+							<Type GUID="{06FD5805-D0D7-94D3-79B9-E8163A9175FF}">ARRAY [1..6] OF ARRAY [1..2] OF BYTE</Type>
 						</Var>
 						<Var>
 							<Name>GVL_AXIS.AxisRef[1].PlcToNc</Name>
@@ -3411,6 +3450,10 @@ External Setpoint Generation:
 							<Type GUID="{5D0481D0-25C0-7560-F931-87B2FC0AC3A0}">ARRAY [1..6] OF ARRAY [1..10] OF BYTE</Type>
 						</Var>
 						<Var>
+							<Name>MAPPING_in.SelectorCtrl.byCtrl</Name>
+							<Type GUID="{B4DEC46D-7047-F5C7-016D-2AA61E763847}">ARRAY [1..18] OF BYTE</Type>
+						</Var>
+						<Var>
 							<Name>MAPPING_in.NciControl.byCtrl</Name>
 							<Type GUID="{4F9624B6-2144-84E8-B002-A92C836E44E5}">ARRAY [1..1] OF ARRAY [1..262] OF BYTE</Type>
 						</Var>
@@ -3437,6 +3480,18 @@ External Setpoint Generation:
 						<Var>
 							<Name>MAPPING_in.TouchProbeControl.byCtrl</Name>
 							<Type GUID="{32E882A5-2BD7-CC13-A9FB-03B6A492DC73}">ARRAY [1..12] OF ARRAY [1..32] OF BYTE</Type>
+						</Var>
+						<Var>
+							<Name>MAPPING_in.FlyControl.byCtrl</Name>
+							<Type GUID="{06FD5805-D0D7-94D3-79B9-E8163A9175FF}">ARRAY [1..6] OF ARRAY [1..2] OF BYTE</Type>
+						</Var>
+						<Var>
+							<Name>MAPPING_in.FlyData.byCtrl</Name>
+							<Type GUID="{1C058EBC-9C83-D55D-2804-E6E534AC6B22}">ARRAY [1..6] OF ARRAY [1..54] OF BYTE</Type>
+						</Var>
+						<Var>
+							<Name>MAPPING_in.FlyOptions.byCtrl</Name>
+							<Type GUID="{2B5C121A-3AC3-57FB-B731-2331FD47E935}">ARRAY [1..6] OF ARRAY [1..38] OF BYTE</Type>
 						</Var>
 						<Var>
 							<Name>GVL_AXIS.AxisRef[1].NcToPlc</Name>

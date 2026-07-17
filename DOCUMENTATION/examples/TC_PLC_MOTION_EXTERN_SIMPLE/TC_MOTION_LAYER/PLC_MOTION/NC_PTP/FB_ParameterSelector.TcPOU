@@ -1,0 +1,662 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <POU Name="FB_ParameterSelector" Id="{a8cc0ef7-a8e3-4266-afd6-1466555f9bd4}" SpecialFunc="None">
+    <Declaration><![CDATA[//---------------------------------------------------------------------------------------------------------------
+//
+//  HAUD 2026.06.22.
+//
+//  - PLC_MOTION_LAYER
+//
+//  fb_ParameterSelector
+//  - get/set NC parameter on specified axis
+//  - one axis at a time
+//  - intended as alternative to using the GVL_AXIS.Control struct
+//  - does not inherit any axis class, I_McAxis is used for parameter R/W execution
+//
+//
+//---------------------------------------------------------------------------------------------------------------
+// This SOFTWARE is provided as an Example by THE PROVIDER "as is" and "with all faults." THE PROVIDER makes no 
+// representations or warranties of any kind concerning the safety, suitability, lack of viruses, inaccuracies, 
+// typographical errors, or other harmful components of this SOFTWARE. There are inherent dangers in the use of 
+// any software, and you are solely responsible for determining whether this SOFTWARE is compatible with your 
+// equipment and other software installed on your equipment. You are also solely responsible for the protection 
+// of your equipment and backup of your data, and THE PROVIDER will not be liable for any damages you may suffer 
+// in connection with using, modifying, or distributing this SOFTWARE.
+//---------------------------------------------------------------------------------------------------------------
+FUNCTION_BLOCK FB_ParameterSelector
+VAR
+  _eCheck                 : E_CHECK_STATE;
+  _nAxisId                : UDINT;  // NC AxisId at index in mover array
+  _nAxisIndex             : UINT;   // local resolution from interface
+
+  // Ctrl and State for executing commands
+  _stCtrl                 : REFERENCE TO ST_PARAMETER_SELECTOR_CTRL;
+  _stState                : REFERENCE TO ST_PARAMETER_SELECTOR_STATE;
+
+  _ItfAxis                : REFERENCE TO ARRAY[1..MAX_AXIS] OF I_McAxis;  // access to mover information and methods 
+
+  // Last handled NC Axis parameter to write
+  _eParameterNrWrite      : Tc2_MC2.MC_AxisParameter;
+  _rParameterWrtValue     : LREAL;
+
+  // Last handled NC Axis parameter to read
+  _eParameterNrRead       : Tc2_MC2.MC_AxisParameter;
+  _rParameterReadValue    : LREAL;
+
+  _eSelector              : E_AXIS_SELECTOR;  // select byIndex or byId
+
+  _eCmd,
+  _eCmdOld                : E_AXIS_CTRL;
+
+  _eState                 : E_AXIS_STATE;
+
+  _eSelectorResult,
+  _eResultOld,
+  _eResult                : E_PROGRESS;
+
+  _stMsg                  : ST_Message;
+  _MessageLevel           : E_MessageType;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF NOT Check() THEN RETURN; END_IF
+
+_stMsg.eDevice                := e_Device.Device_ParameterSelector;
+
+// copy to local for debug
+_eCmd                         := _stCtrl.Control.eCmd;
+
+// cyclic check for command change
+// get state for cmd
+IF (_eCmd <> _eCmdOld)
+THEN
+  _eSelector                  := _stCtrl.Selector;
+  // get mover index only on command change
+  // this prevents error if changes occur during execution
+  CASE _eSelector
+  OF
+    E_AXIS_SELECTOR.SELECT_INDEX:        // access by index
+      _nAxisIndex             := _stCtrl.Axis;
+
+      IF (_nAxisIndex > 0) AND
+         (_nAxisIndex < MAX_AXIS+1)
+      THEN
+        _nAxisId              := _ItfAxis[_nAxisIndex].AxisRef.NcToPlc.AxisId;
+
+        // get matching sdtate from Cmd
+        _eState               := Cmd(_eCmd);
+      ELSE
+        _nAxisId              := 0;
+        _eState               := E_AXIS_STATE.AXIS_NULL;
+        _eResult              := E_PROGRESS.PROGRESS_ERROR;
+      END_IF
+  
+    E_AXIS_SELECTOR.SELECT_AXIS_ID:      // access by NC AxisId
+      _eSelectorResult        := GetAxisIndex(_stCtrl.Axis); // _nAxisIndex is written by method
+      // AxisId or 
+      CASE _eSelectorResult
+      OF
+        E_PROGRESS.PROGRESS_DONE:
+          _nAxisId            := _ItfAxis[_nAxisIndex].AxisRef.NcToPlc.AxisId;
+          // get matching sdtate from Cmd
+          _eState             := Cmd(_eCmd);
+
+        E_PROGRESS.PROGRESS_ERROR:
+          _nAxisIndex         := 0;
+          _nAxisId            := 0;
+          _eState             := E_AXIS_STATE.AXIS_NULL;
+          _eResult            := _eSelectorResult;
+      END_CASE
+  END_CASE
+  _eCmdOld                    := _eCmd;
+  LogControl();
+END_IF
+
+
+CASE _eResult
+OF
+  E_PROGRESS.PROGRESS_INVALID:
+    _stState.State.eState     := E_AXIS_STATE.AXIS_NULL;
+
+  E_PROGRESS.PROGRESS_ERROR:
+    _stState.State.eState     := _eState + E_PROGRESS.PROGRESS_ERROR;
+
+  E_PROGRESS.PROGRESS_DONE:
+    _stState.State.eState     := _eState + E_PROGRESS.PROGRESS_DONE;
+
+ELSE
+  // work in progress
+  // update progress for extern use
+  _stState.State.eState       := _eState + _eResult;
+
+  CASE _eState
+  OF
+    E_AXIS_STATE.AXIS_PARAMETER_READ:
+      _eResult                := AxisParameterRead(TRUE, _eParameterNrRead);
+      _stState.Info.ParameterNumber := _eParameterNrRead;
+      _stState.Info.rValue          := _rParameterReadValue;
+
+    E_AXIS_STATE.AXIS_PARAMETER_WRITE:
+      _eResult                := AxisParameterWrite(TRUE, _eParameterNrWrite);
+      _stState.Info.ParameterNumber := _eParameterNrWrite;
+      _stState.Info.rValue          := _rParameterWrtValue;
+  
+    E_AXIS_STATE.AXIS_PARAMETER_WRITE_PERSISTENT:
+      _eResult                := AxisParameterWritePersistent(TRUE, _eParameterNrWrite);
+      _stState.Info.ParameterNumber := _eParameterNrWrite;
+      _stState.Info.rValue          := _rParameterWrtValue;
+
+  ELSE
+    IF (_eCmd > E_AXIS_CTRL.AXIS_NULL)
+    THEN
+      _eResult                := E_PROGRESS.PROGRESS_NOT_EXIST;
+    ELSE
+      _eResult                := E_PROGRESS.PROGRESS_INVALID;
+    END_IF
+  END_CASE
+END_CASE
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//  OnChange of execution state result
+//    - log result and clear error number on interface
+//-----------------------------------------------------------------------------
+IF (_eResult <> _eResultOld)
+THEN
+  LogResult();
+  _eResultOld                 := _eResult;
+END_IF
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+_stState.AxisIndex            := _nAxisIndex;
+_stState.AxisId               := _nAxisId;
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+
+
+]]></ST>
+    </Implementation>
+    <Folder Name="methods" Id="{37d13d8c-bfe8-4a67-856c-16c4ed887976}" />
+    <Folder Name="private" Id="{fc4978cd-48b4-47c7-a40d-af3074c76a57}" />
+    <Folder Name="properties" Id="{fe330cb1-5e31-413e-a80b-485e254ce3af}" />
+    <Method Name="AxisParameterRead" Id="{d2fc4f4a-6079-40cb-b282-ffc91190ac74}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD AxisParameterRead : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+  ParameterNr       : Tc2_MC2.MC_AxisParameter;
+END_VAR
+VAR_INST
+  _eres,
+  _eState           : E_PROGRESS;
+  _rValue           : LREAL;
+  _eParam           : Tc2_MC2.MC_AxisParameter;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT Check() THEN AxisParameterRead := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
+
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_INIT:
+    IF Execute 
+    THEN
+      _rValue                                     := 0.0;
+      _eParam                                     := ParameterNr;
+      _eState                                     := E_PROGRESS.PROGRESS_BUSY;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_BUSY:
+    _eState                                       := E_PROGRESS.PROGRESS_OCCUPIED;
+    _eres           := _ItfAxis[_nAxisIndex].ReadParameter(
+                                  Execute         := FALSE,
+                                  ParameterNumber := _eParam);
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_OCCUPIED:
+    _eres           := _ItfAxis[_nAxisIndex].ReadParameter(
+                                  Execute         := TRUE,
+                                  ParameterNumber := _eParam);
+
+    IF (_eres = E_PROGRESS.PROGRESS_ERROR)
+    THEN
+      _eState                                     := E_PROGRESS.PROGRESS_ERROR;
+    ELSIF (_eres = E_PROGRESS.PROGRESS_DONE)
+    THEN 
+      _eState                                     := E_PROGRESS.PROGRESS_WORKING;
+    END_IF
+
+  E_PROGRESS.PROGRESS_WORKING:
+    _eState                                       := E_PROGRESS.PROGRESS_DONE;
+    _eres           := _ItfAxis[_nAxisIndex].ReadParameter(
+                                  Execute         := FALSE,
+                                  ParameterNumber := _eParam);
+
+    _rParameterReadValue                          := 
+    _rValue                                       := _ItfAxis[_nAxisIndex].ReadParameterValue;
+END_CASE
+
+AxisParameterRead := _eState;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="AxisParameterWrite" Id="{d141614e-c4f4-468b-9dc7-c92e782776be}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD AxisParameterWrite : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+  ParameterNr       : Tc2_MC2.MC_AxisParameter;
+END_VAR
+VAR_INST
+  _eres,
+  _eState           : E_PROGRESS;
+  _rValue           : LREAL;
+  _eParam           : Tc2_MC2.MC_AxisParameter;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT Check() THEN AxisParameterWrite := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
+
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_INIT:
+    IF Execute 
+    THEN
+      _rValue                                     := _rParameterWrtValue;
+      _eParam                                     := ParameterNr;
+      _eState                                     := E_PROGRESS.PROGRESS_BUSY;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_BUSY:
+    _eState                                       := E_PROGRESS.PROGRESS_OCCUPIED;
+    _eres           := _ItfAxis[_nAxisIndex].WriteParameter(
+                                  Execute         := FALSE,
+                                  Value           := _rValue,
+                                  ParameterNumber := _eParam);
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_OCCUPIED:
+    _eres           := _ItfAxis[_nAxisIndex].WriteParameter(
+                                  Execute         := TRUE,
+                                  Value           := _rValue,
+                                  ParameterNumber := _eParam);
+    IF (_eres = E_PROGRESS.PROGRESS_ERROR)
+    THEN
+      _eState                                     := E_PROGRESS.PROGRESS_ERROR;
+    ELSIF (_eres = E_PROGRESS.PROGRESS_DONE)
+    THEN
+      _eState                                     := E_PROGRESS.PROGRESS_WORKING;
+    END_IF
+
+  E_PROGRESS.PROGRESS_WORKING:
+    _eState                                       := E_PROGRESS.PROGRESS_DONE;
+    _eres           := _ItfAxis[_nAxisIndex].WriteParameter(
+                                  Execute         := FALSE,
+                                  Value           := _rValue,
+                                  ParameterNumber := _eParam);
+END_CASE
+
+AxisParameterWrite                                := _eState;
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="AxisParameterWritePersistent" Id="{75c1b3db-b4a1-4cb4-ba2c-ea1e5ec6530f}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD AxisParameterWritePersistent : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+  ParameterNr       : Tc2_MC2.MC_AxisParameter;
+END_VAR
+VAR_INST
+  _eres,
+  _eState           : E_PROGRESS;
+  _rValue           : LREAL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT Check() THEN AxisParameterWritePersistent := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
+
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_INIT:
+    IF Execute 
+    THEN
+      _rValue                                     := _rParameterWrtValue;
+      _eState                                     := E_PROGRESS.PROGRESS_BUSY;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_BUSY:
+    _eState                                       := E_PROGRESS.PROGRESS_OCCUPIED;
+    _eres           := _ItfAxis[_nAxisIndex].WriteParameterPersistent(
+                                  Execute         := FALSE,
+                                  Value           := _rValue,
+                                  ParameterNumber := ParameterNr);
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_OCCUPIED:
+    _eres           := _ItfAxis[_nAxisIndex].WriteParameterPersistent(
+                                  Execute         := TRUE,
+                                  Value           := _rValue,
+                                  ParameterNumber := ParameterNr);
+    IF (_eres = E_PROGRESS.PROGRESS_ERROR)
+    THEN
+      _eState                                     := E_PROGRESS.PROGRESS_ERROR;
+    ELSIF (_eres = E_PROGRESS.PROGRESS_DONE)
+    THEN 
+      _eState                                     := E_PROGRESS.PROGRESS_WORKING;
+    END_IF
+
+  E_PROGRESS.PROGRESS_WORKING:
+    _eState                                       := E_PROGRESS.PROGRESS_DONE;
+    _eres           := _ItfAxis[_nAxisIndex].WriteParameterPersistent(
+                                  Execute         := FALSE,
+                                  Value           := _rValue,
+                                  ParameterNumber := ParameterNr);
+END_CASE
+
+AxisParameterWritePersistent                          := _eState;
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Check" Id="{8876b12d-3bfb-4476-a8e8-b73e06ad78c6}" FolderPath="private\">
+      <Declaration><![CDATA[METHOD PRIVATE Check : BOOL
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[
+// The things that should not be
+
+IF NOT __ISVALIDREF(_stCtrl)
+THEN
+  _eCheck                     := E_CHECK_STATE.PARAMETER_SELECTOR_CTRL_REF_INVALID;
+  RETURN;
+END_IF
+
+IF NOT __ISVALIDREF(_stState)
+THEN
+  _eCheck                     := E_CHECK_STATE.PARAMETER_SELECTOR_STATE_REF_INVALID;
+  RETURN;
+END_IF
+
+IF NOT __ISVALIDREF(_ItfAxis)
+THEN
+  _eCheck                     := E_CHECK_STATE.PARAMETER_SELECTOR_AXIS_ITF_INVALID;
+  RETURN;
+END_IF
+
+_eCheck                       := E_CHECK_STATE.CHECK_DONE;
+Check                         := TRUE;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Cmd" Id="{2e175407-9ac4-49e7-9634-20b562e2cd0e}" FolderPath="private\">
+      <Declaration><![CDATA[METHOD PRIVATE Cmd : E_AXIS_STATE
+VAR_INPUT
+  Ctrl      : E_AXIS_CTRL;
+END_VAR
+VAR_INST
+  _eState   : E_AXIS_STATE;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT Check() THEN Cmd   := E_AXIS_STATE.AXIS_NULL;  RETURN; END_IF
+
+CASE Ctrl
+OF
+  //---------------------------------------------------------------------------------
+  E_AXIS_CTRL.AXIS_PARAMETER_READ:
+    _eParameterNrRead     := _stCtrl.Data.ParameterNumber;
+    _eResult              := AxisParameterRead(FALSE, _eParameterNrRead);
+    _estate               := E_AXIS_STATE.AXIS_PARAMETER_READ;
+
+
+  //---------------------------------------------------------------------------------
+  E_AXIS_CTRL.AXIS_PARAMETER_WRITE:
+    _eParameterNrWrite    := _stCtrl.Data.ParameterNumber;
+    _rParameterWrtValue   := _stCtrl.Data.rValue;
+    _eResult              := AxisParameterWrite(FALSE, _eParameterNrWrite);
+    _estate               := E_AXIS_STATE.AXIS_PARAMETER_WRITE;
+
+
+  //---------------------------------------------------------------------------------
+  E_AXIS_CTRL.AXIS_PARAMETER_WRITE_PERSISTENT:
+    _eParameterNrWrite    := _stCtrl.Data.ParameterNumber;
+    _rParameterWrtValue   := _stCtrl.Data.rValue;
+    _eResult              := AxisParameterWritePersistent(FALSE, _eParameterNrWrite);
+    _estate               := E_AXIS_STATE.AXIS_PARAMETER_WRITE_PERSISTENT;
+ELSE
+    _eResult              := E_PROGRESS.PROGRESS_INVALID; 
+    _eState               := E_AXIS_STATE.AXIS_NULL;
+END_CASE
+
+Cmd                       := _eState;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="Ctrl" Id="{0288530d-2edc-4352-af30-1445491a7b5f}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY Ctrl : REFERENCE TO ST_PARAMETER_SELECTOR_CTRL
+]]></Declaration>
+      <Set Name="Set" Id="{8f17c29c-cdff-4f84-abfe-0958d1012f5d}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_stCtrl ref= Ctrl;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Method Name="GetAxisIndex" Id="{67ab7f78-029b-4b7d-ba5d-d6e1c6e40e54}" FolderPath="private\">
+      <Declaration><![CDATA[METHOD PRIVATE GetAxisIndex : e_progress // searches for AxisId and writes _nMoverIndex if search was successful; returns either error or done
+VAR_INPUT
+  nAxisId     : UINT; // AXIS_REF.NcToPlc.AxisId
+END_VAR
+VAR
+  _nIdx       : UINT;
+  _nAxis      : UINT;
+  _bValid     : BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT Check() THEN GetAxisIndex := e_progress.PROGRESS_ERROR; RETURN; END_IF
+
+FOR _nIdx := 1 TO PLC_CONSTANT.MAX_AXIS
+DO
+  IF (_ItfAxis[_nIdx].AxisRef.NcToPlc.AxisId = nAxisId)
+  THEN
+    _bValid           := TRUE;  // tell me that it's true.
+    _nAxisIndex      := _nIdx;
+  END_IF
+END_FOR
+
+IF (_bValid)
+THEN
+  GetAxisIndex        := E_PROGRESS.PROGRESS_DONE;
+ELSE
+  _nAxisIndex        := 0;
+  GetAxisIndex        := E_PROGRESS.PROGRESS_ERROR;
+END_IF
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="ItfAxis" Id="{0deeadbf-51c6-4530-ba90-b9f6d3fda61a}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY ItfAxis : reference to ARRAY[1..MAX_AXIS] OF I_McAxis]]></Declaration>
+      <Set Name="Set" Id="{4205d92f-05f9-43ee-b38f-94fc6de45499}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_ItfAxis REF= ItfAxis;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Method Name="LogControl" Id="{2e34d42d-c0db-4062-a651-66084a9d9c91}" FolderPath="private\">
+      <Declaration><![CDATA[METHOD PRIVATE LogControl
+VAR_INST
+  _sResult,
+  _sCtrl            : STRING(40);
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[  _stMsg.eType               := E_MessageType.eMessageInfo;
+  _stMsg.eSubdevice          := e_Subdevice.General;
+  _stMsg.iErrorNumber        := _nAxisIndex;
+
+  _sCtrl                     := concat('E_AXIS_CTRL', '.');
+  _sCtrl                     := concat(_sCtrl, TO_STRING(_eCmd));
+
+  _stMsg.sText               := concat('new command: ', _sCtrl);
+
+  IF (_MessageLevel > E_MessageType.eMessageError)
+  THEN
+    f_MessageSet(_stMsg);
+  ELSE
+    IF (_stMsg.eType = E_MessageType.eMessageError)
+    THEN
+      f_MessageSet(_stMsg);
+    END_IF
+  END_IF
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="LogResult" Id="{9c895c86-9d34-45a8-8569-352b839f1fab}" FolderPath="private\">
+      <Declaration><![CDATA[METHOD PRIVATE LogResult
+VAR_INST
+  _sResult,
+  _sCtrl            : STRING(40);
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[  _stMsg.eType               := E_MessageType.eMessageInfo;
+  _stMsg.eSubdevice          := e_Subdevice.General;
+  _stMsg.iErrorNumber        := _nAxisIndex;
+
+  _sCtrl                     := concat('E_AXIS_CTRL', '.');
+  _sCtrl                     := concat(_sCtrl, TO_STRING(_eCmdOld));
+
+  _sResult                   := concat(': E_PROGRESS', '.');
+  _sResult                   := concat(_sResult, TO_STRING(_eResult));
+
+  _stMsg.sText               := concat(_sCtrl, ' ');
+  _stMsg.sText               := concat(_sCtrl, _sResult);
+
+  IF (_MessageLevel > E_MessageType.eMessageError)
+  THEN
+    f_MessageSet(_stMsg);
+  ELSE
+    IF (_stMsg.eType = E_MessageType.eMessageError)
+    THEN
+      f_MessageSet(_stMsg);
+    END_IF
+  END_IF
+]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="MessageLevel" Id="{9065df94-41fe-40f5-8554-571238631b82}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY MessageLevel : E_MessageType]]></Declaration>
+      <Set Name="Set" Id="{2364557b-e535-401a-9e0b-0e2a46be68ba}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_MessageLevel := MessageLevel;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="State" Id="{125c7787-25c3-468b-818f-04d1a0f5960b}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY State : REFERENCE TO ST_PARAMETER_SELECTOR_STATE]]></Declaration>
+      <Set Name="Set" Id="{1ea4aea3-9eb4-4ab1-9881-8488038bd943}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_stState ref= State;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <LineIds Name="FB_ParameterSelector">
+      <LineId Id="128" Count="49" />
+      <LineId Id="297" Count="0" />
+      <LineId Id="178" Count="17" />
+      <LineId Id="277" Count="0" />
+      <LineId Id="197" Count="1" />
+      <LineId Id="254" Count="1" />
+      <LineId Id="291" Count="1" />
+      <LineId Id="256" Count="2" />
+      <LineId Id="293" Count="1" />
+      <LineId Id="259" Count="2" />
+      <LineId Id="295" Count="1" />
+      <LineId Id="246" Count="0" />
+      <LineId Id="228" Count="0" />
+      <LineId Id="247" Count="2" />
+      <LineId Id="251" Count="2" />
+      <LineId Id="230" Count="1" />
+      <LineId Id="299" Count="7" />
+      <LineId Id="308" Count="3" />
+      <LineId Id="242" Count="1" />
+      <LineId Id="312" Count="1" />
+      <LineId Id="298" Count="0" />
+      <LineId Id="244" Count="1" />
+      <LineId Id="125" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_ParameterSelector.AxisParameterRead">
+      <LineId Id="1" Count="47" />
+    </LineIds>
+    <LineIds Name="FB_ParameterSelector.AxisParameterWrite">
+      <LineId Id="1" Count="47" />
+    </LineIds>
+    <LineIds Name="FB_ParameterSelector.AxisParameterWritePersistent">
+      <LineId Id="1" Count="46" />
+    </LineIds>
+    <LineIds Name="FB_ParameterSelector.Check">
+      <LineId Id="1" Count="14" />
+      <LineId Id="28" Count="8" />
+    </LineIds>
+    <LineIds Name="FB_ParameterSelector.Cmd">
+      <LineId Id="1" Count="1" />
+      <LineId Id="4" Count="1" />
+      <LineId Id="57" Count="2" />
+      <LineId Id="61" Count="13" />
+      <LineId Id="79" Count="1" />
+      <LineId Id="77" Count="1" />
+      <LineId Id="50" Count="3" />
+      <LineId Id="81" Count="0" />
+      <LineId Id="55" Count="1" />
+    </LineIds>
+    <LineIds Name="FB_ParameterSelector.Ctrl.Set">
+      <LineId Id="1" Count="1" />
+    </LineIds>
+    <LineIds Name="FB_ParameterSelector.GetAxisIndex">
+      <LineId Id="1" Count="19" />
+    </LineIds>
+    <LineIds Name="FB_ParameterSelector.ItfAxis.Set">
+      <LineId Id="1" Count="1" />
+    </LineIds>
+    <LineIds Name="FB_ParameterSelector.LogControl">
+      <LineId Id="1" Count="18" />
+    </LineIds>
+    <LineIds Name="FB_ParameterSelector.LogResult">
+      <LineId Id="1" Count="22" />
+    </LineIds>
+    <LineIds Name="FB_ParameterSelector.MessageLevel.Set">
+      <LineId Id="1" Count="1" />
+    </LineIds>
+    <LineIds Name="FB_ParameterSelector.State.Set">
+      <LineId Id="1" Count="1" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

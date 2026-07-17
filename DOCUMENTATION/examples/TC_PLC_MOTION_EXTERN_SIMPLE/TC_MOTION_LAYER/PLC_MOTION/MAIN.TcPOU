@@ -49,6 +49,11 @@ DO
 
   GVL_AXIS.ItfMcAxis[nAxis]                   := GVL_AXIS.Control[nAxis]; 
 END_FOR
+
+GVL_AXIS.ParameterSelector.MessageLevel       :=   GVL_MSG.MessageLevel;
+GVL_AXIS.ParameterSelector.Ctrl               REF= GVL_AXIS.SelectorCtrl;
+GVL_AXIS.ParameterSelector.State              REF= GVL_AXIS.SelectorState;
+GVL_AXIS.ParameterSelector.ItfAxis            REF= GVL_AXIS.ItfMcAxis;
 //-----------------------------------------------------------------------------------------------------------------
 // assign dataflow/
 //-----------------------------------------------------------------------------------------------------------------
@@ -166,6 +171,8 @@ THEN
   DO
       GVL_AXIS.Control[nAxis]();
   END_FOR
+
+  GVL_AXIS.ParameterSelector();
 END_IF
 //-----------------------------------------------------------------------------------------------------------------
 // cyclic/
@@ -284,7 +291,12 @@ END_CASE
       <LineId Id="308" Count="1" />
       <LineId Id="571" Count="21" />
       <LineId Id="600" Count="0" />
-      <LineId Id="593" Count="5" />
+      <LineId Id="593" Count="2" />
+      <LineId Id="605" Count="0" />
+      <LineId Id="602" Count="0" />
+      <LineId Id="601" Count="0" />
+      <LineId Id="603" Count="1" />
+      <LineId Id="596" Count="2" />
       <LineId Id="150" Count="0" />
       <LineId Id="599" Count="0" />
       <LineId Id="151" Count="0" />
@@ -351,6 +363,8 @@ END_CASE
       <LineId Id="85" Count="2" />
       <LineId Id="221" Count="1" />
       <LineId Id="88" Count="3" />
+      <LineId Id="607" Count="0" />
+      <LineId Id="606" Count="0" />
       <LineId Id="223" Count="0" />
       <LineId Id="92" Count="2" />
       <LineId Id="392" Count="52" />

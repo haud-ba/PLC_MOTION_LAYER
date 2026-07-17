@@ -5,12 +5,19 @@
 TYPE e_Device :
 (
   // txt file logging LOG_FILE
-  Device_Null,                // NULL               - not to be used
-  Device_Main,                // MAIN(PRG)          - reserved for MAIN(PRG)
-  Device_Nci,                 // NCI(PRG)           - reserved for NCI(PRG)
-  Device_Cam,                 // CAM(PRG            - reserved for CAM(PRG)
-  Device_Functions,           // FUNCTIONS(PRG)     - reserved for FUNCTIONS(PRG)
-  Device_FlyingSaw,           // FLYING_SAW(PRG)    - reserved for FLYING_SAW(PRG)
+  Device_Null,                  // NULL               - not to be used
+  Device_Main,                  // MAIN(PRG)          - reserved for MAIN(PRG)
+  Device_Nci,                   // NCI(PRG)           - reserved for NCI(PRG)
+  Device_Cam,                   // CAM(PRG            - reserved for CAM(PRG)
+  Device_Functions,             // FUNCTIONS(PRG)     - reserved for FUNCTIONS(PRG)
+  Device_FlyingSaw,             // FLYING_SAW(PRG)    - reserved for FLYING_SAW(PRG)
+  Device_MainApplication,       // MAIN_APP(PRG)
+
+  Device_ParameterSelector,     // fb_ParameterSelector can only exist once in a project.
+  Device_Configuration,         // fb_Configuration can handle multiple files therefore only one instance is required
+  Device_XmlData,               // generic XML Data (e.g. persistent data)
+  Device_Utilities,             // service calls to anyone you may want to talk to, the main intent is to get XPU and TcXtsIo data to the application side
+
 
   General           :=  1000,
   CaGroup           :=  2000,

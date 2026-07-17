@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="U_PARAMETER_SELECTOR_CTRL" Id="{a80fbf16-4175-4f34-9aed-7b6d4940c7e0}">
+    <Declaration><![CDATA[TYPE U_PARAMETER_SELECTOR_CTRL :
+UNION
+  stCtrl              : ST_PARAMETER_SELECTOR_CTRL;
+
+  byCtrl    AT %I*    : ARRAY[1..SIZEOF(ST_PARAMETER_SELECTOR_CTRL)] OF BYTE;
+
+END_UNION
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

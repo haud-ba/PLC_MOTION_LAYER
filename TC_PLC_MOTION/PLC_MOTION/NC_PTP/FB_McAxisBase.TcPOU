@@ -154,7 +154,6 @@ END_VAR
 VAR_INST
   _eState           : E_PROGRESS;
   _rValue           : LREAL;
-  _nErrorId         : UDINT;
   _stMsg            : ST_Message;
 END_VAR
 ]]></Declaration>
@@ -199,12 +198,11 @@ OF
         _stMsg.eSubdevice           := e_Subdevice.AxisCycle;
         _stMsg.iErrorNumber         := _nErrorId;
   
-        _stMsg.sText                  := concat(' : ', TO_STRING(_eState));
+        _stMsg.sText                := concat(' : ', TO_STRING(_eState));
   
         f_MessageSet(_stMsg);
       END_IF
     ELSE
-      _nErrorId                   := 0;
       _eState                     := E_PROGRESS.PROGRESS_WORKING;
     END_IF
 END_CASE
@@ -2699,7 +2697,8 @@ WriteParameterPersistent            := _eState;
       <LineId Id="906" Count="0" />
       <LineId Id="860" Count="1" />
       <LineId Id="910" Count="0" />
-      <LineId Id="862" Count="23" />
+      <LineId Id="862" Count="0" />
+      <LineId Id="864" Count="21" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_McAxisBase.Disable">

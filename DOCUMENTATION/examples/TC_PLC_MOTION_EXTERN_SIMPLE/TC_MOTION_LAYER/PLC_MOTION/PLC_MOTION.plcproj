@@ -97,6 +97,9 @@
     <Compile Include="FLYING_SAW.TcPOU">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="FLYING_SAW\types\ST_FLY_SYNC_MODE.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="FUNCTIONS.TcPOU">
       <SubType>Code</SubType>
     </Compile>
@@ -190,6 +193,18 @@
     <Compile Include="MAPPING\types\U_CAM_STATE.TcDUT">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="MAPPING\types\U_FLY_CTRL.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MAPPING\types\U_FLY_DATA.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MAPPING\types\U_FLY_OPTIONS.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MAPPING\types\U_FLY_STATE.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="MAPPING\types\U_NCI_AXIS_ID_GROUP.TcDUT">
       <SubType>Code</SubType>
     </Compile>
@@ -206,6 +221,12 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="MAPPING\types\U_NCI_STATE.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MAPPING\types\U_PARAMETER_SELECTOR_CTRL.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MAPPING\types\U_PARAMETER_SELECTOR_STATE.TcDUT">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="MAPPING\types\U_TOUCH_PROBE_CTRL.TcDUT">
@@ -291,6 +312,9 @@
     <Compile Include="NC_PTP\FB_McAxisBase.TcPOU">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="NC_PTP\FB_ParameterSelector.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="NC_PTP\I_McAxis.TcIO">
       <SubType>Code</SubType>
     </Compile>
@@ -301,6 +325,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="NC_PTP\types\control\E_AXIS_CTRL.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="NC_PTP\types\control\E_AXIS_SELECTOR.TcDUT">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="NC_PTP\types\control\E_AXIS_STATE.TcDUT">
@@ -331,6 +358,12 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="NC_PTP\types\control\ST_NC_PARAMETER.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="NC_PTP\types\control\ST_PARAMETER_SELECTOR_CTRL.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="NC_PTP\types\control\ST_PARAMETER_SELECTOR_STATE.TcDUT">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="XFC\FB_Xfc.TcPOU">
@@ -615,8 +648,8 @@
   <ProjectExtensions>
     <PlcProjectOptions>
       <XmlArchive>
-  <Data>
-    <o xml:space="preserve" t="OptionKey">
+        <Data>
+          <o xml:space="preserve" t="OptionKey">
       <v n="Name">"&lt;ProjectRoot&gt;"</v>
       <d n="SubKeys" t="Hashtable" ckt="String" cvt="OptionKey">
         <v>{192FAD59-8248-4824-A8DE-9177C94C195A}</v>
@@ -722,16 +755,16 @@
       </d>
       <d n="Values" t="Hashtable" />
     </o>
-  </Data>
-  <TypeList>
-    <Type n="Boolean">System.Boolean</Type>
-    <Type n="ExactVersionConstraintToSave">{f9079115-a4ba-4f30-bf7c-9e76613146fc}</Type>
-    <Type n="Hashtable">System.Collections.Hashtable</Type>
-    <Type n="Int32">System.Int32</Type>
-    <Type n="OptionKey">{54dd0eac-a6d8-46f2-8c27-2f43c7e49861}</Type>
-    <Type n="String">System.String</Type>
-  </TypeList>
-</XmlArchive>
+        </Data>
+        <TypeList>
+          <Type n="Boolean">System.Boolean</Type>
+          <Type n="ExactVersionConstraintToSave">{f9079115-a4ba-4f30-bf7c-9e76613146fc}</Type>
+          <Type n="Hashtable">System.Collections.Hashtable</Type>
+          <Type n="Int32">System.Int32</Type>
+          <Type n="OptionKey">{54dd0eac-a6d8-46f2-8c27-2f43c7e49861}</Type>
+          <Type n="String">System.String</Type>
+        </TypeList>
+      </XmlArchive>
     </PlcProjectOptions>
   </ProjectExtensions>
 </Project>

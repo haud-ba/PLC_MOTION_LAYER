@@ -59,6 +59,8 @@ VAR
   AxisGearInData            : U_AXIS_GEAR_IN;
   AxisHoming                : U_AXIS_HOMING;
   AxisParameterIn           : U_AXIS_NC_PARAMETER_WRT;
+
+  SelectorCtrl              : U_PARAMETER_SELECTOR_CTRL;
 {ELSE}
   AxisCtrl                  : BYTE;
   AxisMoveData              : BYTE;
@@ -66,7 +68,9 @@ VAR
 
   AxisGearInData            : BYTE;
   AxisHoming                : BYTE;
-  AxisParameterWrt          : BYTE;
+  AxisParameterIn           : BYTE;
+
+  SelectorCtrl              : byte;
 {END_IF}
 //-----------------------------------------------------------------------------------------------------------------
 //  Sir Robin of Camelot.
@@ -102,12 +106,26 @@ VAR
   TouchProbeControl         : BYTE;
 {END_IF}
 //-----------------------------------------------------------------------------------------------------------------
+//  .....
+//-----------------------------------------------------------------------------------------------------------------
+{IF defined (SAW_MAP)}
+  FlyControl                : U_FLY_CTRL;
+  FlyData                   : U_FLY_DATA;
+  FlyOptions                : U_FLY_OPTIONS;
+{ELSE}
+  //  I don't know that! Auuuuuuuugh!
+  FlyControl                : byte;
+  FlyData                   : byte;
+  FlyOptions                : BYTE;
+{END_IF}
+//-----------------------------------------------------------------------------------------------------------------
 //   What... is the air-speed velocity of an unladen swallow?
 //-----------------------------------------------------------------------------------------------------------------
   bMappingBlocked           : BOOL;   //  How do know so much about swallows?
 //-----------------------------------------------------------------------------------------------------------------
 //  - datafield size check
 //-----------------------------------------------------------------------------------------------------------------
+  szSelectorCtrl,
   szAxisPara,
   szAxisHoming,
   szAxisGearData,
@@ -123,6 +141,10 @@ VAR
 
   szCtrlTouchProbe,
   szCtrlTrigger             : ARRAY[1..2] OF UDINT;
+
+  szFlyingSawCtrl,
+  szFlyingSawData,
+  szFlyingSawOptions        : ARRAY[1..2] OF UDINT;
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -152,7 +174,9 @@ THEN
 
   memcpy(ADR(GVL_AXIS.GearInParameter),      ADR(AxisGearInData),       SIZEOF(AxisGearInData));
   memcpy(ADR(GVL_AXIS.HomeParameter),        ADR(AxisHoming),           SIZEOF(AxisHoming));
-  memcpy(ADR(GVL_AXIS.NcParameterIn),       ADR(AxisParameterIn),     SIZEOF(AxisParameterIn));
+  memcpy(ADR(GVL_AXIS.NcParameterIn),        ADR(AxisParameterIn),      SIZEOF(AxisParameterIn));
+
+  memcpy(ADR(GVL_AXIS.SelectorCtrl),         ADR(SelectorCtrl),         SIZEOF(SelectorCtrl));
 END_IF
 //--------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------
@@ -178,6 +202,14 @@ THEN
 END_IF
 //--------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------
+IF NOT bBypassMappingFlyingSaw
+THEN
+  memcpy(ADR(GVL_FLYING_SAW.Ctrl),          ADR(FlyControl),            SIZEOF(FlyControl));
+  memcpy(ADR(GVL_FLYING_SAW.Data),          ADR(FlyData),               SIZEOF(FlyData));
+  memcpy(ADR(GVL_FLYING_SAW.Options),       ADR(FlyOptions),            SIZEOF(FlyOptions));
+END_IF
+//--------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------
 //           destination,                         source,                      size
 //--------------------------------------------------------------------------------------------
 ]]></ST>
@@ -191,7 +223,8 @@ END_IF
 IF bBypassMappingAxis AND
    bBypassMappingNci  AND
    bBypassMappingCam  AND
-   bBypassMappingTrigger
+   bBypassMappingTrigger AND
+   bBypassMappingFlyingSaw
 THEN
   sMappingCheck         := 'NO_MAPPING_ACTIVE';
   RETURN;
@@ -215,6 +248,9 @@ szAxisHoming [2]        := SIZEOF(GVL_AXIS.HomeParameter);
 
 szAxisPara [1]          := SIZEOF(AxisParameterIn);
 szAxisPara [2]          := SIZEOF(GVL_AXIS.NcParameterIn);
+
+szSelectorCtrl[1]       := SIZEOF(SelectorCtrl);
+szSelectorCtrl[2]       := SIZEOF(GVL_AXIS.SelectorCtrl);
 
 IF NOT (bBypassMappingAxis)
 THEN
@@ -246,6 +282,12 @@ THEN
   THEN
     sMappingCheck       := 'AxisHoming CHECK_ERROR';
     RETURN;
+  END_IF
+
+  IF NOT (szSelectorCtrl[1] = szSelectorCtrl[2])
+  THEN
+    sMappingCheck       := 'SelectorCtrl CHECK_ERROR';
+    return;
   END_IF
 END_IF
 //--------------------------------------------------------------------------------------------
@@ -316,6 +358,37 @@ THEN
 END_IF
 //--------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------
+szFlyingSawCtrl[1]      := SIZEOF(FlyControl);
+szFlyingSawCtrl[2]      := SIZEOF(GVL_FLYING_SAW.Ctrl);
+
+szFlyingSawData[1]      := SIZEOF(FlyData);
+szFlyingSawData[2]      := SIZEOF(GVL_FLYING_SAW.Data);
+
+szFlyingSawOptions[1]   := SIZEOF(FlyOptions);
+szFlyingSawOptions[2]   := SIZEOF(GVL_FLYING_SAW.Options);
+
+IF NOT (bBypassMappingFlyingSaw)
+THEN
+  IF NOT (szFlyingSawCtrl[1] = szFlyingSawCtrl[2])
+  THEN
+    sMappingCheck       := 'FlyControl CHECK_ERROR';
+    RETURN;
+  END_IF
+
+  IF NOT (szFlyingSawData[1] = szFlyingSawData[2])
+  THEN
+    sMappingCheck       := 'FlyData CHECK_ERROR';
+    RETURN;
+  END_IF
+
+  IF NOT (szFlyingSawOptions[1] = szFlyingSawOptions[2])
+  THEN
+    sMappingCheck       := 'FlyOptions CHECK_ERROR';
+    RETURN;
+  END_IF
+END_IF
+//--------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------
 sMappingCheck           := 'CHECK_DONE';
@@ -342,6 +415,8 @@ Check                   := TRUE;
       <LineId Id="353" Count="0" />
       <LineId Id="68" Count="0" />
       <LineId Id="70" Count="1" />
+      <LineId Id="386" Count="0" />
+      <LineId Id="385" Count="0" />
       <LineId Id="208" Count="0" />
       <LineId Id="354" Count="1" />
       <LineId Id="339" Count="2" />
@@ -359,12 +434,39 @@ Check                   := TRUE;
       <LineId Id="209" Count="0" />
       <LineId Id="254" Count="0" />
       <LineId Id="249" Count="0" />
+      <LineId Id="377" Count="5" />
+      <LineId Id="384" Count="0" />
+      <LineId Id="383" Count="0" />
       <LineId Id="360" Count="0" />
       <LineId Id="362" Count="2" />
       <LineId Id="361" Count="0" />
     </LineIds>
     <LineIds Name="MAPPING_in.Check">
-      <LineId Id="1" Count="135" />
+      <LineId Id="1" Count="5" />
+      <LineId Id="137" Count="0" />
+      <LineId Id="7" Count="22" />
+      <LineId Id="171" Count="0" />
+      <LineId Id="170" Count="0" />
+      <LineId Id="172" Count="0" />
+      <LineId Id="30" Count="31" />
+      <LineId Id="174" Count="0" />
+      <LineId Id="173" Count="0" />
+      <LineId Id="175" Count="0" />
+      <LineId Id="177" Count="1" />
+      <LineId Id="176" Count="0" />
+      <LineId Id="62" Count="66" />
+      <LineId Id="143" Count="1" />
+      <LineId Id="140" Count="0" />
+      <LineId Id="145" Count="1" />
+      <LineId Id="141" Count="0" />
+      <LineId Id="147" Count="1" />
+      <LineId Id="142" Count="0" />
+      <LineId Id="149" Count="0" />
+      <LineId Id="138" Count="0" />
+      <LineId Id="150" Count="12" />
+      <LineId Id="164" Count="5" />
+      <LineId Id="163" Count="0" />
+      <LineId Id="129" Count="7" />
     </LineIds>
   </POU>
 </TcPlcObject>

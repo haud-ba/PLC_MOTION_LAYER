@@ -104,16 +104,6 @@ ELSE
 END_IF
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-//  _eAxisCycle := Cycle() is called at the top; checks MC_Power.bError
-//  MC_Power.bError requires e_AXIS_CTRL.AXIS_RESET in order to clear
-//-----------------------------------------------------------------------------
-CASE _eAxisCycle
-OF
-  E_PROGRESS.PROGRESS_ERROR:
-    _eResult                        := _eAxisCycle;
-END_CASE
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
 //  execution result
 //-----------------------------------------------------------------------------
 CASE _eResult
@@ -2769,7 +2759,8 @@ Template_1 := _eState;
       </Implementation>
     </Method>
     <LineIds Name="FB_McAxisCtrl">
-      <LineId Id="5353" Count="130" />
+      <LineId Id="5353" Count="41" />
+      <LineId Id="5405" Count="78" />
       <LineId Id="5563" Count="0" />
       <LineId Id="5560" Count="0" />
       <LineId Id="5486" Count="0" />
