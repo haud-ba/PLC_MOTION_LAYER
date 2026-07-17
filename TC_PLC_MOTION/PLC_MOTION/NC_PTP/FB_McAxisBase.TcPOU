@@ -192,14 +192,17 @@ OF
 
       _nErrorId                   := SEL((_fbPower.ErrorID > 0), _AxisRef.NcToPlc.ErrorCode, _fbPower.ErrorID);
 
-      _stMsg.eType                := E_MessageType.eMessageError;
-      _stMsg.eDevice              := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);;
-      _stMsg.eSubdevice           := e_Subdevice.AxisCycle;
-      _stMsg.iErrorNumber         := _nErrorId;
-
-      _stMsg.sText                  := concat(' : ', TO_STRING(_eState));
-
-      f_MessageSet(_stMsg);
+      IF (_nErrorId <> _stMsg.iErrorNumber)
+      THEN
+        _stMsg.eType                := E_MessageType.eMessageError;
+        _stMsg.eDevice              := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);;
+        _stMsg.eSubdevice           := e_Subdevice.AxisCycle;
+        _stMsg.iErrorNumber         := _nErrorId;
+  
+        _stMsg.sText                  := concat(' : ', TO_STRING(_eState));
+  
+        f_MessageSet(_stMsg);
+      END_IF
     ELSE
       _nErrorId                   := 0;
       _eState                     := E_PROGRESS.PROGRESS_WORKING;
@@ -2687,10 +2690,16 @@ WriteParameterPersistent            := _eState;
     </LineIds>
     <LineIds Name="FB_McAxisBase.Cycle">
       <LineId Id="893" Count="5" />
-      <LineId Id="829" Count="30" />
+      <LineId Id="829" Count="25" />
+      <LineId Id="908" Count="0" />
+      <LineId Id="855" Count="0" />
+      <LineId Id="909" Count="0" />
+      <LineId Id="856" Count="3" />
       <LineId Id="907" Count="0" />
       <LineId Id="906" Count="0" />
-      <LineId Id="860" Count="25" />
+      <LineId Id="860" Count="1" />
+      <LineId Id="910" Count="0" />
+      <LineId Id="862" Count="23" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_McAxisBase.Disable">
