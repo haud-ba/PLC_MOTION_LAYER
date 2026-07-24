@@ -1452,6 +1452,7 @@ OF
   
         _eState                     := E_PROGRESS.PROGRESS_CHECK;
       ELSE
+        _sDeviceName                := _sAxisName;
         _eState                     := E_PROGRESS.PROGRESS_WORKING;
       END_IF
     ELSIF (_eResult = E_PROGRESS.PROGRESS_ERROR)
@@ -1532,6 +1533,16 @@ CASE _eState
 OF
   E_PROGRESS.PROGRESS_WORKING:
     _eState                         := E_PROGRESS.PROGRESS_DONE;
+
+    _stMsg.eType                    := E_MessageType.eMessageInfo;
+    _stMsg.eDevice                  := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+    _stMsg.eSubdevice               := e_Subdevice.AxisStartUp;
+    _stMsg.iErrorNumber             := 0;
+    _stMsg.sText                    := concat('Axis Init: ', _sDeviceName);
+    _stMsg.sText                    := concat(_stMsg.sText, ' : ');
+    _stMsg.sText                    := concat(_stMsg.sText, TO_STRING(_eState));
+
+
     // set default for axis release
     AxisEnableNegative              := TRUE;
     AxisEnablePositive              := TRUE;
@@ -1541,14 +1552,6 @@ OF
               Execute               := FALSE,
               NetId                 := _AxisRef.ADS.NetId, 
               Axis                  := _AxisRef);
-
-    _stMsg.eType                    := E_MessageType.eMessageInfo;
-    _stMsg.eDevice                  := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
-    _stMsg.eSubdevice               := e_Subdevice.AxisStartUp;
-    _stMsg.iErrorNumber             := 0;
-    _stMsg.sText                    := concat('Axis Init: ', _sDeviceName);
-    _stMsg.sText                    := concat(_stMsg.sText, ' : ');
-    _stMsg.sText                    := concat(_stMsg.sText, TO_STRING(_eState));
 
   IF (_MessageLevel > E_MessageType.eMessageError)
   THEN
@@ -2810,7 +2813,14 @@ Template_1 := _eState;
       <LineId Id="1" Count="1" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.AxisInit">
-      <LineId Id="1" Count="166" />
+      <LineId Id="1" Count="60" />
+      <LineId Id="179" Count="0" />
+      <LineId Id="62" Count="79" />
+      <LineId Id="151" Count="8" />
+      <LineId Id="168" Count="0" />
+      <LineId Id="170" Count="8" />
+      <LineId Id="169" Count="0" />
+      <LineId Id="160" Count="7" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.AxisMoveToPosition">
       <LineId Id="1" Count="59" />

@@ -11,6 +11,10 @@ VAR
   _nAxisIndex               : UINT;           // know thyself
   _rTargetWindow            : LREAL := 0.1;   // TODO: get that from NC
 
+  // access to CoE register for hardware device name
+  _sDeviceName              : STRING(256) := 'NO NAME';
+  _fbCoeRead				        : Tc2_MC2_Drive.FB_CoERead;
+
   // pointers to all; access required for coupling; access by index
   _Axes                     : REFERENCE TO ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF AXIS_REF;
 
@@ -1384,10 +1388,6 @@ VAR_INST
   _eState           : E_PROGRESS;
   _rValue           : LREAL;
   _stMsg            : ST_Message;
-
-  // access to CoE register
-  _sDeviceName      : STRING(256) := 'NO NAME';
-  _fbCoeRead				: Tc2_MC2_Drive.FB_CoERead;
 END_VAR
 ]]></Declaration>
       <Implementation>
@@ -1452,6 +1452,7 @@ OF
   
         _eState                     := E_PROGRESS.PROGRESS_CHECK;
       ELSE
+        _sDeviceName                := _sAxisName;
         _eState                     := E_PROGRESS.PROGRESS_WORKING;
       END_IF
     ELSIF (_eResult = E_PROGRESS.PROGRESS_ERROR)
@@ -2759,7 +2760,8 @@ Template_1 := _eState;
       </Implementation>
     </Method>
     <LineIds Name="FB_McAxisCtrl">
-      <LineId Id="1" Count="197" />
+      <LineId Id="199" Count="0" />
+      <LineId Id="2" Count="196" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.Axes.Set">
       <LineId Id="1" Count="1" />
@@ -2810,7 +2812,9 @@ Template_1 := _eState;
       <LineId Id="1" Count="1" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.AxisInit">
-      <LineId Id="1" Count="166" />
+      <LineId Id="1" Count="60" />
+      <LineId Id="168" Count="0" />
+      <LineId Id="62" Count="105" />
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.AxisMoveToPosition">
       <LineId Id="1" Count="59" />
