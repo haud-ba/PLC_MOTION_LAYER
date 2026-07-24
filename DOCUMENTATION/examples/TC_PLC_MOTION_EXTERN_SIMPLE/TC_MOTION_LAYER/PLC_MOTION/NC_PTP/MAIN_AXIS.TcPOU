@@ -25,7 +25,9 @@ END_VAR
 // Local time; used for timestamps
 //-----------------------------------------------------------------------------------------------------------------
 GVL_MSG_AXIS.fbLocalTime();
+GVL_MSG.sLocalTime                            :=
 GVL_MSG_AXIS.sLocalTime                       := GVL_MSG_AXIS.fbLocalTime.LocalTimeString;
+GVL_MSG.dtLocalTime                           :=
 GVL_MSG_AXIS.dtLocalTime                      := GVL_MSG_AXIS.fbLocalTime.LocalTime;
 //-----------------------------------------------------------------------------------------------------------------
 // /assign dataflow
@@ -298,7 +300,12 @@ END_CASE
 ]]></ST>
     </Implementation>
     <LineIds Name="MAIN_AXIS">
-      <LineId Id="1" Count="274" />
+      <LineId Id="276" Count="0" />
+      <LineId Id="2" Count="2" />
+      <LineId Id="277" Count="0" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="278" Count="0" />
+      <LineId Id="6" Count="269" />
     </LineIds>
   </POU>
 </TcPlcObject>
