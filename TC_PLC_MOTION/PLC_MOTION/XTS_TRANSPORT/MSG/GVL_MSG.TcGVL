@@ -7,7 +7,7 @@ VAR_GLOBAL CONSTANT
   // file paths for message system
   //  - compiler define option WIN switches to Windows file paths
   //-----------------------------------------------------------------------------
-{IF defined (WIN)}
+{IF NOT defined (BSD)}
   {info 'WIN folders'}
   LOG_DIR               : STRING  := 'C:\TwinCAT\#MsgFiles\';       // delimiter at the end is mandatory!!
   CON_DIR               : STRING  := 'C:\TwinCAT\#Configuration\';  // delimiter at the end is mandatory!!
