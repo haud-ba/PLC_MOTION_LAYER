@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.13">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
   <Itf Name="I_MessageData" Id="{6b208c40-7ed9-4bd8-b2d1-b409e5eb6c5a}">
     <Declaration><![CDATA[INTERFACE I_MessageData
 ]]></Declaration>
@@ -34,7 +34,7 @@
       </Set>
     </Property>
     <Property Name="MsgList" Id="{07de972d-30a0-46a8-94d7-7a428dbf7326}">
-      <Declaration><![CDATA[PROPERTY MsgList : pointer to ARRAY[1..GVL_MSG.MAX_MESSAGE] OF st_message]]></Declaration>
+      <Declaration><![CDATA[PROPERTY MsgList : pointer to ARRAY[1..GVL_MSG_AXIS.MAX_MESSAGE] OF st_message]]></Declaration>
       <Set Name="Set" Id="{c4a59782-7f1d-4bc9-a099-dd4e21d6e4d6}">
         <Declaration><![CDATA[]]></Declaration>
       </Set>

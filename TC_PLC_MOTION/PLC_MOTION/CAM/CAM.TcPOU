@@ -51,8 +51,7 @@ END_FOR
 //-----------------------------------------------------------------------------------------------------------------
 CASE eInit
 OF
-  E_PROGRESS.PROGRESS_INVALID,
-  E_PROGRESS.PROGRESS_DONE:
+  E_PROGRESS.PROGRESS_INVALID:
     FOR nAxis := 1 TO PLC_CONSTANT.MAX_AXIS
     DO
       GVL_MSG_AXIS.MessageLevelAxisCam[nAxis] := E_MessageType.eMessageVerbose;//GVL_MSG.MessageLevel;
@@ -155,7 +154,9 @@ END_IF
 ]]></ST>
     </Implementation>
     <LineIds Name="CAM">
-      <LineId Id="1" Count="140" />
+      <LineId Id="142" Count="0" />
+      <LineId Id="2" Count="38" />
+      <LineId Id="42" Count="99" />
     </LineIds>
   </POU>
 </TcPlcObject>

@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.13">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
   <POU Name="fb_MessageDataCtrl" Id="{bca4de28-d2c5-4b57-9d13-2965a75791c5}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK fb_MessageDataCtrl EXTENDS fb_MessageData
 VAR
@@ -71,7 +71,7 @@ ELSE
 
 
     E_MESSAGE_STATE.MSG_STATE_IDLE:
-      IF (_nMsgIndex < GVL_MSG.MAX_MESSAGE - GVL_MSG.MAX_MESSAGE/10)
+      IF (_nMsgIndex < GVL_MSG_AXIS.MAX_MESSAGE - GVL_MSG_AXIS.MAX_MESSAGE/10)
       THEN
         _eResult              := E_PROGRESS.PROGRESS_WORKING;
       ELSE
@@ -130,9 +130,9 @@ OF
     THEN
       _nErrorId                   := 0;
       _iStart 	                  := 1;
-      _iEnd 		                  := SEL((_nMsgIndex > GVL_MSG.MAX_MESSAGE-1),
+      _iEnd 		                  := SEL((_nMsgIndex > GVL_MSG_AXIS.MAX_MESSAGE-1),
                                           _nMsgIndex,
-                                          GVL_MSG.MAX_MESSAGE);
+                                          GVL_MSG_AXIS.MAX_MESSAGE);
 
       memset(ADR(_sWriteData),0,SIZEOF(_sWriteData));
 
@@ -503,7 +503,8 @@ END_VAR
       </Set>
     </Property>
     <LineIds Name="fb_MessageDataCtrl">
-      <LineId Id="1" Count="74" />
+      <LineId Id="76" Count="0" />
+      <LineId Id="2" Count="73" />
     </LineIds>
     <LineIds Name="fb_MessageDataCtrl.BuildFileData">
       <LineId Id="1" Count="125" />

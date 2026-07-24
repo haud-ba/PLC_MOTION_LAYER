@@ -16,10 +16,10 @@ VAR
   _nErrIndex    : REFERENCE TO UINT;          // Thanatos, Hypnos stern and more serious brother
 
   _dtLocalTime  : POINTER TO DT;
-  _pMsgList     : POINTER TO ARRAY[1..GVL_MSG.MAX_MESSAGE] OF ST_Message; // attach your list here
+  _pMsgList     : POINTER TO ARRAY[1..GVL_MSG_AXIS.MAX_MESSAGE] OF ST_Message; // attach your list here
 
 	_rtrigReset   : Tc2_Standard.R_TRIG;
-	_aWriteList   : ARRAY[1..GVL_MSG.MAX_MESSAGE] OF ST_Message;
+	_aWriteList   : ARRAY[1..GVL_MSG_AXIS.MAX_MESSAGE] OF ST_Message;
 	_sWriteData   : STRING(STR_LEN);
 	_sNewLine     : STRING := '$N';
 	_sTab         : STRING := '$T';
@@ -200,12 +200,19 @@ ELSE
  
     Device_to_String := concat(TO_STRING(e_device.FlyingSaw), sId);
 
-  ELSIF (eMsgDevice >= e_Device.Metrics)
+  ELSIF (eMsgDevice >= e_Device.MetricsAxis)
   THEN
-    nId := eMsgDevice MOD e_Device.Metrics;
+    nId := eMsgDevice MOD e_Device.MetricsAxis;
     sId := concat(sId, TO_STRING(nId));
  
-    Device_to_String := concat(TO_STRING(e_device.Metrics), sId);
+    Device_to_String := concat(TO_STRING(e_device.MetricsAxis), sId);
+
+  ELSIF (eMsgDevice >= e_Device.MetricsXts)
+  THEN
+    nId := eMsgDevice MOD e_Device.MetricsXts;
+    sId := concat(sId, TO_STRING(nId));
+ 
+    Device_to_String := concat(TO_STRING(e_device.MetricsXts), sId);
 
   ELSIF (eMsgDevice >= e_device.XfcAxis)
   THEN
@@ -410,7 +417,7 @@ END_VAR
       </Set>
     </Property>
     <Property Name="MsgList" Id="{f053bfdb-e08f-49f3-97db-890075a7f2f5}" FolderPath="properties\">
-      <Declaration><![CDATA[PROPERTY MsgList : pointer to ARRAY[1..GVL_MSG.MAX_MESSAGE] OF st_message]]></Declaration>
+      <Declaration><![CDATA[PROPERTY MsgList : pointer to ARRAY[1..GVL_MSG_AXIS.MAX_MESSAGE] OF st_message]]></Declaration>
       <Set Name="Set" Id="{1390a91c-09e8-493e-a605-e550987705da}">
         <Declaration><![CDATA[VAR
 END_VAR
@@ -577,7 +584,7 @@ WriteData                     := _eState;
       </Implementation>
     </Method>
     <LineIds Name="fb_MessageData">
-      <LineId Id="1" Count="0" />
+      <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="fb_MessageData.Builder">
       <LineId Id="1" Count="28" />
@@ -591,7 +598,9 @@ WriteData                     := _eState;
       <LineId Id="148" Count="6" />
       <LineId Id="23" Count="6" />
       <LineId Id="162" Count="6" />
-      <LineId Id="30" Count="117" />
+      <LineId Id="30" Count="0" />
+      <LineId Id="169" Count="12" />
+      <LineId Id="37" Count="110" />
     </LineIds>
     <LineIds Name="fb_MessageData.DirRoot.Set">
       <LineId Id="1" Count="1" />

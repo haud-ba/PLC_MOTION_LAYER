@@ -589,29 +589,7 @@ END_VAR
       </Set>
     </Property>
     <LineIds Name="FB_ParameterSelector">
-      <LineId Id="128" Count="49" />
-      <LineId Id="297" Count="0" />
-      <LineId Id="178" Count="17" />
-      <LineId Id="277" Count="0" />
-      <LineId Id="197" Count="1" />
-      <LineId Id="254" Count="1" />
-      <LineId Id="291" Count="1" />
-      <LineId Id="256" Count="2" />
-      <LineId Id="293" Count="1" />
-      <LineId Id="259" Count="2" />
-      <LineId Id="295" Count="1" />
-      <LineId Id="246" Count="0" />
-      <LineId Id="228" Count="0" />
-      <LineId Id="247" Count="2" />
-      <LineId Id="251" Count="2" />
-      <LineId Id="230" Count="1" />
-      <LineId Id="299" Count="7" />
-      <LineId Id="308" Count="3" />
-      <LineId Id="242" Count="1" />
-      <LineId Id="312" Count="1" />
-      <LineId Id="298" Count="0" />
-      <LineId Id="244" Count="1" />
-      <LineId Id="125" Count="0" />
+      <LineId Id="1" Count="115" />
     </LineIds>
     <LineIds Name="FB_ParameterSelector.AxisParameterRead">
       <LineId Id="1" Count="47" />
@@ -623,19 +601,10 @@ END_VAR
       <LineId Id="1" Count="46" />
     </LineIds>
     <LineIds Name="FB_ParameterSelector.Check">
-      <LineId Id="1" Count="14" />
-      <LineId Id="28" Count="8" />
+      <LineId Id="1" Count="23" />
     </LineIds>
     <LineIds Name="FB_ParameterSelector.Cmd">
-      <LineId Id="1" Count="1" />
-      <LineId Id="4" Count="1" />
-      <LineId Id="57" Count="2" />
-      <LineId Id="61" Count="13" />
-      <LineId Id="79" Count="1" />
-      <LineId Id="77" Count="1" />
-      <LineId Id="50" Count="3" />
-      <LineId Id="81" Count="0" />
-      <LineId Id="55" Count="1" />
+      <LineId Id="1" Count="31" />
     </LineIds>
     <LineIds Name="FB_ParameterSelector.Ctrl.Set">
       <LineId Id="1" Count="1" />

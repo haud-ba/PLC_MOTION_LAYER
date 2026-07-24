@@ -3,12 +3,12 @@
   <Task Name="PlcTask" Id="{ea306e18-f07d-4cb5-ace7-68bc2dd91240}">
     <!--CycleTime in micro seconds.-->
     <CycleTime>1000</CycleTime>
-    <Priority>20</Priority>
+    <Priority>1</Priority>
     <PouCall>
-      <Name>MAPPING_in</Name>
+      <Name>MAPPING_AXIS_in</Name>
     </PouCall>
     <PouCall>
-      <Name>MAIN</Name>
+      <Name>MAIN_AXIS</Name>
     </PouCall>
     <PouCall>
       <Name>FUNCTIONS</Name>
@@ -23,7 +23,7 @@
       <Name>FLYING_SAW</Name>
     </PouCall>
     <PouCall>
-      <Name>MAPPING_out</Name>
+      <Name>MAPPING_AXIS_out</Name>
     </PouCall>
     <TaskFBGuid>{bf8fb095-c9c3-450f-83bf-2568f78c0a27}</TaskFBGuid>
     <Fb_init>{77da28fa-bfa6-4cc5-8042-bf47a6385f7e}</Fb_init>

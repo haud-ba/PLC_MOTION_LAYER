@@ -1576,19 +1576,6 @@ External Setpoint Generation:
 			</ArrayInfo>
 		</DataType>
 		<DataType>
-			<Name GUID="{32E882A5-2BD7-CC13-A9FB-03B6A492DC73}" IecBaseType="true" AutoDeleteType="true">ARRAY [1..12] OF ARRAY [1..32] OF BYTE</Name>
-			<BitSize>3072</BitSize>
-			<BaseType GUID="{18071995-0000-0000-0000-000000000001}">BYTE</BaseType>
-			<ArrayInfo>
-				<LBound>1</LBound>
-				<Elements>12</Elements>
-			</ArrayInfo>
-			<ArrayInfo Level="1">
-				<LBound>1</LBound>
-				<Elements>32</Elements>
-			</ArrayInfo>
-		</DataType>
-		<DataType>
 			<Name GUID="{1C058EBC-9C83-D55D-2804-E6E534AC6B22}" IecBaseType="true" AutoDeleteType="true">ARRAY [1..6] OF ARRAY [1..54] OF BYTE</Name>
 			<BitSize>2592</BitSize>
 			<BaseType GUID="{18071995-0000-0000-0000-000000000001}">BYTE</BaseType>
@@ -1599,6 +1586,19 @@ External Setpoint Generation:
 			<ArrayInfo Level="1">
 				<LBound>1</LBound>
 				<Elements>54</Elements>
+			</ArrayInfo>
+		</DataType>
+		<DataType>
+			<Name GUID="{32E882A5-2BD7-CC13-A9FB-03B6A492DC73}" IecBaseType="true" AutoDeleteType="true">ARRAY [1..12] OF ARRAY [1..32] OF BYTE</Name>
+			<BitSize>3072</BitSize>
+			<BaseType GUID="{18071995-0000-0000-0000-000000000001}">BYTE</BaseType>
+			<ArrayInfo>
+				<LBound>1</LBound>
+				<Elements>12</Elements>
+			</ArrayInfo>
+			<ArrayInfo Level="1">
+				<LBound>1</LBound>
+				<Elements>32</Elements>
 			</ArrayInfo>
 		</DataType>
 		<DataType>
@@ -2378,7 +2378,7 @@ External Setpoint Generation:
 			</SubItem>
 		</DataType>
 	</DataTypes>
-	<Project ProjectGUID="{08BC3537-5373-48FE-AA9D-69587F9B5691}" TargetNetId="5.163.199.237.1.1" Target64Bit="true" ShowHideConfigurations="#x6">
+	<Project ProjectGUID="{08BC3537-5373-48FE-AA9D-69587F9B5691}" TargetNetId="192.168.1.73.1.1" Target64Bit="true" ShowHideConfigurations="#x6">
 		<System>
 			<Settings MaxCpus="8" NonWinCpus="6" RouterMemory="134217728" MaxStackSize="512">
 				<Cpu CpuId="2"/>
@@ -2388,11 +2388,14 @@ External Setpoint Generation:
 				<Task Id="3" Priority="20" CycleTime="10000" AmsPort="350" AdtTasks="true">
 					<Name>PlcTask</Name>
 				</Task>
+				<Task Id="6" Priority="1" CycleTime="10000" AmsPort="351" AdtTasks="true">
+					<Name>PlcTask1</Name>
+				</Task>
 			</Tasks>
 		</System>
 		<Motion>
 			<NC>
-				<SafTask Priority="4" CycleTime="20000" AmsPort="501" Affinity="#x00000008" IoAtBegin="true" SafTaskInfo="256" HighPrioAds="true">
+				<SafTask Priority="4" CycleTime="20000" AmsPort="501" Affinity="#x00000008" IoAtBegin="true" AmsNetId="5.163.199.237.1.1" SafTaskInfo="256" HighPrioAds="true">
 					<Name>NC-Task 1 SAF</Name>
 					<Vars VarGrpType="1" InsertType="1">
 						<Name>Inputs</Name>
@@ -3334,60 +3337,69 @@ External Setpoint Generation:
 			</NC>
 		</Motion>
 		<Plc>
-			<Project GUID="{15B1A673-79C3-4349-91F3-F549A08073E6}" Name="PLC_MOTION" PrjFilePath="PLC_MOTION\PLC_MOTION.plcproj" TmcFilePath="PLC_MOTION\PLC_MOTION.tmc" CompilerDefines="TEST, CAM, XFC, NCI, BSD, AXIS_MAP, CAM_MAP, NCI_MAP, TRIGGER_MAP, SAW, SAW_MAP" ReloadTmc="true" AmsPort="851" FileArchiveSettings="#x000e" SymbolicMapping="true">
-				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcHash="{0BE85EBE-014F-5A63-E02B-70AA3E1945B6}" TmcPath="PLC_MOTION\PLC_MOTION.tmc">
+			<Project GUID="{15B1A673-79C3-4349-91F3-F549A08073E6}" Name="PLC_MOTION" PrjFilePath="PLC_MOTION\PLC_MOTION.plcproj" TmcFilePath="PLC_MOTION\PLC_MOTION.tmc" CompilerDefines="TEST, CAM, XFC, NCI, AXIS_MAP, CAM_MAP, NCI_MAP, TRIGGER_MAP, SAW, SAW_MAP" ReloadTmc="true" AmsPort="851" FileArchiveSettings="#x000e" SymbolicMapping="true">
+				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcHash="{5F500CA9-6B28-51B5-DBB2-9822CD77CF5E}" TmcPath="PLC_MOTION\PLC_MOTION.tmc">
 					<Name>PLC_MOTION Instance</Name>
 					<CLSID ClassFactory="TcPlc30">{08500001-0000-0000-F000-000000000064}</CLSID>
 					<Vars VarGrpType="2" AreaNo="1">
 						<Name>PlcTask Outputs</Name>
 						<Var>
-							<Name>MAIN.eInit</Name>
+							<Name>MAIN_AXIS.eInit</Name>
 							<Comment><![CDATA[ shall be checked by controlling entity, before using Ctrl/State structs]]></Comment>
 							<Type GUID="{E5B4B710-2AC3-1039-86D5-33777854E02B}">E_PROGRESS</Type>
 						</Var>
 						<Var>
-							<Name>MAPPING_out.AxisState.byState</Name>
+							<Name>MAPPING_AXIS_out.AxisState.byState</Name>
 							<Type GUID="{A5496B58-EE0C-DFBC-437B-0A924951543B}">ARRAY [1..6] OF ARRAY [1..6] OF BYTE</Type>
 						</Var>
 						<Var>
-							<Name>MAPPING_out.AxisInfo.byState</Name>
+							<Name>MAPPING_AXIS_out.AxisInfo.byState</Name>
 							<Type GUID="{2B5C121A-3AC3-57FB-B731-2331FD47E935}">ARRAY [1..6] OF ARRAY [1..38] OF BYTE</Type>
 						</Var>
 						<Var>
-							<Name>MAPPING_out.AxisParameterOut.byState</Name>
+							<Name>MAPPING_AXIS_out.AxisParameterOut.byState</Name>
 							<Type GUID="{5D0481D0-25C0-7560-F931-87B2FC0AC3A0}">ARRAY [1..6] OF ARRAY [1..10] OF BYTE</Type>
 						</Var>
 						<Var>
-							<Name>MAPPING_out.SelectorState.byState</Name>
+							<Name>MAPPING_AXIS_out.SelectorState.byState</Name>
 							<Type GUID="{09028F86-A747-EA43-57E9-969912315B28}">ARRAY [1..24] OF BYTE</Type>
 						</Var>
 						<Var>
-							<Name>MAPPING_out.NciState.byState</Name>
+							<Name>MAPPING_AXIS_out.NciState.byState</Name>
 							<Type GUID="{53248BF5-48FB-9718-FED7-129049573714}">ARRAY [1..1] OF ARRAY [1..272] OF BYTE</Type>
 						</Var>
 						<Var>
-							<Name>MAPPING_out.NciRparameters.byCtrl</Name>
+							<Name>MAPPING_AXIS_out.NciRparameters.byCtrl</Name>
 							<Type GUID="{2247EA07-8EAA-6368-92E8-232DA0D87512}">ARRAY [1..1] OF ARRAY [1..96] OF BYTE</Type>
 						</Var>
 						<Var>
-							<Name>MAPPING_out.CamState.byState</Name>
+							<Name>MAPPING_AXIS_out.CamState.byState</Name>
 							<Type GUID="{386ADCFF-CF50-6248-737F-202F3641B276}">ARRAY [1..6] OF ARRAY [1..40] OF BYTE</Type>
 						</Var>
 						<Var>
-							<Name>MAPPING_out.CamInfo.byState</Name>
+							<Name>MAPPING_AXIS_out.CamInfo.byState</Name>
 							<Type GUID="{53B14C2B-11FF-B714-286D-1E1C0BC25CF2}">ARRAY [1..6] OF ARRAY [1..196] OF BYTE</Type>
 						</Var>
 						<Var>
-							<Name>MAPPING_out.TriggerState.byState</Name>
+							<Name>MAPPING_AXIS_out.TriggerState.byState</Name>
 							<Type GUID="{80428B00-588B-BBC4-BBEC-6AD6FE028B55}">ARRAY [1..12] OF ARRAY [1..40] OF BYTE</Type>
 						</Var>
 						<Var>
-							<Name>MAPPING_out.TouchProbeState.byState</Name>
+							<Name>MAPPING_AXIS_out.TouchProbeState.byState</Name>
 							<Type GUID="{6867EC71-EC3C-9107-0B93-4B3F25F9B25B}">ARRAY [1..12] OF ARRAY [1..24] OF BYTE</Type>
 						</Var>
 						<Var>
-							<Name>MAPPING_out.FlyState.byState</Name>
+							<Name>MAPPING_AXIS_out.FlyState.byState</Name>
 							<Type GUID="{06FD5805-D0D7-94D3-79B9-E8163A9175FF}">ARRAY [1..6] OF ARRAY [1..2] OF BYTE</Type>
+						</Var>
+						<Var>
+							<Name>GVL_FUNCTIONS.DigitalOutputDC</Name>
+							<Type GUID="{ECDFD6AE-38AB-39CF-643C-0C978175EB31}">ARRAY [1..12] OF ST_DC_Output</Type>
+						</Var>
+						<Var>
+							<Name>GVL_NCI.NciCtrl[1]._stChannelRef.PlcToNc</Name>
+							<Comment><![CDATA[  Externer Datentyp!]]></Comment>
+							<Type GUID="{48415C2A-E750-483B-A619-8655B2BEA4B8}" Namespace="MC">PLCTONC_NCICHANNEL_REF</Type>
 						</Var>
 						<Var>
 							<Name>GVL_AXIS.AxisRef[1].PlcToNc</Name>
@@ -3413,109 +3425,76 @@ External Setpoint Generation:
 							<Name>GVL_AXIS.AxisRef[6].PlcToNc</Name>
 							<Type GUID="{96B75FEB-2D84-43BE-A3EC-D9A681F27D52}" Namespace="MC">PLCTONC_AXIS_REF</Type>
 						</Var>
-						<Var>
-							<Name>GVL_FUNCTIONS.DigitalOutputDC</Name>
-							<Type GUID="{ECDFD6AE-38AB-39CF-643C-0C978175EB31}">ARRAY [1..12] OF ST_DC_Output</Type>
-						</Var>
-						<Var>
-							<Name>GVL_NCI.NciCtrl[1]._stChannelRef.PlcToNc</Name>
-							<Comment><![CDATA[  Externer Datentyp!]]></Comment>
-							<Type GUID="{48415C2A-E750-483B-A619-8655B2BEA4B8}" Namespace="MC">PLCTONC_NCICHANNEL_REF</Type>
-						</Var>
 					</Vars>
 					<Vars VarGrpType="1">
 						<Name>PlcTask Inputs</Name>
 						<Var>
-							<Name>MAPPING_in.AxisCtrl.byCtrl</Name>
+							<Name>MAPPING_AXIS_in.AxisCtrl.byCtrl</Name>
 							<Type GUID="{5B1D07B4-9F19-08A8-437B-EF2F36392A5A}">ARRAY [1..6] OF ARRAY [1..4] OF BYTE</Type>
 						</Var>
 						<Var>
-							<Name>MAPPING_in.AxisMoveData.byCtrl</Name>
+							<Name>MAPPING_AXIS_in.AxisMoveData.byCtrl</Name>
 							<Type GUID="{5E8AF281-7CD9-0572-AFB2-C5F65EF1152E}">ARRAY [1..6] OF ARRAY [1..50] OF BYTE</Type>
 						</Var>
 						<Var>
-							<Name>MAPPING_in.AxisMotionOptions.byCtrl</Name>
+							<Name>MAPPING_AXIS_in.AxisMotionOptions.byCtrl</Name>
 							<Type GUID="{5D0481D0-25C0-7560-F931-87B2FC0AC3A0}">ARRAY [1..6] OF ARRAY [1..10] OF BYTE</Type>
 						</Var>
 						<Var>
-							<Name>MAPPING_in.AxisGearInData.byCtrl</Name>
+							<Name>MAPPING_AXIS_in.AxisGearInData.byCtrl</Name>
 							<Type GUID="{DA95159B-7A92-EAE9-635C-AC4A2531F5A7}">ARRAY [1..6] OF ARRAY [1..36] OF BYTE</Type>
 						</Var>
 						<Var>
-							<Name>MAPPING_in.AxisHoming.byCtrl</Name>
+							<Name>MAPPING_AXIS_in.AxisHoming.byCtrl</Name>
 							<Type GUID="{42E648E5-E474-022D-241C-F9DAA31145EF}">ARRAY [1..6] OF ARRAY [1..66] OF BYTE</Type>
 						</Var>
 						<Var>
-							<Name>MAPPING_in.AxisParameterIn.byCtrl</Name>
+							<Name>MAPPING_AXIS_in.AxisParameterIn.byCtrl</Name>
 							<Type GUID="{5D0481D0-25C0-7560-F931-87B2FC0AC3A0}">ARRAY [1..6] OF ARRAY [1..10] OF BYTE</Type>
 						</Var>
 						<Var>
-							<Name>MAPPING_in.SelectorCtrl.byCtrl</Name>
+							<Name>MAPPING_AXIS_in.SelectorCtrl.byCtrl</Name>
 							<Type GUID="{B4DEC46D-7047-F5C7-016D-2AA61E763847}">ARRAY [1..18] OF BYTE</Type>
 						</Var>
 						<Var>
-							<Name>MAPPING_in.NciControl.byCtrl</Name>
+							<Name>MAPPING_AXIS_in.NciControl.byCtrl</Name>
 							<Type GUID="{4F9624B6-2144-84E8-B002-A92C836E44E5}">ARRAY [1..1] OF ARRAY [1..262] OF BYTE</Type>
 						</Var>
 						<Var>
-							<Name>MAPPING_in.NciAxisGroup.byCtrl</Name>
+							<Name>MAPPING_AXIS_in.NciAxisGroup.byCtrl</Name>
 							<Type GUID="{27579651-7FBC-23C1-1642-FFAAF15CB33C}">ARRAY [1..1] OF ARRAY [1..32] OF BYTE</Type>
 						</Var>
 						<Var>
-							<Name>MAPPING_in.NciRparameters.byCtrl</Name>
+							<Name>MAPPING_AXIS_in.NciRparameters.byCtrl</Name>
 							<Type GUID="{2247EA07-8EAA-6368-92E8-232DA0D87512}">ARRAY [1..1] OF ARRAY [1..96] OF BYTE</Type>
 						</Var>
 						<Var>
-							<Name>MAPPING_in.CamControl.byCtrl</Name>
+							<Name>MAPPING_AXIS_in.CamControl.byCtrl</Name>
 							<Type GUID="{06FD5805-D0D7-94D3-79B9-E8163A9175FF}">ARRAY [1..6] OF ARRAY [1..2] OF BYTE</Type>
 						</Var>
 						<Var>
-							<Name>MAPPING_in.CamData.byCtrl</Name>
+							<Name>MAPPING_AXIS_in.CamData.byCtrl</Name>
 							<Type GUID="{625A9843-6117-74FB-375F-32385DBE7CF9}">ARRAY [1..6] OF ARRAY [1..110] OF BYTE</Type>
 						</Var>
 						<Var>
-							<Name>MAPPING_in.TriggerControl.byCtrl</Name>
+							<Name>MAPPING_AXIS_in.TriggerControl.byCtrl</Name>
 							<Type GUID="{E18DB378-FBFC-83D3-CB8E-9657AB103123}">ARRAY [1..12] OF ARRAY [1..48] OF BYTE</Type>
 						</Var>
 						<Var>
-							<Name>MAPPING_in.TouchProbeControl.byCtrl</Name>
-							<Type GUID="{32E882A5-2BD7-CC13-A9FB-03B6A492DC73}">ARRAY [1..12] OF ARRAY [1..32] OF BYTE</Type>
-						</Var>
-						<Var>
-							<Name>MAPPING_in.FlyControl.byCtrl</Name>
-							<Type GUID="{06FD5805-D0D7-94D3-79B9-E8163A9175FF}">ARRAY [1..6] OF ARRAY [1..2] OF BYTE</Type>
-						</Var>
-						<Var>
-							<Name>MAPPING_in.FlyData.byCtrl</Name>
+							<Name>MAPPING_AXIS_in.FlyData.byCtrl</Name>
 							<Type GUID="{1C058EBC-9C83-D55D-2804-E6E534AC6B22}">ARRAY [1..6] OF ARRAY [1..54] OF BYTE</Type>
 						</Var>
 						<Var>
-							<Name>MAPPING_in.FlyOptions.byCtrl</Name>
+							<Name>MAPPING_AXIS_in.TouchProbeControl.byCtrl</Name>
+							<Type GUID="{32E882A5-2BD7-CC13-A9FB-03B6A492DC73}">ARRAY [1..12] OF ARRAY [1..32] OF BYTE</Type>
+						</Var>
+						<Var>
+							<Name>MAPPING_AXIS_in.FlyControl.byCtrl</Name>
+							<Type GUID="{06FD5805-D0D7-94D3-79B9-E8163A9175FF}">ARRAY [1..6] OF ARRAY [1..2] OF BYTE</Type>
+						</Var>
+						<Var>
+							<Name>MAPPING_AXIS_in.FlyOptions.byCtrl</Name>
 							<Type GUID="{2B5C121A-3AC3-57FB-B731-2331FD47E935}">ARRAY [1..6] OF ARRAY [1..38] OF BYTE</Type>
-						</Var>
-						<Var>
-							<Name>GVL_AXIS.AxisRef[1].NcToPlc</Name>
-							<Type GUID="{25521FAA-EA5F-4C7F-8864-BBCCDACD2E98}" Namespace="MC">NCTOPLC_AXIS_REF</Type>
-						</Var>
-						<Var>
-							<Name>GVL_AXIS.AxisRef[2].NcToPlc</Name>
-							<Type GUID="{25521FAA-EA5F-4C7F-8864-BBCCDACD2E98}" Namespace="MC">NCTOPLC_AXIS_REF</Type>
-						</Var>
-						<Var>
-							<Name>GVL_AXIS.AxisRef[3].NcToPlc</Name>
-							<Type GUID="{25521FAA-EA5F-4C7F-8864-BBCCDACD2E98}" Namespace="MC">NCTOPLC_AXIS_REF</Type>
-						</Var>
-						<Var>
-							<Name>GVL_AXIS.AxisRef[4].NcToPlc</Name>
-							<Type GUID="{25521FAA-EA5F-4C7F-8864-BBCCDACD2E98}" Namespace="MC">NCTOPLC_AXIS_REF</Type>
-						</Var>
-						<Var>
-							<Name>GVL_AXIS.AxisRef[5].NcToPlc</Name>
-							<Type GUID="{25521FAA-EA5F-4C7F-8864-BBCCDACD2E98}" Namespace="MC">NCTOPLC_AXIS_REF</Type>
-						</Var>
-						<Var>
-							<Name>GVL_AXIS.AxisRef[6].NcToPlc</Name>
-							<Type GUID="{25521FAA-EA5F-4C7F-8864-BBCCDACD2E98}" Namespace="MC">NCTOPLC_AXIS_REF</Type>
 						</Var>
 						<Var>
 							<Name>GVL_FUNCTIONS.DigitalOutPutDCState</Name>
@@ -3541,6 +3520,30 @@ External Setpoint Generation:
 							<Comment><![CDATA[  Externer Datentyp!]]></Comment>
 							<Type GUID="{56354211-98EF-4057-9322-975DEAD0E29D}" Namespace="MC">NCTOPLC_NCICHANNEL_REF</Type>
 						</Var>
+						<Var>
+							<Name>GVL_AXIS.AxisRef[1].NcToPlc</Name>
+							<Type GUID="{25521FAA-EA5F-4C7F-8864-BBCCDACD2E98}" Namespace="MC">NCTOPLC_AXIS_REF</Type>
+						</Var>
+						<Var>
+							<Name>GVL_AXIS.AxisRef[2].NcToPlc</Name>
+							<Type GUID="{25521FAA-EA5F-4C7F-8864-BBCCDACD2E98}" Namespace="MC">NCTOPLC_AXIS_REF</Type>
+						</Var>
+						<Var>
+							<Name>GVL_AXIS.AxisRef[3].NcToPlc</Name>
+							<Type GUID="{25521FAA-EA5F-4C7F-8864-BBCCDACD2E98}" Namespace="MC">NCTOPLC_AXIS_REF</Type>
+						</Var>
+						<Var>
+							<Name>GVL_AXIS.AxisRef[4].NcToPlc</Name>
+							<Type GUID="{25521FAA-EA5F-4C7F-8864-BBCCDACD2E98}" Namespace="MC">NCTOPLC_AXIS_REF</Type>
+						</Var>
+						<Var>
+							<Name>GVL_AXIS.AxisRef[5].NcToPlc</Name>
+							<Type GUID="{25521FAA-EA5F-4C7F-8864-BBCCDACD2E98}" Namespace="MC">NCTOPLC_AXIS_REF</Type>
+						</Var>
+						<Var>
+							<Name>GVL_AXIS.AxisRef[6].NcToPlc</Name>
+							<Type GUID="{25521FAA-EA5F-4C7F-8864-BBCCDACD2E98}" Namespace="MC">NCTOPLC_AXIS_REF</Type>
+						</Var>
 					</Vars>
 					<UnrestoredVarLinks ImportTime="2026-05-21T14:30:57">
 						<OwnerA Name="OutputSrc" Prefix="TIPC^PLC_MOTION^PLC_MOTION Instance" Type="2">
@@ -3555,24 +3558,52 @@ External Setpoint Generation:
 							</OwnerB>
 						</OwnerA>
 					</UnrestoredVarLinks>
+					<UnrestoredVarLinks ImportTime="2026-07-24T08:35:41">
+						<OwnerA Name="InputDst" Prefix="TIPC^PLC_MOTION^PLC_MOTION Instance" Type="1">
+							<OwnerB Name="TIPC^ExternControl^ExternControl Instance">
+								<Link VarA="MAPPING_in.AxisCtrl.byCtrl" TypeA="ARRAY [1..6] OF ARRAY [1..4] OF BYTE" InOutA="0" GuidA="{5B1D07B4-9F19-08A8-437B-EF2F36392A5A}" VarB="PlcTask Outputs^MAPPING_out.AxisCtrl.byCtrl" RestoreInfo="ANotFound"/>
+								<Link VarA="MAPPING_in.AxisGearInData.byCtrl" TypeA="ARRAY [1..6] OF ARRAY [1..36] OF BYTE" InOutA="0" GuidA="{DA95159B-7A92-EAE9-635C-AC4A2531F5A7}" VarB="PlcTask Outputs^MAPPING_out.AxisGearInData.byCtrl" RestoreInfo="ANotFound"/>
+								<Link VarA="MAPPING_in.AxisHoming.byCtrl" TypeA="ARRAY [1..6] OF ARRAY [1..66] OF BYTE" InOutA="0" GuidA="{42E648E5-E474-022D-241C-F9DAA31145EF}" VarB="PlcTask Outputs^MAPPING_out.AxisHoming.byCtrl" RestoreInfo="ANotFound"/>
+								<Link VarA="MAPPING_in.AxisMotionOptions.byCtrl" TypeA="ARRAY [1..6] OF ARRAY [1..10] OF BYTE" InOutA="0" GuidA="{5D0481D0-25C0-7560-F931-87B2FC0AC3A0}" VarB="PlcTask Outputs^MAPPING_out.AxisMotionOptions.byCtrl" RestoreInfo="ANotFound"/>
+								<Link VarA="MAPPING_in.AxisMoveData.byCtrl" TypeA="ARRAY [1..6] OF ARRAY [1..50] OF BYTE" InOutA="0" GuidA="{5E8AF281-7CD9-0572-AFB2-C5F65EF1152E}" VarB="PlcTask Outputs^MAPPING_out.AxisMoveData.byCtrl" RestoreInfo="ANotFound"/>
+								<Link VarA="MAPPING_in.AxisParameterIn.byCtrl" TypeA="ARRAY [1..6] OF ARRAY [1..10] OF BYTE" InOutA="0" GuidA="{5D0481D0-25C0-7560-F931-87B2FC0AC3A0}" VarB="PlcTask Outputs^MAPPING_out.AxisParameterWrt.byCtrl" RestoreInfo="ANotFound"/>
+								<Link VarA="MAPPING_in.CamControl.byCtrl" TypeA="ARRAY [1..6] OF ARRAY [1..2] OF BYTE" InOutA="0" GuidA="{06FD5805-D0D7-94D3-79B9-E8163A9175FF}" VarB="PlcTask Outputs^MAPPING_out.CamCtrl.byCtrl" RestoreInfo="ANotFound"/>
+								<Link VarA="MAPPING_in.CamData.byCtrl" TypeA="ARRAY [1..6] OF ARRAY [1..110] OF BYTE" InOutA="0" GuidA="{625A9843-6117-74FB-375F-32385DBE7CF9}" VarB="PlcTask Outputs^MAPPING_out.CamData.byCtrl" RestoreInfo="ANotFound"/>
+								<Link VarA="MAPPING_in.TouchProbeControl.byCtrl" TypeA="ARRAY [1..12] OF ARRAY [1..32] OF BYTE" InOutA="0" GuidA="{32E882A5-2BD7-CC13-A9FB-03B6A492DC73}" VarB="PlcTask Outputs^MAPPING_out.TouchCtrl.byCtrl" RestoreInfo="ANotFound"/>
+								<Link VarA="MAPPING_in.TriggerControl.byCtrl" TypeA="ARRAY [1..12] OF ARRAY [1..48] OF BYTE" InOutA="0" GuidA="{E18DB378-FBFC-83D3-CB8E-9657AB103123}" VarB="PlcTask Outputs^MAPPING_out.TriggerCtrl.byCtrl" RestoreInfo="ANotFound"/>
+							</OwnerB>
+						</OwnerA>
+						<OwnerA Name="OutputSrc" Prefix="TIPC^PLC_MOTION^PLC_MOTION Instance" Type="2">
+							<OwnerB Name="TIPC^ExternControl^ExternControl Instance">
+								<Link VarA="MAIN.eInit" TypeA="E_PROGRESS" InOutA="1" GuidA="{E5B4B710-2AC3-1039-86D5-33777854E02B}" VarB="PlcTask Inputs^MAIN.eInitPlcMotion" RestoreInfo="ANotFound"/>
+								<Link VarA="MAPPING_out.AxisInfo.byState" TypeA="ARRAY [1..6] OF ARRAY [1..38] OF BYTE" InOutA="1" GuidA="{2B5C121A-3AC3-57FB-B731-2331FD47E935}" VarB="PlcTask Inputs^MAPPING_in.AxisInfo.byState" RestoreInfo="ANotFound"/>
+								<Link VarA="MAPPING_out.AxisParameterOut.byState" TypeA="ARRAY [1..6] OF ARRAY [1..10] OF BYTE" InOutA="1" GuidA="{5D0481D0-25C0-7560-F931-87B2FC0AC3A0}" VarB="PlcTask Inputs^MAPPING_in.AxisParameterRd.byState" RestoreInfo="ANotFound"/>
+								<Link VarA="MAPPING_out.AxisState.byState" TypeA="ARRAY [1..6] OF ARRAY [1..6] OF BYTE" InOutA="1" GuidA="{A5496B58-EE0C-DFBC-437B-0A924951543B}" VarB="PlcTask Inputs^MAPPING_in.AxisState.byState" RestoreInfo="ANotFound"/>
+								<Link VarA="MAPPING_out.CamInfo.byState" TypeA="ARRAY [1..6] OF ARRAY [1..196] OF BYTE" InOutA="1" GuidA="{53B14C2B-11FF-B714-286D-1E1C0BC25CF2}" VarB="PlcTask Inputs^MAPPING_in.CamInfo.byState" RestoreInfo="ANotFound"/>
+								<Link VarA="MAPPING_out.CamState.byState" TypeA="ARRAY [1..6] OF ARRAY [1..40] OF BYTE" InOutA="1" GuidA="{386ADCFF-CF50-6248-737F-202F3641B276}" VarB="PlcTask Inputs^MAPPING_in.CamState.byState" RestoreInfo="ANotFound"/>
+								<Link VarA="MAPPING_out.TouchProbeState.byState" TypeA="ARRAY [1..12] OF ARRAY [1..24] OF BYTE" InOutA="1" GuidA="{6867EC71-EC3C-9107-0B93-4B3F25F9B25B}" VarB="PlcTask Inputs^MAPPING_in.TouchState.byState" RestoreInfo="ANotFound"/>
+								<Link VarA="MAPPING_out.TriggerState.byState" TypeA="ARRAY [1..12] OF ARRAY [1..40] OF BYTE" InOutA="1" GuidA="{80428B00-588B-BBC4-BBEC-6AD6FE028B55}" VarB="PlcTask Inputs^MAPPING_in.TriggerState.byState" RestoreInfo="ANotFound"/>
+							</OwnerB>
+						</OwnerA>
+					</UnrestoredVarLinks>
 					<Contexts>
 						<Context>
 							<Id>0</Id>
 							<Name>PlcTask</Name>
 							<ManualConfig>
-								<OTCID>#x02010030</OTCID>
+								<OTCID>#x02010060</OTCID>
 							</ManualConfig>
-							<Priority>20</Priority>
+							<Priority>1</Priority>
 							<CycleTime>1000000</CycleTime>
 						</Context>
 					</Contexts>
 					<TaskPouOids>
-						<TaskPouOid Prio="20" OTCID="#x08502001"/>
+						<TaskPouOid Prio="1" OTCID="#x08502001"/>
 					</TaskPouOids>
 				</Instance>
 			</Project>
 			<Project GUID="{FF61B10C-B72E-4A7C-A8B2-8A4CC1B13313}" Name="ExternControl" PrjFilePath="ExternControl\ExternControl.plcproj" TmcFilePath="ExternControl\ExternControl.tmc" CompilerDefines="BSD" ReloadTmc="true" AmsPort="852" FileArchiveSettings="#x000e" SymbolicMapping="true">
-				<Instance Id="#x08502040" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcHash="{C1E3A887-553F-731C-D23E-25E3F20D31F2}" TmcPath="ExternControl\ExternControl.tmc">
+				<Instance Id="#x08502040" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcHash="{E0B2DA5B-9837-ECFF-7BB7-99565C710BEF}" TmcPath="ExternControl\ExternControl.tmc">
 					<Name>ExternControl Instance</Name>
 					<CLSID ClassFactory="TcPlc30">{08500001-0000-0000-F000-000000000064}</CLSID>
 					<Vars VarGrpType="2" AreaNo="1">
@@ -3674,28 +3705,20 @@ External Setpoint Generation:
 		<Io/>
 	</Project>
 	<Mappings>
-		<MappingInfo Identifier="{00000000-2001-0850-0020-500840205008}" Id="#x02030020"/>
-		<MappingInfo Identifier="{05000010-2001-0850-1000-040300205008}" Id="#x02030010" Watchdog="04000000080000000400000004000000"/>
+		<MappingInfo Identifier="{08502001-0010-0500-0020-500810000403}" Id="#x02030010" Watchdog="08000000040000000400000004000000"/>
+		<MappingInfo Identifier="{08502001-2041-0850-0020-500840205008}" Id="#x02030020" Watchdog="04000000040000000400000004000000"/>
 		<OwnerA Name="TIPC^ExternControl^ExternControl Instance">
 			<OwnerB Name="TIPC^PLC_MOTION^PLC_MOTION Instance">
-				<Link VarA="PlcTask Inputs^MAIN.eInitPlcMotion" VarB="PlcTask Outputs^MAIN.eInit"/>
-				<Link VarA="PlcTask Inputs^MAPPING_in.AxisInfo.byState" VarB="PlcTask Outputs^MAPPING_out.AxisInfo.byState"/>
-				<Link VarA="PlcTask Inputs^MAPPING_in.AxisParameterRd.byState" VarB="PlcTask Outputs^MAPPING_out.AxisParameterOut.byState"/>
-				<Link VarA="PlcTask Inputs^MAPPING_in.AxisState.byState" VarB="PlcTask Outputs^MAPPING_out.AxisState.byState"/>
-				<Link VarA="PlcTask Inputs^MAPPING_in.CamInfo.byState" VarB="PlcTask Outputs^MAPPING_out.CamInfo.byState"/>
-				<Link VarA="PlcTask Inputs^MAPPING_in.CamState.byState" VarB="PlcTask Outputs^MAPPING_out.CamState.byState"/>
-				<Link VarA="PlcTask Inputs^MAPPING_in.TouchState.byState" VarB="PlcTask Outputs^MAPPING_out.TouchProbeState.byState"/>
-				<Link VarA="PlcTask Inputs^MAPPING_in.TriggerState.byState" VarB="PlcTask Outputs^MAPPING_out.TriggerState.byState"/>
-				<Link VarA="PlcTask Outputs^MAPPING_out.AxisCtrl.byCtrl" VarB="PlcTask Inputs^MAPPING_in.AxisCtrl.byCtrl"/>
-				<Link VarA="PlcTask Outputs^MAPPING_out.AxisGearInData.byCtrl" VarB="PlcTask Inputs^MAPPING_in.AxisGearInData.byCtrl"/>
-				<Link VarA="PlcTask Outputs^MAPPING_out.AxisHoming.byCtrl" VarB="PlcTask Inputs^MAPPING_in.AxisHoming.byCtrl"/>
-				<Link VarA="PlcTask Outputs^MAPPING_out.AxisMotionOptions.byCtrl" VarB="PlcTask Inputs^MAPPING_in.AxisMotionOptions.byCtrl"/>
-				<Link VarA="PlcTask Outputs^MAPPING_out.AxisMoveData.byCtrl" VarB="PlcTask Inputs^MAPPING_in.AxisMoveData.byCtrl"/>
-				<Link VarA="PlcTask Outputs^MAPPING_out.AxisParameterWrt.byCtrl" VarB="PlcTask Inputs^MAPPING_in.AxisParameterIn.byCtrl"/>
-				<Link VarA="PlcTask Outputs^MAPPING_out.CamCtrl.byCtrl" VarB="PlcTask Inputs^MAPPING_in.CamControl.byCtrl"/>
-				<Link VarA="PlcTask Outputs^MAPPING_out.CamData.byCtrl" VarB="PlcTask Inputs^MAPPING_in.CamData.byCtrl"/>
-				<Link VarA="PlcTask Outputs^MAPPING_out.TouchCtrl.byCtrl" VarB="PlcTask Inputs^MAPPING_in.TouchProbeControl.byCtrl"/>
-				<Link VarA="PlcTask Outputs^MAPPING_out.TriggerCtrl.byCtrl" VarB="PlcTask Inputs^MAPPING_in.TriggerControl.byCtrl"/>
+				<Link VarA="PlcTask Inputs^MAIN.eInitPlcMotion" VarB="PlcTask Outputs^MAIN_AXIS.eInit"/>
+				<Link VarA="PlcTask Inputs^MAPPING_in.AxisInfo.byState" VarB="PlcTask Outputs^MAPPING_AXIS_out.AxisInfo.byState"/>
+				<Link VarA="PlcTask Inputs^MAPPING_in.AxisParameterRd.byState" VarB="PlcTask Outputs^MAPPING_AXIS_out.AxisParameterOut.byState"/>
+				<Link VarA="PlcTask Inputs^MAPPING_in.AxisState.byState" VarB="PlcTask Outputs^MAPPING_AXIS_out.AxisState.byState"/>
+				<Link VarA="PlcTask Outputs^MAPPING_out.AxisCtrl.byCtrl" VarB="PlcTask Inputs^MAPPING_AXIS_in.AxisCtrl.byCtrl"/>
+				<Link VarA="PlcTask Outputs^MAPPING_out.AxisGearInData.byCtrl" VarB="PlcTask Inputs^MAPPING_AXIS_in.AxisGearInData.byCtrl"/>
+				<Link VarA="PlcTask Outputs^MAPPING_out.AxisHoming.byCtrl" VarB="PlcTask Inputs^MAPPING_AXIS_in.AxisHoming.byCtrl"/>
+				<Link VarA="PlcTask Outputs^MAPPING_out.AxisMotionOptions.byCtrl" VarB="PlcTask Inputs^MAPPING_AXIS_in.AxisMotionOptions.byCtrl"/>
+				<Link VarA="PlcTask Outputs^MAPPING_out.AxisMoveData.byCtrl" VarB="PlcTask Inputs^MAPPING_AXIS_in.AxisMoveData.byCtrl"/>
+				<Link VarA="PlcTask Outputs^MAPPING_out.AxisParameterWrt.byCtrl" VarB="PlcTask Inputs^MAPPING_AXIS_in.AxisParameterIn.byCtrl"/>
 			</OwnerB>
 		</OwnerA>
 		<OwnerA Name="TIPC^PLC_MOTION^PLC_MOTION Instance">

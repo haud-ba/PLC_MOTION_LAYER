@@ -1330,316 +1330,85 @@ END_VAR
       </Set>
     </Property>
     <LineIds Name="FB_CamCtrl">
-      <LineId Id="9" Count="0" />
+      <LineId Id="1" Count="0" />
     </LineIds>
     <LineIds Name="FB_CamCtrl.Axes.Set">
-      <LineId Id="2" Count="0" />
-      <LineId Id="5" Count="0" />
+      <LineId Id="1" Count="1" />
     </LineIds>
     <LineIds Name="FB_CamCtrl.AxisCamIdle">
-      <LineId Id="825" Count="1" />
-      <LineId Id="907" Count="0" />
-      <LineId Id="827" Count="10" />
-      <LineId Id="919" Count="2" />
-      <LineId Id="947" Count="0" />
-      <LineId Id="922" Count="12" />
-      <LineId Id="958" Count="3" />
-      <LineId Id="936" Count="0" />
-      <LineId Id="838" Count="6" />
-      <LineId Id="846" Count="9" />
-      <LineId Id="874" Count="32" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="86" />
     </LineIds>
     <LineIds Name="FB_CamCtrl.AxisCamIn">
-      <LineId Id="1095" Count="0" />
-      <LineId Id="1094" Count="0" />
-      <LineId Id="890" Count="7" />
-      <LineId Id="900" Count="0" />
-      <LineId Id="1038" Count="0" />
-      <LineId Id="1003" Count="2" />
-      <LineId Id="1007" Count="0" />
-      <LineId Id="1022" Count="0" />
-      <LineId Id="1029" Count="7" />
-      <LineId Id="1023" Count="0" />
-      <LineId Id="1009" Count="0" />
-      <LineId Id="1021" Count="0" />
-      <LineId Id="1010" Count="0" />
-      <LineId Id="1027" Count="0" />
-      <LineId Id="1008" Count="0" />
-      <LineId Id="918" Count="4" />
-      <LineId Id="930" Count="0" />
-      <LineId Id="1082" Count="0" />
-      <LineId Id="931" Count="1" />
-      <LineId Id="1091" Count="0" />
-      <LineId Id="933" Count="1" />
-      <LineId Id="1083" Count="0" />
-      <LineId Id="948" Count="1" />
-      <LineId Id="1092" Count="0" />
-      <LineId Id="950" Count="0" />
-      <LineId Id="964" Count="0" />
-      <LineId Id="1086" Count="0" />
-      <LineId Id="1093" Count="0" />
-      <LineId Id="966" Count="1" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="53" />
     </LineIds>
     <LineIds Name="FB_CamCtrl.AxisCamInfo">
-      <LineId Id="1095" Count="0" />
-      <LineId Id="1094" Count="0" />
-      <LineId Id="890" Count="7" />
-      <LineId Id="900" Count="0" />
-      <LineId Id="1038" Count="0" />
-      <LineId Id="1021" Count="0" />
-      <LineId Id="1010" Count="0" />
-      <LineId Id="1027" Count="0" />
-      <LineId Id="918" Count="4" />
-      <LineId Id="930" Count="0" />
-      <LineId Id="1082" Count="0" />
-      <LineId Id="931" Count="1" />
-      <LineId Id="1110" Count="0" />
-      <LineId Id="1091" Count="0" />
-      <LineId Id="1083" Count="0" />
-      <LineId Id="948" Count="1" />
-      <LineId Id="1111" Count="0" />
-      <LineId Id="1092" Count="0" />
-      <LineId Id="964" Count="0" />
-      <LineId Id="1112" Count="4" />
-      <LineId Id="1118" Count="6" />
-      <LineId Id="1145" Count="0" />
-      <LineId Id="1141" Count="3" />
-      <LineId Id="1126" Count="0" />
-      <LineId Id="1117" Count="0" />
-      <LineId Id="1086" Count="0" />
-      <LineId Id="1093" Count="0" />
-      <LineId Id="966" Count="1" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="55" />
     </LineIds>
     <LineIds Name="FB_CamCtrl.AxisCamOut">
-      <LineId Id="1095" Count="0" />
-      <LineId Id="1094" Count="0" />
-      <LineId Id="890" Count="6" />
-      <LineId Id="1021" Count="0" />
-      <LineId Id="1027" Count="0" />
-      <LineId Id="918" Count="4" />
-      <LineId Id="930" Count="0" />
-      <LineId Id="1082" Count="0" />
-      <LineId Id="931" Count="1" />
-      <LineId Id="1091" Count="0" />
-      <LineId Id="933" Count="0" />
-      <LineId Id="1083" Count="0" />
-      <LineId Id="948" Count="1" />
-      <LineId Id="1092" Count="0" />
-      <LineId Id="950" Count="0" />
-      <LineId Id="964" Count="0" />
-      <LineId Id="1086" Count="0" />
-      <LineId Id="1093" Count="0" />
-      <LineId Id="966" Count="1" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="32" />
     </LineIds>
     <LineIds Name="FB_CamCtrl.AxisCamScaling">
-      <LineId Id="733" Count="6" />
-      <LineId Id="732" Count="0" />
-      <LineId Id="675" Count="10" />
-      <LineId Id="769" Count="0" />
-      <LineId Id="686" Count="1" />
-      <LineId Id="693" Count="2" />
-      <LineId Id="855" Count="2" />
-      <LineId Id="863" Count="0" />
-      <LineId Id="858" Count="0" />
-      <LineId Id="864" Count="0" />
-      <LineId Id="859" Count="1" />
-      <LineId Id="865" Count="0" />
-      <LineId Id="861" Count="1" />
-      <LineId Id="697" Count="0" />
-      <LineId Id="718" Count="1" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="39" />
     </LineIds>
     <LineIds Name="FB_CamCtrl.AxisCtrl.Set">
-      <LineId Id="2" Count="0" />
-      <LineId Id="5" Count="0" />
+      <LineId Id="1" Count="1" />
     </LineIds>
     <LineIds Name="FB_CamCtrl.AxisIndex.Set">
-      <LineId Id="2" Count="0" />
-      <LineId Id="5" Count="0" />
+      <LineId Id="1" Count="1" />
     </LineIds>
     <LineIds Name="FB_CamCtrl.AxisInfo.Set">
-      <LineId Id="2" Count="0" />
-      <LineId Id="5" Count="0" />
+      <LineId Id="1" Count="1" />
     </LineIds>
     <LineIds Name="FB_CamCtrl.AxisReadMotionFunction">
-      <LineId Id="733" Count="6" />
-      <LineId Id="732" Count="0" />
-      <LineId Id="675" Count="10" />
-      <LineId Id="769" Count="0" />
-      <LineId Id="686" Count="1" />
-      <LineId Id="693" Count="2" />
-      <LineId Id="855" Count="2" />
-      <LineId Id="863" Count="0" />
-      <LineId Id="858" Count="0" />
-      <LineId Id="864" Count="0" />
-      <LineId Id="859" Count="1" />
-      <LineId Id="865" Count="0" />
-      <LineId Id="888" Count="0" />
-      <LineId Id="861" Count="1" />
-      <LineId Id="697" Count="0" />
-      <LineId Id="718" Count="1" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="40" />
     </LineIds>
     <LineIds Name="FB_CamCtrl.AxisReadMotionFunctionPoint">
-      <LineId Id="733" Count="6" />
-      <LineId Id="732" Count="0" />
-      <LineId Id="675" Count="10" />
-      <LineId Id="769" Count="0" />
-      <LineId Id="686" Count="1" />
-      <LineId Id="693" Count="2" />
-      <LineId Id="855" Count="2" />
-      <LineId Id="863" Count="0" />
-      <LineId Id="858" Count="0" />
-      <LineId Id="864" Count="0" />
-      <LineId Id="859" Count="1" />
-      <LineId Id="865" Count="0" />
-      <LineId Id="888" Count="0" />
-      <LineId Id="861" Count="1" />
-      <LineId Id="697" Count="0" />
-      <LineId Id="718" Count="1" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="40" />
     </LineIds>
     <LineIds Name="FB_CamCtrl.AxisState.Set">
-      <LineId Id="2" Count="0" />
-      <LineId Id="5" Count="0" />
+      <LineId Id="1" Count="1" />
     </LineIds>
     <LineIds Name="FB_CamCtrl.AxisWriteMotionFunction">
-      <LineId Id="733" Count="6" />
-      <LineId Id="732" Count="0" />
-      <LineId Id="675" Count="10" />
-      <LineId Id="769" Count="0" />
-      <LineId Id="686" Count="1" />
-      <LineId Id="693" Count="2" />
-      <LineId Id="855" Count="2" />
-      <LineId Id="863" Count="0" />
-      <LineId Id="858" Count="0" />
-      <LineId Id="864" Count="0" />
-      <LineId Id="859" Count="1" />
-      <LineId Id="865" Count="0" />
-      <LineId Id="861" Count="1" />
-      <LineId Id="697" Count="0" />
-      <LineId Id="718" Count="1" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="39" />
     </LineIds>
     <LineIds Name="FB_CamCtrl.AxisWriteMotionFunctionPoint">
-      <LineId Id="733" Count="4" />
-      <LineId Id="888" Count="0" />
-      <LineId Id="739" Count="0" />
-      <LineId Id="732" Count="0" />
-      <LineId Id="675" Count="10" />
-      <LineId Id="769" Count="0" />
-      <LineId Id="686" Count="1" />
-      <LineId Id="693" Count="2" />
-      <LineId Id="855" Count="2" />
-      <LineId Id="863" Count="0" />
-      <LineId Id="858" Count="0" />
-      <LineId Id="864" Count="0" />
-      <LineId Id="859" Count="1" />
-      <LineId Id="865" Count="0" />
-      <LineId Id="861" Count="1" />
-      <LineId Id="697" Count="0" />
-      <LineId Id="718" Count="1" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="39" />
     </LineIds>
     <LineIds Name="FB_CamCtrl.CamInit">
-      <LineId Id="586" Count="91" />
-      <LineId Id="5" Count="0" />
+      <LineId Id="1" Count="92" />
     </LineIds>
     <LineIds Name="FB_CamCtrl.Check">
-      <LineId Id="164" Count="0" />
-      <LineId Id="167" Count="6" />
-      <LineId Id="201" Count="0" />
-      <LineId Id="200" Count="0" />
-      <LineId Id="202" Count="0" />
-      <LineId Id="205" Count="0" />
-      <LineId Id="204" Count="0" />
-      <LineId Id="203" Count="0" />
-      <LineId Id="206" Count="0" />
-      <LineId Id="175" Count="5" />
-      <LineId Id="174" Count="0" />
-      <LineId Id="181" Count="3" />
-      <LineId Id="166" Count="0" />
-      <LineId Id="11" Count="5" />
-      <LineId Id="18" Count="0" />
-      <LineId Id="17" Count="0" />
-      <LineId Id="19" Count="3" />
-      <LineId Id="126" Count="5" />
-      <LineId Id="38" Count="0" />
-      <LineId Id="55" Count="4" />
-      <LineId Id="186" Count="0" />
-      <LineId Id="188" Count="10" />
-      <LineId Id="187" Count="0" />
-      <LineId Id="60" Count="0" />
-      <LineId Id="96" Count="0" />
-      <LineId Id="98" Count="1" />
-      <LineId Id="101" Count="23" />
-      <LineId Id="161" Count="0" />
-      <LineId Id="95" Count="0" />
-      <LineId Id="9" Count="1" />
-      <LineId Id="153" Count="0" />
-      <LineId Id="5" Count="0" />
-      <LineId Id="162" Count="0" />
+      <LineId Id="1" Count="98" />
     </LineIds>
     <LineIds Name="FB_CamCtrl.Cmd">
-      <LineId Id="620" Count="100" />
-      <LineId Id="5" Count="0" />
+      <LineId Id="1" Count="101" />
     </LineIds>
     <LineIds Name="FB_CamCtrl.CouplingState.Get">
-      <LineId Id="5" Count="10" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="11" />
     </LineIds>
     <LineIds Name="FB_CamCtrl.Cycle">
-      <LineId Id="292" Count="128" />
-      <LineId Id="91" Count="0" />
+      <LineId Id="1" Count="129" />
     </LineIds>
     <LineIds Name="FB_CamCtrl.GearData.Set">
-      <LineId Id="2" Count="0" />
-      <LineId Id="5" Count="0" />
+      <LineId Id="1" Count="1" />
     </LineIds>
     <LineIds Name="FB_CamCtrl.ItfMcAxes.Set">
-      <LineId Id="2" Count="0" />
-      <LineId Id="5" Count="0" />
+      <LineId Id="1" Count="1" />
     </LineIds>
     <LineIds Name="FB_CamCtrl.LogCheck">
-      <LineId Id="29" Count="8" />
-      <LineId Id="50" Count="0" />
-      <LineId Id="46" Count="2" />
-      <LineId Id="51" Count="2" />
-      <LineId Id="55" Count="0" />
-      <LineId Id="54" Count="0" />
-      <LineId Id="49" Count="0" />
-      <LineId Id="5" Count="0" />
+      <LineId Id="1" Count="19" />
     </LineIds>
     <LineIds Name="FB_CamCtrl.LogControl">
-      <LineId Id="35" Count="8" />
-      <LineId Id="53" Count="9" />
-      <LineId Id="5" Count="0" />
+      <LineId Id="1" Count="19" />
     </LineIds>
     <LineIds Name="FB_CamCtrl.LogResult">
-      <LineId Id="7" Count="0" />
-      <LineId Id="9" Count="3" />
-      <LineId Id="22" Count="0" />
-      <LineId Id="21" Count="0" />
-      <LineId Id="23" Count="0" />
-      <LineId Id="31" Count="0" />
-      <LineId Id="33" Count="1" />
-      <LineId Id="20" Count="0" />
-      <LineId Id="13" Count="0" />
-      <LineId Id="35" Count="0" />
-      <LineId Id="44" Count="9" />
-      <LineId Id="5" Count="0" />
+      <LineId Id="1" Count="24" />
     </LineIds>
     <LineIds Name="FB_CamCtrl.MotionFunction.Set">
-      <LineId Id="2" Count="0" />
-      <LineId Id="5" Count="0" />
+      <LineId Id="1" Count="1" />
     </LineIds>
     <LineIds Name="FB_CamCtrl.MotionFunctionPoint.Set">
-      <LineId Id="2" Count="0" />
-      <LineId Id="5" Count="0" />
+      <LineId Id="1" Count="1" />
     </LineIds>
   </POU>
 </TcPlcObject>
