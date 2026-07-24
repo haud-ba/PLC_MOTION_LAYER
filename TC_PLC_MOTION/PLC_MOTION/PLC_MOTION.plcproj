@@ -18,7 +18,7 @@
     <LibraryReferences>{ff26b307-1ac0-40be-ba24-df54548edd9a}</LibraryReferences>
     <Released>false</Released>
     <Title>PLC_MOTION_LAYER</Title>
-    <ProjectVersion>01.00.34</ProjectVersion>
+    <ProjectVersion>01.01.00</ProjectVersion>
     <Author>D. Hauer</Author>
     <Description>MC-PtP, NCI, Camming cyclic execution layer for motion commands</Description>
     <CompilerDefines />
@@ -34,17 +34,21 @@
     </DeploymentEvents>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="CAM.TcPOU">
+    <Compile Include="CAM\CAM.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="CAM\FB_CamAxis.TcPOU">
+    <Compile Include="CAM\class\FB_CamAxis.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="CAM\FB_CamCtrl.TcPOU">
+    <Compile Include="CAM\class\FB_CamCtrl.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="CAM\I_Cam_Ctrl.TcIO">
+    <Compile Include="CAM\class\I_Cam_Ctrl.TcIO">
       <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="CAM\GVL_CAM.TcGVL">
+      <SubType>Code</SubType>
+      <LinkAlways>true</LinkAlways>
     </Compile>
     <Compile Include="CAM\types\ST_CAM_CTRL.TcDUT">
       <SubType>Code</SubType>
@@ -73,17 +77,21 @@
     <Compile Include="CAM\types\ST_MOTION_FUNCTION_POINT.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="FLYING_SAW.TcPOU">
+    <Compile Include="FLYING_SAW\class\FB_FlyingBase.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="FLYING_SAW\FB_FlyingBase.TcPOU">
+    <Compile Include="FLYING_SAW\class\FB_FlyingCtrl.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="FLYING_SAW\FB_FlyingCtrl.TcPOU">
+    <Compile Include="FLYING_SAW\class\I_Fly_Ctrl.TcIO">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="FLYING_SAW\I_Fly_Ctrl.TcIO">
+    <Compile Include="FLYING_SAW\FLYING_SAW.TcPOU">
       <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FLYING_SAW\GVL_FLYING_SAW.TcGVL">
+      <SubType>Code</SubType>
+      <LinkAlways>true</LinkAlways>
     </Compile>
     <Compile Include="FLYING_SAW\types\ST_FLY_CTRL.TcDUT">
       <SubType>Code</SubType>
@@ -100,8 +108,12 @@
     <Compile Include="FLYING_SAW\types\ST_FLY_SYNC_MODE.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="FUNCTIONS.TcPOU">
+    <Compile Include="FUNCTIONS\FUNCTIONS.TcPOU">
       <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FUNCTIONS\GVL_FUNCTIONS.TcGVL">
+      <SubType>Code</SubType>
+      <LinkAlways>true</LinkAlways>
     </Compile>
     <Compile Include="FUNCTIONS\TOUCH_PROBE\FB_TouchProbe.TcPOU">
       <SubType>Code</SubType>
@@ -148,10 +160,10 @@
     <Compile Include="FUNCTIONS\TRIGGER_BOX\types\T_TriggerControlBits.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="MAPPING\MAPPING_in.TcPOU">
+    <Compile Include="MAPPING\MAPPING_AXIS_in.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="MAPPING\MAPPING_out.TcPOU">
+    <Compile Include="MAPPING\MAPPING_AXIS_out.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="MAPPING\types\U_AXIS_CTRL.TcDUT">
@@ -241,21 +253,25 @@
     <Compile Include="MAPPING\types\U_TRIGGER_STATE.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="NCI.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="NCI\FB_NciChannelCtrl.TcPOU">
+    <Compile Include="NCI\class\FB_NciChannel.TcPOU">
       <SubType>Code</SubType>
       <CompilerDefines>NCI</CompilerDefines>
     </Compile>
-    <Compile Include="NCI\FB_NciChannel.TcPOU">
+    <Compile Include="NCI\class\FB_NciChannelCtrl.TcPOU">
       <SubType>Code</SubType>
       <CompilerDefines>NCI</CompilerDefines>
     </Compile>
-    <Compile Include="NCI\I_NciChannel.TcIO">
+    <Compile Include="NCI\class\I_NciChannel.TcIO">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="NCI\I_Nci_Ctrl.TcIO">
+    <Compile Include="NCI\class\I_Nci_Ctrl.TcIO">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="NCI\GVL_NCI.TcGVL">
+      <SubType>Code</SubType>
+      <LinkAlways>true</LinkAlways>
+    </Compile>
+    <Compile Include="NCI\NCI.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="NCI\types\E_NCI_CTRL.TcDUT">
@@ -306,16 +322,23 @@
       <SubType>Code</SubType>
       <CompilerDefines>NCI</CompilerDefines>
     </Compile>
-    <Compile Include="NC_PTP\FB_McAxisBase.TcPOU">
+    <Compile Include="NC_PTP\class\FB_McAxisBase.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="NC_PTP\FB_McAxisCtrl.TcPOU">
+    <Compile Include="NC_PTP\class\FB_McAxisCtrl.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="NC_PTP\FB_ParameterSelector.TcPOU">
+    <Compile Include="NC_PTP\class\FB_ParameterSelector.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="NC_PTP\I_McAxis.TcIO">
+    <Compile Include="NC_PTP\class\I_McAxis.TcIO">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="NC_PTP\GVL_AXIS.TcGVL">
+      <SubType>Code</SubType>
+      <LinkAlways>true</LinkAlways>
+    </Compile>
+    <Compile Include="NC_PTP\MAIN_AXIS.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="NC_PTP\types\axis\E_AxisEncoderType.TcDUT">
@@ -372,58 +395,35 @@
     <Compile Include="XFC\types\E_XFC_CHECK.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="_DUT\E_CHECK_STATE.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="_DUT\E_PROGRESS.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="_DUT\f_GetProgress.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="_DUT\f_GetState.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="_GVL\GlobalTextList.TcGTLO">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="_GVL\GVL_AXIS.TcGVL">
-      <SubType>Code</SubType>
-      <LinkAlways>true</LinkAlways>
-    </Compile>
-    <Compile Include="_GVL\GVL_CAM.TcGVL">
-      <SubType>Code</SubType>
-      <LinkAlways>true</LinkAlways>
-    </Compile>
-    <Compile Include="_GVL\GVL_FLYING_SAW.TcGVL">
-      <SubType>Code</SubType>
-      <LinkAlways>true</LinkAlways>
-    </Compile>
-    <Compile Include="_GVL\GVL_FUNCTIONS.TcGVL">
-      <SubType>Code</SubType>
-      <LinkAlways>true</LinkAlways>
-    </Compile>
-    <Compile Include="_GVL\GVL_MSG.TcGVL">
-      <SubType>Code</SubType>
-      <LinkAlways>true</LinkAlways>
-    </Compile>
-    <Compile Include="_GVL\GVL_NCI.TcGVL">
-      <SubType>Code</SubType>
-      <LinkAlways>true</LinkAlways>
-    </Compile>
-    <Compile Include="_GVL\PLC_CONSTANT.TcGVL">
-      <SubType>Code</SubType>
-      <LinkAlways>true</LinkAlways>
-    </Compile>
-    <Compile Include="MAIN.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="_GVL\PLC_VERSION.TcGVL">
+    <Compile Include="XTS_TRANSPORT\MSG\GVL_MSG.TcGVL">
       <SubType>Code</SubType>
       <LinkAlways>true</LinkAlways>
     </Compile>
     <Compile Include="_MSG\fb_LocalTime.TcPOU">
       <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_types\E_CHECK_STATE.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_types\E_PROGRESS.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_types\f_GetProgress.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_types\f_GetState.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_GVL\GlobalTextList.TcGTLO">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_GVL\PLC_CONSTANT.TcGVL">
+      <SubType>Code</SubType>
+      <LinkAlways>true</LinkAlways>
+    </Compile>
+    <Compile Include="_GVL\PLC_VERSION.TcGVL">
+      <SubType>Code</SubType>
+      <LinkAlways>true</LinkAlways>
     </Compile>
     <Compile Include="_MSG\fb_MessageData.TcPOU">
       <SubType>Code</SubType>
@@ -433,6 +433,10 @@
     </Compile>
     <Compile Include="_MSG\f_MessageSet.TcPOU">
       <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_MSG\GVL_MSG_AXIS.TcGVL">
+      <SubType>Code</SubType>
+      <LinkAlways>true</LinkAlways>
     </Compile>
     <Compile Include="_MSG\I_MessageData.TcIO">
       <SubType>Code</SubType>
@@ -478,10 +482,6 @@
     </Compile>
     <Compile Include="_MSG\types\TL_E_MESSAGETYPE.TcTLO">
       <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="_UML\CD_PLC_MOTION.TcCD">
-      <SubType>Code</SubType>
-      <ExcludeFromBuild>true</ExcludeFromBuild>
     </Compile>
   </ItemGroup>
   <ItemGroup>
@@ -577,8 +577,10 @@
     </PlaceholderReference>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="CAM\class" />
     <Folder Include="CAM\types" />
     <Folder Include="FLYING_SAW" />
+    <Folder Include="FLYING_SAW\class" />
     <Folder Include="FLYING_SAW\types" />
     <Folder Include="FUNCTIONS\TOUCH_PROBE" />
     <Folder Include="FUNCTIONS\TOUCH_PROBE\types" />
@@ -586,51 +588,28 @@
     <Folder Include="FUNCTIONS\TRIGGER_BOX\types" />
     <Folder Include="MAPPING\types" />
     <Folder Include="NCI\files" />
+    <Folder Include="NCI\class" />
     <Folder Include="NCI\types" />
+    <Folder Include="NC_PTP\class" />
     <Folder Include="NC_PTP\types\control" />
     <Folder Include="NC_PTP\types\axis" />
     <Folder Include="MAPPING" />
     <Folder Include="FUNCTIONS" />
+    <Folder Include="XTS_TRANSPORT" />
     <Folder Include="XFC" />
     <Folder Include="XFC\types" />
-    <Folder Include="_UML" />
+    <Folder Include="XTS_TRANSPORT\MSG" />
     <Folder Include="_MSG\types" />
     <Folder Include="NC_PTP" />
     <Folder Include="NCI" />
     <Folder Include="CAM" />
     <Folder Include="_MSG" />
     <Folder Include="_GVL" />
-    <Folder Include="_DUT" />
+    <Folder Include="_types" />
     <Folder Include="NC_PTP\types" />
   </ItemGroup>
   <ItemGroup>
-    <SubObject Include="FB_CamAxis.CamIn" />
-    <SubObject Include="FB_CamAxis.Template">
-      <ExcludeFromBuild>true</ExcludeFromBuild>
-    </SubObject>
-    <SubObject Include="FB_CamAxis.WriteMotionFunctionPoint" />
-    <SubObject Include="FB_CamCtrl.AxisCamIn" />
-    <SubObject Include="FB_FlyingBase.Template">
-      <ExcludeFromBuild>true</ExcludeFromBuild>
-    </SubObject>
-    <SubObject Include="FB_McAxisCtrl.AxisGearInMultiMaster" />
     <SubObject Include="FB_McAxisCtrl.Template">
-      <ExcludeFromBuild>true</ExcludeFromBuild>
-    </SubObject>
-    <SubObject Include="FB_McAxisBase.Disable" />
-    <SubObject Include="FB_McAxisBase.MoveToPos" />
-    <SubObject Include="FB_McAxisBase.MoveVeloBuffer" />
-    <SubObject Include="FB_McAxisBase.Stop" />
-    <SubObject Include="FB_McAxisBase.Template">
-      <ExcludeFromBuild>true</ExcludeFromBuild>
-    </SubObject>
-    <SubObject Include="FB_McAxisBase.WriteParameterPersistent" />
-    <SubObject Include="FB_McAxisCtrl.Template">
-      <ExcludeFromBuild>true</ExcludeFromBuild>
-    </SubObject>
-    <SubObject Include="FB_NciChannel.ClearGroup" />
-    <SubObject Include="FB_NciChannel.ConfirmHSK" />
-    <SubObject Include="FB_NciChannelCtrl.Template">
       <ExcludeFromBuild>true</ExcludeFromBuild>
     </SubObject>
   </ItemGroup>
@@ -648,8 +627,8 @@
   <ProjectExtensions>
     <PlcProjectOptions>
       <XmlArchive>
-        <Data>
-          <o xml:space="preserve" t="OptionKey">
+  <Data>
+    <o xml:space="preserve" t="OptionKey">
       <v n="Name">"&lt;ProjectRoot&gt;"</v>
       <d n="SubKeys" t="Hashtable" ckt="String" cvt="OptionKey">
         <v>{192FAD59-8248-4824-A8DE-9177C94C195A}</v>
@@ -737,6 +716,12 @@
             <v>2147483647</v>
           </d>
         </o>
+        <v>{eeeeeeee-3909-4298-8022-501ac3238667}</v>
+        <o>
+          <v n="Name">"{eeeeeeee-3909-4298-8022-501ac3238667}"</v>
+          <d n="SubKeys" t="Hashtable" />
+          <d n="Values" t="Hashtable" />
+        </o>
         <v>{F66C7017-BDD8-4114-926C-81D6D687E35F}</v>
         <o>
           <v n="Name">"{F66C7017-BDD8-4114-926C-81D6D687E35F}"</v>
@@ -749,16 +734,16 @@
       </d>
       <d n="Values" t="Hashtable" />
     </o>
-        </Data>
-        <TypeList>
-          <Type n="Boolean">System.Boolean</Type>
-          <Type n="ExactVersionConstraintToSave">{f9079115-a4ba-4f30-bf7c-9e76613146fc}</Type>
-          <Type n="Hashtable">System.Collections.Hashtable</Type>
-          <Type n="Int32">System.Int32</Type>
-          <Type n="OptionKey">{54dd0eac-a6d8-46f2-8c27-2f43c7e49861}</Type>
-          <Type n="String">System.String</Type>
-        </TypeList>
-      </XmlArchive>
+  </Data>
+  <TypeList>
+    <Type n="Boolean">System.Boolean</Type>
+    <Type n="ExactVersionConstraintToSave">{f9079115-a4ba-4f30-bf7c-9e76613146fc}</Type>
+    <Type n="Hashtable">System.Collections.Hashtable</Type>
+    <Type n="Int32">System.Int32</Type>
+    <Type n="OptionKey">{54dd0eac-a6d8-46f2-8c27-2f43c7e49861}</Type>
+    <Type n="String">System.String</Type>
+  </TypeList>
+</XmlArchive>
     </PlcProjectOptions>
   </ProjectExtensions>
 </Project>

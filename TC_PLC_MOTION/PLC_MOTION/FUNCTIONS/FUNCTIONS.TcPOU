@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.13">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
   <POU Name="FUNCTIONS" Id="{e2929a8f-d00c-4f74-8ad9-39b9524bc0c1}" SpecialFunc="None">
     <Declaration><![CDATA[PROGRAM FUNCTIONS
 VAR
@@ -20,7 +20,7 @@ IF NOT PLC_CONSTANT.XFC_ACTIVE THEN eInit := E_PROGRESS.PROGRESS_NOT_EXIST; RETU
 //-----------------------------------------------------------------------------------------------------------------
 // check MAIN.eInit
 //-----------------------------------------------------------------------------------------------------------------
-IF NOT (MAIN.eInit = E_PROGRESS.PROGRESS_DONE) 
+IF NOT (MAIN_AXIS.eInit = E_PROGRESS.PROGRESS_DONE) 
 THEN
   // wait for MAIN to be fully initialized
   eInit                                               := E_PROGRESS.PROGRESS_INVALID; 
@@ -35,7 +35,7 @@ END_IF
 //-----------------------------------------------------------------------------------------------------------------
 FOR nProbe := 1 TO MAX_TOUCH_PROBE
 DO
-  GVL_FUNCTIONS.TouchProbeCtrl[nProbe].MessageLevel   := GVL_MSG.MessageLevelTouchProbe[nProbe];
+  GVL_FUNCTIONS.TouchProbeCtrl[nProbe].MessageLevel   := GVL_MSG_AXIS.MessageLevelTouchProbe[nProbe];
   GVL_FUNCTIONS.TouchProbeCtrl[nProbe].Index          := nProbe;
   GVL_FUNCTIONS.TouchProbeCtrl[nProbe].ItfAxis        := GVL_AXIS.ItfMcAxis;
 
@@ -50,7 +50,7 @@ END_FOR
 
 FOR nTrigger := 1 TO MAX_TRIGGER_BOX
 DO
-  GVL_FUNCTIONS.TriggerBoxCtrl[nTrigger].MessageLevel := GVL_MSG.MessageLevelTriggerBox[nTrigger];
+  GVL_FUNCTIONS.TriggerBoxCtrl[nTrigger].MessageLevel := GVL_MSG_AXIS.MessageLevelTriggerBox[nTrigger];
   GVL_FUNCTIONS.TriggerBoxCtrl[nTrigger].Index        := nTrigger;
   GVL_FUNCTIONS.TriggerBoxCtrl[nTrigger].ItfAxis      := GVL_AXIS.ItfMcAxis;
 
@@ -68,17 +68,7 @@ END_FOR
 //-----------------------------------------------------------------------------------------------------------------]]></ST>
     </Implementation>
     <LineIds Name="FUNCTIONS">
-      <LineId Id="325" Count="17" />
-      <LineId Id="348" Count="8" />
-      <LineId Id="380" Count="0" />
-      <LineId Id="357" Count="0" />
-      <LineId Id="378" Count="1" />
-      <LineId Id="358" Count="10" />
-      <LineId Id="381" Count="0" />
-      <LineId Id="369" Count="0" />
-      <LineId Id="382" Count="1" />
-      <LineId Id="370" Count="7" />
-      <LineId Id="252" Count="0" />
+      <LineId Id="1" Count="54" />
     </LineIds>
   </POU>
 </TcPlcObject>

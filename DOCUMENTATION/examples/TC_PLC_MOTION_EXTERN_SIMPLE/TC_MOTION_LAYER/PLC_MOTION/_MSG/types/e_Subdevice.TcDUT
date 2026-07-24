@@ -23,6 +23,7 @@ TYPE e_Subdevice :
   fbMoveEndless,
   fbMovePtP,
   fbMoveVelo,
+  fbSendToPos,
 
   // CA CollisionAvoidance FB instances
   // CA group fb instances
@@ -40,7 +41,6 @@ TYPE e_Subdevice :
   fbGroupReset,
   fbGroupStop,
   fbHaltCa,
-  fbSendToPos,
 
   fbGearIn                := 50,
   fbGearOut,

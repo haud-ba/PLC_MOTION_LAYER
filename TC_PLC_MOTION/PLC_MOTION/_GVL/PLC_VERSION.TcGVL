@@ -3,12 +3,23 @@
   <GVL Name="PLC_VERSION" Id="{d2395695-97e2-030c-1191-ad6e09085440}">
     <Declaration><![CDATA[{attribute 'qualified_only'}
 VAR_GLOBAL CONSTANT
-  VERSION               : STRING := 'V 01.00.38';
+  VERSION               : STRING := 'V 01.01.00';
 
-  // 2025 05 28 HAUD
+  // 2026 07 24
+  // folder structure changed
+  //  - classes , programs and gvl data are now in the same folder
+  //
+  // messaging unified with XTS_TRANSPORT_LAYER
+  //  - f_MessageSet now equal across codebase
+  //  - placeholder data for XTS added
+  //  - renaming of programs to facilitate merge with XTS_TRANSPORT_LAYER
+  //  - UTC time and timezone offset
+  //    - timezone timestamp is now used for messaging
+
+  // 2026 05 28 HAUD
   // Flying Saw wrapper
 
-  // 2025 05 13 HAUD
+  // 2026 05 13 HAUD
   //
   // FB_McAxisBase.MoveVeloBuffer Test, changes for setpoint change detection
 

@@ -85,6 +85,7 @@ OF
 
     ELSIF (GVL_AXIS.State[1].eState = E_AXIS_STATE.AXIS_MOVE_POS + E_PROGRESS.PROGRESS_DONE)
     THEN
+      GVL_AXIS.Ctrl[1].eCmd     := E_AXIS_CTRL.AXIS_NULL;
       nState                    := 120;
     END_IF
 
@@ -103,8 +104,26 @@ OF
     ELSIF (GVL_AXIS.State[2].eState = E_AXIS_STATE.AXIS_MOVE_VELO + E_PROGRESS.PROGRESS_DONE)
     THEN
       nState                    := 1000;
-      nStateNext                :=  130;
+      nStateNext                :=  125;
     END_IF
+
+  125:
+    GVL_AXIS.Data[1].rSetPos    :=   2718.28;
+    GVL_AXIS.Data[1].rSetVelo   :=    314.15;
+    GVL_AXIS.Data[1].rAcc       :=   9810.00;
+    GVL_AXIS.Data[1].rDec       :=   9810.00;
+    GVL_AXIS.Data[1].rJerk      := 299792.46;
+
+    GVL_AXIS.Ctrl[1].eCmd       := E_AXIS_CTRL.AXIS_MOVE_POS;
+    IF (GVL_AXIS.State[1].eState = E_AXIS_STATE.AXIS_MOVE_POS + E_PROGRESS.PROGRESS_ERROR)
+    THEN
+      nState                    := 9010;  // error reaction required, e.g. RESET
+
+    ELSIF (GVL_AXIS.State[1].eState = E_AXIS_STATE.AXIS_MOVE_POS + E_PROGRESS.PROGRESS_DONE)
+    THEN
+      nState                    := 130;
+    END_IF
+
 
   130:
     GVL_AXIS.Data[3].rSetVelo   :=    707.00;
@@ -199,7 +218,14 @@ END_CASE
     </Implementation>
     <LineIds Name="TEST">
       <LineId Id="176" Count="0" />
-      <LineId Id="2" Count="173" />
+      <LineId Id="2" Count="62" />
+      <LineId Id="195" Count="0" />
+      <LineId Id="65" Count="19" />
+      <LineId Id="194" Count="0" />
+      <LineId Id="177" Count="0" />
+      <LineId Id="179" Count="14" />
+      <LineId Id="178" Count="0" />
+      <LineId Id="85" Count="90" />
     </LineIds>
   </POU>
 </TcPlcObject>

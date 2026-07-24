@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
-  <POU Name="MAPPING_in" Id="{e84de69b-ba26-07ad-1592-7be68e226b51}" SpecialFunc="None">
-    <Declaration><![CDATA[PROGRAM MAPPING_in
+  <POU Name="MAPPING_AXIS_in" Id="{e84de69b-ba26-07ad-1592-7be68e226b51}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM MAPPING_AXIS_in
 VAR CONSTANT
 //-----------------------------------------------------------------------------------------------------------------
 //  Stop! Who approacheth the Bridge of Death must answer me these questions three, ere the other side he see
@@ -397,7 +397,7 @@ Check                   := TRUE;
 //--------------------------------------------------------------------------------------------]]></ST>
       </Implementation>
     </Method>
-    <LineIds Name="MAPPING_in">
+    <LineIds Name="MAPPING_AXIS_in">
       <LineId Id="345" Count="2" />
       <LineId Id="375" Count="0" />
       <LineId Id="366" Count="3" />
@@ -441,7 +441,7 @@ Check                   := TRUE;
       <LineId Id="362" Count="2" />
       <LineId Id="361" Count="0" />
     </LineIds>
-    <LineIds Name="MAPPING_in.Check">
+    <LineIds Name="MAPPING_AXIS_in.Check">
       <LineId Id="1" Count="5" />
       <LineId Id="137" Count="0" />
       <LineId Id="7" Count="22" />

@@ -1,0 +1,304 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <POU Name="MAIN_AXIS" Id="{b9c2507d-2926-4719-8f82-549e0347748a}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM MAIN_AXIS
+VAR
+  eInit         AT %Q*      : E_PROGRESS;   // shall be checked by controlling entity, before using Ctrl/State structs
+
+  nAxis,
+  nAxisInit                 : UINT;
+
+  stMsg                   : ST_Message;
+  eMsgState               : e_message_state;
+  eMsgProgress            : E_PROGRESS;
+  eMtrState               : e_message_state;
+  eMtrProgress            : E_PROGRESS;
+
+  tIdleWriteMotion        : TIME := T#5S;
+  tIdleWriteMetric        : TIME := T#5S;
+  tonIdleWriteMotion      : Tc2_Standard.TON;
+  tonIdleWriteMetric      : Tc2_Standard.TON;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[//-----------------------------------------------------------------------------------------------------------------
+// Local time; used for timestamps
+//-----------------------------------------------------------------------------------------------------------------
+GVL_MSG_AXIS.fbLocalTime();
+GVL_MSG_AXIS.sLocalTime                       := GVL_MSG_AXIS.fbLocalTime.LocalTimeString;
+GVL_MSG_AXIS.dtLocalTime                      := GVL_MSG_AXIS.fbLocalTime.LocalTime;
+//-----------------------------------------------------------------------------------------------------------------
+// /assign dataflow
+//-----------------------------------------------------------------------------------------------------------------
+FOR nAxis := 1 TO PLC_CONSTANT.MAX_AXIS
+DO
+  GVL_AXIS.Control[nAxis].AxisIndex           := nAxis;
+  GVL_AXIS.Control[nAxis].MessageLevel        := GVL_MSG_AXIS.MessageLevelAxisPtp[nAxis];
+
+  GVL_AXIS.Control[nAxis].AxisCtrl            := ADR(GVL_AXIS.Ctrl);          // command
+  GVL_AXIS.Control[nAxis].AxisState           := ADR(GVL_AXIS.State);         // state + result of command
+
+  GVL_AXIS.Control[nAxis].Axes                REF=   GVL_AXIS.AxisRef;        // All for one; coupling requires access across all axes
+
+  GVL_AXIS.Control[nAxis].AxisInfo            := ADR(GVL_AXIS.Info);          // axis information: act/set values and bits from axis
+  GVL_AXIS.Control[nAxis].AxisData            := ADR(GVL_AXIS.Data);          // position and dynamic constraints for movement
+  GVL_AXIS.Control[nAxis].AxisGearInParameter := ADR(GVL_AXIS.GearInParameter);
+
+  GVL_AXIS.Control[nAxis].NcParameterOut      := ADR(GVL_AXIS.NcParameterOut);
+  GVL_AXIS.Control[nAxis].NcParameterIn       := ADR(GVL_AXIS.NcParameterIn);
+
+  GVL_AXIS.Control[nAxis].HomingParameter     := ADR(GVL_AXIS.HomeParameter);
+  GVL_AXIS.Control[nAxis].MotionOptions       := ADR(GVL_AXIS.MotionOptions);
+  GVL_AXIS.Control[nAxis].LimitSwitches       := ADR(GVL_AXIS.LimitSwitches);
+
+  GVL_AXIS.ItfMcAxis[nAxis]                   := GVL_AXIS.Control[nAxis]; 
+END_FOR
+
+GVL_AXIS.ParameterSelector.MessageLevel       :=   GVL_MSG.MessageLevel;
+GVL_AXIS.ParameterSelector.Ctrl               REF= GVL_AXIS.SelectorCtrl;
+GVL_AXIS.ParameterSelector.State              REF= GVL_AXIS.SelectorState;
+GVL_AXIS.ParameterSelector.ItfAxis            REF= GVL_AXIS.ItfMcAxis;
+//-----------------------------------------------------------------------------------------------------------------
+// assign dataflow/
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+// /INIT
+// - successful init is required for other optional members to start
+//-----------------------------------------------------------------------------------------------------------------
+CASE eInit
+OF
+  E_PROGRESS.PROGRESS_INVALID:
+    GVL_MSG_AXIS.MotionMessageCtrl.Cmd        := E_MESSAGE_CTRL.MSG_CTRL_NULL;
+    GVL_MSG_AXIS.MetricMessageCtrl.Cmd        := E_MESSAGE_CTRL.MSG_CTRL_NULL;
+
+    FOR nAxis := 1 TO PLC_CONSTANT.MAX_AXIS
+    DO
+      GVL_MSG_AXIS.MessageLevelAxisPtp[nAxis] := E_MessageType.eMessageVerbose; //GVL_MSG.MessageLevel;
+    END_FOR
+    nAxisInit                                 := 1;
+    eInit                                     := E_PROGRESS.PROGRESS_INIT;
+  //-----------------------------------------------------------------------------
+  //-----------------------------------------------------------------------------
+  E_PROGRESS.PROGRESS_INIT:
+    stMsg.eType                               := E_MessageType.eMessageInfo;
+    stMsg.eDevice                             := e_Device.Device_MainAxis;
+    stMsg.eSubdevice                          := e_SubDevice.MainInit;
+    stMsg.iErrorNumber                        := MAX_AXIS;
+    stMsg.sText                               := concat('MAIN_AXIS.eInit: ', TO_STRING(eInit));
+    f_MessageSet(stMsg);
+
+    GVL_MSG_AXIS.MotionMessageCtrl.Cmd        := E_MESSAGE_CTRL.MSG_CTRL_INIT;
+    GVL_MSG_AXIS.MetricMessageCtrl.Cmd        := E_MESSAGE_CTRL.MSG_CTRL_INIT;
+    eInit                                     := E_PROGRESS.PROGRESS_BUSY;
+  //-----------------------------------------------------------------------------
+  //-----------------------------------------------------------------------------
+  E_PROGRESS.PROGRESS_BUSY:
+    eInit                                     := E_PROGRESS.PROGRESS_PREPARE;
+  //-----------------------------------------------------------------------------
+  //-----------------------------------------------------------------------------
+  E_PROGRESS.PROGRESS_PREPARE:
+    stMsg.eType                               := E_MessageType.eMessageVerbose;
+    stMsg.eDevice                             := e_Device.Device_MainAxis;
+    stMsg.eSubdevice                          := e_SubDevice.MainInit;
+    stMsg.iErrorNumber                        := nAxisInit;
+    stMsg.sText                               := concat('AxisInit Index: ', TO_STRING(nAxisInit));
+
+    IF (GVL_MSG_AXIS.MessageLevelAxisPtp[nAxisInit] = E_MessageType.eMessageVerbose)
+    THEN
+      f_MessageSet(stMsg);
+    END_IF
+
+    GVL_AXIS.Ctrl[nAxisInit].eCmd             := E_AXIS_CTRL.AXIS_NULL;
+    eInit                                     := E_PROGRESS.PROGRESS_STARTUP;
+  //-----------------------------------------------------------------------------
+  //-----------------------------------------------------------------------------
+  E_PROGRESS.PROGRESS_STARTUP:
+    GVL_AXIS.Ctrl[nAxisInit].eCmd             := E_AXIS_CTRL.AXIS_INIT;
+
+    IF    (GVL_AXIS.State[nAxisInit].eState = E_AXIS_STATE.AXIS_INIT + E_PROGRESS.PROGRESS_ERROR)
+    THEN
+      eInit                                   := E_PROGRESS.PROGRESS_ERROR;
+
+      stMsg.eType                             := E_MessageType.eMessageError;
+      stMsg.eDevice                           := e_Device.Device_MainAxis;
+      stMsg.eSubdevice                        := e_SubDevice.MainInit;
+      stMsg.iErrorNumber                      := GVL_AXIS.Control[nAxisInit].ErrorId;
+
+      stMsg.sText                             := concat('MAIN_AXIS.eInit ERROR at Index: ', TO_STRING(nAxisInit));
+      f_MessageSet(stMsg);
+
+    ELSIF (GVL_AXIS.State[nAxisInit].eState = E_AXIS_STATE.AXIS_INIT + E_PROGRESS.PROGRESS_DONE)
+    THEN
+      eInit                                   := E_PROGRESS.PROGRESS_CHECK;
+    END_IF
+  //-----------------------------------------------------------------------------
+  //-----------------------------------------------------------------------------
+  E_PROGRESS.PROGRESS_CHECK:
+    IF NOT (nAxisInit > PLC_CONSTANT.MAX_AXIS-1)
+    THEN
+      nAxisInit                               := nAxisInit + 1;
+      eInit                                   := E_PROGRESS.PROGRESS_PREPARE;
+
+    ELSE
+      eInit                                   := E_PROGRESS.PROGRESS_OCCUPIED;
+
+      stMsg.eType                             := E_MessageType.eMessageInfo;
+      stMsg.eDevice                           := e_Device.Device_MainAxis;
+      stMsg.eSubdevice                        := e_SubDevice.MainInit;
+      stMsg.iErrorNumber                      := MAX_AXIS;
+
+      stMsg.sText                             := concat('MAIN_AXIS.eInit: ', TO_STRING(E_PROGRESS.PROGRESS_DONE));
+      f_MessageSet(stMsg);
+
+      FOR nAxis := 1 TO PLC_CONSTANT.MAX_AXIS
+      DO
+        GVL_MSG_AXIS.MessageLevelAxisPtp[nAxis]  := GVL_MSG.MessageLevel;
+      END_FOR
+    END_IF
+
+  E_PROGRESS.PROGRESS_OCCUPIED:
+   eInit                                     := E_PROGRESS.PROGRESS_DONE;
+END_CASE
+//-----------------------------------------------------------------------------------------------------------------
+// INIT/
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+// /cyclic
+//-----------------------------------------------------------------------------------------------------------------
+IF (eInit <> E_PROGRESS.PROGRESS_ERROR)
+THEN
+  FOR nAxis := 1 TO PLC_CONSTANT.MAX_AXIS
+  DO
+      GVL_AXIS.Control[nAxis]();
+  END_FOR
+
+  GVL_AXIS.ParameterSelector();
+END_IF
+//-----------------------------------------------------------------------------------------------------------------
+// cyclic/
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+//  /logging
+//    - all life is problem solving
+//-----------------------------------------------------------------------------------------------------------------
+GVL_MSG_AXIS.MotionMessageData.Ctrl           REF= GVL_MSG_AXIS.MotionMessageCtrl;
+GVL_MSG_AXIS.MotionMessageData.State          REF= GVL_MSG_AXIS.MotionMessageState;
+GVL_MSG_AXIS.MotionMessageData.MessageIndex   REF= GVL_MSG_AXIS.MessageMotionIndex;
+GVL_MSG_AXIS.MotionMessageData.ErrorIndex     REF= GVL_MSG_AXIS.MessageMotionError;
+GVL_MSG_AXIS.MotionMessageData.DirRoot        :=   ADR(GVL_MSG_AXIS.LOG_DIR);
+GVL_MSG_AXIS.MotionMessageData.FileRoot       :=   ADR(GVL_MSG_AXIS.LOG_FILE);
+GVL_MSG_AXIS.MotionMessageData.MsgList        :=   ADR(GVL_MSG_AXIS.MotionMessages);
+GVL_MSG_AXIS.MotionMessageData.LocalTime      :=   ADR(GVL_MSG_AXIS.dtLocalTime);
+GVL_MSG_AXIS.MotionMessageData();               
+
+eMsgState                                     :=   f_GetState   (GVL_MSG_AXIS.MotionMessageState.State);
+eMsgProgress                                  :=   f_GetProgress(GVL_MSG_AXIS.MotionMessageState.State);
+
+CASE eMsgState
+OF
+  E_MESSAGE_STATE.MSG_STATE_NULL:
+    CASE eMsgProgress
+    OF
+      E_PROGRESS.PROGRESS_INVALID,
+      E_PROGRESS.PROGRESS_DONE:
+        IF (GVL_MSG_AXIS.MessageMotionIndex > GVL_MSG.MAX_MESSAGE/100) OR
+           (GVL_MSG_AXIS.MessageMotionError > 0)
+        THEN
+          GVL_MSG_AXIS.MotionMessageCtrl.Cmd  := E_MESSAGE_CTRL.MSG_CTRL_WRITE;
+        ELSE
+          tonIdleWriteMotion(IN := TRUE, PT:= tIdleWriteMotion);
+          IF (tonIdleWriteMotion.Q)
+          THEN
+            GVL_MSG_AXIS.MotionMessageCtrl.Cmd:= E_MESSAGE_CTRL.MSG_CTRL_WRITE;
+          END_IF
+        END_IF
+    END_CASE
+
+  E_MESSAGE_STATE.MSG_STATE_WRITE:
+    CASE eMsgProgress
+    OF
+      E_PROGRESS.PROGRESS_ERROR,
+      E_PROGRESS.PROGRESS_DONE:
+        tonIdleWriteMotion(IN := FALSE, PT:= tIdleWriteMotion);
+        GVL_MSG_AXIS.MotionMessageCtrl.Cmd    := E_MESSAGE_CTRL.MSG_CTRL_NULL;
+    END_CASE
+
+ELSE
+    CASE eMsgProgress
+    OF
+      E_PROGRESS.PROGRESS_DONE:
+        GVL_MSG_AXIS.MotionMessageCtrl.Cmd    := E_MESSAGE_CTRL.MSG_CTRL_NULL;
+    END_CASE
+END_CASE
+//-----------------------------------------------------------------------------------------------------------------
+//  logging/
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+//  /Metrics
+//-----------------------------------------------------------------------------------------------------------------
+GVL_MSG_AXIS.MetricMessageData.Ctrl           REF= GVL_MSG_AXIS.MetricMessageCtrl;
+GVL_MSG_AXIS.MetricMessageData.State          REF= GVL_MSG_AXIS.MetricMessageState;
+
+GVL_MSG_AXIS.MetricMessageData.MessageIndex   REF= GVL_MSG_AXIS.MessageMetricIndex;
+GVL_MSG_AXIS.MetricMessageData.ErrorIndex     REF= GVL_MSG_AXIS.MessageMetricError;
+
+GVL_MSG_AXIS.MetricMessageData.DirRoot        :=   ADR(GVL_MSG_AXIS.LOG_DIR);
+GVL_MSG_AXIS.MetricMessageData.FileRoot       :=   ADR(GVL_MSG_AXIS.LOG_FILE_METRIC);
+
+GVL_MSG_AXIS.MetricMessageData.MsgList        :=   ADR(GVL_MSG_AXIS.MetricMessages);
+GVL_MSG_AXIS.MetricMessageData.LocalTime      :=   ADR(GVL_MSG_AXIS.dtLocalTime);
+
+GVL_MSG_AXIS.MetricMessageData();
+
+eMtrState                                     := f_GetState   (GVL_MSG_AXIS.MetricMessageState.State);
+eMtrProgress                                  := f_GetProgress(GVL_MSG_AXIS.MetricMessageState.State);
+
+CASE eMtrState
+OF
+  E_MESSAGE_STATE.MSG_STATE_NULL:
+    CASE eMtrProgress
+    OF
+      E_PROGRESS.PROGRESS_INVALID:
+        IF (GVL_MSG_AXIS.MessageMetricIndex > GVL_MSG.MAX_MESSAGE/100) OR
+           (GVL_MSG_AXIS.MessageMetricError > 0)
+        THEN
+          GVL_MSG_AXIS.MetricMessageCtrl.Cmd  := E_MESSAGE_CTRL.MSG_CTRL_WRITE;
+        ELSE
+          tonIdleWriteMetric(IN := TRUE, PT:= tIdleWriteMetric);
+          IF (tonIdleWriteMetric.Q)
+          THEN
+            GVL_MSG_AXIS.MetricMessageCtrl.Cmd:= E_MESSAGE_CTRL.MSG_CTRL_WRITE;
+          END_IF
+        END_IF
+    END_CASE
+
+  E_MESSAGE_STATE.MSG_STATE_WRITE:
+    CASE eMtrProgress
+    OF
+      E_PROGRESS.PROGRESS_ERROR,
+      E_PROGRESS.PROGRESS_DONE:
+        tonIdleWriteMetric(IN := FALSE, PT:= tIdleWriteMetric);
+        GVL_MSG_AXIS.MetricMessageCtrl.Cmd    := E_MESSAGE_CTRL.MSG_CTRL_NULL;
+    END_CASE
+ELSE
+    CASE eMtrProgress
+    OF
+      E_PROGRESS.PROGRESS_DONE:
+        GVL_MSG_AXIS.MetricMessageCtrl.Cmd    := E_MESSAGE_CTRL.MSG_CTRL_NULL;
+    END_CASE
+END_CASE
+//-----------------------------------------------------------------------------------------------------------------
+//  Metrics/
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+
+]]></ST>
+    </Implementation>
+    <LineIds Name="MAIN_AXIS">
+      <LineId Id="1" Count="274" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

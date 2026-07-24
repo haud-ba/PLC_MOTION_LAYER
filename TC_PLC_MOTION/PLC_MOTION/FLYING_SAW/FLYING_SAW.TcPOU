@@ -1,0 +1,147 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <POU Name="FLYING_SAW" Id="{d5249fc3-8700-4c44-9ddf-d5b8791c19ee}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM FLYING_SAW
+VAR
+  eInit             : E_PROGRESS;
+
+  nAxisInit,
+  nAxis             : UINT;
+
+  stMsg             : ST_Message;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[//-----------------------------------------------------------------------------------------------------------------
+// check if compiler define is present [PLC_MOTION/CompilerDefines/Manual: SAW]
+// see PLC_CONSTANT for conditional pragma
+//-----------------------------------------------------------------------------------------------------------------
+IF NOT PLC_CONSTANT.FLY_SAW_ACTIVE THEN eInit := E_PROGRESS.PROGRESS_NOT_EXIST; RETURN; END_IF
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+// check for MAIN.eInit
+//-----------------------------------------------------------------------------------------------------------------
+IF NOT (MAIN_AXIS.eInit = E_PROGRESS.PROGRESS_DONE) THEN eInit   := E_PROGRESS.PROGRESS_INVALID; RETURN; END_IF
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+// /assign dataflow
+//-----------------------------------------------------------------------------------------------------------------
+FOR nAxis := 1 TO PLC_CONSTANT.MAX_AXIS
+DO
+  GVL_FLYING_SAW.Control[nAxis].AxisIndex     := nAxis;
+  GVL_FLYING_SAW.Control[nAxis].AxisModulo    := GVL_FLYING_SAW.Data[nAxis].rModulo;
+  GVL_FLYING_SAW.Control[nAxis].MessageLevel  := GVL_MSG_AXIS.MessageLevelAxisFly[nAxis];
+  GVL_FLYING_SAW.Control[nAxis].ItfMcAxes     := GVL_AXIS.ItfMcAxis;
+
+  GVL_FLYING_SAW.Control[nAxis].AxisCtrl      := ADR(GVL_FLYING_SAW.Ctrl);
+  GVL_FLYING_SAW.Control[nAxis].AxisState     := ADR(GVL_FLYING_SAW.State);
+  GVL_FLYING_SAW.Control[nAxis].GearData      := ADR(GVL_FLYING_SAW.Data);
+  GVL_FLYING_SAW.Control[nAxis].Options       := ADR(GVL_FLYING_SAW.Options);
+  GVL_FLYING_SAW.Control[nAxis].MoveData      := ADR(GVL_AXIS.Data);
+ END_FOR
+//-----------------------------------------------------------------------------------------------------------------
+// assign dataflow/
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+// /INIT
+//-----------------------------------------------------------------------------------------------------------------
+CASE eInit
+OF
+  E_PROGRESS.PROGRESS_INVALID,
+  E_PROGRESS.PROGRESS_DONE:
+    nAxisInit                                 := 1;
+    eInit                                     := E_PROGRESS.PROGRESS_INIT;
+
+    FOR nAxis := 1 TO PLC_CONSTANT.MAX_AXIS
+    DO
+      GVL_MSG_AXIS.MessageLevelAxisFly[nAxis] := GVL_MSG_AXIS.MessageLevel;
+    END_FOR
+  //-----------------------------------------------------------------------------
+  //-----------------------------------------------------------------------------
+  E_PROGRESS.PROGRESS_INIT:
+    stMsg.eType                               := E_MessageType.eMessageInfo;
+    stMsg.eDevice                             := e_Device.Device_FlyingSaw;
+    stMsg.eSubdevice                          := e_SubDevice.FlyingSawStartUp;
+    stMsg.iErrorNumber                        := MAX_AXIS;
+    stMsg.sText                               := concat('FLYING_SAW.eInit: ', TO_STRING(eInit));
+    f_MessageSet(stMsg);
+
+    eInit                                     := E_PROGRESS.PROGRESS_BUSY;
+  //-----------------------------------------------------------------------------
+  //-----------------------------------------------------------------------------
+  E_PROGRESS.PROGRESS_BUSY:
+    eInit                                     := E_PROGRESS.PROGRESS_PREPARE;
+  //-----------------------------------------------------------------------------
+  //-----------------------------------------------------------------------------
+  E_PROGRESS.PROGRESS_PREPARE:
+    stMsg.eType                               := E_MessageType.eMessageVerbose;
+    stMsg.eDevice                             := e_Device.Device_FlyingSaw;
+    stMsg.eSubdevice                          := e_SubDevice.FlyingSawStartUp;
+    stMsg.iErrorNumber                        := nAxisInit;
+    stMsg.sText                               := concat('AxisInit: ', TO_STRING(nAxisInit));
+
+    IF (GVL_MSG_AXIS.MessageLevelAxisFly[nAxisInit] = E_MessageType.eMessageVerbose)
+    THEN
+      f_MessageSet(stMsg);
+    END_IF
+
+    GVL_FLYING_SAW.Ctrl[nAxisInit].eCmd       := E_AXIS_CTRL.AXIS_NULL;
+    eInit                                     := E_PROGRESS.PROGRESS_STARTUP;
+  //-----------------------------------------------------------------------------
+  //-----------------------------------------------------------------------------
+  E_PROGRESS.PROGRESS_STARTUP:
+    GVL_FLYING_SAW.Ctrl[nAxisInit].eCmd       := E_AXIS_CTRL.AXIS_INIT;
+
+    IF (GVL_FLYING_SAW.State[nAxisInit].eState = E_AXIS_STATE.AXIS_INIT + E_PROGRESS.PROGRESS_ERROR)
+    THEN
+      eInit                                   := E_PROGRESS.PROGRESS_ERROR;
+
+    ELSIF (GVL_FLYING_SAW.State[nAxisInit].eState = E_AXIS_STATE.AXIS_INIT + E_PROGRESS.PROGRESS_DONE)
+    THEN
+      eInit                                   := E_PROGRESS.PROGRESS_CHECK;
+    END_IF
+  //-----------------------------------------------------------------------------
+  //-----------------------------------------------------------------------------
+  E_PROGRESS.PROGRESS_CHECK:
+    IF (nAxisInit > PLC_CONSTANT.MAX_AXIS-1)
+    THEN
+      eInit                                   := E_PROGRESS.PROGRESS_DONE;
+
+      stMsg.eType                             := E_MessageType.eMessageInfo;
+      stMsg.eDevice                           := e_Device.Device_FlyingSaw;
+      stMsg.eSubdevice                        := e_SubDevice.FlyingSawStartUp;
+      stMsg.iErrorNumber                      := MAX_AXIS;
+
+      stMsg.sText                             := concat('FLYING_SAW.eInit: ', TO_STRING(eInit));
+      f_MessageSet(stMsg);
+    ELSE
+      nAxisInit                               := nAxisInit + 1;
+      eInit                                   := E_PROGRESS.PROGRESS_PREPARE;
+    END_IF
+END_CASE
+//-----------------------------------------------------------------------------------------------------------------
+// INIT
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+// /cyclic
+//-----------------------------------------------------------------------------------------------------------------
+IF (eInit <> E_PROGRESS.PROGRESS_ERROR)
+THEN
+  FOR nAxis := 1 TO PLC_CONSTANT.MAX_AXIS
+  DO
+      GVL_FLYING_SAW.Control[nAxis].Cycle();
+  END_FOR
+END_IF
+//-----------------------------------------------------------------------------------------------------------------
+// cyclic/
+//-----------------------------------------------------------------------------------------------------------------
+
+
+
+]]></ST>
+    </Implementation>
+    <LineIds Name="FLYING_SAW">
+      <LineId Id="1" Count="126" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

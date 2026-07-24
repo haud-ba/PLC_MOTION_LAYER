@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
   <Itf Name="I_Cam_Ctrl" Id="{4e1da497-37ee-0168-2b24-5b9fbd7bcd6c}">
     <Declaration><![CDATA[INTERFACE I_Cam_Ctrl
 ]]></Declaration>
@@ -39,6 +39,12 @@
       <Declaration><![CDATA[METHOD Cycle  : e_progress
 ]]></Declaration>
     </Method>
+    <Property Name="GearData" Id="{29e79334-8275-0433-3468-1bd12dc7b2a9}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY GearData : pointer to ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_CAM_DATA]]></Declaration>
+      <Set Name="Set" Id="{66951bb9-3ec4-042a-108a-c31f69b5b650}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
     <Property Name="ItfMcAxes" Id="{9c279bcc-d788-0eae-035d-8ae9b3fba035}" FolderPath="properties\">
       <Declaration><![CDATA[PROPERTY ItfMcAxes : array[1..MAX_AXIS] of I_McAxis]]></Declaration>
       <Set Name="Set" Id="{9f1667da-a83f-0010-2d1e-715bceceb278}">
@@ -61,12 +67,6 @@
     <Property Name="MotionFunctionPoint" Id="{3ccce8b0-462d-0c84-1a27-b7acfc79c954}" FolderPath="properties\">
       <Declaration><![CDATA[PROPERTY MotionFunctionPoint : pointer to array[1..MAX_AXIS] of ST_MOTION_FUNCTION_POINT]]></Declaration>
       <Set Name="Set" Id="{8a11a43b-80fd-00e4-0e64-27354f449965}">
-        <Declaration><![CDATA[]]></Declaration>
-      </Set>
-    </Property>
-    <Property Name="GearData" Id="{29e79334-8275-0433-3468-1bd12dc7b2a9}" FolderPath="properties\">
-      <Declaration><![CDATA[PROPERTY GearData : pointer to ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_CAM_DATA]]></Declaration>
-      <Set Name="Set" Id="{66951bb9-3ec4-042a-108a-c31f69b5b650}">
         <Declaration><![CDATA[]]></Declaration>
       </Set>
     </Property>

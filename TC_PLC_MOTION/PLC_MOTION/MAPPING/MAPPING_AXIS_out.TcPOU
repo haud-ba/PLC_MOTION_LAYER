@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
-  <POU Name="MAPPING_out" Id="{f452c8f5-5dcb-0f99-160c-afb3c9dfaf6c}" SpecialFunc="None">
-    <Declaration><![CDATA[PROGRAM MAPPING_out
+  <POU Name="MAPPING_AXIS_out" Id="{f452c8f5-5dcb-0f99-160c-afb3c9dfaf6c}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM MAPPING_AXIS_out
 VAR CONSTANT
 //-----------------------------------------------------------------------------------------------------------------
 //  - compiler defines, where?: plc project properties
@@ -297,7 +297,7 @@ Check                   := TRUE;
 //--------------------------------------------------------------------------------------------]]></ST>
       </Implementation>
     </Method>
-    <LineIds Name="MAPPING_out">
+    <LineIds Name="MAPPING_AXIS_out">
       <LineId Id="316" Count="2" />
       <LineId Id="322" Count="0" />
       <LineId Id="311" Count="0" />
@@ -325,7 +325,7 @@ Check                   := TRUE;
       <LineId Id="319" Count="2" />
       <LineId Id="315" Count="0" />
     </LineIds>
-    <LineIds Name="MAPPING_out.Check">
+    <LineIds Name="MAPPING_AXIS_out.Check">
       <LineId Id="1" Count="19" />
       <LineId Id="125" Count="2" />
       <LineId Id="21" Count="19" />

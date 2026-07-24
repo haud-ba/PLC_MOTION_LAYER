@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.13">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
   <POU Name="FB_NciChannel" Id="{4fc926fe-507f-0c5c-2d9c-1283cf9bcfbb}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK ABSTRACT FB_NciChannel IMPLEMENTS I_NciChannel
 VAR
@@ -2086,143 +2086,103 @@ WriteRParams                        := _eState;
       </XmlArchive>
     </ObjectProperties>
     <LineIds Name="FB_NciChannel">
-      <LineId Id="3" Count="4" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="5" />
     </LineIds>
     <LineIds Name="FB_NciChannel.BuilDGroup">
-      <LineId Id="3" Count="111" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="112" />
     </LineIds>
     <LineIds Name="FB_NciChannel.CfgAxes.Set">
-      <LineId Id="3" Count="0" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="1" />
     </LineIds>
     <LineIds Name="FB_NciChannel.ChannelRef.Set">
-      <LineId Id="3" Count="0" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="1" />
     </LineIds>
     <LineIds Name="FB_NciChannel.Check">
-      <LineId Id="3" Count="39" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="40" />
     </LineIds>
     <LineIds Name="FB_NciChannel.ClearGroup">
-      <LineId Id="3" Count="122" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="123" />
     </LineIds>
     <LineIds Name="FB_NciChannel.ConfirmHSK">
-      <LineId Id="3" Count="83" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="84" />
     </LineIds>
     <LineIds Name="FB_NciChannel.DeleteDistanceToGo">
-      <LineId Id="3" Count="83" />
-      <LineId Id="136" Count="0" />
-      <LineId Id="132" Count="3" />
-      <LineId Id="88" Count="33" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="123" />
     </LineIds>
     <LineIds Name="FB_NciChannel.Error.Get">
-      <LineId Id="3" Count="1" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="2" />
     </LineIds>
     <LineIds Name="FB_NciChannel.Error_Get">
-      <LineId Id="3" Count="14" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="15" />
     </LineIds>
     <LineIds Name="FB_NciChannel.EStop">
-      <LineId Id="3" Count="118" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="119" />
     </LineIds>
     <LineIds Name="FB_NciChannel.GetChannelOverride">
-      <LineId Id="3" Count="1" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="2" />
     </LineIds>
     <LineIds Name="FB_NciChannel.GetItpState">
-      <LineId Id="3" Count="1" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="2" />
     </LineIds>
     <LineIds Name="FB_NciChannel.GetLoadedProg">
-      <LineId Id="3" Count="1" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="2" />
     </LineIds>
     <LineIds Name="FB_NciChannel.HSK.Get">
-      <LineId Id="3" Count="2" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="3" />
     </LineIds>
     <LineIds Name="FB_NciChannel.ItpAxes.Get">
-      <LineId Id="3" Count="10" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="11" />
     </LineIds>
     <LineIds Name="FB_NciChannel.ItpReset">
-      <LineId Id="3" Count="123" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="124" />
     </LineIds>
     <LineIds Name="FB_NciChannel.LoadProg">
-      <LineId Id="3" Count="144" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="145" />
     </LineIds>
     <LineIds Name="FB_NciChannel.M_FuncReq.Get">
-      <LineId Id="3" Count="0" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="1" />
     </LineIds>
     <LineIds Name="FB_NciChannel.MessageLevel.Set">
-      <LineId Id="3" Count="0" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="1" />
     </LineIds>
     <LineIds Name="FB_NciChannel.MFunc.Get">
-      <LineId Id="3" Count="1" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="2" />
     </LineIds>
     <LineIds Name="FB_NciChannel.Override.Get">
-      <LineId Id="4" Count="1" />
-      <LineId Id="3" Count="0" />
-      <LineId Id="6" Count="0" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="4" />
     </LineIds>
     <LineIds Name="FB_NciChannel.Override.Set">
-      <LineId Id="4" Count="1" />
-      <LineId Id="3" Count="0" />
-      <LineId Id="6" Count="0" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="4" />
     </LineIds>
     <LineIds Name="FB_NciChannel.PathVelo.Get">
-      <LineId Id="3" Count="1" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="2" />
     </LineIds>
     <LineIds Name="FB_NciChannel.Prog.Get">
-      <LineId Id="3" Count="0" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="1" />
     </LineIds>
     <LineIds Name="FB_NciChannel.Prog.Set">
-      <LineId Id="3" Count="0" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="1" />
     </LineIds>
     <LineIds Name="FB_NciChannel.R_ParameterRead.Set">
-      <LineId Id="3" Count="0" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="1" />
     </LineIds>
     <LineIds Name="FB_NciChannel.R_ParameterWrite.Set">
-      <LineId Id="3" Count="0" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="1" />
     </LineIds>
     <LineIds Name="FB_NciChannel.ReadLine">
-      <LineId Id="3" Count="139" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="140" />
     </LineIds>
     <LineIds Name="FB_NciChannel.ReadRParams">
-      <LineId Id="3" Count="122" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="123" />
     </LineIds>
     <LineIds Name="FB_NciChannel.StartStop">
-      <LineId Id="3" Count="124" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="125" />
     </LineIds>
     <LineIds Name="FB_NciChannel.StepOnAfterEStop">
-      <LineId Id="3" Count="120" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="121" />
     </LineIds>
     <LineIds Name="FB_NciChannel.WriteRParams">
-      <LineId Id="3" Count="122" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="123" />
     </LineIds>
   </POU>
 </TcPlcObject>

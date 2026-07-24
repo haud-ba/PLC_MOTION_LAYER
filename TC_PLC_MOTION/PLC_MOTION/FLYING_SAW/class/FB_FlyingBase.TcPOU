@@ -447,30 +447,16 @@ Template_1 := _eState;
       </Implementation>
     </Method>
     <LineIds Name="FB_FlyingBase">
-      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="0" />
     </LineIds>
     <LineIds Name="FB_FlyingBase.AxisModulo.Set">
       <LineId Id="1" Count="1" />
     </LineIds>
     <LineIds Name="FB_FlyingBase.GearInPos">
-      <LineId Id="1" Count="2" />
-      <LineId Id="5" Count="6" />
-      <LineId Id="13" Count="3" />
-      <LineId Id="156" Count="0" />
-      <LineId Id="166" Count="2" />
-      <LineId Id="165" Count="0" />
-      <LineId Id="17" Count="109" />
-      <LineId Id="150" Count="4" />
-      <LineId Id="127" Count="22" />
+      <LineId Id="1" Count="156" />
     </LineIds>
     <LineIds Name="FB_FlyingBase.GearInVelo">
-      <LineId Id="1" Count="2" />
-      <LineId Id="5" Count="6" />
-      <LineId Id="14" Count="1" />
-      <LineId Id="125" Count="0" />
-      <LineId Id="143" Count="2" />
-      <LineId Id="142" Count="0" />
-      <LineId Id="16" Count="108" />
+      <LineId Id="1" Count="125" />
     </LineIds>
     <LineIds Name="FB_FlyingBase.MessageLevel.Set">
       <LineId Id="1" Count="1" />

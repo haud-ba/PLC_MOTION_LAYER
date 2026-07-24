@@ -7,12 +7,14 @@ TYPE e_Device :
   // txt file logging LOG_FILE
   Device_Null,                  // NULL               - not to be used
   Device_Main,                  // MAIN(PRG)          - reserved for MAIN(PRG)
+  Device_MainAxis,              // MAIN_AXIS(PRG)     - reserved for MAIN_AXIS(PRG)
   Device_Nci,                   // NCI(PRG)           - reserved for NCI(PRG)
   Device_Cam,                   // CAM(PRG            - reserved for CAM(PRG)
   Device_Functions,             // FUNCTIONS(PRG)     - reserved for FUNCTIONS(PRG)
   Device_FlyingSaw,             // FLYING_SAW(PRG)    - reserved for FLYING_SAW(PRG)
   Device_MainApplication,       // MAIN_APP(PRG)
 
+  Device_MoverSelector,         // single mover interface for xts applications
   Device_ParameterSelector,     // fb_ParameterSelector can only exist once in a project.
   Device_Configuration,         // fb_Configuration can handle multiple files therefore only one instance is required
   Device_XmlData,               // generic XML Data (e.g. persistent data)
@@ -37,9 +39,10 @@ TYPE e_Device :
   XfcAxis           := 15000,
 
   // txt file logging LOG_FILE_METRICS
-  Metrics           := 16000,
+  MetricsXts        := 16000,   //entries from xts Metrics are written into dedicated txt file (see f_MessageSet, here's the diverter)
+  MetricsAxis       := 17000,   //entries from PLC_MOTION Metrics are written into dedicated txt file
 
-  FlyingSaw         := 17000,
+  FlyingSaw         := 18000,
 
 
   // txt file logging LOG_FILE_APP
