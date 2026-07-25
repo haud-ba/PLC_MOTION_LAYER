@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="U_FLY_CTRL" Id="{6fbc66ca-4fc6-4b63-9072-d182308ffeb5}">
+    <Declaration><![CDATA[TYPE U_FLY_CTRL :
+UNION
+
+  stCtrl              : ARRAY[1..MAX_AXIS] OF ST_FLY_CTRL;
+
+  byCtrl    AT %Q*    : ARRAY[1..MAX_AXIS] OF
+                        ARRAY[1..SIZEOF(ST_FLY_CTRL)] OF BYTE;
+
+END_UNION
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

@@ -16,6 +16,8 @@ VAR
 
   TouchState            : U_TOUCH_PROBE_STATE;
 
+  FlyState              : U_FLY_STATE;
+
 
   szAxisPara,
   szAxisInfo,
@@ -55,7 +57,7 @@ END_IF
   memcpy(ADR(GVL_FUNCTIONS.StateTrigger),    ADR(TriggerState),        SIZEOF(TriggerState));
   memcpy(ADR(GVL_FUNCTIONS.StateTouchProbe), ADR(TouchState),          SIZEOF(TouchState));
 
-]]></ST>
+  memcpy(ADR(GVL_FLYING_SAW.State),       ADR(FlyState),               SIZEOF(FlyState));]]></ST>
     </Implementation>
     <LineIds Name="MAPPING_in">
       <LineId Id="22" Count="0" />

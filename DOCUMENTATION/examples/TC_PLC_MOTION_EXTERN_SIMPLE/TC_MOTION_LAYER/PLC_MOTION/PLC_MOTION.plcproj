@@ -18,7 +18,7 @@
     <LibraryReferences>{ff26b307-1ac0-40be-ba24-df54548edd9a}</LibraryReferences>
     <Released>false</Released>
     <Title>PLC_MOTION_LAYER</Title>
-    <ProjectVersion>01.00.34</ProjectVersion>
+    <ProjectVersion>01.01.00</ProjectVersion>
     <Author>D. Hauer</Author>
     <Description>MC-PtP, NCI, Camming cyclic execution layer for motion commands</Description>
     <CompilerDefines />
@@ -34,130 +34,53 @@
     </DeploymentEvents>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="CAM\CAM.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="CAM\class\FB_CamAxis.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="CAM\class\FB_CamCtrl.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="CAM\class\I_Cam_Ctrl.TcIO">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="CAM\GVL_CAM.TcGVL">
+    <Compile Include="APPLICATION\GVL_APPLICATION.TcGVL">
       <SubType>Code</SubType>
       <LinkAlways>true</LinkAlways>
     </Compile>
-    <Compile Include="CAM\types\ST_CAM_CTRL.TcDUT">
+    <Compile Include="APPLICATION\_types\Application\E_APP_CHECK.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="CAM\types\ST_CAM_DATA.TcDUT">
+    <Compile Include="APPLICATION\_types\Application\E_APP_VARIANT.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="CAM\types\ST_CAM_INFO.TcDUT">
+    <Compile Include="APPLICATION\_types\Application\ST_APP_CTRL.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="CAM\types\ST_CAM_READ_VALUES_PARAMETER.TcDUT">
+    <Compile Include="APPLICATION\_types\Application\ST_APP_STATE.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="CAM\types\ST_CAM_STATE.TcDUT">
+    <Compile Include="APPLICATION\_types\LinkedList\E_LIST_CHECK.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="CAM\types\ST_CAM_OPTIONS.TcDUT">
+    <Compile Include="APPLICATION\_types\LinkedList\E_LIST_CTRL.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="CAM\types\ST_CAM_SCALING_DATA.TcDUT">
+    <Compile Include="APPLICATION\_types\LinkedList\E_LIST_STATE.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="CAM\types\ST_MOTION_FUNCTION.TcDUT">
+    <Compile Include="APPLICATION\_types\LinkedList\fb_Process_LinkedList.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="CAM\types\ST_MOTION_FUNCTION_POINT.TcDUT">
+    <Compile Include="APPLICATION\_types\LinkedList\fb_Process_LinkedListCtrl.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="FLYING_SAW\class\FB_FlyingBase.TcPOU">
+    <Compile Include="APPLICATION\_types\LinkedList\I_Process_LinkedList.TcIO">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="FLYING_SAW\class\FB_FlyingCtrl.TcPOU">
+    <Compile Include="APPLICATION\_types\LinkedList\ST_LIST_CTRL.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="FLYING_SAW\class\I_Fly_Ctrl.TcIO">
+    <Compile Include="APPLICATION\_types\LinkedList\ST_LIST_NODE_DATA.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="FLYING_SAW\FLYING_SAW.TcPOU">
+    <Compile Include="APPLICATION\_types\LinkedList\ST_LIST_STATE.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="FLYING_SAW\GVL_FLYING_SAW.TcGVL">
-      <SubType>Code</SubType>
-      <LinkAlways>true</LinkAlways>
-    </Compile>
-    <Compile Include="FLYING_SAW\types\ST_FLY_CTRL.TcDUT">
+    <Compile Include="APPLICATION\_types\LinkedList\ST_PROCESS_DATA.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="FLYING_SAW\types\ST_FLY_DATA.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="FLYING_SAW\types\ST_FLY_OPTIONS.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="FLYING_SAW\types\ST_FLY_STATE.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="FLYING_SAW\types\ST_FLY_SYNC_MODE.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="FUNCTIONS\FUNCTIONS.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="FUNCTIONS\GVL_FUNCTIONS.TcGVL">
-      <SubType>Code</SubType>
-      <LinkAlways>true</LinkAlways>
-    </Compile>
-    <Compile Include="FUNCTIONS\TOUCH_PROBE\FB_TouchProbe.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="FUNCTIONS\TOUCH_PROBE\I_TouchProbe.TcIO">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="FUNCTIONS\TOUCH_PROBE\types\ST_2BIT.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="FUNCTIONS\TOUCH_PROBE\types\ST_CTRL_TOUCH_PROBE.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="FUNCTIONS\TOUCH_PROBE\types\ST_DC_Input.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="FUNCTIONS\TOUCH_PROBE\types\ST_MTI_INPUT.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="FUNCTIONS\TOUCH_PROBE\types\ST_MTI_STATUS.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="FUNCTIONS\TOUCH_PROBE\types\ST_STATE_TOUCH_PROBE.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="FUNCTIONS\TRIGGER_BOX\FB_TriggerBox.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="FUNCTIONS\TRIGGER_BOX\I_TriggerBox.TcIO">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="FUNCTIONS\TRIGGER_BOX\types\ST_CTRL_TRIGGER.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="FUNCTIONS\TRIGGER_BOX\types\ST_DC_Output.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="FUNCTIONS\TRIGGER_BOX\types\ST_DC_State.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="FUNCTIONS\TRIGGER_BOX\types\ST_STATE_TRIGGER.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="FUNCTIONS\TRIGGER_BOX\types\T_TriggerControlBits.TcDUT">
+    <Compile Include="APPLICATION\_types\LinkedList\ST_PROCESS_LIST_RESULT.TcDUT">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="MAPPING\MAPPING_AXIS_in.TcPOU">
@@ -253,170 +176,312 @@
     <Compile Include="MAPPING\types\U_TRIGGER_STATE.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="NCI\class\FB_NciChannel.TcPOU">
-      <SubType>Code</SubType>
-      <CompilerDefines>NCI</CompilerDefines>
-    </Compile>
-    <Compile Include="NCI\class\FB_NciChannelCtrl.TcPOU">
-      <SubType>Code</SubType>
-      <CompilerDefines>NCI</CompilerDefines>
-    </Compile>
-    <Compile Include="NCI\class\I_NciChannel.TcIO">
+    <Compile Include="PLC_MOTION\CAM\CAM.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="NCI\class\I_Nci_Ctrl.TcIO">
+    <Compile Include="PLC_MOTION\CAM\class\FB_CamAxis.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="NCI\GVL_NCI.TcGVL">
+    <Compile Include="PLC_MOTION\CAM\class\FB_CamCtrl.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC_MOTION\CAM\class\I_Cam_Ctrl.TcIO">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC_MOTION\CAM\GVL_CAM.TcGVL">
       <SubType>Code</SubType>
       <LinkAlways>true</LinkAlways>
     </Compile>
-    <Compile Include="NCI\NCI.TcPOU">
+    <Compile Include="PLC_MOTION\CAM\types\ST_CAM_CTRL.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="NCI\types\E_NCI_CTRL.TcDUT">
-      <SubType>Code</SubType>
-      <CompilerDefines>NCI</CompilerDefines>
-    </Compile>
-    <Compile Include="NCI\types\E_NCI_CHANNEL_ERROR.TcDUT">
-      <SubType>Code</SubType>
-      <CompilerDefines>NCI</CompilerDefines>
-    </Compile>
-    <Compile Include="NCI\types\E_NCI_STATE.TcDUT">
-      <SubType>Code</SubType>
-      <CompilerDefines>NCI</CompilerDefines>
-    </Compile>
-    <Compile Include="NCI\types\E_NCI_INTERPRETER_STATE.TcDUT">
-      <SubType>Code</SubType>
-      <CompilerDefines>NCI</CompilerDefines>
-    </Compile>
-    <Compile Include="NCI\types\ST_3D_Group.TcDUT">
-      <SubType>Code</SubType>
-      <CompilerDefines>NCI</CompilerDefines>
-    </Compile>
-    <Compile Include="NCI\types\ST_NCI_CTRL.TcDUT">
-      <SubType>Code</SubType>
-      <CompilerDefines>NCI</CompilerDefines>
-    </Compile>
-    <Compile Include="NCI\types\ST_NCI_M_FUNC.TcDUT">
-      <SubType>Code</SubType>
-      <CompilerDefines>NCI</CompilerDefines>
-    </Compile>
-    <Compile Include="NCI\types\ST_Index_Group.TcDUT">
-      <SubType>Code</SubType>
-      <CompilerDefines>NCI</CompilerDefines>
-    </Compile>
-    <Compile Include="NCI\types\ST_Interface_Group.TcDUT">
-      <SubType>Code</SubType>
-      <CompilerDefines>NCI</CompilerDefines>
-    </Compile>
-    <Compile Include="NCI\types\ST_NciChannel_Ref.TcDUT">
-      <SubType>Code</SubType>
-      <CompilerDefines>NCI</CompilerDefines>
-    </Compile>
-    <Compile Include="NCI\types\ST_NCI_STATE.TcDUT">
-      <SubType>Code</SubType>
-      <CompilerDefines>NCI</CompilerDefines>
-    </Compile>
-    <Compile Include="NCI\types\ST_R_Parameter.TcDUT">
-      <SubType>Code</SubType>
-      <CompilerDefines>NCI</CompilerDefines>
-    </Compile>
-    <Compile Include="NC_PTP\class\FB_McAxisBase.TcPOU">
+    <Compile Include="PLC_MOTION\CAM\types\ST_CAM_DATA.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="NC_PTP\class\FB_McAxisCtrl.TcPOU">
+    <Compile Include="PLC_MOTION\CAM\types\ST_CAM_INFO.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="NC_PTP\class\FB_ParameterSelector.TcPOU">
+    <Compile Include="PLC_MOTION\CAM\types\ST_CAM_OPTIONS.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="NC_PTP\class\I_McAxis.TcIO">
+    <Compile Include="PLC_MOTION\CAM\types\ST_CAM_READ_VALUES_PARAMETER.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="NC_PTP\GVL_AXIS.TcGVL">
+    <Compile Include="PLC_MOTION\CAM\types\ST_CAM_SCALING_DATA.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC_MOTION\CAM\types\ST_CAM_STATE.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC_MOTION\CAM\types\ST_MOTION_FUNCTION.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC_MOTION\CAM\types\ST_MOTION_FUNCTION_POINT.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC_MOTION\FLYING_SAW\class\FB_FlyingBase.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC_MOTION\FLYING_SAW\class\FB_FlyingCtrl.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC_MOTION\FLYING_SAW\class\I_Fly_Ctrl.TcIO">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC_MOTION\FLYING_SAW\FLYING_SAW.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC_MOTION\FLYING_SAW\GVL_FLYING_SAW.TcGVL">
       <SubType>Code</SubType>
       <LinkAlways>true</LinkAlways>
     </Compile>
-    <Compile Include="NC_PTP\MAIN_AXIS.TcPOU">
+    <Compile Include="PLC_MOTION\FLYING_SAW\types\ST_FLY_CTRL.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="NC_PTP\types\axis\E_AxisEncoderType.TcDUT">
+    <Compile Include="PLC_MOTION\FLYING_SAW\types\ST_FLY_DATA.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="NC_PTP\types\axis\ST_HomeParams.TcDUT">
+    <Compile Include="PLC_MOTION\FLYING_SAW\types\ST_FLY_OPTIONS.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="NC_PTP\types\control\E_AXIS_CTRL.TcDUT">
+    <Compile Include="PLC_MOTION\FLYING_SAW\types\ST_FLY_STATE.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="NC_PTP\types\control\E_AXIS_SELECTOR.TcDUT">
+    <Compile Include="PLC_MOTION\FLYING_SAW\types\ST_FLY_SYNC_MODE.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="NC_PTP\types\control\E_AXIS_STATE.TcDUT">
+    <Compile Include="PLC_MOTION\FUNCTIONS\FUNCTIONS.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="NC_PTP\types\control\ST_AXIS_CTRL.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="NC_PTP\types\control\ST_AXIS_INFO.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="NC_PTP\types\control\ST_AXIS_LIMIT_SWITCHES.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="NC_PTP\types\control\ST_AXIS_STATE.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="NC_PTP\types\control\ST_GEAR_IN.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="NC_PTP\types\control\ST_HOMING.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="NC_PTP\types\control\ST_MOTION_OPTIONS.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="NC_PTP\types\control\ST_MOVE_DATA.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="NC_PTP\types\control\ST_NC_PARAMETER.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="NC_PTP\types\control\ST_PARAMETER_SELECTOR_CTRL.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="NC_PTP\types\control\ST_PARAMETER_SELECTOR_STATE.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="XFC\FB_Xfc.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="XFC\types\E_XFC_CHECK.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="XTS_TRANSPORT\MSG\GVL_MSG.TcGVL">
+    <Compile Include="PLC_MOTION\FUNCTIONS\GVL_FUNCTIONS.TcGVL">
       <SubType>Code</SubType>
       <LinkAlways>true</LinkAlways>
     </Compile>
-    <Compile Include="_GVL\GlobalTextList.TcGTLO">
+    <Compile Include="PLC_MOTION\FUNCTIONS\TOUCH_PROBE\FB_TouchProbe.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="_GVL\PLC_CONSTANT.TcGVL">
+    <Compile Include="PLC_MOTION\FUNCTIONS\TOUCH_PROBE\I_TouchProbe.TcIO">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC_MOTION\FUNCTIONS\TOUCH_PROBE\types\ST_2BIT.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC_MOTION\FUNCTIONS\TOUCH_PROBE\types\ST_CTRL_TOUCH_PROBE.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC_MOTION\FUNCTIONS\TOUCH_PROBE\types\ST_DC_Input.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC_MOTION\FUNCTIONS\TOUCH_PROBE\types\ST_MTI_INPUT.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC_MOTION\FUNCTIONS\TOUCH_PROBE\types\ST_MTI_STATUS.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC_MOTION\FUNCTIONS\TOUCH_PROBE\types\ST_STATE_TOUCH_PROBE.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC_MOTION\FUNCTIONS\TRIGGER_BOX\FB_TriggerBox.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC_MOTION\FUNCTIONS\TRIGGER_BOX\I_TriggerBox.TcIO">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC_MOTION\FUNCTIONS\TRIGGER_BOX\types\ST_CTRL_TRIGGER.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC_MOTION\FUNCTIONS\TRIGGER_BOX\types\ST_DC_Output.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC_MOTION\FUNCTIONS\TRIGGER_BOX\types\ST_DC_State.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC_MOTION\FUNCTIONS\TRIGGER_BOX\types\ST_STATE_TRIGGER.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC_MOTION\FUNCTIONS\TRIGGER_BOX\types\T_TriggerControlBits.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC_MOTION\NCI\class\FB_NciChannel.TcPOU">
+      <SubType>Code</SubType>
+      <CompilerDefines>NCI</CompilerDefines>
+    </Compile>
+    <Compile Include="PLC_MOTION\NCI\class\FB_NciChannelCtrl.TcPOU">
+      <SubType>Code</SubType>
+      <CompilerDefines>NCI</CompilerDefines>
+    </Compile>
+    <Compile Include="PLC_MOTION\NCI\class\I_NciChannel.TcIO">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC_MOTION\NCI\class\I_Nci_Ctrl.TcIO">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC_MOTION\NCI\GVL_NCI.TcGVL">
       <SubType>Code</SubType>
       <LinkAlways>true</LinkAlways>
     </Compile>
-    <Compile Include="_GVL\PLC_VERSION.TcGVL">
+    <Compile Include="PLC_MOTION\NCI\NCI.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC_MOTION\NCI\types\E_NCI_CHANNEL_ERROR.TcDUT">
+      <SubType>Code</SubType>
+      <CompilerDefines>NCI</CompilerDefines>
+    </Compile>
+    <Compile Include="PLC_MOTION\NCI\types\E_NCI_CTRL.TcDUT">
+      <SubType>Code</SubType>
+      <CompilerDefines>NCI</CompilerDefines>
+    </Compile>
+    <Compile Include="PLC_MOTION\NCI\types\E_NCI_INTERPRETER_STATE.TcDUT">
+      <SubType>Code</SubType>
+      <CompilerDefines>NCI</CompilerDefines>
+    </Compile>
+    <Compile Include="PLC_MOTION\NCI\types\E_NCI_STATE.TcDUT">
+      <SubType>Code</SubType>
+      <CompilerDefines>NCI</CompilerDefines>
+    </Compile>
+    <Compile Include="PLC_MOTION\NCI\types\ST_3D_Group.TcDUT">
+      <SubType>Code</SubType>
+      <CompilerDefines>NCI</CompilerDefines>
+    </Compile>
+    <Compile Include="PLC_MOTION\NCI\types\ST_Index_Group.TcDUT">
+      <SubType>Code</SubType>
+      <CompilerDefines>NCI</CompilerDefines>
+    </Compile>
+    <Compile Include="PLC_MOTION\NCI\types\ST_Interface_Group.TcDUT">
+      <SubType>Code</SubType>
+      <CompilerDefines>NCI</CompilerDefines>
+    </Compile>
+    <Compile Include="PLC_MOTION\NCI\types\ST_NciChannel_Ref.TcDUT">
+      <SubType>Code</SubType>
+      <CompilerDefines>NCI</CompilerDefines>
+    </Compile>
+    <Compile Include="PLC_MOTION\NCI\types\ST_NCI_CTRL.TcDUT">
+      <SubType>Code</SubType>
+      <CompilerDefines>NCI</CompilerDefines>
+    </Compile>
+    <Compile Include="PLC_MOTION\NCI\types\ST_NCI_M_FUNC.TcDUT">
+      <SubType>Code</SubType>
+      <CompilerDefines>NCI</CompilerDefines>
+    </Compile>
+    <Compile Include="PLC_MOTION\NCI\types\ST_NCI_STATE.TcDUT">
+      <SubType>Code</SubType>
+      <CompilerDefines>NCI</CompilerDefines>
+    </Compile>
+    <Compile Include="PLC_MOTION\NCI\types\ST_R_Parameter.TcDUT">
+      <SubType>Code</SubType>
+      <CompilerDefines>NCI</CompilerDefines>
+    </Compile>
+    <Compile Include="PLC_MOTION\NC_PTP\class\FB_McAxisBase.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC_MOTION\NC_PTP\class\FB_McAxisCtrl.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC_MOTION\NC_PTP\class\FB_ParameterSelector.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC_MOTION\NC_PTP\class\I_McAxis.TcIO">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC_MOTION\NC_PTP\GVL_AXIS.TcGVL">
       <SubType>Code</SubType>
       <LinkAlways>true</LinkAlways>
     </Compile>
-    <Compile Include="_MSG\fb_LocalTime.TcPOU">
+    <Compile Include="PLC_MOTION\NC_PTP\MAIN_AXIS.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="_MSG\fb_MessageData.TcPOU">
+    <Compile Include="PLC_MOTION\NC_PTP\types\axis\E_AxisEncoderType.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="_MSG\fb_MessageDataCtrl.TcPOU">
+    <Compile Include="PLC_MOTION\NC_PTP\types\axis\ST_HomeParams.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC_MOTION\NC_PTP\types\control\E_AXIS_CTRL.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC_MOTION\NC_PTP\types\control\E_AXIS_SELECTOR.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC_MOTION\NC_PTP\types\control\E_AXIS_STATE.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC_MOTION\NC_PTP\types\control\ST_AXIS_CTRL.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC_MOTION\NC_PTP\types\control\ST_AXIS_INFO.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC_MOTION\NC_PTP\types\control\ST_AXIS_LIMIT_SWITCHES.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC_MOTION\NC_PTP\types\control\ST_AXIS_STATE.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC_MOTION\NC_PTP\types\control\ST_GEAR_IN.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC_MOTION\NC_PTP\types\control\ST_HOMING.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC_MOTION\NC_PTP\types\control\ST_MOTION_OPTIONS.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC_MOTION\NC_PTP\types\control\ST_MOVE_DATA.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC_MOTION\NC_PTP\types\control\ST_NC_PARAMETER.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC_MOTION\NC_PTP\types\control\ST_PARAMETER_SELECTOR_CTRL.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC_MOTION\NC_PTP\types\control\ST_PARAMETER_SELECTOR_STATE.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC_MOTION\XFC\FB_Xfc.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC_MOTION\XFC\types\E_XFC_CHECK.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC_MOTION\_GVL\GlobalTextList.TcGTLO">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC_MOTION\_GVL\PLC_CONSTANT.TcGVL">
+      <SubType>Code</SubType>
+      <LinkAlways>true</LinkAlways>
+    </Compile>
+    <Compile Include="PLC_MOTION\_GVL\PLC_VERSION.TcGVL">
+      <SubType>Code</SubType>
+      <LinkAlways>true</LinkAlways>
+    </Compile>
+    <Compile Include="XTS_TRANSPORT\GVL_XTS_CONSTANTS.TcGVL">
+      <SubType>Code</SubType>
+      <LinkAlways>true</LinkAlways>
+    </Compile>
+    <Compile Include="_MSG\class\fb_LocalTime.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_MSG\class\fb_MessageData.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_MSG\class\fb_MessageDataCtrl.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_MSG\GVL_MSG_XTS.TcGVL">
+      <SubType>Code</SubType>
+      <LinkAlways>true</LinkAlways>
+    </Compile>
+    <Compile Include="_types\E_CHECK_STATE.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_types\E_PROGRESS.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_types\f_GetProgress.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_types\f_GetState.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="_MSG\f_MessageSet.TcPOU">
@@ -471,16 +536,7 @@
     <Compile Include="_MSG\types\TL_E_MESSAGETYPE.TcTLO">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="_types\E_CHECK_STATE.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="_types\E_PROGRESS.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="_types\f_GetProgress.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="_types\f_GetState.TcPOU">
+    <Compile Include="_types\T_PROCESS.TcDUT">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
@@ -577,62 +633,47 @@
     </PlaceholderReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="CAM\class" />
-    <Folder Include="CAM\types" />
-    <Folder Include="FLYING_SAW\class" />
-    <Folder Include="FLYING_SAW\types" />
-    <Folder Include="FUNCTIONS\TOUCH_PROBE" />
-    <Folder Include="FUNCTIONS\TOUCH_PROBE\types" />
-    <Folder Include="FUNCTIONS\TRIGGER_BOX" />
-    <Folder Include="FUNCTIONS\TRIGGER_BOX\types" />
+    <Folder Include="APPLICATION\_types" />
+    <Folder Include="APPLICATION\_types\Application" />
+    <Folder Include="APPLICATION\_types\LinkedList" />
     <Folder Include="MAPPING\types" />
-    <Folder Include="NCI\class" />
-    <Folder Include="NCI\files" />
-    <Folder Include="NCI\types" />
-    <Folder Include="NC_PTP\class" />
-    <Folder Include="NC_PTP\types\control" />
-    <Folder Include="NC_PTP\types\axis" />
     <Folder Include="MAPPING" />
-    <Folder Include="FUNCTIONS" />
-    <Folder Include="FLYING_SAW" />
-    <Folder Include="XFC" />
-    <Folder Include="XFC\types" />
+    <Folder Include="APPLICATION" />
+    <Folder Include="PLC_MOTION" />
+    <Folder Include="PLC_MOTION\CAM" />
+    <Folder Include="PLC_MOTION\CAM\class" />
+    <Folder Include="PLC_MOTION\CAM\types" />
+    <Folder Include="PLC_MOTION\FLYING_SAW" />
+    <Folder Include="PLC_MOTION\FLYING_SAW\class" />
+    <Folder Include="PLC_MOTION\FLYING_SAW\types" />
+    <Folder Include="PLC_MOTION\FUNCTIONS" />
+    <Folder Include="PLC_MOTION\FUNCTIONS\TOUCH_PROBE" />
+    <Folder Include="PLC_MOTION\FUNCTIONS\TOUCH_PROBE\types" />
+    <Folder Include="PLC_MOTION\FUNCTIONS\TRIGGER_BOX" />
+    <Folder Include="PLC_MOTION\FUNCTIONS\TRIGGER_BOX\types" />
+    <Folder Include="PLC_MOTION\NCI" />
+    <Folder Include="PLC_MOTION\NCI\class" />
+    <Folder Include="PLC_MOTION\NCI\files" />
+    <Folder Include="PLC_MOTION\NCI\types" />
+    <Folder Include="PLC_MOTION\NC_PTP" />
+    <Folder Include="PLC_MOTION\NC_PTP\class" />
+    <Folder Include="PLC_MOTION\NC_PTP\types" />
+    <Folder Include="PLC_MOTION\NC_PTP\types\axis" />
+    <Folder Include="PLC_MOTION\NC_PTP\types\control" />
+    <Folder Include="PLC_MOTION\XFC" />
+    <Folder Include="PLC_MOTION\XFC\types" />
+    <Folder Include="PLC_MOTION\_GVL" />
     <Folder Include="XTS_TRANSPORT" />
-    <Folder Include="XTS_TRANSPORT\MSG" />
+    <Folder Include="_MSG\class" />
     <Folder Include="_MSG\types" />
-    <Folder Include="NC_PTP" />
-    <Folder Include="NCI" />
-    <Folder Include="CAM" />
     <Folder Include="_MSG" />
-    <Folder Include="_GVL" />
-    <Folder Include="NC_PTP\types" />
     <Folder Include="_types" />
-  </ItemGroup>
-  <ItemGroup>
-    <SubObject Include="FB_CamAxis.Template">
-      <ExcludeFromBuild>true</ExcludeFromBuild>
-    </SubObject>
-    <SubObject Include="FB_FlyingBase.Template">
-      <ExcludeFromBuild>true</ExcludeFromBuild>
-    </SubObject>
-    <SubObject Include="FB_McAxisBase.Template">
-      <ExcludeFromBuild>true</ExcludeFromBuild>
-    </SubObject>
-    <SubObject Include="FB_McAxisCtrl.Template">
-      <ExcludeFromBuild>true</ExcludeFromBuild>
-    </SubObject>
-    <SubObject Include="FB_McAxisCtrl.Template">
-      <ExcludeFromBuild>true</ExcludeFromBuild>
-    </SubObject>
-    <SubObject Include="FB_NciChannelCtrl.Template">
-      <ExcludeFromBuild>true</ExcludeFromBuild>
-    </SubObject>
   </ItemGroup>
   <ItemGroup>
     <Content Include="LICENSE">
       <SubType>Content</SubType>
     </Content>
-    <Content Include="NCI\files\Test_GST.nc">
+    <Content Include="PLC_MOTION\NCI\files\Test_GST.nc">
       <SubType>Content</SubType>
     </Content>
     <None Include="PLC_MOTION.tmc">
@@ -642,8 +683,8 @@
   <ProjectExtensions>
     <PlcProjectOptions>
       <XmlArchive>
-        <Data>
-          <o xml:space="preserve" t="OptionKey">
+  <Data>
+    <o xml:space="preserve" t="OptionKey">
       <v n="Name">"&lt;ProjectRoot&gt;"</v>
       <d n="SubKeys" t="Hashtable" ckt="String" cvt="OptionKey">
         <v>{192FAD59-8248-4824-A8DE-9177C94C195A}</v>
@@ -719,7 +760,7 @@
           <d n="SubKeys" t="Hashtable" />
           <d n="Values" t="Hashtable" ckt="String" cvt="String">
             <v>DisabledWarningIds</v>
-            <v>410,5410</v>
+            <v>5410</v>
           </d>
         </o>
         <v>{E709B08B-B6E4-4966-8EED-D793A13114C6}</v>
@@ -749,16 +790,16 @@
       </d>
       <d n="Values" t="Hashtable" />
     </o>
-        </Data>
-        <TypeList>
-          <Type n="Boolean">System.Boolean</Type>
-          <Type n="ExactVersionConstraintToSave">{f9079115-a4ba-4f30-bf7c-9e76613146fc}</Type>
-          <Type n="Hashtable">System.Collections.Hashtable</Type>
-          <Type n="Int32">System.Int32</Type>
-          <Type n="OptionKey">{54dd0eac-a6d8-46f2-8c27-2f43c7e49861}</Type>
-          <Type n="String">System.String</Type>
-        </TypeList>
-      </XmlArchive>
+  </Data>
+  <TypeList>
+    <Type n="Boolean">System.Boolean</Type>
+    <Type n="ExactVersionConstraintToSave">{f9079115-a4ba-4f30-bf7c-9e76613146fc}</Type>
+    <Type n="Hashtable">System.Collections.Hashtable</Type>
+    <Type n="Int32">System.Int32</Type>
+    <Type n="OptionKey">{54dd0eac-a6d8-46f2-8c27-2f43c7e49861}</Type>
+    <Type n="String">System.String</Type>
+  </TypeList>
+</XmlArchive>
     </PlcProjectOptions>
   </ProjectExtensions>
 </Project>

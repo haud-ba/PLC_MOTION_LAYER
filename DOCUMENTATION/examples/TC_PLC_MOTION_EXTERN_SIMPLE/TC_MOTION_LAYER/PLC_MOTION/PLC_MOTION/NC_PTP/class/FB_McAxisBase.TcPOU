@@ -1,0 +1,2690 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <POU Name="FB_McAxisBase" Id="{b0a70715-8745-098e-33e9-cc5f7a367c73}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK ABSTRACT FB_McAxisBase  IMPLEMENTS I_McAxis
+VAR
+  _AxisRef                      : REFERENCE TO Tc2_MC2.AXIS_REF;
+  _pCalibrationCam              : POINTER TO BOOL;
+
+  _nErrorId                     : UDINT; // datafield for MC error
+
+  _MessageLevel                 : E_MessageType;
+
+  // MC_Power inputs for feed fwd, feed bwd, override
+  _bEnablePositive              : BOOL  := TRUE;
+  _bEnableNegative              : BOOL  := TRUE;
+  _rAxisOverride                : LREAL := 100.0;
+
+  _rValueParameterRead          : LREAL;
+  _fbReadParameter              : Tc2_MC2.MC_ReadParameter;
+  _fbWriteParameter             : Tc2_MC2.MC_WriteParameter;
+  _fbWriteParameterPersist      : Tc2_MC2.MC_WriteParameterPersistent;
+
+  // last target position datafield
+  _rLastTargetPosition          : LREAL;
+
+  // name and encoder type are read by ADSREAD instance from NC
+  _sAxisName                    : STRING(30) := 'NO NAME'; // AxisName is limited to 30 chars, IdxGrp := 4000 + _AxisRef.NcToPlc.AxisId, IdxOffs := 16#02
+  _sEncoderType                 : STRING(30) := 'NO TYPE';
+  _nEncoderType                 : UDINT;
+  _eEncoderType                 : E_AxisEncoderType;
+
+  // Motion Control FB Instances
+  _fbPower                      : Tc2_MC2.MC_Power;
+  _fbReset                      : Tc2_MC2.MC_Reset;
+  _fbHalt                       : Tc2_MC2.MC_Halt;
+  _fbStop                       : Tc2_MC2.MC_Stop;
+  _fbHome                       : Tc2_MC2.MC_Home;
+  _fbJog                        : Tc2_MC2.MC_Jog;
+  _fbMoveToPosition             : Tc2_MC2.MC_MoveAbsolute;
+  _fbMoveVelo                   : Tc2_MC2.MC_MoveVelocity;
+
+  // used for buffered moves
+  _fbMoveVelocity               : ARRAY[1..2]   OF  Tc2_MC2.MC_MoveVelocity;
+  _fbMoveAbsolute               : ARRAY[1..2]   OF  Tc2_MC2.MC_MoveAbsolute;
+
+  // ADS read instance for reading startup information from NC
+  _fbADSRead                     : ADSREAD;
+
+  // startup states for getting ADS information from NC
+  _nStartUpErrorState,
+  _nStartUp                     : DINT := 0;
+
+  _bStartUpError,
+  _bStartUp                     : BOOL;
+
+  _rCycleTime                   : LREAL;
+  _fbGetCurTaskIndex            : Tc2_System.GETCURTASKINDEX;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Folder Name="methods" Id="{e674326e-ed43-01be-1a84-509d9487c148}" />
+    <Folder Name="properties" Id="{cb335709-3f53-0ca8-0342-0b6d016a56bb}" />
+    <Property Name="AxisEnableNegative" Id="{a1aa2814-ef28-0b58-2918-1095fb38fbbe}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY AxisEnableNegative : BOOL]]></Declaration>
+      <Get Name="Get" Id="{2af4d04a-c67a-0989-0200-972cb088feaa}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[AxisEnableNegative := _bEnableNegative;
+]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{f9b48d43-b5cb-0581-30cb-023409850de3}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_bEnableNegative := AxisEnableNegative;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="AxisEnablePositive" Id="{b1ddc089-3b48-0a11-313d-0f16e9587698}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY AxisEnablePositive : BOOL]]></Declaration>
+      <Get Name="Get" Id="{86716297-6c0c-06d5-366c-d174b317d66e}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[AxisEnablePositive  := _bEnablePositive;
+]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{4580af82-6f3c-0113-02a4-7daaef9bed88}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_bEnablePositive := AxisEnablePositive;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="AxisName" Id="{dcc452a2-d3f9-0f06-025b-2034aaea8e70}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY AxisName : string(30)]]></Declaration>
+      <Get Name="Get" Id="{da0dc137-e936-0ab7-18eb-4dd0376e1850}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[AxisName := _sAxisName;
+]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="AxisRef" Id="{602f6675-ff2d-41f8-96ed-1efcbd163193}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY AxisRef : reference to AXIS_REF]]></Declaration>
+      <Get Name="Get" Id="{af2a3162-ea91-4cea-8079-4914f86c5063}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[AxisRef REF= _AxisRef;
+]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="CalibrationCam" Id="{2999b136-e7f2-0ed9-32d9-2c41cd4633ce}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY CalibrationCam : pointer to bool]]></Declaration>
+      <Get Name="Get" Id="{771a5d1e-5ee2-0432-1264-29cbfd640c0b}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[CalibrationCam  := _pCalibrationCam;
+]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{73d29774-cb40-02b1-1e9f-252b3b3d0c30}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_pCalibrationCam := CalibrationCam;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Method Name="Cycle" Id="{0952ac4a-b64d-0779-0df8-f45840c5c7eb}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD Cycle : E_PROGRESS
+VAR_INST
+  _eState           : E_PROGRESS;
+  _rValue           : LREAL;
+  _stMsg            : ST_Message;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT (__ISVALIDREF(_AxisRef))
+THEN
+  Cycle                           := E_PROGRESS.PROGRESS_ERROR;
+  RETURN;
+END_IF
+
+// call cyclic NC interface
+_AxisRef();
+
+_fbPower(
+        Axis                      := _AxisRef, 
+        Enable_Positive           := _bEnablePositive, 
+        Enable_Negative           := _bEnableNegative, 
+        Override                  := _rAxisOverride);
+
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_INVALID:
+    _fbGetCurTaskIndex();
+    _rCycleTime                   := UDINT_TO_LREAL(_TaskInfo[_fbGetCurTaskIndex.index].CycleTime)/10000.0;
+
+    _eState                       := E_PROGRESS.PROGRESS_BUSY;
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_BUSY:
+    IF (_fbPower.Error) OR
+       (_AxisRef.Status.Error)
+    THEN
+      _eState                     := E_PROGRESS.PROGRESS_ERROR;
+
+      _nErrorId                   := SEL((_fbPower.ErrorID > 0), _AxisRef.NcToPlc.ErrorCode, _fbPower.ErrorID);
+
+      IF (_nErrorId <> _stMsg.iErrorNumber)
+      THEN
+        _stMsg.eType                := E_MessageType.eMessageError;
+        _stMsg.eDevice              := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);;
+        _stMsg.eSubdevice           := e_Subdevice.AxisCycle;
+        _stMsg.iErrorNumber         := _nErrorId;
+  
+        _stMsg.sText                := concat(' : ', TO_STRING(_eState));
+  
+        f_MessageSet(_stMsg);
+      END_IF
+    ELSE
+      _eState                     := E_PROGRESS.PROGRESS_WORKING;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_WORKING:
+    // rinse, repeat
+    _eState                       := E_PROGRESS.PROGRESS_BUSY;
+    Cycle                         := E_PROGRESS.PROGRESS_WORKING;
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_ERROR:
+    IF NOT (_fbPower.Error)
+    THEN
+      _eState                     := E_PROGRESS.PROGRESS_BUSY;
+    ELSE
+      Cycle                       := E_PROGRESS.PROGRESS_ERROR;
+    END_IF
+END_CASE
+
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Disable" Id="{3cfd1816-2e58-0ba6-30c2-feff57d138a8}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD Disable : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+END_VAR
+VAR_INST
+  _eResult,
+  _eState           : E_PROGRESS;
+  _rValue           : LREAL;
+  _stMsg            : ST_Message;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT (__ISVALIDREF(_AxisRef)) THEN  Disable  := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
+
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_INIT:
+    IF Execute 
+    THEN
+      memset(ADR(_stMsg),0,SIZEOF(_stMsg));
+      _nErrorId                     := 0;
+      _rValue                       := 0;
+      _eState                       := E_PROGRESS.PROGRESS_BUSY;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_BUSY:
+    _fbPower.Enable                 := FALSE;
+    _eResult                        := Reset(FALSE);
+    _eState                         := E_PROGRESS.PROGRESS_STARTUP;
+
+  E_PROGRESS.PROGRESS_STARTUP:
+    IF _fbPower.Error OR
+       _AxisRef.Status.Error
+    THEN
+      _eState                       := E_PROGRESS.PROGRESS_PREPARE;
+
+      _stMsg.eType                  := E_MessageType.eMessageVerbose;
+      _stMsg.eDevice                := E_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             := e_Subdevice.fbPower;
+      _stMsg.iErrorNumber           := 0;
+
+      _stMsg.sText                  := concat('clear error on disable : ', TO_STRING(_eState));
+
+      IF (_MessageLevel = E_MessageType.eMessageVerbose)
+      THEN
+        f_MessageSet(_stMsg);
+      END_IF
+    ELSE
+      _eState                       := E_PROGRESS.PROGRESS_OCCUPIED;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_PREPARE:
+    _eResult                        := Reset(TRUE);
+    IF (_eResult = E_PROGRESS.PROGRESS_DONE)
+    THEN
+      _eState                       := E_PROGRESS.PROGRESS_OCCUPIED;
+
+      _stMsg.eType                  := E_MessageType.eMessageVerbose;
+      _stMsg.eDevice                := E_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             := e_Subdevice.fbPower;
+      _stMsg.iErrorNumber           := 0;
+
+      _stMsg.sText                  := concat('clear error on disable : ', TO_STRING(_eResult));
+
+      IF (_MessageLevel = E_MessageType.eMessageVerbose)
+      THEN
+        f_MessageSet(_stMsg);
+      END_IF
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_OCCUPIED:
+    IF _AxisRef.Status.Error
+    THEN
+      _nErrorId                     := _AxisRef.NcToPlc.ErrorCode;
+    
+      _stMsg.eType                  := E_MessageType.eMessageError;
+      _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             :=  e_SubDevice.fbPower;
+      _stMsg.iErrorNumber           := _nErrorId;
+
+      f_MessageSet(_stMsg);
+    
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
+
+    ELSIF NOT _AxisRef.Status.ControlLoopClosed
+    THEN
+      _eState                       := E_PROGRESS.PROGRESS_WORKING;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_WORKING:
+    _eResult                        := Reset(FALSE);
+    _eState                         := E_PROGRESS.PROGRESS_DONE;
+
+      _stMsg.eType                  := E_MessageType.eMessageVerbose;
+      _stMsg.eDevice                := E_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             := e_Subdevice.fbPower;
+      _stMsg.iErrorNumber           := 0;
+
+      _stMsg.sText                  := concat(' : ', TO_STRING(_eState));
+
+      IF (_MessageLevel = E_MessageType.eMessageVerbose)
+      THEN
+        f_MessageSet(_stMsg);
+      END_IF
+END_CASE
+
+Disable                             := _eState;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Enable" Id="{d3ecb8f6-2a8a-08cc-230d-f8b28d0b2674}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD Enable : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+END_VAR
+VAR_INST
+  _eResult,
+  _eState           : E_PROGRESS;
+  _rValue           : LREAL;
+  _stMsg            : ST_Message;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT (__ISVALIDREF(_AxisRef)) THEN  Enable  := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
+
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_INIT:
+    IF Execute 
+    THEN
+      memset(ADR(_stMsg),0,SIZEOF(_stMsg));
+      _nErrorId                     := 0;
+      _rValue                       := 0;
+      _eState                       := E_PROGRESS.PROGRESS_BUSY;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_BUSY:
+    _fbPower.Enable                 := TRUE;
+    _eResult                        := Reset(FALSE);
+    _eState                         := E_PROGRESS.PROGRESS_STARTUP;
+
+  E_PROGRESS.PROGRESS_STARTUP:
+    IF _fbPower.Error OR
+       _AxisRef.Status.Error
+    THEN
+      _eState                       := E_PROGRESS.PROGRESS_PREPARE;
+
+      _stMsg.eType                  := E_MessageType.eMessageVerbose;
+      _stMsg.eDevice                := E_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             := e_Subdevice.fbPower;
+      _stMsg.iErrorNumber           := 0;
+
+      _stMsg.sText                  := concat('clear error on enable : ', TO_STRING(_eState));
+
+      IF (_MessageLevel = E_MessageType.eMessageVerbose)
+      THEN
+        f_MessageSet(_stMsg);
+      END_IF
+    ELSE
+      _eState                       := E_PROGRESS.PROGRESS_OCCUPIED;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_PREPARE:
+    _eResult                        := Reset(TRUE);
+    IF (_eResult = E_PROGRESS.PROGRESS_DONE)
+    THEN
+      _eState                       := E_PROGRESS.PROGRESS_OCCUPIED;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_OCCUPIED:
+    IF _AxisRef.Status.Error
+    THEN
+      _nErrorId                     := _AxisRef.NcToPlc.ErrorCode;
+    
+      _stMsg.eType                  := E_MessageType.eMessageError;
+      _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             :=  e_SubDevice.fbPower;
+      _stMsg.iErrorNumber           := _nErrorId;
+    
+      f_MessageSet(_stMsg);
+
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
+
+    ELSIF _AxisRef.Status.ControlLoopClosed
+    THEN
+      _eState                       := E_PROGRESS.PROGRESS_WORKING;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_WORKING:
+    _eResult                        := Reset(FALSE);
+    _eState                         := E_PROGRESS.PROGRESS_DONE;
+
+      _stMsg.eType                  := E_MessageType.eMessageVerbose;
+      _stMsg.eDevice                := E_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             := e_Subdevice.fbPower;
+      _stMsg.iErrorNumber           := 0;
+
+      _stMsg.sText                  := concat(' : ', TO_STRING(_eState));
+
+      IF (_MessageLevel = E_MessageType.eMessageVerbose)
+      THEN
+        f_MessageSet(_stMsg);
+      END_IF
+END_CASE
+
+Enable                              := _eState;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="EncoderType" Id="{dd9d7c97-af96-007b-0caa-e74acc85ce7f}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY EncoderType : E_AxisEncoderType]]></Declaration>
+      <Get Name="Get" Id="{67c78f5d-4012-0b7e-3910-20eadd409eb3}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[EncoderType := _eEncoderType;
+]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="ErrorId" Id="{d56c7e0e-35a6-0639-16b7-19f40aaa065b}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY ErrorId : udint]]></Declaration>
+      <Get Name="Get" Id="{0b923b10-f0c2-0676-20bc-0da42dc2410d}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[ErrorId := _nErrorId;
+]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="Halt" Id="{ddc30265-22a2-0ad6-2ef2-c12a5a7121f8}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD Halt : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+  Dec               : LREAL;
+  Jerk              : LREAL;
+END_VAR
+VAR_INST
+  _eState           : E_PROGRESS;
+  _rValue           : LREAL;
+  _stMsg            : ST_Message;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT (__ISVALIDREF(_AxisRef)) THEN  Halt  := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
+
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_INIT:
+    IF Execute 
+    THEN
+      memset(ADR(_stMsg),0,SIZEOF(_stMsg));
+      _nErrorId                     := 0;
+      _rValue                       := 0;
+      _eState                       := E_PROGRESS.PROGRESS_BUSY;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_BUSY:
+    _eState                         := E_PROGRESS.PROGRESS_OCCUPIED;
+    _fbHalt(
+              Axis                  := _AxisRef, 
+              Execute               := FALSE, 
+              Deceleration          := Dec, 
+              Jerk                  := Jerk, 
+              BufferMode            := Tc2_MC2.MC_BufferMode.MC_Aborting);
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_OCCUPIED:
+    _fbHalt(
+              Axis                  := _AxisRef, 
+              Execute               := TRUE, 
+              Deceleration          := Dec, 
+              Jerk                  := Jerk, 
+              BufferMode            := Tc2_MC2.MC_BufferMode.MC_Aborting);
+
+    IF _fbhalt.Error
+    THEN
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
+        _nErrorId                   := _fbHalt.ErrorID;
+
+        _stMsg.eType                := E_MessageType.eMessageError;
+        _stMsg.eDevice              := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+        _stMsg.eSubdevice           := e_SubDevice.fbHalt;
+        _stMsg.iErrorNumber         := _nErrorId;
+
+        _stMsg.sText                := concat(' : ', TO_STRING(_eState));
+
+        f_MessageSet(_stMsg);
+
+        _fbHalt(
+              Axis                  := _AxisRef, 
+              Execute               := FALSE);
+    ELSE
+      IF _fbHalt.Done OR
+         _AxisRef.Status.NotMoving
+      THEN
+        _eState                     := E_PROGRESS.PROGRESS_WORKING;
+
+      ELSIF _fbHalt.CommandAborted
+      THEN
+        _eState                     := E_PROGRESS.PROGRESS_BUSY;
+
+        _stMsg.eType                := E_MessageType.eMessageWarning;
+        _stMsg.eDevice              := E_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+        _stMsg.eSubdevice           := e_Subdevice.fbHalt;
+        _stMsg.iErrorNumber         := 0;
+    
+        _stMsg.sText                := concat('command aborted : ', TO_STRING(_eState));
+
+        IF (_MessageLevel > E_MessageType.eMessageError)
+        THEN
+          f_MessageSet(_stMsg);
+        END_IF
+      END_IF
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_WORKING:
+    _fbHalt(
+              Axis                  := _AxisRef, 
+              Execute               := FALSE);
+
+    _eState                         := E_PROGRESS.PROGRESS_DONE;
+
+    _stMsg.eType                    := E_MessageType.eMessageVerbose;
+    _stMsg.eDevice                  := E_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+    _stMsg.eSubdevice               := e_Subdevice.fbHalt;
+    _stMsg.iErrorNumber             := 0;
+
+    _stMsg.sText                    := concat(' : ', TO_STRING(_eState));
+
+    IF (_MessageLevel = E_MessageType.eMessageVerbose)
+    THEN
+      f_MessageSet(_stMsg);
+    END_IF
+END_CASE
+
+Halt := _eState;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Home" Id="{9f6b266a-70b1-05d8-2838-695e2d6a6f25}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD Home : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+  Position          : LREAL := DEFAULT_HOME_POSITION;
+  HomingMode        : Tc2_MC2.MC_HomingMode := MC_DefaultHoming;
+  Options           : Tc2_MC2.ST_HomingOptions;
+END_VAR
+VAR_INST
+  _eState           : E_PROGRESS;
+  _sValue           : STRING(40);
+  _rValue           : LREAL;
+  _stMsg            : ST_Message;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT (__ISVALIDREF(_AxisRef)) THEN  Home  := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
+
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_INIT:
+    IF Execute 
+    THEN
+      memset(ADR(_stMsg), 0,SIZEOF(_stMsg));
+      memset(ADR(_sValue),0,SIZEOF(_sValue));
+
+      _nErrorId                     := 0;
+      _rValue                       := 0;
+      _eState                       := E_PROGRESS.PROGRESS_BUSY;
+
+      IF NOT (_pCalibrationCam <> 0) 
+      THEN
+        _eState                     := E_PROGRESS.PROGRESS_ERROR;
+        // prevent page fault
+        _sValue                     := 'Pointer to calibration cam not set';
+
+        _nErrorId                   := 666;
+
+        _stMsg.eType                := E_MessageType.eMessageError;
+        _stMsg.eDevice              := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+        _stMsg.eSubdevice           := e_SubDevice.fbHome;
+        _stMsg.iErrorNumber         := _nErrorId;
+        _stMsg.sText                := _sValue;
+
+        f_MessageSet(_stMsg);
+      END_IF
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_BUSY:
+    _eState                         := E_PROGRESS.PROGRESS_OCCUPIED;
+    _fbHome(
+            Axis                    := _AxisRef, 
+            Execute                 := FALSE, 
+            Position                := Position, 
+            HomingMode              := HomingMode, 
+            Options                 := Options, 
+            bCalibrationCam         := _pCalibrationCam^);
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_OCCUPIED:
+    _fbHome(
+            Execute                 := TRUE, 
+            Axis                    := _AxisRef);
+
+    IF _fbHome.Done
+    THEN
+      _eState                       := E_PROGRESS.PROGRESS_WORKING;
+    ELSE
+      IF _fbHome.Error
+      THEN
+        _eState                     := E_PROGRESS.PROGRESS_ERROR;
+        _nErrorId                   := _fbHome.ErrorID;
+
+        _stMsg.eType                := E_MessageType.eMessageError;
+        _stMsg.eDevice              := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+        _stMsg.eSubdevice           :=  e_SubDevice.fbHome;
+        _stMsg.iErrorNumber         := _nErrorId;
+
+        f_MessageSet(_stMsg);
+
+        _fbHome(
+            Execute                 := FALSE, 
+            Axis                    := _AxisRef);
+      END_IF
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_WORKING:
+    _fbHome(
+            Execute                 := FALSE, 
+            Axis                    := _AxisRef);
+
+    _eState                         := E_PROGRESS.PROGRESS_DONE;
+
+    _stMsg.eType                    := E_MessageType.eMessageVerbose;
+    _stMsg.eDevice                  := E_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+    _stMsg.eSubdevice               := e_Subdevice.fbHome;
+    _stMsg.iErrorNumber             := 0;
+
+    _stMsg.sText                    := concat(' : ', TO_STRING(_eState));
+    IF (_MessageLevel = E_MessageType.eMessageVerbose)
+    THEN
+      f_MessageSet(_stMsg);
+    END_IF
+END_CASE
+
+Home                                := _eState;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="LastTargetPosition" Id="{2acd46d7-7633-4de0-a1cd-d9c011a0531d}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY LastTargetPosition : LREAL]]></Declaration>
+      <Get Name="Get" Id="{44bd33b0-d2ed-4f12-a889-fee69fbf5f14}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="MessageLevel" Id="{2956f01c-5a31-0fd3-2984-6a25fec4a9a5}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY MessageLevel : E_MessageType]]></Declaration>
+      <Set Name="Set" Id="{407def13-56cd-0f2f-2df4-a6018cba907f}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_MessageLevel := MessageLevel;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Method Name="MovePosBuffer" Id="{c85dc519-a612-0a41-1a3d-8c9a1d3f1397}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD MovePosBuffer : E_PROGRESS
+VAR_INPUT
+  bEnable          : BOOL;
+  Position        : LREAL;
+  Vel             : LREAL;
+  Acc             : LREAL;
+  Dec             : LREAL;
+  Jerk            : LREAL;
+  BufferMode      : Tc2_MC2.MC_BufferMode;
+END_VAR
+VAR_INST
+  _eState           : E_PROGRESS;
+  _rValue           : LREAL;
+  _stMsg            : ST_Message;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT (__ISVALIDREF(_AxisRef)) THEN  MovePosBuffer  := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT bEnable THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
+
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_INIT:
+    IF bEnable 
+    THEN
+      memset(ADR(_stMsg),0,SIZEOF(_stMsg));
+      _nErrorId                     := 0;
+      _rValue                       := Position;
+
+      _eState                       := E_PROGRESS.PROGRESS_BUSY;
+
+      _stMsg.eType                  := E_MessageType.eMessageVerbose;
+      _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             := e_SubDevice.fbMoveAbsolute1;
+      _stMsg.iErrorNumber           := 0;
+
+      _stMsg.sText                  := concat('FB start : ', TO_STRING(_rValue));
+
+      IF (_MessageLevel = E_MessageType.eMessageVerbose)
+      THEN
+        f_MessageSet(_stMsg);
+      END_IF
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_BUSY:
+    _eState                         := E_PROGRESS.PROGRESS_STARTUP;
+    _fbMoveAbsolute[1](
+                    Axis            := _AxisRef,
+                    Execute         := FALSE);
+
+    _fbMoveAbsolute[2](
+                    Axis            := _AxisRef,
+                    Execute         := FALSE);
+
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_STARTUP:
+    _fbMoveAbsolute[1](
+                    Axis            := _AxisRef, 
+                    Execute         := TRUE,
+                    Position        := _rValue, 
+                    Velocity        := Vel, 
+                    Acceleration    := Acc, 
+                    Deceleration    := Dec, 
+                    Jerk            := Jerk, 
+                    BufferMode      := BufferMode);
+
+    _fbMoveAbsolute[2](
+                    Axis            := _AxisRef,
+                    Execute         := FALSE);
+
+    _rLastTargetPosition            := _fbMoveAbsolute[1].Position;
+
+    IF _fbMoveAbsolute[1].Error
+    THEN
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
+      _nErrorId                     := _fbMoveAbsolute[1].ErrorID;
+    
+      _stMsg.eType                  := E_MessageType.eMessageError;
+      _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             :=  e_SubDevice.fbMoveAbsolute1;
+      _stMsg.iErrorNumber           := _nErrorId;
+    
+      _stMsg.sText                  := concat(' : ', TO_STRING(_eState));
+    
+      f_MessageSet(_stMsg);
+
+    ELSIF (_fbMoveAbsolute[1].Busy)
+    THEN
+      _eState                       := E_PROGRESS.PROGRESS_PREPARE;
+
+      _stMsg.eType                  := E_MessageType.eMessageVerbose;
+      _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             :=  e_SubDevice.fbMoveAbsolute1;
+      _stMsg.iErrorNumber           := 0;
+
+      _stMsg.sText                  := concat('FB busy: ', TO_STRING(_eState));
+
+      IF (_MessageLevel = E_MessageType.eMessageVerbose)
+      THEN
+        f_MessageSet(_stMsg);
+      END_IF
+
+    ELSIF (_fbMoveAbsolute[1].CommandAborted)
+    THEN
+      _eState                       := E_PROGRESS.PROGRESS_PREPARE;
+
+      _stMsg.eType                  := E_MessageType.eMessageVerbose;
+      _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             :=  e_SubDevice.fbMoveAbsolute1;
+      _stMsg.iErrorNumber           := 0;
+
+      _stMsg.sText                  := concat('FB aborted: ', TO_STRING(_eState));
+
+      IF (_MessageLevel = E_MessageType.eMessageVerbose)
+      THEN
+        f_MessageSet(_stMsg);
+      END_IF
+
+    ELSIF (_fbMoveAbsolute[1].Done)
+    THEN
+      _eState                       := E_PROGRESS.PROGRESS_PREPARE;
+
+      _stMsg.eType                  := E_MessageType.eMessageVerbose;
+      _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             :=  e_SubDevice.fbMoveAbsolute1;
+      _stMsg.iErrorNumber           := 0;
+
+      _stMsg.sText                  := concat('FB done: ', TO_STRING(_eState));
+
+      IF (_MessageLevel = E_MessageType.eMessageVerbose)
+      THEN
+        f_MessageSet(_stMsg);
+      END_IF
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_PREPARE:
+    _fbMoveAbsolute[1](
+                    Axis            := _AxisRef);
+    _fbMoveAbsolute[2](
+                    Axis            := _AxisRef,
+                    Execute         := FALSE);
+
+    IF _fbMoveAbsolute[1].Error
+    THEN
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
+      _nErrorId                     := _fbMoveAbsolute[1].ErrorID;
+    
+      _stMsg.eType                  := E_MessageType.eMessageError;
+      _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             :=  e_SubDevice.fbMoveAbsolute1;
+      _stMsg.iErrorNumber           := _nErrorId;
+    
+      _stMsg.sText                  := concat(' : ', TO_STRING(_eState));
+    
+      f_MessageSet(_stMsg);
+
+    ELSIF (Position <> _rValue)
+    THEN
+      IF _fbMoveAbsolute[1].Active
+      THEN
+        _fbMoveAbsolute[1](
+                    Axis            := _AxisRef, 
+                    Execute         := FALSE);
+  
+        _eState                       := E_PROGRESS.PROGRESS_CHECK;
+  
+        _stMsg.eType                  := E_MessageType.eMessageVerbose;
+        _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+        _stMsg.eSubdevice             :=  e_SubDevice.fbMoveAbsolute2;
+        _stMsg.iErrorNumber           := 0;
+  
+        _stMsg.sText                  := concat('Position changed: ', TO_STRING(_rValue));
+        _stMsg.sText                  := concat(_stMsg.sText        , ' to ');
+        _stMsg.sText                  := concat(_stMsg.sText        , TO_STRING(Position));
+  
+        IF (_MessageLevel = E_MessageType.eMessageVerbose)
+        THEN
+          f_MessageSet(_stMsg);
+        END_IF
+
+        _rValue                       := Position;
+      END_IF
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_CHECK:
+    _fbMoveAbsolute[1](
+                    Axis            := _AxisRef,
+                    Execute         := FALSE);
+
+    _fbMoveAbsolute[2](
+                    Axis            := _AxisRef, 
+                    Execute         := TRUE,
+                    Position        := _rValue, 
+                    Velocity        := Vel, 
+                    Acceleration    := Acc, 
+                    Deceleration    := Dec, 
+                    Jerk            := Jerk, 
+                    BufferMode      := BufferMode);
+
+    _rLastTargetPosition            := _fbMoveAbsolute[2].Position;
+
+    IF _fbMoveAbsolute[2].Error
+    THEN
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
+      _nErrorId                     := _fbMoveAbsolute[2].ErrorID;
+    
+      _stMsg.eType                  := E_MessageType.eMessageError;
+      _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             :=  e_SubDevice.fbMoveAbsolute2;
+      _stMsg.iErrorNumber           := _nErrorId;
+    
+      _stMsg.sText                  := concat(' : ', TO_STRING(_eState));
+    
+      f_MessageSet(_stMsg);
+
+    ELSIF (_fbMoveAbsolute[2].Busy)
+    THEN
+      _eState                       := E_PROGRESS.PROGRESS_OCCUPIED;
+
+      _stMsg.eType                  := E_MessageType.eMessageVerbose;
+      _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             :=  e_SubDevice.fbMoveAbsolute2;
+      _stMsg.iErrorNumber           := 0;
+
+      _stMsg.sText                  := concat('FB busy: ', TO_STRING(_eState));
+
+      IF (_MessageLevel = E_MessageType.eMessageVerbose)
+      THEN
+        f_MessageSet(_stMsg);
+      END_IF
+
+    ELSIF (_fbMoveAbsolute[2].CommandAborted)
+    THEN
+      _eState                       := E_PROGRESS.PROGRESS_OCCUPIED;
+
+      _stMsg.eType                  := E_MessageType.eMessageVerbose;
+      _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             :=  e_SubDevice.fbMoveAbsolute2;
+      _stMsg.iErrorNumber           := 0;
+
+      _stMsg.sText                  := concat('FB aborted: ', TO_STRING(_eState));
+
+      IF (_MessageLevel = E_MessageType.eMessageVerbose)
+      THEN
+        f_MessageSet(_stMsg);
+      END_IF
+
+    ELSIF (_fbMoveAbsolute[2].Done)
+    THEN
+      _eState                       := E_PROGRESS.PROGRESS_OCCUPIED;
+
+      _stMsg.eType                  := E_MessageType.eMessageVerbose;
+      _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             :=  e_SubDevice.fbMoveAbsolute2;
+      _stMsg.iErrorNumber           := 0;
+
+      _stMsg.sText                  := concat('FB done: ', TO_STRING(_eState));
+
+      IF (_MessageLevel = E_MessageType.eMessageVerbose)
+      THEN
+        f_MessageSet(_stMsg);
+      END_IF
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_OCCUPIED:
+    _fbMoveAbsolute[1](
+                    Axis            := _AxisRef,
+                    Execute         := FALSE);
+
+    _fbMoveAbsolute[2](
+                    Axis            := _AxisRef);
+
+    IF _fbMoveAbsolute[2].Error
+    THEN
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
+      _nErrorId                     := _fbMoveAbsolute[2].ErrorID;
+    
+      _stMsg.eType                  := E_MessageType.eMessageError;
+      _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             :=  e_SubDevice.fbMoveAbsolute2;
+      _stMsg.iErrorNumber           := _nErrorId;
+    
+      _stMsg.sText                  := concat(' : ', TO_STRING(_eState));
+    
+      f_MessageSet(_stMsg);
+
+    ELSIF (Position <> _rValue)
+    THEN
+      IF _fbMoveAbsolute[2].Active
+      THEN
+        _fbMoveAbsolute[2](Axis       := _AxisRef,
+                           Execute    := FALSE);
+  
+        _eState                       := E_PROGRESS.PROGRESS_STARTUP;
+  
+        _stMsg.eType                  := E_MessageType.eMessageVerbose;
+        _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+        _stMsg.eSubdevice             :=  e_SubDevice.fbMoveAbsolute1;
+        _stMsg.iErrorNumber           := 0;
+  
+        _stMsg.sText                  := concat('Position changed: ', TO_STRING(_rValue));
+        _stMsg.sText                  := concat(_stMsg.sText        , ' to ');
+        _stMsg.sText                  := concat(_stMsg.sText        , TO_STRING(Position));
+  
+        IF (_MessageLevel = E_MessageType.eMessageVerbose)
+        THEN
+          f_MessageSet(_stMsg);
+        END_IF
+ 
+        _rValue                       := Position;
+      END_IF
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_INIT,
+  E_PROGRESS.PROGRESS_ERROR:
+    _fbMoveAbsolute[1](
+                    Axis            := _AxisRef,
+                    Execute         := FALSE);
+
+    _fbMoveAbsolute[2](
+                    Axis            := _AxisRef,
+                    Execute         := FALSE);
+END_CASE
+
+
+MovePosBuffer                       := _eState;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="MoveToPos" Id="{9983f17a-1ed1-0daf-01b6-9e9adfd03ef3}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD MoveToPos : E_PROGRESS
+VAR_INPUT
+  Execute         : BOOL;
+  Position        : LREAL;
+  Vel             : LREAL;
+  Acc             : LREAL;
+  Dec             : LREAL;
+  Jerk            : LREAL;
+  BufferMode      : Tc2_MC2.MC_BufferMode;
+END_VAR
+VAR_INST
+  _eState           : E_PROGRESS;
+  _rValue           : LREAL;
+  _stMsg            : ST_Message;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT (__ISVALIDREF(_AxisRef)) THEN  MoveToPos  := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
+
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_INIT:
+    IF Execute 
+    THEN
+      memset(ADR(_stMsg),0,SIZEOF(_stMsg));
+      _nErrorId                     := 0;
+      _rValue                       := 0;
+      _eState                       := E_PROGRESS.PROGRESS_BUSY;
+
+      _stMsg.eType                  := E_MessageType.eMessageInfo;
+      _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             := e_SubDevice.fbMovePtP;
+      _stMsg.iErrorNumber           := 0;
+
+      _stMsg.sText                  := concat(' : ', TO_STRING(Position));
+
+      IF (_MessageLevel > E_MessageType.eMessageError)
+      THEN
+        f_MessageSet(_stMsg);
+      END_IF
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_BUSY:
+    _eState                         := E_PROGRESS.PROGRESS_STARTUP;
+    _rValue                         := Position;
+
+    _fbMoveToPosition(
+                    Axis            := _AxisRef,
+                    Execute         := FALSE);
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_STARTUP:
+    _eState                         := E_PROGRESS.PROGRESS_PREPARE;
+    _fbMoveToPosition(
+                    Axis            := _AxisRef, 
+                    Execute         := TRUE,
+                    Position        := _rValue, 
+                    Velocity        := Vel, 
+                    Acceleration    := Acc, 
+                    Deceleration    := Dec, 
+                    Jerk            := Jerk, 
+                    BufferMode      := BufferMode);
+
+    _rLastTargetPosition            := _fbMoveToPosition.Position;
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_PREPARE:
+    _fbMoveToPosition(
+                    Axis            := _AxisRef);
+
+    IF (_fbMoveToPosition.Error)
+    THEN
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
+      _nErrorId                     := _fbMoveToPosition.ErrorID;
+    
+      _stMsg.eType                  := E_MessageType.eMessageError;
+      _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             :=  e_SubDevice.fbMovePtP;
+      _stMsg.iErrorNumber           := _nErrorId;
+
+      _stMsg.sText                  := concat(' : ', TO_STRING(_eState));
+    
+      f_MessageSet(_stMsg);
+
+    ELSIF (_fbMoveToPosition.CommandAborted)
+    THEN
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
+      _nErrorId                     := _fbMoveToPosition.ErrorID;
+
+      _stMsg.eType                  := E_MessageType.eMessageError;
+      _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             := e_SubDevice.fbMovePtP;
+      _stMsg.iErrorNumber           := _nErrorId;
+
+      _stMsg.sText                  := concat('FB aborted: ', TO_STRING(_eState));
+
+      f_MessageSet(_stMsg);
+
+    ELSIF (_fbMoveToPosition.Active)
+    THEN
+      _eState                       := E_PROGRESS.PROGRESS_OCCUPIED;
+
+      _stMsg.eType                  := E_MessageType.eMessageVerbose;
+      _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             := e_SubDevice.fbMovePtP;
+      _stMsg.iErrorNumber           := 0;
+
+      _stMsg.sText                  := concat('FB active: ', TO_STRING(_eState));
+
+      IF (_MessageLevel = E_MessageType.eMessageVerbose)
+      THEN
+        f_MessageSet(_stMsg);
+      END_IF
+
+    ELSIF (_fbMoveToPosition.Done)
+    THEN
+      _eState                       := E_PROGRESS.PROGRESS_STILL_WORKING;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_OCCUPIED:
+    _fbMoveToPosition(
+                    Axis            := _AxisRef);
+
+    IF (_fbMoveToPosition.Error)
+    THEN
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
+      _nErrorId                     := _fbMoveToPosition.ErrorID;
+    
+      _stMsg.eType                  := E_MessageType.eMessageError;
+      _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             :=  e_SubDevice.fbMovePtP;
+      _stMsg.iErrorNumber           := _nErrorId;
+
+      _stMsg.sText                  := concat(' : ', TO_STRING(_eState));
+
+      f_MessageSet(_stMsg);
+
+    ELSIF (_fbMoveToPosition.CommandAborted)
+    THEN
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
+      _nErrorId                     := _fbMoveToPosition.ErrorID;
+    
+      _stMsg.eType                  := E_MessageType.eMessageError;
+      _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             :=  e_SubDevice.fbMovePtP;
+      _stMsg.iErrorNumber           := _nErrorId;
+
+      _stMsg.sText                  := concat('FB aborted : ', TO_STRING(_eState));
+
+      f_MessageSet(_stMsg);
+
+    ELSIF (_fbMoveToPosition.Done)
+    THEN
+      _eState                       := E_PROGRESS.PROGRESS_STILL_WORKING;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_STILL_WORKING:
+    _eState                         := E_PROGRESS.PROGRESS_DONE;
+
+    _fbMoveToPosition(
+                  Axis              := _AxisRef,
+                  Execute           := FALSE);
+
+    _stMsg.eType                    := E_MessageType.eMessageVerbose;
+    _stMsg.eDevice                  := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+    _stMsg.eSubdevice               := e_SubDevice.fbMovePtP;
+    _stMsg.iErrorNumber             := 0;
+
+    _stMsg.sText                    := concat(' : ', TO_STRING(_eState));
+
+    IF (_MessageLevel = E_MessageType.eMessageVerbose)
+    THEN
+      f_MessageSet(_stMsg);
+    END_IF
+END_CASE
+
+MoveToPos                           := _eState;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="MoveVelo" Id="{f336fcbe-ff7a-0e9f-3cdd-2eac3cc75bff}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD MoveVelo : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+  Velocity          : LREAL;
+  Acc               : LREAL;
+  Dec               : LREAL;
+  Jerk              : LREAL;
+  Direction         : Tc2_MC2.MC_Direction := MC_Positive_Direction;
+  BufferMode        : Tc2_MC2.MC_BufferMode;
+END_VAR
+VAR_INST
+  _eState           : E_PROGRESS;
+  _rValue           : LREAL;
+  _stMsg            : ST_Message;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT (__ISVALIDREF(_AxisRef)) THEN  MoveVelo  := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
+
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_INIT:
+    IF Execute 
+    THEN
+      memset(ADR(_stMsg),0,SIZEOF(_stMsg));
+      _nErrorId                     := 0;
+      _rValue                       := Velocity;
+      _eState                       := E_PROGRESS.PROGRESS_BUSY;
+
+      _stMsg.eType                  := E_MessageType.eMessageInfo;
+      _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             := e_SubDevice.fbMoveVelo;
+      _stMsg.iErrorNumber           := 0;
+
+      _stMsg.sText                  := concat('FB start : ', TO_STRING(_rValue));
+
+      IF (_MessageLevel > E_MessageType.eMessageError)
+      THEN
+        f_MessageSet(_stMsg);
+      END_IF
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_BUSY:
+    _eState                         := E_PROGRESS.PROGRESS_STARTUP;
+    _fbMoveVelo(
+                      Axis          := _AxisRef, 
+                      Execute       := FALSE, 
+                      Velocity      := _rValue, 
+                      Acceleration  := Acc, 
+                      Deceleration  := Dec, 
+                      Jerk          := Jerk, 
+                      Direction     := Direction, 
+                      BufferMode    := BufferMode);
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_STARTUP:
+    _fbMoveVelo(
+                      Axis          := _AxisRef, 
+                      Execute       := TRUE);
+    _eState                         := E_PROGRESS.PROGRESS_OCCUPIED;
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_OCCUPIED:
+    _fbMoveVelo(
+                      Axis          := _AxisRef);
+
+    IF _fbMoveVelo.Error
+    THEN
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
+      _nErrorId                     := _fbMoveVelo.ErrorID;
+    
+      _stMsg.eType                  := E_MessageType.eMessageError;
+      _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             :=  e_SubDevice.fbMoveVelo;
+      _stMsg.iErrorNumber           := _nErrorId;
+
+      _stMsg.sText                  := concat(' : ', TO_STRING(_eState));
+
+      f_MessageSet(_stMsg);
+
+      _fbMoveVelo(
+                      Axis          := _AxisRef, 
+                      Execute       := FALSE);
+
+    ELSIF _fbMoveVelo.CommandAborted
+    THEN
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
+
+      _nErrorId                     := _fbMoveVelo.ErrorID;
+    
+      _stMsg.eType                  := E_MessageType.eMessageError;
+      _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             :=  e_SubDevice.fbMoveVelo;
+      _stMsg.iErrorNumber           := _nErrorId;
+
+      _stMsg.sText                  := concat('FB aborted : ', TO_STRING(_eState));
+
+      f_MessageSet(_stMsg);
+
+      _fbMoveVelo(
+                      Axis          := _AxisRef, 
+                      Execute       := FALSE);
+    
+    ELSIF _fbMoveVelo.InVelocity
+    THEN
+      _eState                       := E_PROGRESS.PROGRESS_WORKING;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_WORKING:
+    _fbMoveVelo(
+                      Axis          := _AxisRef, 
+                      Execute       := FALSE);
+
+    _eState                         := E_PROGRESS.PROGRESS_DONE;
+
+    _stMsg.eType                    := E_MessageType.eMessageVerbose;
+    _stMsg.eDevice                  := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+    _stMsg.eSubdevice               := e_SubDevice.fbMoveVelo;
+    _stMsg.iErrorNumber             := 0;
+
+    _stMsg.sText                    := concat('FB InVelocity : ', TO_STRING(_eState));
+
+    IF (_MessageLevel = E_MessageType.eMessageVerbose)
+    THEN
+      f_MessageSet(_stMsg);
+    END_IF
+END_CASE
+
+
+MoveVelo                            := _eState;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="MoveVeloBuffer" Id="{6580e262-5fae-068b-31a4-0bea4fa7cdc2}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD MoveVeloBuffer : E_PROGRESS
+VAR_INPUT
+  bEnable          : BOOL;
+  Velocity        : LREAL;
+  Acc             : LREAL;
+  Dec             : LREAL;
+  Jerk            : LREAL;
+  BufferMode      : Tc2_MC2.MC_BufferMode;
+END_VAR
+VAR_INST
+  _eState           : E_PROGRESS;
+  _rValue           : LREAL;
+  _stMsg            : ST_Message;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT (__ISVALIDREF(_AxisRef)) THEN  MoveVeloBuffer  := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT bEnable THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
+
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_INIT:
+    IF bEnable 
+    THEN
+      memset(ADR(_stMsg),0,SIZEOF(_stMsg));
+      _nErrorId                     := 0;
+      _rValue                       := Velocity;
+
+      _eState                       := E_PROGRESS.PROGRESS_BUSY;
+
+      _stMsg.eType                  := E_MessageType.eMessageVerbose;
+      _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             := e_SubDevice.fbMoveVelocity1;
+      _stMsg.iErrorNumber           := 0;
+
+      _stMsg.sText                  := concat('start : ', TO_STRING(_rValue));
+
+      IF (_MessageLevel = E_MessageType.eMessageVerbose)
+      THEN
+        f_MessageSet(_stMsg);
+      END_IF
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_BUSY:
+    _eState                         := E_PROGRESS.PROGRESS_STARTUP;
+    _fbMoveVelocity[1](Axis         := _AxisRef,
+                       Execute      := FALSE);
+
+    _fbMoveVelocity[2](Axis         := _AxisRef,
+                       Execute      := FALSE);
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_STARTUP:
+    _fbMoveVelocity[1](
+                    Axis            := _AxisRef, 
+                    Execute         := TRUE,
+                    Velocity        := _rValue, 
+                    Acceleration    := Acc, 
+                    Deceleration    := Dec, 
+                    Jerk            := Jerk, 
+                    BufferMode      := BufferMode);
+
+    IF _fbMoveVelocity[1].Error
+    THEN
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
+
+      _nErrorId                     := _fbMoveVelocity[1].ErrorID;
+    
+      _stMsg.eType                  := E_MessageType.eMessageError;
+      _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             :=  e_SubDevice.fbMoveVelocity1;
+      _stMsg.iErrorNumber           := _nErrorId;
+
+      _stMsg.sText                  := concat(' : ', TO_STRING(_eState));
+    
+      f_MessageSet(_stMsg);
+
+    ELSIF (_fbMoveVelocity[1].Busy)
+    THEN
+      _eState                       := E_PROGRESS.PROGRESS_PREPARE;
+
+      _stMsg.eType                  := E_MessageType.eMessageVerbose;
+      _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             :=  e_SubDevice.fbMoveVelocity1;
+      _stMsg.iErrorNumber           := 0;
+
+      _stMsg.sText                  := concat('FB busy: ', TO_STRING(_eState));
+
+      IF (_MessageLevel = E_MessageType.eMessageVerbose)
+      THEN
+        f_MessageSet(_stMsg);
+      END_IF
+
+    ELSIF (_fbMoveVelocity[1].CommandAborted)
+    THEN
+      _eState                       := E_PROGRESS.PROGRESS_PREPARE;
+
+      _stMsg.eType                  := E_MessageType.eMessageError;
+      _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             :=  e_SubDevice.fbMoveVelocity1;
+      _stMsg.iErrorNumber           := 0;
+
+      _stMsg.sText                  := concat('FB aborted: ', TO_STRING(_eState));
+
+      f_MessageSet(_stMsg);
+
+    ELSIF (_fbMoveVelocity[1].InVelocity)
+    THEN
+      _eState                       := E_PROGRESS.PROGRESS_PREPARE;
+
+      _stMsg.eType                  := E_MessageType.eMessageVerbose;
+      _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             :=  e_SubDevice.fbMoveVelocity1;
+      _stMsg.iErrorNumber           := 0;
+
+      _stMsg.sText                  := concat('FB done: ', TO_STRING(_eState));
+
+      IF (_MessageLevel = E_MessageType.eMessageVerbose)
+      THEN
+        f_MessageSet(_stMsg);
+      END_IF
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_PREPARE:
+    _fbMoveVelocity[1](Axis         := _AxisRef);
+
+    IF _fbMoveVelocity[1].Error
+    THEN
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
+
+      _nErrorId                     := _fbMoveVelocity[1].ErrorID;
+    
+      _stMsg.eType                  := E_MessageType.eMessageError;
+      _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             :=  e_SubDevice.fbMoveVelocity1;
+      _stMsg.iErrorNumber           := _nErrorId;
+
+      _stMsg.sText                  := concat(' : ', TO_STRING(_eState));
+    
+      f_MessageSet(_stMsg);
+    
+    ELSIF (_fbMoveVelocity[1].Velocity <> Velocity)
+    THEN
+      _eState                       := E_PROGRESS.PROGRESS_CHECK;
+
+      _fbMoveVelocity[1](
+                    Axis            := _AxisRef, 
+                    Execute         := FALSE);
+
+      _stMsg.eType                  := E_MessageType.eMessageVerbose;
+      _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             :=  e_SubDevice.fbMoveVelocity2;
+      _stMsg.iErrorNumber           := 0;
+
+      _stMsg.sText                  := concat('Velocity changed: ', TO_STRING(_rValue));
+      _stMsg.sText                  := concat(_stMsg.sText        , ' to ');
+      _stMsg.sText                  := concat(_stMsg.sText        , TO_STRING(Velocity));
+
+      IF (_MessageLevel = E_MessageType.eMessageVerbose)
+      THEN
+        f_MessageSet(_stMsg);
+      END_IF
+
+      _rValue                       := Velocity;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_CHECK:
+    _fbMoveVelocity[2](
+                    Axis            := _AxisRef, 
+                    Execute         := TRUE,
+                    Velocity        := _rValue, 
+                    Acceleration    := Acc, 
+                    Deceleration    := Dec, 
+                    Jerk            := Jerk, 
+                    BufferMode      := BufferMode);
+
+    IF _fbMoveVelocity[2].Error
+    THEN
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
+
+      _nErrorId                     := _fbMoveVelocity[2].ErrorID;
+    
+      _stMsg.eType                  := E_MessageType.eMessageError;
+      _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             :=  e_SubDevice.fbMoveVelocity2;
+      _stMsg.iErrorNumber           := _nErrorId;
+
+      _stMsg.sText                  := concat(' : ', TO_STRING(_eState));
+    
+      f_MessageSet(_stMsg);
+
+    ELSIF (_fbMoveVelocity[2].Busy)
+    THEN
+      _eState                       := E_PROGRESS.PROGRESS_OCCUPIED;
+
+      _stMsg.eType                  := E_MessageType.eMessageVerbose;
+      _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             :=  e_SubDevice.fbMoveVelocity2;
+      _stMsg.iErrorNumber           := 0;
+
+      _stMsg.sText                  := concat('FB busy: ', TO_STRING(_eState));
+
+      IF (_MessageLevel = E_MessageType.eMessageVerbose)
+      THEN
+        f_MessageSet(_stMsg);
+      END_IF
+
+    ELSIF (_fbMoveVelocity[2].CommandAborted)
+    THEN
+      _eState                       := E_PROGRESS.PROGRESS_OCCUPIED;
+
+      _stMsg.eType                  := E_MessageType.eMessageError;
+      _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             :=  e_SubDevice.fbMoveVelocity2;
+      _stMsg.iErrorNumber           := 0;
+
+      _stMsg.sText                  := concat('FB aborted: ', TO_STRING(_eState));
+
+      f_MessageSet(_stMsg);
+
+    ELSIF (_fbMoveVelocity[2].InVelocity)
+    THEN
+      _eState                       := E_PROGRESS.PROGRESS_OCCUPIED;
+
+      _stMsg.eType                  := E_MessageType.eMessageVerbose;
+      _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             :=  e_SubDevice.fbMoveVelocity2;
+      _stMsg.iErrorNumber           := 0;
+
+      _stMsg.sText                  := concat('FB done: ', TO_STRING(_eState));
+
+      IF (_MessageLevel = E_MessageType.eMessageVerbose)
+      THEN
+        f_MessageSet(_stMsg);
+      END_IF
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_OCCUPIED:
+    _fbMoveVelocity[2](Axis         := _AxisRef);
+
+    IF _fbMoveVelocity[2].Error
+    THEN
+      _nErrorId                     := _fbMoveVelocity[2].ErrorID;
+    
+      _stMsg.eType                  := E_MessageType.eMessageError;
+      _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             :=  e_SubDevice.fbMoveVelocity2;
+      _stMsg.iErrorNumber           := _nErrorId;
+    
+      _stMsg.sText                  := concat(' : ', TO_STRING(_eState));
+  
+      f_MessageSet(_stMsg);
+    
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
+
+    ELSIF (_fbMoveVelocity[2].Velocity <> Velocity)
+    THEN
+      _eState                       := E_PROGRESS.PROGRESS_STARTUP;
+
+      _fbMoveVelocity[2](
+                    Axis            := _AxisRef, 
+                    Execute         := FALSE);
+
+      _stMsg.eType                  := E_MessageType.eMessageVerbose;
+      _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             :=  e_SubDevice.fbMoveVelocity1;
+      _stMsg.iErrorNumber           := 0;
+
+      _stMsg.sText                  := concat('Velocity changed: ', TO_STRING(_rValue));
+      _stMsg.sText                  := concat(_stMsg.sText        , ' to ');
+      _stMsg.sText                  := concat(_stMsg.sText        , TO_STRING(Velocity));
+
+      IF (_MessageLevel = E_MessageType.eMessageVerbose)
+      THEN
+        f_MessageSet(_stMsg);
+      END_IF
+
+      _rValue                       := Velocity;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_INIT,
+  E_PROGRESS.PROGRESS_ERROR:
+    _fbMoveVelocity[1](Axis         := _AxisRef,
+                       Execute      := FALSE);
+    _fbMoveVelocity[2](Axis         := _AxisRef,
+                       Execute      := FALSE);
+END_CASE
+
+
+MoveVeloBuffer                      := _eState;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="Override" Id="{2326350f-5459-0a6c-2ba9-357e1bba98f9}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY Override : lreal]]></Declaration>
+      <Get Name="Get" Id="{59a4c2b8-06cc-055c-2e8c-b8c096b86326}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Override := _rAxisOverride;
+]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{c4343645-132c-03c0-251d-edf786107745}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_rAxisOverride  := Override;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="Position" Id="{15637aff-ba91-419c-8093-75d61e6bcde4}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY Position : LREAL]]></Declaration>
+      <Get Name="Get" Id="{244f975e-a745-4934-967f-53a50ec6158b}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Position := _AxisRef.NcToPlc.ActPos;
+]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="ReadParameter" Id="{54a806b1-3430-0c86-070c-bd7f0cce9548}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD ReadParameter : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+  ParameterNumber   : Tc2_MC2.MC_AxisParameter;
+END_VAR
+VAR_INST
+  _eState           : E_PROGRESS;
+  _rValue           : LREAL;
+  _stMsg            : ST_Message;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT (__ISVALIDREF(_AxisRef)) THEN  ReadParameter  := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
+
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_INIT:
+    IF Execute 
+    THEN
+      memset(ADR(_stMsg),0,SIZEOF(_stMsg));
+      _nErrorId                     := 0;
+      _rValue                       := 0;
+      _eState                       := E_PROGRESS.PROGRESS_BUSY;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_BUSY:
+    _eState                         := E_PROGRESS.PROGRESS_STARTUP;
+    _fbReadParameter(
+                    Axis            := _AxisRef, 
+                    Enable          := FALSE, 
+                    ParameterNumber := ParameterNumber, 
+                    ReadMode        := Tc2_MC2.READMODE_ONCE, 
+                    Value           => _rValue);
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_STARTUP:
+    _eState                         := E_PROGRESS.PROGRESS_OCCUPIED;
+    _fbReadParameter(
+                    Axis            := _AxisRef, 
+                    Enable          := TRUE, 
+                    ParameterNumber := ParameterNumber, 
+                    ReadMode        := Tc2_MC2.READMODE_ONCE, 
+                    Value           => _rValue);
+
+    _stMsg.eType                    := E_MessageType.eMessageVerbose;
+    _stMsg.eDevice                  := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+    _stMsg.eSubdevice               := e_SubDevice.fbReadParameter;
+    _stMsg.iErrorNumber             := 0;
+
+    _stMsg.sText                    := concat(' : ', TO_STRING(_eState));
+
+    IF (_MessageLevel = E_MessageType.eMessageVerbose)
+    THEN
+      f_MessageSet(_stMsg);
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_OCCUPIED:
+    _fbReadParameter(
+                    Axis            := _AxisRef,
+                    Value           => _rValue);
+
+    IF (_fbReadParameter.Valid)
+    THEN
+      _eState                       := E_PROGRESS.PROGRESS_WORKING;
+      _rValueParameterRead          := _rValue;
+    ELSE
+      IF (_fbReadParameter.Error)
+      THEN
+        _eState                     := E_PROGRESS.PROGRESS_ERROR;
+        _nErrorId                   := _fbReadParameter.ErrorID;
+
+        _stMsg.eType                := E_MessageType.eMessageError;
+        _stMsg.eDevice              := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+        _stMsg.eSubdevice           := e_SubDevice.fbReadParameter;
+        _stMsg.iErrorNumber         := _nErrorId;
+
+        _stMsg.sText                := concat(' : ', TO_STRING(_eState));
+
+        f_MessageSet(_stMsg);
+
+        _fbReadParameter(
+                    Axis            := _AxisRef, 
+                    Enable          := FALSE);
+      END_IF
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_WORKING:
+    _eState                         := E_PROGRESS.PROGRESS_DONE;
+    _fbReadParameter(
+                    Axis            := _AxisRef, 
+                    Enable          := FALSE);
+
+    _stMsg.eType                    := E_MessageType.eMessageVerbose;
+    _stMsg.eDevice                  := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+    _stMsg.eSubdevice               := e_SubDevice.fbReadParameter;
+    _stMsg.iErrorNumber             := 0;
+
+    _stMsg.sText                    := concat(' : ', TO_STRING(_eState));
+
+    IF (_MessageLevel = E_MessageType.eMessageVerbose)
+    THEN
+      f_MessageSet(_stMsg);
+    END_IF
+END_CASE
+
+ReadParameter                       := _eState;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="ReadParameterValue" Id="{5737dfc7-f28d-04d5-1795-84a65134e1c4}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY ReadParameterValue : LREAL]]></Declaration>
+      <Get Name="Get" Id="{29aee24e-4dd3-0b0e-0d0c-20dcb7cad526}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[ReadParameterValue := _rValueParameterRead;
+]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="Reset" Id="{c56fedee-350d-09ff-3f42-160d961f4e86}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD Reset : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+END_VAR
+VAR_INST
+  _eState           : E_PROGRESS;
+  _rValue           : LREAL;
+  _stMsg            : ST_Message;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT (__ISVALIDREF(_AxisRef)) THEN  Reset  := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
+
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_INIT:
+    IF Execute 
+    THEN
+      memset(ADR(_stMsg),0,SIZEOF(_stMsg));
+      _nErrorId                   := 0;
+      _rValue                     := 0;
+      _eState                     := E_PROGRESS.PROGRESS_BUSY;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_BUSY:
+    _eState                       := E_PROGRESS.PROGRESS_OCCUPIED;
+    _fbReset(
+              Axis                := _AxisRef, 
+              Execute             := FALSE);
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_OCCUPIED:
+    _fbReset(
+              Axis                := _AxisRef, 
+              Execute             := TRUE);
+
+    _AxisRef();
+
+    IF _fbReset.Error
+    THEN
+      _nErrorId                   := _fbReset.ErrorID;
+
+      _stMsg.eType                := E_MessageType.eMessageError;
+      _stMsg.eDevice              := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice           := e_SubDevice.fbReset;
+      _stMsg.iErrorNumber         := _nErrorId;
+
+      f_MessageSet(_stMsg);
+      _fbReset(
+              Axis                := _AxisRef, 
+              Execute             := FALSE);
+
+      _eState                     := E_PROGRESS.PROGRESS_ERROR;
+    ELSE
+      IF _fbReset.Done OR NOT
+         _fbReset.Busy
+      THEN
+        _eState                   := E_PROGRESS.PROGRESS_WORKING;
+      END_IF
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_WORKING:
+    _eState                       := E_PROGRESS.PROGRESS_DONE;
+    _fbReset(
+              Axis                := _AxisRef, 
+              Execute             := FALSE);
+
+    _stMsg.eType                  := E_MessageType.eMessageVerbose;
+    _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+    _stMsg.eSubdevice             := e_SubDevice.fbReset;
+    _stMsg.iErrorNumber           := 0;
+
+    _stMsg.sText                    := concat(' : ', TO_STRING(_eState));
+
+    IF (_MessageLevel = E_MessageType.eMessageVerbose)
+    THEN
+      f_MessageSet(_stMsg);
+    END_IF
+END_CASE
+
+
+Reset                             := _eState;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="SendToPos" Id="{897e9d2e-a3c2-006b-03c5-193d76055ec3}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD SendToPos : E_PROGRESS
+VAR_INPUT
+  Execute         : BOOL;
+  Position        : LREAL;
+  Distance        : LREAL;
+  Vel             : LREAL;
+  Acc             : LREAL;
+  Dec             : LREAL;
+  Jerk            : LREAL;
+  BufferMode      : Tc2_MC2.MC_BufferMode;
+END_VAR
+VAR_INST
+  _eState           : E_PROGRESS;
+  _rValue           : LREAL;
+  _rStart           : LREAL;
+  _stMsg            : ST_Message;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT (__ISVALIDREF(_AxisRef)) THEN  SendToPos  := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
+
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_INIT:
+    IF Execute 
+    THEN
+      memset(ADR(_stMsg),0,SIZEOF(_stMsg));
+      _nErrorId                     := 0;
+      _rValue                       := 0;
+      _eState                       := E_PROGRESS.PROGRESS_BUSY;
+
+      _stMsg.eType                  := E_MessageType.eMessageVerbose;
+      _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             := e_SubDevice.fbSendToPos;
+      _stMsg.iErrorNumber           := 0;
+
+      _stMsg.sText                  := concat(' : ', TO_STRING(Position));
+
+      IF (_MessageLevel = E_MessageType.eMessageVerbose)
+      THEN
+        f_MessageSet(_stMsg);
+      END_IF
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_BUSY:
+    _eState                         := E_PROGRESS.PROGRESS_STARTUP;
+    _rValue                         := Position;
+    _rStart                         := _AxisRef.NcToPlc.ActPos;
+
+    _fbMoveAbsolute[1](Axis         := _AxisRef,
+                       Execute      := FALSE);
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_STARTUP:
+    _fbMoveAbsolute[1](
+                    Axis            := _AxisRef, 
+                    Execute         := TRUE,
+                    Position        := _rValue, 
+                    Velocity        := Vel, 
+                    Acceleration    := Acc, 
+                    Deceleration    := Dec, 
+                    Jerk            := Jerk, 
+                    BufferMode      := BufferMode);
+
+    _rLastTargetPosition            := _fbMoveAbsolute[1].Position;
+
+    _eState                         := E_PROGRESS.PROGRESS_PREPARE;
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_PREPARE:
+    _fbMoveAbsolute[1](Axis         := _AxisRef);
+
+    IF (_fbMoveAbsolute[1].Error)
+    THEN
+      _nErrorId                     := _fbMoveAbsolute[1].ErrorID;
+    
+      _stMsg.eType                  := E_MessageType.eMessageError;
+      _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             :=  e_SubDevice.fbSendToPos;
+      _stMsg.iErrorNumber           := _nErrorId;
+    
+      f_MessageSet(_stMsg);
+    
+      _eState                         := E_PROGRESS.PROGRESS_ERROR;
+
+    ELSIF (_fbMoveAbsolute[1].Active)
+    THEN
+      _eState                       := E_PROGRESS.PROGRESS_OCCUPIED;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_OCCUPIED:
+    _fbMoveAbsolute[1](Axis         := _AxisRef);
+
+    IF (_fbMoveAbsolute[1].Error)
+    THEN
+      _nErrorId                     := _fbMoveAbsolute[1].ErrorID;
+    
+      _stMsg.eType                  := E_MessageType.eMessageError;
+      _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             :=  e_SubDevice.fbSendToPos;
+      _stMsg.iErrorNumber           := _nErrorId;
+    
+      f_MessageSet(_stMsg);
+    
+      _eState                         := E_PROGRESS.PROGRESS_ERROR;
+
+    ELSIF (_AxisRef.NcToPlc.ActPos > _rStart + Distance)
+    THEN
+      _fbMoveAbsolute[1](Axis       := _AxisRef,
+                         Execute    := FALSE);
+
+      _eState                       := E_PROGRESS.PROGRESS_DONE;
+
+      _stMsg.eType                  := E_MessageType.eMessageVerbose;
+      _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             := e_SubDevice.fbSendToPos;
+      _stMsg.iErrorNumber           := 0;
+
+      _stMsg.sText                  := concat(' : ', TO_STRING(_eState));
+
+      IF (_MessageLevel = E_MessageType.eMessageVerbose)
+      THEN
+        f_MessageSet(_stMsg);
+      END_IF
+    END_IF
+END_CASE
+
+SendToPos                             := _eState;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="StartUp" Id="{914834b0-e73e-0894-3b5e-bf530799f619}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD StartUp : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+END_VAR
+VAR_INST
+  _eState           : E_PROGRESS;
+  _uiEncType        : UDINT;
+
+  _sEncoder,
+  _sName            : STRING(30);
+
+  _rValue           : LREAL;
+  _stMsg            : ST_Message;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT (__ISVALIDREF(_AxisRef)) THEN  StartUp  := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
+
+
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_INIT:
+    IF Execute 
+    THEN
+      memset(ADR(_stMsg),0,SIZEOF(_stMsg));
+      _nErrorId                     := 0;
+      _rValue                       := 0;
+      _eState                       := E_PROGRESS.PROGRESS_BUSY;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_BUSY:
+    IF (_AxisRef.NcToPlc.AxisId <> 0)
+    THEN
+      _stMsg.eType                  := E_MessageType.eMessageVerbose;
+      _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             := e_Subdevice.AxisStartUp;
+      _stMsg.iErrorNumber           := 0;
+      _stMsg.sText                  := concat('StartUp NcAxisId: ', TO_STRING(_AxisRef.NcToPlc.AxisId));
+
+      IF (_MessageLevel = E_MessageType.eMessageVerbose)
+      THEN
+        f_MessageSet(_stMsg);
+      END_IF
+
+      _eState                       := E_PROGRESS.PROGRESS_STARTUP;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_STARTUP:
+    _fbADSRead(
+              NETID                 := '', 
+              PORT                  := 501, 
+              IDXGRP                := (16#5000 + _AxisRef.NcToPlc.AxisId), 
+              IDXOFFS               := 16#00000003, // offset for encoder type
+              LEN                   := SIZEOF(_nEncoderType), 
+              DESTADDR              := ADR(_nEncoderType),
+              TMOUT                 := T#200MS,
+              READ                  := FALSE);
+
+    // clear required ADS information
+    _sAxisName      := _sName       := 'NO NAME';
+    _sEncoderType   := _sEncoder    := 'NO TYPE';
+    _nEncoderType   := _uiEncType   :=  0;
+
+    _eState                         := E_PROGRESS.PROGRESS_PREPARE;
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_PREPARE:
+    _fbADSRead(
+              NETID                 := '', 
+              PORT                  := 501, 
+              IDXGRP                := (16#5000 + _AxisRef.NcToPlc.AxisId), 
+              IDXOFFS               := 16#00000003, // offset for encoder type
+              LEN                   := SIZEOF(_nEncoderType), 
+              DESTADDR              := ADR(_nEncoderType),
+              TMOUT                 := T#200MS,
+              READ                  := TRUE);
+
+    IF (_fbADSRead.ERR)
+    THEN
+      _nErrorId                     := _fbAdsRead.ERRID;
+
+      _stMsg.eType                  := E_MessageType.eMessageError;
+      _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             := e_Subdevice.AxisStartUp;
+      _stMsg.iErrorNumber           := _nErrorId;
+      _stMsg.sText                  := 'StartUp Ads Error Read Encoder Type';
+
+      f_MessageSet(_stMsg);
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
+
+    ELSIF (_nEncoderType <> 0)
+    THEN
+      _uiEncType  := _eEncoderType  := _nEncoderType;
+      _sEncoder   := _sEncoderType  := TO_STRING(_eEncoderType);
+
+      _stMsg.eType                  := E_MessageType.eMessageInfo;
+      _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             := e_Subdevice.AxisStartUp;
+      _stMsg.iErrorNumber           := 0;
+      _stMsg.sText                  := concat('Encoder Type: ', _sEncoder);
+
+      IF (_MessageLevel > E_MessageType.eMessageError)
+      THEN
+        f_MessageSet(_stMsg);
+      END_IF
+
+      _eState                       := E_PROGRESS.PROGRESS_CHECK;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_CHECK:
+    _fbADSRead(
+            NETID                   := '', 
+            PORT                    := 501, 
+            IDXGRP                  := (16#4000 + _AxisRef.NcToPlc.AxisId), 
+            IDXOFFS                 := 16#00000002, // offset for axis name
+            LEN                     := SIZEOF(_sAxisName), 
+            DESTADDR                := ADR(_sAxisName),
+            READ                    := FALSE);
+
+    _eState                         := E_PROGRESS.PROGRESS_OCCUPIED;
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_OCCUPIED:
+    _fbADSRead(
+            NETID                   := '', 
+            PORT                    := 501, 
+            IDXGRP                  := (16#4000 + _AxisRef.NcToPlc.AxisId), 
+            IDXOFFS                 := 16#00000002, // offset for axis name
+            LEN                     := SIZEOF(_sAxisName), 
+            DESTADDR                := ADR(_sAxisName),
+            READ                    := TRUE);
+
+    IF (_fbADSRead.ERR)
+    THEN
+      _nErrorId                     := _fbAdsRead.ERRID;
+
+      _stMsg.eType                  := E_MessageType.eMessageError;
+      _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);;
+      _stMsg.eSubdevice             := e_Subdevice.AxisStartUp;
+      _stMsg.iErrorNumber           := _nErrorId;
+      _stMsg.sText                  := 'StartUp Ads Error Read Axis Name';
+
+      f_MessageSet(_stMsg);
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
+
+    ELSIF (_sAxisName <> 'NO NAME')
+    THEN
+      _sName                        := _sAxisName;
+
+      _stMsg.eType                  := E_MessageType.eMessageInfo;
+      _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);;
+      _stMsg.eSubdevice             := e_Subdevice.AxisStartUp;
+      _stMsg.iErrorNumber           := 0;
+      _stMsg.sText                  := concat('Axis Name: ', _sName);
+
+      IF (_MessageLevel > E_MessageType.eMessageError)
+      THEN
+        f_MessageSet(_stMsg);
+      END_IF
+
+      _eState                       := E_PROGRESS.PROGRESS_WORKING;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_WORKING:
+    _eState                         := E_PROGRESS.PROGRESS_DONE;
+END_CASE
+
+StartUp                             := _eState;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Stop" Id="{789b9c2b-f93d-0b61-11f2-dc8daaed9df3}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD Stop : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+  Dec               : LREAL;
+  Jerk              : LREAL;
+
+END_VAR
+VAR_INST
+  _eState           : E_PROGRESS;
+  _rValue           : LREAL;
+  _stMsg            : ST_Message;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT (__ISVALIDREF(_AxisRef)) THEN  Stop  := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
+
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_INIT:
+    IF Execute 
+    THEN
+      memset(ADR(_stMsg),0,SIZEOF(_stMsg));
+      _nErrorId                     := 0;
+      _rValue                       := 0;
+      _eState                       := E_PROGRESS.PROGRESS_BUSY;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_BUSY:
+    _eState                         := E_PROGRESS.PROGRESS_OCCUPIED;
+    _fbStop(
+              Axis                  := _AxisRef, 
+              Execute               := FALSE, 
+              Deceleration          := Dec, 
+              Jerk                  := Jerk);
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_OCCUPIED:
+    _fbStop(
+              Axis                  := _AxisRef, 
+              Execute               := TRUE, 
+              Deceleration          := Dec, 
+              Jerk                  := Jerk);
+
+    IF _fbStop.Error
+    THEN
+        _nErrorId                   := _fbStop.ErrorID;
+
+        _stMsg.eType                := E_MessageType.eMessageError;
+        _stMsg.eDevice              := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+        _stMsg.eSubdevice           := e_SubDevice.fbStop;
+        _stMsg.iErrorNumber         := _nErrorId;
+
+        f_MessageSet(_stMsg);
+        _fbStop(
+              Axis                  := _AxisRef, 
+              Execute               := FALSE);
+
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
+
+    ELSE
+      IF _fbStop.Done OR
+         _AxisRef.Status.NotMoving
+      THEN
+        _eState                     := E_PROGRESS.PROGRESS_WORKING;
+
+      ELSIF _fbStop.CommandAborted
+      THEN
+        _eState                     := E_PROGRESS.PROGRESS_BUSY;
+      END_IF
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_WORKING:
+    _fbStop(
+              Axis                  := _AxisRef, 
+              Execute               := FALSE);
+
+    _eState                         := E_PROGRESS.PROGRESS_DONE;
+END_CASE
+
+
+Stop                                := _eState;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="WriteParameter" Id="{d9084bfe-9c42-03ce-187a-0d3ac44cc9cd}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD WriteParameter : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+  Value             : LREAL;
+  ParameterNumber   : Tc2_MC2.MC_AxisParameter;
+END_VAR
+VAR_INST
+  _eState           : E_PROGRESS;
+  _nParameter       : Tc2_MC2.MC_AxisParameter;
+  _rValue           : LREAL;
+  _stMsg            : ST_Message;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT (__ISVALIDREF(_AxisRef)) THEN  WriteParameter  := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
+
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_INIT:
+    IF Execute 
+    THEN
+      memset(ADR(_stMsg),0,SIZEOF(_stMsg));
+      _nParameter                   := 0;
+      _nErrorId                     := 0;
+      _rValue                       := 0;
+      _eState                       := E_PROGRESS.PROGRESS_BUSY;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_BUSY:
+    _eState                         := E_PROGRESS.PROGRESS_STARTUP;
+    _nParameter                     := ParameterNumber;
+    _rValue                         := Value;
+
+    _fbWriteParameter(
+                    Axis            := _AxisRef, 
+                    Execute         := FALSE, 
+                    ParameterNumber := ParameterNumber, 
+                    Value           := _rValue);
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_STARTUP:
+    _eState                         := E_PROGRESS.PROGRESS_OCCUPIED;
+    _fbWriteParameter(
+                    Axis            := _AxisRef, 
+                    Execute         := TRUE, 
+                    ParameterNumber := ParameterNumber, 
+                    Value           := _rValue);
+
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_OCCUPIED:
+    _fbWriteParameter(
+                    Axis            := _AxisRef, 
+                    ParameterNumber := ParameterNumber, 
+                    Value           := _rValue);
+
+    IF _fbWriteParameter.Error
+    THEN
+      _nErrorId                     := _fbWriteParameter.ErrorID;
+
+      _stMsg.eType                  := E_MessageType.eMessageError;
+      _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             := e_SubDevice.fbWriteParameter;
+      _stMsg.iErrorNumber           := _nErrorId;
+
+      f_MessageSet(_stMsg);
+
+      _fbWriteParameter(
+                    Axis            := _AxisRef,
+                    Execute         := FALSE, 
+                    ParameterNumber := ParameterNumber, 
+                    Value           := _rValue);
+
+
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
+    ELSE
+      IF _fbWriteParameter.Done
+      THEN
+        _eState                     := E_PROGRESS.PROGRESS_WORKING;
+      END_IF
+    END_IF
+
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_WORKING:
+    _fbWriteParameter(
+                    Axis            := _AxisRef,
+                    Execute         := FALSE, 
+                    ParameterNumber := ParameterNumber, 
+                    Value           := Value);
+    _eState                         := E_PROGRESS.PROGRESS_DONE;
+END_CASE
+
+
+WriteParameter                      := _eState;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="WriteParameterPersistent" Id="{6dcff98d-915b-08be-0870-0135f1dea9d3}" FolderPath="methods\">
+      <Declaration><![CDATA[METHOD WriteParameterPersistent : E_PROGRESS
+VAR_INPUT
+  Execute           : BOOL;
+  Value             : LREAL;
+  ParameterNumber   : Tc2_MC2.MC_AxisParameter;
+END_VAR
+VAR_INST
+  _eState           : E_PROGRESS;
+  _rValue           : LREAL;
+  _stMsg            : ST_Message;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT (__ISVALIDREF(_AxisRef)) THEN  WriteParameterPersistent  := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+IF NOT Execute THEN _eState := E_PROGRESS.PROGRESS_INIT; END_IF
+
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_INIT:
+    IF Execute 
+    THEN
+      memset(ADR(_stMsg),0,SIZEOF(_stMsg));
+      _nErrorId                     := 0;
+      _rValue                       := 0;
+      _eState                       := E_PROGRESS.PROGRESS_BUSY;
+    END_IF
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_BUSY:
+    _eState                         := E_PROGRESS.PROGRESS_STARTUP;
+    _fbWriteParameterPersist(
+                    Axis            := _AxisRef, 
+                    Execute         := FALSE, 
+                    ParameterNumber := ParameterNumber, 
+                    Value           := Value);
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_STARTUP:
+    _eState                         := E_PROGRESS.PROGRESS_OCCUPIED;
+    _fbWriteParameterPersist(
+                    Axis            := _AxisRef, 
+                    Execute         := TRUE, 
+                    ParameterNumber := ParameterNumber, 
+                    Value           := Value);
+
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_OCCUPIED:
+    _fbWriteParameterPersist(
+                    Axis            := _AxisRef, 
+                    ParameterNumber := ParameterNumber, 
+                    Value           := Value);
+
+    IF (_fbWriteParameterPersist.Error)
+    THEN
+      _nErrorId                     := _fbWriteParameterPersist.ErrorID;
+
+      _stMsg.eType                  := E_MessageType.eMessageError;
+      _stMsg.eDevice                := e_Device.Axis + (_AxisRef.NcToPlc.AxisId);
+      _stMsg.eSubdevice             := e_SubDevice.fbWriteParameterPersistent;
+      _stMsg.iErrorNumber           := _nErrorId;
+
+      f_MessageSet(_stMsg);
+
+      _fbWriteParameterPersist(
+                    Axis            := _AxisRef,
+                    Execute         := FALSE, 
+                    ParameterNumber := ParameterNumber, 
+                    Value           := Value);
+
+
+      _eState                       := E_PROGRESS.PROGRESS_ERROR;
+    ELSE
+      IF (_fbWriteParameterPersist.Done)
+      THEN
+        _rValue                     := _fbWriteParameterPersist.Value;
+        _eState                     := E_PROGRESS.PROGRESS_WORKING;
+      END_IF
+    END_IF
+
+END_CASE
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_WORKING:
+    _fbWriteParameterPersist(
+                    Axis            := _AxisRef,
+                    Execute         := FALSE, 
+                    ParameterNumber := ParameterNumber, 
+                    Value           := Value);
+
+    _eState                         := E_PROGRESS.PROGRESS_DONE;
+END_CASE
+
+
+WriteParameterPersistent            := _eState;
+]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="FB_McAxisBase">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_McAxisBase.AxisEnableNegative.Get">
+      <LineId Id="1" Count="1" />
+    </LineIds>
+    <LineIds Name="FB_McAxisBase.AxisEnableNegative.Set">
+      <LineId Id="1" Count="1" />
+    </LineIds>
+    <LineIds Name="FB_McAxisBase.AxisEnablePositive.Get">
+      <LineId Id="1" Count="1" />
+    </LineIds>
+    <LineIds Name="FB_McAxisBase.AxisEnablePositive.Set">
+      <LineId Id="1" Count="1" />
+    </LineIds>
+    <LineIds Name="FB_McAxisBase.AxisName.Get">
+      <LineId Id="1" Count="1" />
+    </LineIds>
+    <LineIds Name="FB_McAxisBase.AxisRef.Get">
+      <LineId Id="1" Count="1" />
+    </LineIds>
+    <LineIds Name="FB_McAxisBase.CalibrationCam.Get">
+      <LineId Id="1" Count="1" />
+    </LineIds>
+    <LineIds Name="FB_McAxisBase.CalibrationCam.Set">
+      <LineId Id="1" Count="1" />
+    </LineIds>
+    <LineIds Name="FB_McAxisBase.Cycle">
+      <LineId Id="1" Count="67" />
+    </LineIds>
+    <LineIds Name="FB_McAxisBase.Disable">
+      <LineId Id="1" Count="104" />
+    </LineIds>
+    <LineIds Name="FB_McAxisBase.Enable">
+      <LineId Id="1" Count="92" />
+    </LineIds>
+    <LineIds Name="FB_McAxisBase.EncoderType.Get">
+      <LineId Id="1" Count="1" />
+    </LineIds>
+    <LineIds Name="FB_McAxisBase.ErrorId.Get">
+      <LineId Id="1" Count="1" />
+    </LineIds>
+    <LineIds Name="FB_McAxisBase.Halt">
+      <LineId Id="1" Count="99" />
+    </LineIds>
+    <LineIds Name="FB_McAxisBase.Home">
+      <LineId Id="1" Count="96" />
+    </LineIds>
+    <LineIds Name="FB_McAxisBase.LastTargetPosition.Get">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_McAxisBase.MessageLevel.Set">
+      <LineId Id="1" Count="1" />
+    </LineIds>
+    <LineIds Name="FB_McAxisBase.MovePosBuffer">
+      <LineId Id="1" Count="321" />
+    </LineIds>
+    <LineIds Name="FB_McAxisBase.MoveToPos">
+      <LineId Id="1" Count="169" />
+    </LineIds>
+    <LineIds Name="FB_McAxisBase.MoveVelo">
+      <LineId Id="1" Count="120" />
+    </LineIds>
+    <LineIds Name="FB_McAxisBase.MoveVeloBuffer">
+      <LineId Id="1" Count="285" />
+    </LineIds>
+    <LineIds Name="FB_McAxisBase.Override.Get">
+      <LineId Id="1" Count="1" />
+    </LineIds>
+    <LineIds Name="FB_McAxisBase.Override.Set">
+      <LineId Id="1" Count="1" />
+    </LineIds>
+    <LineIds Name="FB_McAxisBase.Position.Get">
+      <LineId Id="1" Count="1" />
+    </LineIds>
+    <LineIds Name="FB_McAxisBase.ReadParameter">
+      <LineId Id="1" Count="102" />
+    </LineIds>
+    <LineIds Name="FB_McAxisBase.ReadParameterValue.Get">
+      <LineId Id="1" Count="1" />
+    </LineIds>
+    <LineIds Name="FB_McAxisBase.Reset">
+      <LineId Id="1" Count="77" />
+    </LineIds>
+    <LineIds Name="FB_McAxisBase.SendToPos">
+      <LineId Id="1" Count="116" />
+    </LineIds>
+    <LineIds Name="FB_McAxisBase.StartUp">
+      <LineId Id="1" Count="163" />
+    </LineIds>
+    <LineIds Name="FB_McAxisBase.Stop">
+      <LineId Id="1" Count="73" />
+    </LineIds>
+    <LineIds Name="FB_McAxisBase.WriteParameter">
+      <LineId Id="1" Count="87" />
+    </LineIds>
+    <LineIds Name="FB_McAxisBase.WriteParameterPersistent">
+      <LineId Id="1" Count="85" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

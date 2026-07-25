@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_FLY_SYNC_MODE" Id="{5a52aee5-195e-4330-a2d8-fa7596477693}">
+    <Declaration><![CDATA[TYPE ST_FLY_SYNC_MODE :
+STRUCT
+    // HAUD 2026.07.06
+    // build lib agnostic structure for control layer
+    GearInSyncMode                          : INT;  // datatype derived from lib
+
+    (* 32 bit check mask ... *)
+    GearInSync_CheckMask_MinPos             : BOOL;
+    GearInSync_CheckMask_MaxPos             : BOOL;
+    GearInSync_CheckMask_MaxVelo            : BOOL;
+    GearInSync_CheckMask_MaxAcc             : BOOL;
+    GearInSync_CheckMask_MaxDec             : BOOL;
+    GearInSync_CheckMask_MaxJerk            : BOOL;
+    GearInSync_CheckMask_OptionalMinPos     : BOOL;
+    GearInSync_CheckMask_OptionalMaxPos     : BOOL;
+    GearInSync_CheckMask_OvershootPos       : BOOL;
+    GearInSync_CheckMask_UndershootPos      : BOOL;
+    GearInSync_CheckMask_OvershootVelo      : BOOL;
+    GearInSync_CheckMask_UndershootVelo     : BOOL;
+    GearInSync_CheckMask_OvershootVeloZero  : BOOL;
+    GearInSync_CheckMask_UndershootVeloZero : BOOL;
+
+    (* operation masks ... *)
+    GearInSync_OpMask_RollbackLock          : BOOL;
+    GearInSync_OpMask_InstantStopOnRollback : BOOL;
+    GearInSync_OpMask_PreferConstVelo       : BOOL;
+    GearInSync_OpMask_IgnoreMasterAcc       : BOOL;
+    GearInSync_OpMask_IgnoreSlaveAcc        : BOOL;
+    GearInSync_OpMask_DetailedErrorCodes    : BOOL;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

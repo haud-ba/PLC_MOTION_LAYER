@@ -20,6 +20,11 @@ VAR
 
   TouchCtrl         : U_TOUCH_PROBE_CTRL;
 
+  FlyControl        : U_FLY_CTRL;
+  FlyData           : U_FLY_DATA;
+  FlyOptions        : U_FLY_OPTIONS;
+
+
   szAxisPara,
   szAxisHoming,
   szAxisGearData,
@@ -70,13 +75,18 @@ END_IF
   memcpy(ADR(CamCtrl),                  ADR(GVL_CAM.Ctrl),              SIZEOF(CamCtrl));
   memcpy(ADR(CamData),                  ADR(GVL_CAM.Data),              SIZEOF(CamData));
 
+  memcpy(ADR(FlyControl),               ADR(GVL_FLYING_SAW.Ctrl),       SIZEOF(FlyControl));
+  memcpy(ADR(FlyData),                  ADR(GVL_FLYING_SAW.Data),       SIZEOF(FlyData));
+  memcpy(ADR(FlyOptions),               ADR(GVL_FLYING_SAW.Options),    SIZEOF(FlyOptions));
 ]]></ST>
     </Implementation>
     <LineIds Name="MAPPING_out">
       <LineId Id="36" Count="0" />
       <LineId Id="2" Count="31" />
-      <LineId Id="37" Count="1" />
-      <LineId Id="34" Count="1" />
+      <LineId Id="37" Count="2" />
+      <LineId Id="34" Count="0" />
+      <LineId Id="40" Count="1" />
+      <LineId Id="35" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>

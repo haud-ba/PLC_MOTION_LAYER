@@ -46,6 +46,25 @@
     <Compile Include="CAM\types\ST_MOTION_FUNCTION_POINT.TcDUT">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="FLYING_SAW\GVL_FLYING_SAW.TcGVL">
+      <SubType>Code</SubType>
+      <LinkAlways>true</LinkAlways>
+    </Compile>
+    <Compile Include="FLYING_SAW\types\ST_FLY_CTRL.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FLYING_SAW\types\ST_FLY_DATA.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FLYING_SAW\types\ST_FLY_OPTIONS.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FLYING_SAW\types\ST_FLY_STATE.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FLYING_SAW\types\ST_FLY_SYNC_MODE.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="FUNCTIONS\TOUCH_PROBE\types\ST_2BIT.TcDUT">
       <SubType>Code</SubType>
     </Compile>
@@ -128,6 +147,18 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="MAPPING\types\U_CAM_STATE.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MAPPING\types\U_FLY_CTRL.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MAPPING\types\U_FLY_DATA.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MAPPING\types\U_FLY_OPTIONS.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MAPPING\types\U_FLY_STATE.TcDUT">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="MAPPING\types\U_NCI_AXIS_ID_GROUP.TcDUT">
@@ -343,6 +374,8 @@
   <ItemGroup>
     <Folder Include="CAM" />
     <Folder Include="CAM\types" />
+    <Folder Include="FLYING_SAW" />
+    <Folder Include="FLYING_SAW\types" />
     <Folder Include="FUNCTIONS" />
     <Folder Include="FUNCTIONS\TOUCH_PROBE" />
     <Folder Include="FUNCTIONS\TOUCH_PROBE\types" />
@@ -514,7 +547,7 @@
           <d n="SubKeys" t="Hashtable" />
           <d n="Values" t="Hashtable" ckt="String" cvt="String">
             <v>DisabledWarningIds</v>
-            <v>410,5410</v>
+            <v>5410</v>
           </d>
         </o>
         <v>{E709B08B-B6E4-4966-8EED-D793A13114C6}</v>

@@ -1,0 +1,105 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <GVL Name="GVL_APPLICATION" Id="{b83de342-914f-4ad1-86ba-5efc40943708}">
+    <Declaration><![CDATA[VAR_GLOBAL CONSTANT
+  // These my be the number of processes YOU require
+  MAX_PROCESS       : UINT := 1;
+END_VAR
+{attribute 'qualified_only'}
+VAR_GLOBAL
+  //-----------------------------------------------------------------------------------------------
+  // APPLICATION territory, your territory
+  //
+  //  - here you find diplomats for building transport logic:
+  //
+  //    - for grouping of stations
+  //      - multiplication of single stations into processes vis ProcessCollector
+  //      - dedicated transport procedures by extending fb_Instance
+  //        - transport procedure on this level always uses a ProcessCollector
+  //
+  //    - for a cyclic process ticket list
+  //      - input for process tickets via any network or protocol
+  //
+  //    - for a process ticket conductor
+  //      - distributes process tickets to process index
+  //-----------------------------------------------------------------------------------------------
+  //-----------------------------------------------------------------------------------------------
+  // Linked List instances
+  //-----------------------------------------------------------------------------------------------
+//   ProcessList           : ARRAY[1..MAX_PROCESS] OF fb_Process_LinkedList; // information transfer between processes
+//   ItfProcessList        : ARRAY[1..MAX_PROCESS] OF I_Process_LinkedList;  // use this interface in your function blocks
+  //-----------------------------------------------------------------------------------------------
+  //-----------------------------------------------------------------------------------------------
+  // Collector instances
+  //
+  //  - layer for grouping parallel XtsStations for process handshakes
+  //-----------------------------------------------------------------------------------------------
+  //  - fb_ProcessCollector:
+  //    - uses .ProcessCtrl and .ProcessState for handshakes with application
+  //
+  //    - .ActivateStation is evaluated after enabling infeed in state 
+  //      E_PROCESS_STATE.PROCESS_DISABLE:/E_PROGRESS.PROGRESS_BUSY:
+  //      
+  //    - ST_PROCESS_STATE:
+  //      - contains 3 enumerations for you to check
+  //      - State           : E_PROCESS_STATE;
+  //        - main state for handshakes
+  //
+  //      - Result          : E_PROGRESS;
+  //        - substate for checks during handshake; 
+  //          PROGRESS_BUSY --> handshakes are accepted (see fb_ProcessCollecotr.Cycle())
+  //
+  //      - Check           : E_PROCESS_CHECK;
+  //        - cyclic pointer check: use this on startup of your application
+  //
+  //    - inherits fb_StationCollector
+  //-----------------------------------------------------------------------------------------------
+  //-----------------------------------------------------------------------------------------------
+//   ProcessCollector      : ARRAY[1..MAX_PROCESS] OF fb_ProcessCollector;       // grouping of XtsStations
+//   ItfProcessCollector   : ARRAY[1..MAX_PROCESS] OF I_ProcessCollector;        // interface for use in your function blocks like BufferInfeed etc.
+  //-----------------------------------------------------------------------------------------------
+  // cyclic linked lists
+  //
+  //  - fb_LinkedListCtrl
+  //    - is controlled via Ctrl/State pair
+  //    - provides I_Process_LinkedList for use in conected class
+  //-----------------------------------------------------------------------------------------------
+  TicketList            : fb_Process_LinkedListCtrl;
+  TicketListControl     : ST_LIST_CTRL;
+  TicketListState       : ST_LIST_STATE;
+  TicketListDataInput   : ST_LIST_NODE_DATA;   // datafield for you to write(add) your data
+  TicketListDataOutput  : ST_LIST_NODE_DATA;   // datafield for you to read (get) your data
+  //-----------------------------------------------------------------------------------------------
+  //-----------------------------------------------------------------------------------------------
+  // Distribution of LinkedList ticket
+  //
+  //  - fb_ProcessConductor extends fb_Instance
+  //    - is controlled via instance Ctrl/State pair
+  //    - consumes I_Process_LinkedList for moving 
+  //      the ticket from the cyclic list into the process list of ST_PROCESS_DATA.nProcessId
+  //-----------------------------------------------------------------------------------------------
+//  ProcessConductor      : fb_ProcessConductor;
+  //-----------------------------------------------------------------------------------------------
+  //-----------------------------------------------------------------------------------------------
+  // Configuration of XtsTransport
+  //
+  //  - fb_Configuration stores data in xml format
+  //    - is controlled via data Ctrl/State pair
+  //-----------------------------------------------------------------------------------------------
+//   StationConfig         : fb_Configuration;
+//   ConfigCtrl            : ST_DATA_CTRL;
+//   ConfigState           : ST_DATA_STATE;
+  //-----------------------------------------------------------------------------------------------
+  //-----------------------------------------------------------------------------------------------
+  // static mover offsets XtsTransport
+  //
+  //  - fb_MoverPositionOffsetData stores data in xml format
+  //    - is controlled via data Ctrl/State pair
+  //-----------------------------------------------------------------------------------------------
+//   MoverOffsetsData      : fb_MoverPositionOffsetData;
+//   OffsetDataCtrl        : ST_DATA_CTRL;
+//   OffsetDataState       : ST_DATA_STATE;
+  //-----------------------------------------------------------------------------------------------
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>
