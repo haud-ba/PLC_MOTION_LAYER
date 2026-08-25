@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.19">
   <Itf Name="I_Fly_Ctrl" Id="{54250d0a-c7ff-4a79-b9e4-e6cbc23a0dae}">
     <Declaration><![CDATA[INTERFACE I_Fly_Ctrl
 ]]></Declaration>
@@ -52,7 +52,7 @@
       </Set>
     </Property>
     <Property Name="MoveData" Id="{f45fa732-7418-4ec6-b66c-d64524d97625}" FolderPath="properties\">
-      <Declaration><![CDATA[PROPERTY MoveData : pointer to ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_MOVE_DATA]]></Declaration>
+      <Declaration><![CDATA[PROPERTY MoveData : pointer to ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_AXIS_MOVE_DATA]]></Declaration>
       <Set Name="Set" Id="{17adc8eb-6a9c-4635-9a5d-5d4dc171712a}">
         <Declaration><![CDATA[]]></Declaration>
       </Set>

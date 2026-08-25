@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.19">
   <POU Name="FB_McAxisBase" Id="{b0a70715-8745-098e-33e9-cc5f7a367c73}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK ABSTRACT FB_McAxisBase  IMPLEMENTS I_McAxis
 VAR
@@ -552,6 +552,10 @@ OF
       THEN
         _eState                     := E_PROGRESS.PROGRESS_WORKING;
 
+        _fbHalt(
+              Axis                  := _AxisRef, 
+              Execute               := FALSE);
+
       ELSIF _fbHalt.CommandAborted
       THEN
         _eState                     := E_PROGRESS.PROGRESS_BUSY;
@@ -569,14 +573,8 @@ OF
         END_IF
       END_IF
     END_IF
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.PROGRESS_WORKING:
-    _fbHalt(
-              Axis                  := _AxisRef, 
-              Execute               := FALSE);
 
+  E_PROGRESS.PROGRESS_WORKING:
     _eState                         := E_PROGRESS.PROGRESS_DONE;
 
     _stMsg.eType                    := E_MessageType.eMessageVerbose;
@@ -2694,7 +2692,12 @@ WriteParameterPersistent            := _eState;
       <LineId Id="1" Count="1" />
     </LineIds>
     <LineIds Name="FB_McAxisBase.Halt">
-      <LineId Id="1" Count="99" />
+      <LineId Id="1" Count="56" />
+      <LineId Id="101" Count="3" />
+      <LineId Id="58" Count="17" />
+      <LineId Id="105" Count="0" />
+      <LineId Id="79" Count="0" />
+      <LineId Id="84" Count="16" />
     </LineIds>
     <LineIds Name="FB_McAxisBase.Home">
       <LineId Id="1" Count="96" />

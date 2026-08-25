@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.19">
   <POU Name="FB_FlyingBase" Id="{86dcc0cc-c619-4cf3-a8fb-dd8062daa261}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK abstract FB_FlyingBase
 VAR
@@ -13,7 +13,7 @@ VAR
   _rModulo              : LREAL;                  // modulo length/angle of NC axis.
 
   _stFlyData            : ST_FLY_DATA;
-  _stMoveData           : ST_MOVE_DATA;
+  _stMoveData           : ST_AXIS_MOVE_DATA;
   _stOptions            : ST_FLY_OPTIONS;
 
   _szSyncMode           : ARRAY[1..2] OF UINT;
@@ -50,7 +50,7 @@ END_VAR
       <Declaration><![CDATA[METHOD GearInPos : E_PROGRESS
 VAR_INPUT
   Execute             : BOOL;
-  stMoveData          : ST_MOVE_DATA;
+  stMoveData          : ST_AXIS_MOVE_DATA;
   stGearData          : ST_FLY_DATA;
   stOptions           : ST_FLY_OPTIONS; 
 END_VAR
@@ -224,7 +224,7 @@ GearInPos                     := _eState;
       <Declaration><![CDATA[METHOD GearInVelo : E_PROGRESS
 VAR_INPUT
   Execute             : BOOL;
-  stMoveData          : ST_MOVE_DATA;
+  stMoveData          : ST_AXIS_MOVE_DATA;
   stGearData          : ST_FLY_DATA;
   stOptions           : ST_FLY_OPTIONS; 
 END_VAR
@@ -375,79 +375,8 @@ END_VAR
         </Implementation>
       </Set>
     </Property>
-    <Method Name="Template" Id="{6292f03f-4434-4a65-9f62-e71b987dbc55}" FolderPath="methods\">
-      <Declaration><![CDATA[METHOD Template : E_PROGRESS
-VAR_INPUT
-  Execute           : BOOL;
-END_VAR
-VAR_INST
-  _eState           : E_PROGRESS;
-  _rValue           : LREAL;
-  _udiErr           : UDINT;
-  _stMsg            : ST_Message;
-
-
-END_VAR
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[
-IF NOT __ISVALIDREF(_AxisSlave)
-THEN
-  _eCheck                     := E_CHECK_STATE.CAM_SLAVE_AXIS_REF_INVALID;
-  CamOut                      := E_PROGRESS.ERROR;
-  RETURN;
-END_IF
-
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
-
-CASE _eState
-OF
-  E_PROGRESS.INIT:
-    IF Execute 
-    THEN
-      memset(ADR(_stMsg),0,SIZEOF(_stMsg));
-      _udiErr                       := 0;
-      _rValue                       := 0;
-      _eState                       := E_PROGRESS.BUSY;
-    END_IF
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.BUSY:
-    _eState                         := E_PROGRESS.STARTUP;
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.STARTUP:
-    _eState                         := E_PROGRESS.PREPARE;
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.PREPARE:
-    _eState                         := E_PROGRESS.READY;
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.READY:
-    _eState                         := E_PROGRESS.WAITING;
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.WAITING:
-    _eState                         := E_PROGRESS.WORKING;
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.WORKING:
-    _eState                         := E_PROGRESS.DONE;
-END_CASE
-
-Template_1 := _eState;
-]]></ST>
-      </Implementation>
-    </Method>
     <LineIds Name="FB_FlyingBase">
-      <LineId Id="1" Count="0" />
+      <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_FlyingBase.AxisModulo.Set">
       <LineId Id="1" Count="1" />
@@ -460,9 +389,6 @@ Template_1 := _eState;
     </LineIds>
     <LineIds Name="FB_FlyingBase.MessageLevel.Set">
       <LineId Id="1" Count="1" />
-    </LineIds>
-    <LineIds Name="FB_FlyingBase.Template">
-      <LineId Id="1" Count="53" />
     </LineIds>
   </POU>
 </TcPlcObject>

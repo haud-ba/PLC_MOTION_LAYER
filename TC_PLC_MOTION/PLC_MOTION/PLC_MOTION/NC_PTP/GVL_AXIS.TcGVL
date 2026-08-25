@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.19">
   <GVL Name="GVL_AXIS" Id="{20e9a98c-7737-0946-063b-2924d642a805}">
     <Declaration><![CDATA[{attribute 'qualified_only'}
 VAR_GLOBAL
@@ -34,7 +34,7 @@ VAR_GLOBAL
   //    - State --> Info
   //-----------------------------------------------------------------------------
   Info                        : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_AXIS_INFO;      // axis state and position data to read from
-  Data                        : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_MOVE_DATA;      // axis data to write into
+  Data                        : ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_AXIS_MOVE_DATA;      // axis data to write into
 
   //-----------------------------------------------------------------------------
   // special function parameter structs

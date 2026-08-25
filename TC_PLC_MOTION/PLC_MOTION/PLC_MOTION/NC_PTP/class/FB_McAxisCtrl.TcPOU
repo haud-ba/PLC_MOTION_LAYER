@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.19">
   <POU Name="FB_McAxisCtrl" Id="{999335a0-5af6-0c1d-15bd-a65b83fb504c}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_McAxisCtrl EXTENDS FB_McAxisBase
 VAR
@@ -22,7 +22,7 @@ VAR
   _State                    : POINTER TO ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_AXIS_STATE;   // mirrors command with added result
 
   _Info                     : POINTER TO ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_AXIS_INFO;    // axis state and position data to read from
-  _Data                     : POINTER TO ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_MOVE_DATA;    // structure for cyclic interface
+  _Data                     : POINTER TO ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_AXIS_MOVE_DATA;    // structure for cyclic interface
 
   _NcParameterIn            : POINTER TO ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_NC_PARAMETER; // W struct for a single parameter
   _NcParameterOut           : POINTER TO ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_NC_PARAMETER; // R struct for a single parameter
@@ -283,7 +283,7 @@ END_VAR
       <Declaration><![CDATA[METHOD AxisBufferPos : E_PROGRESS
 VAR_INPUT
   bEnable            : BOOL;
-  Data              : ST_MOVE_DATA;
+  Data              : ST_AXIS_MOVE_DATA;
 END_VAR
 VAR_INST
   _BufferMode       : Tc2_MC2.MC_BufferMode;
@@ -362,7 +362,7 @@ END_CASE
       <Declaration><![CDATA[METHOD AxisBufferVelo : E_PROGRESS
 VAR_INPUT
   bEnable            : BOOL;
-  Data              : ST_MOVE_DATA;
+  Data              : ST_AXIS_MOVE_DATA;
 END_VAR
 VAR_INST
   _BufferMode       : Tc2_MC2.MC_BufferMode;
@@ -454,7 +454,7 @@ END_VAR
       </Set>
     </Property>
     <Property Name="AxisData" Id="{dd1871a7-f253-01d5-39fc-b8e8ee980c20}" FolderPath="properties\">
-      <Declaration><![CDATA[PROPERTY AxisData : pointer to ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF st_move_data]]></Declaration>
+      <Declaration><![CDATA[PROPERTY AxisData : pointer to ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_AXIS_MOVE_DATA]]></Declaration>
       <Set Name="Set" Id="{3a83fd26-6575-0237-0d2c-1c41a74f695f}">
         <Declaration><![CDATA[VAR
 END_VAR
@@ -1078,7 +1078,7 @@ AxisGearOut                       := _eState;
       <Declaration><![CDATA[METHOD AxisHalt : E_PROGRESS
 VAR_INPUT
   Execute           : BOOL;
-  Data              : ST_MOVE_DATA;
+  Data              : ST_AXIS_MOVE_DATA;
 END_VAR
 VAR_INST
   _eres,
@@ -1565,7 +1565,7 @@ AxisInit                            := _eState;
       <Declaration><![CDATA[METHOD AxisMoveToPosition : E_PROGRESS
 VAR_INPUT
   Execute           : BOOL;
-  Data              : ST_MOVE_DATA;
+  Data              : ST_AXIS_MOVE_DATA;
 END_VAR
 VAR_INST
   _eres,
@@ -1639,7 +1639,7 @@ AxisMoveToPosition := _eState;
       <Declaration><![CDATA[METHOD AxisMoveVelocity : E_PROGRESS
 VAR_INPUT
   Execute           : BOOL;
-  Data              : ST_MOVE_DATA;
+  Data              : ST_AXIS_MOVE_DATA;
 END_VAR
 VAR_INST
   _eres,
@@ -1959,7 +1959,7 @@ AxisReset                           := _eState;
       <Declaration><![CDATA[METHOD AxisSendToPosition : E_PROGRESS
 VAR_INPUT
   Execute           : BOOL;
-  Data              : ST_MOVE_DATA;
+  Data              : ST_AXIS_MOVE_DATA;
 END_VAR
 VAR_INST
   _eres,
@@ -2048,7 +2048,7 @@ END_VAR
       <Declaration><![CDATA[METHOD AxisStop : E_PROGRESS
 VAR_INPUT
   Execute           : BOOL;
-  Data              : ST_MOVE_DATA;
+  Data              : ST_AXIS_MOVE_DATA;
 END_VAR
 VAR_INST
   _eres,
@@ -2695,70 +2695,6 @@ END_VAR
         </Implementation>
       </Set>
     </Property>
-    <Method Name="Template" Id="{f7a6377b-3c3c-04fd-3517-7f39ac13b38f}">
-      <Declaration><![CDATA[METHOD Template : E_PROGRESS
-VAR_INPUT
-  Execute           : BOOL;
-END_VAR
-VAR_INST
-  _eState           : E_PROGRESS;
-  _rValue           : LREAL;
-  _udiErr           : UDINT;
-  _stMsg            : ST_Message;
-
-
-END_VAR
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[IF NOT Check() THEN _eState := E_PROGRESS.ERROR; END_IF
-IF NOT Execute THEN _eState := E_PROGRESS.INIT; END_IF
-
-CASE _eState
-OF
-  E_PROGRESS.INIT:
-    IF Execute 
-    THEN
-      memset(ADR(_stMsg),0,SIZEOF(_stMsg));
-      _udiErr                       := 0;
-      _rValue                       := 0;
-      _eState                       := E_PROGRESS.BUSY;
-    END_IF
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.BUSY:
-    _eState                         := E_PROGRESS.STARTUP;
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.STARTUP:
-    _eState                         := E_PROGRESS.PREPARE;
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.PREPARE:
-    _eState                         := E_PROGRESS.READY;
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.READY:
-    _eState                         := E_PROGRESS.WAITING;
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.WAITING:
-    _eState                         := E_PROGRESS.WORKING;
-END_CASE
-CASE _eState
-OF
-  E_PROGRESS.WORKING:
-    _eState                         := E_PROGRESS.DONE;
-END_CASE
-
-Template_1 := _eState;
-]]></ST>
-      </Implementation>
-    </Method>
     <LineIds Name="FB_McAxisCtrl">
       <LineId Id="199" Count="0" />
       <LineId Id="2" Count="196" />
@@ -2884,9 +2820,6 @@ Template_1 := _eState;
     </LineIds>
     <LineIds Name="FB_McAxisCtrl.TargetWindow.Set">
       <LineId Id="1" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_McAxisCtrl.Template">
-      <LineId Id="1" Count="46" />
     </LineIds>
   </POU>
 </TcPlcObject>

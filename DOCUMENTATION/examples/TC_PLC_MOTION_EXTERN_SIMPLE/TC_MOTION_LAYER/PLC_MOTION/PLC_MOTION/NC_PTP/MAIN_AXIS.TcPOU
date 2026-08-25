@@ -76,7 +76,7 @@ OF
 
     FOR nAxis := 1 TO PLC_CONSTANT.MAX_AXIS
     DO
-      GVL_MSG_AXIS.MessageLevelAxisPtp[nAxis] := E_MessageType.eMessageVerbose; //GVL_MSG.MessageLevel;
+      GVL_MSG_AXIS.MessageLevelAxisPtp[nAxis] := E_MessageType.eMessageSentient; //GVL_MSG.MessageLevel;
     END_FOR
     nAxisInit                                 := 1;
     eInit                                     := E_PROGRESS.PROGRESS_INIT;
@@ -300,7 +300,8 @@ END_CASE
 ]]></ST>
     </Implementation>
     <LineIds Name="MAIN_AXIS">
-      <LineId Id="1" Count="276" />
+      <LineId Id="278" Count="0" />
+      <LineId Id="2" Count="275" />
     </LineIds>
   </POU>
 </TcPlcObject>

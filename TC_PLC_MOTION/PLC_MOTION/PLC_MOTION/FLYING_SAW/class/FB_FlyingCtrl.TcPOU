@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.19">
   <POU Name="FB_FlyingCtrl" Id="{06eb0893-79e7-4f8a-a3bd-cfe30fd2aa02}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_FlyingCtrl EXTENDS FB_FlyingBase IMPLEMENTS I_Fly_Ctrl
 VAR
@@ -17,7 +17,7 @@ VAR
   //_Info                     : POINTER TO ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_FLY_INFO;    // Read Info Data
   _Data                     : POINTER TO ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_FLY_DATA;    // fLYINGsAW parameters
 
-  _MoveData                 : POINTER TO ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_MOVE_DATA;   // dynamic parameters
+  _MoveData                 : POINTER TO ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_AXIS_MOVE_DATA;   // dynamic parameters
 
   _Options                  : POINTER TO ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_FLY_OPTIONS; // gear in slave options
 
@@ -195,9 +195,7 @@ OF
         _eResult                    := GearInPos(FALSE, _stMoveData, _stFlyData, _stOptions);
       END_IF
     END_IF
-END_CASE
-CASE _eState
-OF
+
   E_PROGRESS.PROGRESS_BUSY:
       _eResult                      := GearInPos(TRUE, _stMoveData, _stFlyData, _stOptions);
 
@@ -211,8 +209,11 @@ OF
     ELSIF (_eResult = E_PROGRESS.PROGRESS_DONE)
     THEN
       GearInPos(FALSE, _stMoveData, _stFlyData, _stOptions);
-      _eState                       := E_PROGRESS.PROGRESS_DONE;
+      _eState                       := E_PROGRESS.PROGRESS_WORKING;
     END_IF
+
+  E_PROGRESS.PROGRESS_WORKING:
+      _eState                       := E_PROGRESS.PROGRESS_DONE;
 END_CASE
 
 
@@ -280,8 +281,11 @@ OF
     ELSIF (_eResult = E_PROGRESS.PROGRESS_DONE)
     THEN
       GearInVelo(FALSE, _stMoveData, _stFlyData, _stOptions);
-      _eState                       := E_PROGRESS.PROGRESS_DONE;
+      _eState                       := E_PROGRESS.PROGRESS_WORKING;
     END_IF
+
+  E_PROGRESS.PROGRESS_WORKING:
+      _eState                       := E_PROGRESS.PROGRESS_DONE;
 END_CASE
 
 
@@ -889,7 +893,7 @@ END_VAR
       </Implementation>
     </Method>
     <Property Name="MoveData" Id="{0ee34285-91f9-4b9a-917b-928ed279beac}" FolderPath="properties\">
-      <Declaration><![CDATA[PROPERTY MoveData : pointer to ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_MOVE_DATA]]></Declaration>
+      <Declaration><![CDATA[PROPERTY MoveData : pointer to ARRAY[1..PLC_CONSTANT.MAX_AXIS] OF ST_AXIS_MOVE_DATA]]></Declaration>
       <Set Name="Set" Id="{f7ad040f-98f9-434d-ac9b-b760c2a49b47}">
         <Declaration><![CDATA[VAR
 END_VAR
@@ -913,7 +917,7 @@ END_VAR
       </Set>
     </Property>
     <LineIds Name="FB_FlyingCtrl">
-      <LineId Id="1" Count="0" />
+      <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="FB_FlyingCtrl.AxisCtrl.Set">
       <LineId Id="1" Count="1" />
@@ -922,10 +926,18 @@ END_VAR
       <LineId Id="1" Count="84" />
     </LineIds>
     <LineIds Name="FB_FlyingCtrl.AxisGearInPos">
-      <LineId Id="1" Count="53" />
+      <LineId Id="1" Count="30" />
+      <LineId Id="55" Count="0" />
+      <LineId Id="35" Count="14" />
+      <LineId Id="57" Count="0" />
+      <LineId Id="56" Count="0" />
+      <LineId Id="58" Count="0" />
+      <LineId Id="50" Count="4" />
     </LineIds>
     <LineIds Name="FB_FlyingCtrl.AxisGearInVelo">
-      <LineId Id="1" Count="51" />
+      <LineId Id="1" Count="46" />
+      <LineId Id="54" Count="2" />
+      <LineId Id="48" Count="4" />
     </LineIds>
     <LineIds Name="FB_FlyingCtrl.AxisIndex.Set">
       <LineId Id="1" Count="1" />

@@ -1,9 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.19">
   <GVL Name="PLC_VERSION" Id="{d2395695-97e2-030c-1191-ad6e09085440}">
     <Declaration><![CDATA[{attribute 'qualified_only'}
 VAR_GLOBAL CONSTANT
-  VERSION               : STRING := 'V 01.01.01';
+  VERSION               : STRING := 'V 01.01.02';
+  // 2026 08 25
+  //  - buffered command reset
+  //  - clear for one cycle after Halt
+  //  - refactoring of ST_MOVE_DATA to ST_AXIS_MOVE_DATA
 
   // 2026 07 25
   //  - OS testing concluded
