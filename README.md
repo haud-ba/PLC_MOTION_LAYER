@@ -1,13 +1,22 @@
 # Introduction TC_PLC_MOTION_LAYER
 
-[DOCUMENTATION]
- * pdf you should read
- * contact me for access to examples
- * use 'Discussions' tab if you'd like to comment or ask a question.
+[DOCUMENTATION]:
+  - read first --> MOTION_LAYER_architecture.pdf
+  - read second --> PLC_MOTION_LAYER.pdf
+  - ** use 'Discussions' tab if you'd like to comment or ask a question.
+  -
+[DOCUMENTATION/examples]
+  - ** a TC project running in simulation with 2 PLCs mapped.
+    - PLC_MOTION - is commanding axis, NCI, etc.
+    - ExternControl - issues commands to Ctrl/State facades. Carries business logic.
+
 
 ## **PLC_MOTION** 
   
   - TwinCAT motion layer approach
+    - TwinCAT motion library encapsulation for MC2
+      - MC3 is on its way currently experimenting and testing
+     
 	- Manual compiler defines for optional binding of libraries ('library'RMB:Properties:Conditional Referencing)
       - NCI
 	  - CAM
