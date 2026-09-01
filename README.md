@@ -3,10 +3,10 @@
 [DOCUMENTATION]:
   - read first --> MOTION_LAYER_architecture.pdf
   - read second --> PLC_MOTION_LAYER.pdf
-  - ** use 'Discussions' tab if you'd like to comment or ask a question.
+  - **use 'Discussions' tab if you'd like to comment or ask a question.**
   -
 [DOCUMENTATION/examples]
-  - ** a TC project running in simulation with 2 PLCs mapped.
+  - **a TC project running in simulation with 2 PLCs mapped.**
     - PLC_MOTION - is commanding axis, NCI, etc.
     - ExternControl - issues commands to Ctrl/State facades. Carries business logic.
 
