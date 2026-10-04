@@ -6,10 +6,13 @@
   - **use 'Discussions' tab if you'd like to comment or ask a question.**
   -
 [DOCUMENTATION/examples]
-  - **a TC project running in simulation with 2 PLCs mapped.**
+  - **TC_PLC_MOTION_EXTERN_SIMPLE** running in simulation with 2 PLCs mapped.
     - PLC_MOTION - is commanding axis, NCI, etc.
     - ExternControl - issues commands to Ctrl/State facades. Carries business logic.
 
+  - **TC_PLC_MOTION_EXTERN_NCI** running in simulation with 2 PLCs mapped
+    - PLC_MOTION - NCI protal, PtP axis, ...
+    - ExternControl - grouping of functionalities in JobBase and JobCtrl, configuring and commanding NCI portal, Ctrl/State facades for connecting to other PLCs
 
 ## **PLC_MOTION** 
   
