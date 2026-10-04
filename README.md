@@ -11,7 +11,7 @@
     - ExternControl - issues commands to Ctrl/State facades. Carries business logic.
 
   - **TC_PLC_MOTION_EXTERN_NCI** running in simulation with 2 PLCs mapped
-    - PLC_MOTION - NCI protal, PtP axis, ...
+    - PLC_MOTION - NCI portal XYZ, PtP axis, ...
     - ExternControl - grouping of functionalities in JobBase and JobCtrl, configuring and commanding NCI portal, Ctrl/State facades for connecting to other PLCs
 
 ## **PLC_MOTION** 
