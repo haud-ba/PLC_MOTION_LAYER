@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.13">
+  <DUT Name="E_DATA_CHECK" Id="{6055dcec-ea1c-4c5e-91ee-3954ecb337bb}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+{attribute 'to_string'}
+TYPE E_DATA_CHECK :
+(
+  NULL,
+  REFERENCE_CTRL_INVALID  := 9000,
+  REFERENCE_STATE_INVALID,
+
+  POINTER_STATION_PARAMETER_INVALID := 9100,
+  POINTER_MOVER_DISTANCES_INVALID,
+  POINTER_MOVER_OFFSETS_INVALID,
+
+  DONE_CHECK              := 10000
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

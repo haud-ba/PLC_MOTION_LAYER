@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="ST_CONFIG_JOBS" Id="{fe109315-8000-4c50-89b9-708a5c27b67b}">
+    <Declaration><![CDATA[TYPE ST_CONFIG_JOBS :
+STRUCT
+  // Job descriptions, you may write the missing ones yourself
+  ParameterHome         : ST_JOB_PARAMETER;
+  ParameterRinse        : ST_JOB_PARAMETER;
+  ParameterAuto         : ST_JOB_PARAMETER;
+  ParameterStrip        : ST_JOB_PARAMETER;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

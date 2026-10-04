@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="ST_CAM_STATE" Id="{8828ad99-a0e2-413b-a0db-bc4e08ed9217}">
+    <Declaration><![CDATA[{attribute 'pack_mode' := '2'}
+TYPE ST_CAM_STATE :
+STRUCT
+  bError              : BIT;
+
+  eState              : E_AXIS_STATE; // mirror the requested command + E_PROGRESS
+
+  wCamCouplingState   : ARRAY[0..7] OF WORD;
+  nCamCouplingTableId : ARRAY[0..7] OF UINT;
+
+  nNumPointsRead      : UDINT;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

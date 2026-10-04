@@ -1,0 +1,784 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="fb_GstDos" Id="{d147ef6a-efce-4db1-b483-1271f887bf0d}" SpecialFunc="None">
+    <Declaration><![CDATA[//---------------------------------------------------------------------------------------------------------------
+//
+//  HAUD 2023.10.26
+//
+//
+//
+//  fb_GstDos
+//  - See 'TestGST.nc' for examples; included in project: [<TC_project>/PLC_OPEN_DRIVE/POUs/NCI/Test_GST.nc]
+//  - *.nc file must be loaded before use
+//  - starts *.nc file
+//  - handshake of M function at start of *.nc file for sync with dispenser
+//  - handshake with M function at start is required in every *.nc file!!
+//  - *.nc file dispensing is handshaking via M150 - M154 [E_M_FUNC]
+//  - dispensing parameters are programmed in *.nc file (velo, volume, delay)
+//
+//  - dispensing velocity [mm³/s] for contour is read from              R909 [E_R_PARAMETER]
+//  - dispensing volume [mm³] for contour is read from                  R908 [E_R_PARAMETER]
+//  - dispensing feedback delay on started dispenser axis is read from  R907 [E_R_PARAMETER] 
+//
+//---------------------------------------------------------------------------------------------------------------
+// This SOFTWARE is provided as an Exemple by THE PROVIDER "as is" and "with all faults." THE PROVIDER makes no 
+// representations or warranties of any kind concerning the safety, suitability, lack of viruses, inaccuracies, 
+// typographical errors, or other harmful components of this SOFTWARE. There are inherent dangers in the use of 
+// any software, and you are solely responsible for determining whether this SOFTWARE is compatible with your 
+// equipment and other software installed on your equipment. You are also solely responsible for the protection 
+// of your equipment and backup of your data, and THE PROVIDER will not be liable for any damages you may suffer 
+// in connection with using, modifying, or distributing this SOFTWARE.
+//---------------------------------------------------------------------------------------------------------------
+FUNCTION_BLOCK fb_GstDos
+VAR_INPUT
+
+END_VAR
+VAR_OUTPUT
+  State               : E_UNIT_STATE;
+END_VAR
+VAR
+  _eJobState,
+  _eJobResult,
+  _eState             : E_UNIT_STATE;
+
+  _AxisCtrl           : REFERENCE TO ARRAY[1..MAX_AXIS] OF ST_AXIS_CTRL;
+  _AxisState          : REFERENCE TO ARRAY[1..MAX_AXIS] OF ST_AXIS_STATE;
+
+  _stRParameterNCI    : REFERENCE TO ST_R_Parameter;
+
+  _ItfUnitControl     : I_Unit_Control;
+  _ItfDispenser       : I_Dispenser;
+
+
+  _sProgCtrl,
+  _sProgState         : POINTER TO STRING(255);
+
+  _bEnable            : BOOL; // starts *.nc file
+  _bStart             : BOOL; // M func handshake after *.nc file startup
+  _bEnd               : BOOL; // M func handshake at end of *.nc file
+  _bBlock             : BOOL;
+
+  _nProg,
+  _nStart             : E_NCI_M_FUNC; // M function number at *.nc file start
+
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF NOT Check() THEN State := E_UNIT_STATE.UNIT_ERROR; RETURN; END_IF
+
+IF NOT _bEnable 
+THEN
+  // clean up
+  _nProg    := _nStart                  := 0;
+  _bStart   := _bEnd                    := FALSE;
+  _eState   := _eJobState               := E_UNIT_STATE.UNIT_INIT;
+END_IF
+
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+CASE _eState
+OF
+  E_UNIT_STATE.UNIT_INIT:
+  //-------------------------------------------------------------------------------------
+    IF _bEnable
+    THEN
+      // proceed only if *.nc file is consistent
+      IF NOT (_sProgCtrl^ = _sProgState^)
+      THEN
+          _eState                       := E_UNIT_STATE.UNIT_ERROR;
+      ELSE
+        // clear interface in order to start *.nc file
+        _ItfUnitControl.ChnCtrl^.eCmd   := e_Ctrl_NciCommand.INIT;
+
+        IF (_ItfUnitControl.ChnState^.eState = e_Ctrl_NciCommand.INIT + e_Ctrl_NciCommand.CMD_DONE)
+        THEN
+          _eState                       := E_UNIT_STATE.UNIT_BUSY;
+        END_IF
+
+      END_IF 
+    END_IF
+  //-------------------------------------------------------------------------------------
+
+  E_UNIT_STATE.UNIT_BUSY:
+  //-------------------------------------------------------------------------------------
+    // start execution of the loaded *.nc file in NCI
+    _ItfUnitControl.ChnCtrl^.eCmd       := e_Ctrl_NciCommand.START;
+
+    IF (_ItfUnitControl.ChnState^.eState = _ItfUnitControl.ChnCtrl^.eCmd + e_Ctrl_NciCommand.CMD_ERROR)
+    THEN
+      _eState                           := E_UNIT_STATE.UNIT_ERROR;
+
+    ELSIF (_ItfUnitControl.ChnState^.eState = _ItfUnitControl.ChnCtrl^.eCmd + e_Ctrl_NciCommand.CMD_DONE)
+    THEN
+
+      // wait for startup M function M101
+      IF (_ItfUnitControl.ChnState^.bMFuncReq)
+      THEN
+        _nStart                         := _ItfUnitControl.ChnState^.nMFunc;
+        _eState                         := E_UNIT_STATE.UNIT_STARTUP;
+      END_IF
+    END_IF
+  //-------------------------------------------------------------------------------------
+END_CASE
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+CASE _eState
+OF
+  E_UNIT_STATE.UNIT_STARTUP:
+  //-------------------------------------------------------------------------------------
+    // quit _nStart M-function M101
+    _ItfUnitControl.ChnCtrl^.eCmd       := e_Ctrl_NciCommand.M_FUNC_QUIT;
+
+    IF (_ItfUnitControl.ChnState^.eState = _ItfUnitControl.ChnCtrl^.eCmd + e_Ctrl_NciCommand.CMD_ERROR)
+    THEN
+      _eState                           := E_UNIT_STATE.UNIT_ERROR;
+
+    ELSIF (_ItfUnitControl.ChnState^.eState = _ItfUnitControl.ChnCtrl^.eCmd + e_Ctrl_NciCommand.CMD_DONE)
+    THEN
+      _ItfUnitControl.ChnCtrl^.eCmd     := e_Ctrl_NciCommand.INIT;
+      _eState                           := E_UNIT_STATE.UNIT_DC_LINK;
+    END_IF
+  //-------------------------------------------------------------------------------------
+
+
+  E_UNIT_STATE.UNIT_DC_LINK:
+  //-------------------------------------------------------------------------------------
+    // wait for start handshake with Job_Control
+    // get M function
+    _nProg                              := _ItfUnitControl.ChnState^.nMFunc;
+    CASE _nProg
+    OF
+      E_M_FUNC.E_PROG_END,              // M2
+      E_M_FUNC.E_PROG_SUB_END,          // M17
+      E_M_FUNC.E_PROG_ALL_END:          // M30
+        // in case it all suddenly ended, be done
+        _eState                         := E_UNIT_STATE.UNIT_DONE;
+
+      E_M_FUNC.E_AXIS_WAIT_START:       // M102
+        // wait for start from Job_Control
+        IF (_bStart)
+        THEN
+          // quit _n M-function M102
+          _ItfUnitControl.ChnCtrl^.eCmd := e_Ctrl_NciCommand.M_FUNC_QUIT;
+          _eState                       := E_UNIT_STATE.UNIT_READY;
+        END_IF
+    END_CASE
+  //-------------------------------------------------------------------------------------
+
+
+  E_UNIT_STATE.UNIT_READY:
+  //-------------------------------------------------------------------------------------
+    // quit M function M102
+    IF (_ItfUnitControl.ChnState^.eState = e_Ctrl_NciCommand.M_FUNC_QUIT + e_Ctrl_NciCommand.CMD_ERROR)
+    THEN
+      _eState                           := E_UNIT_STATE.UNIT_ERROR;
+
+    ELSIF (_ItfUnitControl.ChnState^.eState = e_Ctrl_NciCommand.M_FUNC_QUIT + e_Ctrl_NciCommand.CMD_DONE)
+    THEN
+      // now dispensing part is about to start, go check for more M functions to rise
+      _ItfUnitControl.ChnCtrl^.eCmd     := e_Ctrl_NciCommand.INIT;
+      _eState                           := E_UNIT_STATE.UNIT_WORKING_M_FUNC;
+    END_IF
+  //-------------------------------------------------------------------------------------
+END_CASE
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+CASE _eState
+OF
+  E_UNIT_STATE.UNIT_WORKING:
+  //-------------------------------------------------------------------------------------
+    // quit M function and wait for result
+    IF (_ItfUnitControl.ChnState^.eState = e_Ctrl_NciCommand.M_FUNC_QUIT + e_Ctrl_NciCommand.CMD_ERROR)
+    THEN
+      _eState                           := E_UNIT_STATE.UNIT_ERROR;
+
+    ELSIF (_ItfUnitControl.ChnState^.eState = e_Ctrl_NciCommand.M_FUNC_QUIT + e_Ctrl_NciCommand.CMD_DONE)
+    THEN
+      _ItfUnitControl.ChnCtrl^.eCmd   := e_Ctrl_NciCommand.INIT;
+      _eJobState                      := E_UNIT_STATE.UNIT_INIT;
+      _eState                         := E_UNIT_STATE.UNIT_WORKING_M_FUNC;
+    END_IF
+  //-------------------------------------------------------------------------------------
+END_CASE
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+CASE _eState
+OF
+  E_UNIT_STATE.UNIT_WORKING_M_FUNC:
+  //-------------------------------------------------------------------------------------
+    // get M function and react to it
+    _nProg                              := _ItfUnitControl.ChnState^.nMFunc;
+    CASE _nProg
+    OF
+      // *.nc file is done, end of program
+      //---------------------------------------------------------------------------------
+      E_M_FUNC.E_PROG_END,              // M2
+      E_M_FUNC.E_PROG_SUB_END,          // M17
+      E_M_FUNC.E_PROG_ALL_END:          // M30
+        _ItfUnitControl.ChnCtrl^.eCmd   := e_Ctrl_NciCommand.M_FUNC_QUIT;
+        _eState                         := E_UNIT_STATE.UNIT_DONE;
+
+      // *.nc file is about to end, Job_Control handshake(_bEnd)
+      //---------------------------------------------------------------------------------
+      E_M_FUNC.E_AXIS_WAIT_END:         // M103
+        IF (_bEnd)
+        THEN
+          _ItfUnitControl.ChnCtrl^.eCmd := e_Ctrl_NciCommand.M_FUNC_QUIT;
+          _eState                       := E_UNIT_STATE.UNIT_WORKING;
+        END_IF
+
+
+      // dispenser must be filled
+      //---------------------------------------------------------------------------------
+      E_M_FUNC.E_PROG_DISP_FILL:        // M150
+        CASE _eJobState
+        OF
+          E_UNIT_STATE.UNIT_INIT:
+            _eJobState                  := E_UNIT_STATE.UNIT_BUSY;
+            _eJobResult                 := DispenserFill(FALSE);
+        END_CASE
+        CASE _eJobState
+        OF
+          // R Parameters are read, dispenser fill starts
+          E_UNIT_STATE.UNIT_BUSY:
+            _eJobResult                 := DispenserFill(TRUE);
+
+            IF (_eJobResult = E_UNIT_STATE.UNIT_ERROR)
+            THEN
+              _eState                   := E_UNIT_STATE.UNIT_ERROR;
+
+            ELSIF (_eJobResult > E_UNIT_STATE.UNIT_BUSY)
+            THEN
+              // dispenser fill has started, go handshake M function
+              _ItfUnitControl.ChnCtrl^.eCmd := e_Ctrl_NciCommand.M_FUNC_QUIT;
+              _eState                       := E_UNIT_STATE.UNIT_WORKING;
+            END_IF
+        END_CASE
+
+
+      // dispenser fill must be done
+      //---------------------------------------------------------------------------------
+      E_M_FUNC.E_PROG_DISP_FILL_DONE:   // M151
+        CASE _eJobState
+        OF
+          E_UNIT_STATE.UNIT_INIT:
+            _eJobState                  := E_UNIT_STATE.UNIT_BUSY;
+        END_CASE
+        CASE _eJobState
+        OF
+          E_UNIT_STATE.UNIT_BUSY:
+            // it was started before, call continues.. til dawn
+            _eJobResult                 := DispenserFill(TRUE);
+
+            IF (_eJobResult = E_UNIT_STATE.UNIT_ERROR)
+            THEN
+              _eState                   := E_UNIT_STATE.UNIT_ERROR;
+
+            ELSIF (_eJobResult = E_UNIT_STATE.UNIT_DONE)
+            THEN
+              // dispenser is filled, go handshake M function
+              _ItfUnitControl.ChnCtrl^.eCmd := e_Ctrl_NciCommand.M_FUNC_QUIT;
+              _eState                       := E_UNIT_STATE.UNIT_WORKING;
+            END_IF
+        END_CASE
+
+
+      // dispenser start outfeed
+      //---------------------------------------------------------------------------------
+      E_M_FUNC.E_PROG_DISP_OUT_START:   // M152
+        CASE _eJobState
+        OF
+          E_UNIT_STATE.UNIT_INIT:
+            _eJobResult                 := DispenserFeedOut(FALSE);
+            _eJobState                  := E_UNIT_STATE.UNIT_BUSY;
+        END_CASE
+        CASE _eJobState
+        OF
+          E_UNIT_STATE.UNIT_BUSY:
+            _eJobResult                 := DispenserFeedOut(TRUE);
+
+            IF (_eJobResult = E_UNIT_STATE.UNIT_ERROR)
+            THEN
+              _eState                   := E_UNIT_STATE.UNIT_ERROR;
+
+            ELSIF (_eJobResult > E_UNIT_STATE.UNIT_BUSY)
+            THEN
+              // dispenser outfeed started, go handshake M function
+              _ItfUnitControl.ChnCtrl^.eCmd := e_Ctrl_NciCommand.M_FUNC_QUIT;
+              _eState                       := E_UNIT_STATE.UNIT_WORKING;
+            END_IF
+        END_CASE
+
+
+      // dispenser is working
+      //---------------------------------------------------------------------------------
+      E_M_FUNC.E_PROG_DISP_OUT_WORKING: // M153
+        CASE _eJobState
+        OF
+          E_UNIT_STATE.UNIT_INIT:
+            _eJobState                  := E_UNIT_STATE.UNIT_BUSY;
+        END_CASE
+        CASE _eJobState
+        OF
+          E_UNIT_STATE.UNIT_BUSY:
+            // it was started before, call continues.. til working
+            _eJobResult                 := DispenserFeedOut(TRUE);
+
+            IF (_eJobResult = E_UNIT_STATE.UNIT_ERROR)
+            THEN
+              _eState                   := E_UNIT_STATE.UNIT_ERROR;
+
+            ELSIF (_eJobResult = E_UNIT_STATE.UNIT_WORKING)
+            THEN
+              // axis in movement, optional delay has passed, go handshake M function
+              _ItfUnitControl.ChnCtrl^.eCmd := e_Ctrl_NciCommand.M_FUNC_QUIT;
+              _eState                       := E_UNIT_STATE.UNIT_WORKING;
+            END_IF
+        END_CASE
+
+
+      // dispenser is done/empty
+      //---------------------------------------------------------------------------------
+      E_M_FUNC.E_PROG_DISP_OUT_DONE:    // M154
+        CASE _eJobState
+        OF
+          E_UNIT_STATE.UNIT_INIT:
+            _eJobState                  := E_UNIT_STATE.UNIT_BUSY;
+        END_CASE
+        CASE _eJobState
+        OF
+          E_UNIT_STATE.UNIT_BUSY:
+            // it was started before, call continues.. til dawn
+            _eJobResult                 := DispenserFeedOut(TRUE);
+
+            IF (_eJobResult = E_UNIT_STATE.UNIT_ERROR)
+            THEN
+              _eState                   := E_UNIT_STATE.UNIT_ERROR;
+
+            ELSIF (_eJobResult = E_UNIT_STATE.UNIT_DONE)
+            THEN
+              // dispenser is empty, go handshake M function
+              _ItfUnitControl.ChnCtrl^.eCmd := e_Ctrl_NciCommand.M_FUNC_QUIT;
+              _eState                       := E_UNIT_STATE.UNIT_WORKING;
+            END_IF
+        END_CASE
+    END_CASE
+  //-------------------------------------------------------------------------------------
+END_CASE
+
+State                                   := _eState;
+
+]]></ST>
+    </Implementation>
+    <Folder Name="private" Id="{a3217857-f8ea-4948-a1e4-4716815e1422}" />
+    <Folder Name="properties" Id="{23a6467d-6d74-481c-8f54-aa6e54ecc5a1}" />
+    <Property Name="AxisCtrl" Id="{eda533fd-3d47-4e5f-9482-ab8afe273b27}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY AxisCtrl : POINTER TO ARRAY[1..MAX_AXIS] OF ST_AxisController]]></Declaration>
+      <Set Name="Set" Id="{23fd912e-4cf5-4eef-83a4-d644c156c65f}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_AxisCtrl := AxisCtrl;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Method Name="Check" Id="{0085855d-de7b-4ccd-bfab-32342e1a9f92}" FolderPath="private\">
+      <Declaration><![CDATA[METHOD Check : BOOL
+VAR_INST
+  _sState             : STRING;
+  _eCheck             : E_UNIT_STATE;
+  _eUnitCheck         : E_JOB_CHECK;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[
+IF NOT (_ItfUnitControl <> 0)
+THEN
+  _sState                           := '_ItfUnitControl: interface pointer invalid';
+  _eUnitCheck                       := E_JOB_CHECK.INTERFACE_NULL_UNIT_CTRL;
+  State                             := E_UNIT_STATE.UNIT_ERROR;
+  RETURN;
+END_IF
+
+IF NOT (_ItfDispenser <> 0)
+THEN
+  _sState                           := '_ItfDispenser: interface pointer invalid';
+  _eUnitCheck                       := E_JOB_CHECK.INTERFACE_NULL_DISPENSER;
+  State                             := E_UNIT_STATE.UNIT_ERROR;
+  RETURN;
+END_IF
+
+IF NOT (_stRParameterNCI <> 0)
+THEN
+  _sState                           := '_stRParameterNCI: pointer invalid';
+  _eUnitCheck                       := E_JOB_CHECK.NCI_R_PARAMETER_INVALID;
+  State                             := E_UNIT_STATE.UNIT_ERROR;
+  RETURN;
+END_IF
+
+IF NOT (_sProgCtrl <> 0)
+THEN
+  _sState                           := '_sProgCtrl: pointer invalid';
+  _eUnitCheck                       := E_JOB_CHECK.POINTER_NULL;
+  State                             := E_UNIT_STATE.UNIT_ERROR;
+  RETURN;
+END_IF
+
+IF NOT (_sProgState <> 0)
+THEN
+  _sState                           := '_sProgState: pointer invalid';
+  _eUnitCheck                       := E_JOB_CHECK.POINTER_NULL;
+  State                             := E_UNIT_STATE.UNIT_ERROR;
+  RETURN;
+END_IF
+
+IF NOT (_AxisCtrl <> 0)
+THEN
+  _sState                           := '_AxisCtrl: pointer invalid';
+  _eUnitCheck                       := E_JOB_CHECK.POINTER_NULL_AXIS_CTRL;
+  State                             := E_UNIT_STATE.UNIT_ERROR;
+  RETURN;
+END_IF
+
+_sState                             := TO_STRING(State);
+_eCheck                             := E_UNIT_STATE.UNIT_CHECK + E_UNIT_STATE.UNIT_DONE;
+_eUnitCheck                         := E_JOB_CHECK.CHECK_DONE;
+Check                               := TRUE;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="CtrlFilename" Id="{32ef35f5-af64-4d4d-a2f3-b0a63327a481}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY CtrlFilename : pointer to string(255)]]></Declaration>
+      <Set Name="Set" Id="{5f36e932-e64e-4cf2-aba0-d7c41867bd6c}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_sProgCtrl := CtrlFilename;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Method Name="DispenserFeedOut" Id="{a99124d6-6896-086a-277e-944877194750}" FolderPath="private\">
+      <Declaration><![CDATA[METHOD DispenserFeedOut : e_unit_state
+VAR_INPUT
+  Execute         : BOOL;
+END_VAR
+VAR_INST
+  _eJobResult,
+  _eStateError,
+  _eState         : E_UNIT_STATE;
+
+  _JobPara        : ST_DISPENSER_JOB_PARAMETER;
+  _tonDelay       : Tc2_Standard.TON;
+  _tDelay         : TIME;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT Execute THEN _eState   := _eStateError     := E_UNIT_STATE.UNIT_INIT;  RETURN; END_IF
+IF NOT Check() THEN DispenserFeedOut  := _eState          := E_UNIT_STATE.UNIT_ERROR; RETURN; END_IF
+
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+CASE _eState 
+of
+  E_UNIT_STATE.UNIT_INIT:
+    IF Execute
+    THEN
+      _ItfDispenser.UnitCtrl^.eCmd    := E_UNIT_CTRL.UNIT_IDLE;
+      _eState                         := E_UNIT_STATE.UNIT_BUSY;
+    END_IF
+END_CASE
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+CASE _eState
+OF
+  E_UNIT_STATE.UNIT_BUSY:
+    _ItfDispenser.UnitCtrl^.eCmd      := E_UNIT_CTRL.UNIT_DISPENSE;
+
+    IF (_ItfDispenser.UnitState^.eState = E_UNIT_STATE.UNIT_DISPENSE + E_UNIT_STATE.UNIT_ERROR)
+    THEN
+      _eState                         := E_UNIT_STATE.UNIT_ERROR;
+
+    ELSIF (_ItfDispenser.UnitState^.eState >= E_UNIT_STATE.UNIT_DISPENSE + E_UNIT_STATE.UNIT_WORKING)
+    THEN
+      _eState                         := E_UNIT_STATE.UNIT_DC_LINK;
+    END_IF
+END_CASE
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+CASE _eState
+OF
+  E_UNIT_STATE.UNIT_DC_LINK:
+    _eState                           := E_UNIT_STATE.UNIT_READY;
+    _tDelay                           := _ItfDispenser.JobParameter^.tDelay;
+    _tonDelay(IN:= FALSE, PT:= _tDelay);
+END_CASE
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+CASE _eState
+OF
+  E_UNIT_STATE.UNIT_READY:
+    _tonDelay(IN:= TRUE, PT:= _tDelay);
+
+    IF _tonDelay.Q
+    THEN
+      _eState                         := E_UNIT_STATE.UNIT_WORKING;
+    END_IF
+END_CASE
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+CASE _eState
+OF
+  E_UNIT_STATE.UNIT_WORKING:
+    IF (_ItfDispenser.UnitState^.eState = E_UNIT_STATE.UNIT_DISPENSE + E_UNIT_STATE.UNIT_ERROR)
+    THEN
+      _eState                         := E_UNIT_STATE.UNIT_ERROR;
+
+    ELSIF (_ItfDispenser.UnitState^.eState = E_UNIT_STATE.UNIT_DISPENSE + E_UNIT_STATE.UNIT_DONE)
+    THEN
+      _eState                         := E_UNIT_STATE.UNIT_DONE;
+    END_IF
+END_CASE
+
+
+DispenserFeedOut                     := _eState;
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="DispenserFill" Id="{d874e7ee-56ec-0470-25da-117565aad8da}" FolderPath="private\">
+      <Declaration><![CDATA[METHOD PRIVATE DispenserFill  : E_UNIT_STATE
+VAR_INPUT
+  Execute         : BOOL;
+END_VAR
+VAR_INST
+  _eChnState      : e_Ctrl_NciCommand;
+
+  _eJobResult,
+  _eStateError,
+  _eState         : E_UNIT_STATE;
+
+  _JobPara        : ST_DISPENSER_JOB_PARAMETER;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT Execute THEN _eState   := _eStateError     := E_UNIT_STATE.UNIT_INIT;  RETURN; END_IF
+IF NOT Check() THEN DispenserFill  := _eState          := E_UNIT_STATE.UNIT_ERROR; RETURN; END_IF
+
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+CASE _eState 
+of
+  E_UNIT_STATE.UNIT_INIT:
+    IF Execute
+    THEN
+      _ItfUnitControl.ChnCtrl^.eCmd     := e_Ctrl_NciCommand.READ_R_PARA;
+      _ItfDispenser.UnitCtrl^.eCmd      := E_UNIT_CTRL.UNIT_IDLE;
+      _eState                           := E_UNIT_STATE.UNIT_BUSY;
+    END_IF
+END_CASE
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+CASE _eState
+OF
+  E_UNIT_STATE.UNIT_BUSY:
+    //_ItfUnitControl.ChnCtrl^.eCmd       := e_Ctrl_NciCommand.READ_R_PARA;
+    _eChnState                          := _ItfUnitControl.ChnState^.eState;
+
+    IF (_eChnState = e_Ctrl_NciCommand.READ_R_PARA + e_Ctrl_NciCommand.CMD_ERROR)
+    THEN
+      _eState                           := E_UNIT_STATE.UNIT_ERROR;
+
+    ELSIF (_eChnState = e_Ctrl_NciCommand.READ_R_PARA + e_Ctrl_NciCommand.CMD_DONE)
+    THEN
+      // usage of RParameter --> ._nStart(default := 900) + <index> --> E_R_PARAMETER
+      _JobPara.Volume                   := _stRParameterNCI^._rRParamsRead[9];
+      _JobPara.Velocity                 := _stRParameterNCI^._rRParamsRead[8];
+      _JobPara.AccDec                   := _ItfDispenser.DispenserParameter^.AxisParameter[1].LimitAccDec;
+      _JobPara.tDelay                   := TO_TIME(_stRParameterNCI^._rRParamsRead[7]);
+
+      memcpy(_ItfDispenser.JobParameter, ADR(_JobPara), SIZEOF(_JobPara));
+
+      _eState                           := E_UNIT_STATE.UNIT_STARTUP;
+    END_IF
+END_CASE
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+CASE _eState
+OF
+  E_UNIT_STATE.UNIT_STARTUP:
+    _ItfDispenser.UnitCtrl^.eCmd        := E_UNIT_CTRL.UNIT_FILL;
+
+    IF (_ItfDispenser.UnitState^.eState = E_UNIT_STATE.UNIT_FILL + E_UNIT_STATE.UNIT_ERROR)
+    THEN
+      _eState                           := E_UNIT_STATE.UNIT_ERROR;
+
+    ELSIF (_ItfDispenser.UnitState^.eState = E_UNIT_STATE.UNIT_FILL + E_UNIT_STATE.UNIT_DONE)
+    THEN
+      _eState                           := E_UNIT_STATE.UNIT_READY;
+    END_IF
+END_CASE
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+CASE _eState
+OF
+  E_UNIT_STATE.UNIT_READY:
+    _eState                              := E_UNIT_STATE.UNIT_WORKING;
+END_CASE
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+CASE _eState
+OF
+  E_UNIT_STATE.UNIT_WORKING:
+    _eState                              := E_UNIT_STATE.UNIT_DONE;
+END_CASE
+
+
+DispenserFill                     := _eState;
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="Enable" Id="{04e36c7a-ebee-4969-ae1b-9920143f7960}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY Enable : Bool]]></Declaration>
+      <Set Name="Set" Id="{b5bbd2ea-a382-4da1-81c1-800dacba3387}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_bEnable := Enable;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="End" Id="{3a779d32-faeb-4766-b351-16e4c47e949a}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY End : Bool]]></Declaration>
+      <Set Name="Set" Id="{964603c5-f87d-46f5-803b-b38c3bcb5adb}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_bEnd := End;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="ItfDispenser" Id="{b7f36d4d-47c6-40e2-9507-04950c858ecb}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY ItfDispenser : I_Dispenser]]></Declaration>
+      <Set Name="Set" Id="{58a4e90e-952d-4bde-84da-69f95e7400cd}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_ItfDispenser := ItfDispenser;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="ItfUnitControl" Id="{d02599c4-9a16-4683-b69b-9fd34743fe65}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY ItfUnitControl : I_Unit_Control]]></Declaration>
+      <Set Name="Set" Id="{511d0f90-9855-4fa9-be87-8922e098b409}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_ItfUnitControl := ItfUnitControl;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="M_FuncProg" Id="{e6870d7e-642f-4dbc-a9f3-7b72c24df4fc}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY M_FuncProg : E_M_FUNC]]></Declaration>
+      <Get Name="Get" Id="{ffda041c-ece9-4007-84a5-01a767473795}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[M_FuncProg := _nProg;
+]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="R_ParameterNci" Id="{1ffbb184-be17-0818-2f2c-6c1069d44488}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY R_ParameterNci : pointer to st_r_parameter]]></Declaration>
+      <Set Name="Set" Id="{f2cde704-3de7-0ebe-3b1d-a23458aa27b4}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_stRParameterNCI := R_ParameterNci;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="Start" Id="{07132175-c9bb-4f41-a064-60faaf90cf10}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY Start : Bool]]></Declaration>
+      <Set Name="Set" Id="{2cc32231-3256-4dac-8e3e-bbd379f0d9da}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_bStart := Start;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="StateFilename" Id="{d92ddace-b93f-4bd2-8416-bb4ec5a14d8e}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY StateFilename : pointer to string(255)]]></Declaration>
+      <Set Name="Set" Id="{c1747c35-a81e-460b-8816-bd5419b2428c}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_sProgState := StateFilename;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <LineIds Name="fb_GstDos">
+      <LineId Id="1" Count="304" />
+    </LineIds>
+    <LineIds Name="fb_GstDos.AxisCtrl.Set">
+      <LineId Id="1" Count="1" />
+    </LineIds>
+    <LineIds Name="fb_GstDos.Check">
+      <LineId Id="1" Count="53" />
+    </LineIds>
+    <LineIds Name="fb_GstDos.CtrlFilename.Set">
+      <LineId Id="1" Count="1" />
+    </LineIds>
+    <LineIds Name="fb_GstDos.DispenserFeedOut">
+      <LineId Id="1" Count="69" />
+    </LineIds>
+    <LineIds Name="fb_GstDos.DispenserFill">
+      <LineId Id="1" Count="74" />
+    </LineIds>
+    <LineIds Name="fb_GstDos.Enable.Set">
+      <LineId Id="1" Count="1" />
+    </LineIds>
+    <LineIds Name="fb_GstDos.End.Set">
+      <LineId Id="1" Count="1" />
+    </LineIds>
+    <LineIds Name="fb_GstDos.ItfDispenser.Set">
+      <LineId Id="1" Count="1" />
+    </LineIds>
+    <LineIds Name="fb_GstDos.ItfUnitControl.Set">
+      <LineId Id="1" Count="1" />
+    </LineIds>
+    <LineIds Name="fb_GstDos.M_FuncProg.Get">
+      <LineId Id="1" Count="1" />
+    </LineIds>
+    <LineIds Name="fb_GstDos.R_ParameterNci.Set">
+      <LineId Id="1" Count="1" />
+    </LineIds>
+    <LineIds Name="fb_GstDos.Start.Set">
+      <LineId Id="1" Count="1" />
+    </LineIds>
+    <LineIds Name="fb_GstDos.StateFilename.Set">
+      <LineId Id="1" Count="1" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

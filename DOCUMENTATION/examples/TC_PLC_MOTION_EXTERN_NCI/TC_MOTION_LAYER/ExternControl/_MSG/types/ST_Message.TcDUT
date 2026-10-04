@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_Message" Id="{b5a7ae98-f0a5-4ed1-9122-4e8aa3692fb0}">
+    <Declaration><![CDATA[TYPE ST_Message :
+STRUCT
+  eType         : e_MessageType;
+  eDevice       : e_Device;
+  eSubdevice    : e_SubDevice;
+  {attribute 'displaymode':='hex'}
+  iErrorNumber  : ULINT;
+  tTime         : STRING(24);
+  sText         : STRING(127);
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

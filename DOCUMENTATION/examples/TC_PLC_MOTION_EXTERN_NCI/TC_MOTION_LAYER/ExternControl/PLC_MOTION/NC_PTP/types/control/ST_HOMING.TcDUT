@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="ST_HOMING" Id="{c0b7f83d-ffb7-48fc-81fb-80efc1ccd895}">
+    <Declaration><![CDATA[{attribute 'pack_mode' := '2'}
+TYPE ST_HOMING :
+STRUCT
+  bExecute      : BIT;
+
+  stHomingParam : ST_HomeParams;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

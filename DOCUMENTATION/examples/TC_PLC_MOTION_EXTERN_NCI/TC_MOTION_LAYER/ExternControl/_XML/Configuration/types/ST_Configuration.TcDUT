@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="ST_Configuration" Id="{751e9be0-0116-4a27-b9d5-2088d21242fd}">
+    <Declaration><![CDATA[TYPE ST_Configuration :
+STRUCT
+  PortalConfig        : ST_CONFIG_PORTAL;
+  JobConfig           : ST_CONFIG_JOBS;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="ST_AXIS_GROUP_INFO" Id="{8404f422-62c1-4329-b028-ac071ab6381b}">
+    <Declaration><![CDATA[TYPE ST_AXIS_GROUP_INFO :
+STRUCT
+  // result structure for searching NC Axis ID in global array of axis
+  nAxisId         : UDINT;  // TwinCAT NC AxisId
+  nAxisIndex      : UDINT;  // index in global axis array
+
+  bHasValue       : BIT;    // plausibility check for nAxisId > 0
+  bValid          : BIT;    // ID search did lead to an index (input ID == 0 --> not bValid)
+  bMainAxis       : BIT;    // main axis (X,Y,Z)
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

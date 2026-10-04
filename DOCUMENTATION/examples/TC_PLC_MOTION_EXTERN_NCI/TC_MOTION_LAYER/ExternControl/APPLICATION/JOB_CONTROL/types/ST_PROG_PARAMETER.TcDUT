@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <DUT Name="ST_PROG_PARAMETER" Id="{ec79f86f-298e-036a-2462-7eb3a22d3c27}">
+    <Declaration><![CDATA[{attribute 'pack_mode' := '2'}
+TYPE ST_PROG_PARAMETER :
+STRUCT
+  sFilename                   : STRING(255) := 'Test_GST.nc';
+
+  stRParameter                : ST_R_ProgParameter;
+
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

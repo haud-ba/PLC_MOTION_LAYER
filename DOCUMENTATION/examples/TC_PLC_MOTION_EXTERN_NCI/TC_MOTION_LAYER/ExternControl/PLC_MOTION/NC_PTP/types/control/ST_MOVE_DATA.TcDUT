@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="ST_MOVE_DATA" Id="{f36e5b0b-f24e-4c40-b3e9-a9cf85881764}">
+    <Declaration><![CDATA[{attribute 'pack_mode' := '2'}
+TYPE ST_MOVE_DATA :
+STRUCT
+  rSetPos           : LREAL;
+  rSetVelo          : LREAL;
+  rOverride         : LREAL := 100.0;
+  rAcc              : LREAL;
+  rDec              : LREAL;
+  rJerk             : LREAL;
+  iDirection        : INT;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

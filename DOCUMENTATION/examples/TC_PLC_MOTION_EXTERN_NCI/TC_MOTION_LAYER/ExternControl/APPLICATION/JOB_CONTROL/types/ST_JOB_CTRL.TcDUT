@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="ST_JOB_CTRL" Id="{828e9e4d-7d3d-4def-b52c-ee9920504a9a}">
+    <Declaration><![CDATA[TYPE ST_JOB_CTRL :
+STRUCT
+  Cmd         : E_JOB_CTRL;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <GVL Name="GVL_FUNCTIONS" Id="{2f08cada-fd6e-4eaa-ac49-66fa1c46c1b6}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL
+  //-----------------------------------------------------------------------------------------------------------
+  // TriggerBox for moving axis, set output to activate camera, get input timestamp from flash controller
+  //-----------------------------------------------------------------------------------------------------------
+  DigitalOutPutDCState          : ARRAY[1..MAX_TRIGGER_BOX] OF ST_DC_State;
+
+  DigitalOutputDC               : ARRAY[1..MAX_TRIGGER_BOX] OF ST_DC_Output;
+  DigitalInputDC                : ARRAY[1..MAX_TRIGGER_BOX] OF ST_DC_Input; // distributed clock digital input with timestamps positive & negative
+
+  CtrlTrigger                   : ARRAY[1..MAX_TRIGGER_BOX] OF ST_CTRL_TRIGGER;
+  StateTrigger                  : ARRAY[1..MAX_TRIGGER_BOX] OF ST_STATE_TRIGGER;
+
+
+  //-----------------------------------------------------------------------------------------------------------
+  // Touch Probe with moving axis, get input timestamp within axis window, get prcise position using the timestamp
+  //-----------------------------------------------------------------------------------------------------------
+  //DigitalInputDC    AT %I*      : ARRAY[1..MAX_TOUCH_PROBE] OF ST_DC_Input; // distributed clock digital input with timestamps positive & negative
+  DigitalInput                  : ARRAY[1..MAX_TOUCH_PROBE] OF ST_MTI_INPUT;    // multi time stamp, one channel
+  DigitalState                  : ARRAY[1..MAX_TOUCH_PROBE] OF ST_MTI_STATUS;   // multi time stamp status from terminal
+
+  CtrlTouchProbe                : ARRAY[1..MAX_TOUCH_PROBE] OF ST_CTRL_TOUCH_PROBE;
+  StateTouchProbe               : ARRAY[1..MAX_TOUCH_PROBE] OF ST_STATE_TOUCH_PROBE;
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

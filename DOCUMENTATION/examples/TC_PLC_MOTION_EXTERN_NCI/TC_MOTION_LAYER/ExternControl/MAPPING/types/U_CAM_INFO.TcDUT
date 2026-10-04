@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="U_CAM_INFO" Id="{93cc7262-83f3-4cb1-8d77-7f10611de764}">
+    <Declaration><![CDATA[TYPE U_CAM_INFO :
+UNION
+
+  stState             : ARRAY[1..MAX_AXIS] OF ST_CAM_INFO;
+
+  byState  AT %i*     : ARRAY[1..MAX_AXIS] OF
+                        ARRAY[1..SIZEOF(ST_CAM_INFO)] OF BYTE;
+END_UNION
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

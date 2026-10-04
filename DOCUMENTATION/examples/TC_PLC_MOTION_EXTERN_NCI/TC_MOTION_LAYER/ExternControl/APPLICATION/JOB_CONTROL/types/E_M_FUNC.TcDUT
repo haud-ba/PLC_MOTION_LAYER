@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="E_M_FUNC" Id="{4753c85c-f30a-03f3-296c-5c3eb4e5f576}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+TYPE E_M_FUNC :
+(
+  //---------------------------------------------------------------------------
+  // NCI --> PLC
+  // m-functions
+  // enumeration for NCI M functions with project specific meaning
+  //---------------------------------------------------------------------------
+  // reserved M functions for NCI 2, 17, 30
+	E_NO_FUNC,
+  E_PROG_END          :=  2,
+  E_PROG_SUB_END      := 17,
+  E_PROG_ALL_END      := 30,
+
+  // used in project, defined in MOTION NC-Task ChannelXYZ.Interpreter.M-Functions
+  E_AXIS_STARTUP_POSITION     := 101, // NCI has moved  to startup position (AM/AM)
+  E_AXIS_WAIT_START           := 102, // NCI is waiting at startup position (BM/BM)
+  E_AXIS_WAIT_END             := 103, // NCI is waiting after last G code expression (AM/AM)
+  E_PROG_WAIT_END             := 104, // nc file is done
+  //---------------------------------------------------------------------------
+
+  //---------------------------------------------------------------------------
+  // m-function handshakes by using m-function pairs
+  //---------------------------------------------------------------------------
+  E_PROG_DISP_FILL            := 150, // NCI-->PLC, fill dispenser with volume R_PROG_DISPENSER_FILL
+  E_PROG_DISP_FILL_DONE       := 151, // PLC-->NCI, handshake from PLC, dispenser is filled
+
+  E_PROG_DISP_OUT_START       := 152, // NCI-->PLC, start dispenser axis
+  E_PROG_DISP_OUT_WORKING     := 153, // PLC-->NCI, dispenser axis were started --> now move on
+  E_PROG_DISP_OUT_DONE        := 154  // PLC-->NCI, dispenser axis is at low position 
+)UINT;
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="ST_MOTION_FUNCTION" Id="{bf9669c6-cca8-4a6d-b300-a9aaf781c877}">
+    <Declaration><![CDATA[{attribute 'pack_mode' := '2'}
+TYPE ST_MOTION_FUNCTION :
+STRUCT
+  stMotionFunction            : ARRAY[1..MAX_MOTION_FUNCTION_POINTS] OF ST_MOTION_FUNCTION_POINT;
+  nMotionFunctionSize         : UINT;
+  nPoints                     : UINT; // number of points used in motion function 
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

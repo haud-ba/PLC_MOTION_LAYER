@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="ST_CONFIG_DISPENSER" Id="{77d95e11-ff74-46eb-9e65-2b29c5e042cf}">
+    <Declaration><![CDATA[TYPE ST_CONFIG_DISPENSER :
+STRUCT
+  // axis config for volumetric dispenser
+  DispenserParameter    : ST_DISPENSER_PARAMETER;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

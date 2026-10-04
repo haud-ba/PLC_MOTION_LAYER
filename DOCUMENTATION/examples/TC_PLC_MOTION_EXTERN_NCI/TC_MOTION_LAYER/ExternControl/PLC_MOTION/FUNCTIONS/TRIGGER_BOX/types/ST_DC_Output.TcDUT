@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="ST_DC_Output" Id="{7585ce4e-3266-4e9c-87bc-f5123573e3a3}">
+    <Declaration><![CDATA[TYPE ST_DC_Output :
+STRUCT
+   dcStartTime      : ULINT;   (*64 bit next Action time of EL2252*)
+   nActivate        : BYTE;
+   Ch1_Output       : BOOL;
+   Ch1_Tristate     : BOOL;
+   Ch2_Output       : BOOL;
+   Ch2_Tristate     : BOOL;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

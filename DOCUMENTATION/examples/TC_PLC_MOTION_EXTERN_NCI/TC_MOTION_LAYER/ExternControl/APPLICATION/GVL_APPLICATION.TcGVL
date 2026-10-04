@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <GVL Name="GVL_APPLICATION" Id="{0fd47ead-aa65-42db-9936-120ffa7177c1}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL CONSTANT
+  MAX_DISPENSER_COMPONENT       : UINT := 2;
+END_VAR
+VAR_GLOBAL
+  //-----------------------------------------------------------------------------------------------
+  // APPLICATION territory
+  //-----------------------------------------------------------------------------------------------
+  //-----------------------------------------------------------------------------------------------
+  // NCI portal control
+  //  - handles state and initialisation of NCI portal
+  //  - checks NC AxisId at startup from config (ST_3D_GROUP)
+  //  - Builds 3D group from config
+  //  - Executes ST_JOB_PARAMETER in axis coordinates
+  //    - switch on axis in 3D group
+  //    - initialize NCI via ST_NCI_CTRL/ST_NCI_STATE (init sequence in PLC_MOTION)
+  //    - move main axis to Job position
+
+  fbNciUnitControl              : ARRAY[1..PLC_CONSTANT.MAX_NCI_CH] OF fb_JobCtrl;
+
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

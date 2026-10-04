@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="ST_CAM_SCALING_DATA" Id="{4f1f24a2-dff4-42db-a70e-a058621921e5}">
+    <Declaration><![CDATA[{attribute 'pack_mode' := '2'}
+TYPE ST_CAM_SCALING_DATA :
+STRUCT
+  bMasterRelative         : BIT;
+  bSlaveRelative          : BIT;
+
+  // scaling of X-axis (Master) of the CAM
+  nMasterScalingMode      : UINT;
+  rMasterOffset           : LREAL;
+  rMasterScaling          : LREAL := 1.0;
+
+  // scaling of Y-axis (Slave) of CAM
+  nSlaveScalingMode       : UINT;
+
+  rSlaveOffset            : LREAL;
+  rSlaveScaling           : LREAL := 1.0;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

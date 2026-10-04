@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="U_TRIGGER_CTRL" Id="{04a3c348-1b18-43f2-a5f9-993814475cb2}">
+    <Declaration><![CDATA[TYPE U_TRIGGER_CTRL :
+UNION
+  stCtrl              : ARRAY[1..MAX_TRIGGER_BOX] OF ST_CTRL_TRIGGER;
+
+  byCtrl    AT %q*    : ARRAY[1..MAX_TRIGGER_BOX] OF
+                        ARRAY[1..SIZEOF(ST_CTRL_TRIGGER)] OF BYTE;
+END_UNION
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

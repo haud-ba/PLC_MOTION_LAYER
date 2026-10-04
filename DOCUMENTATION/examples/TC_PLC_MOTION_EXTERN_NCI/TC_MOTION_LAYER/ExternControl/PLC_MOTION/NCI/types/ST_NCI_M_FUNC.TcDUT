@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="ST_NCI_M_FUNC" Id="{3b7f215e-6bde-479e-9020-9b292e5dca46}">
+    <Declaration><![CDATA[{attribute 'pack_mode' := '2'}
+TYPE ST_NCI_M_FUNC :
+STRUCT
+  FastMFuncMask   : ARRAY [1..5] OF DWORD;
+  HskMFuncNo      : UINT;
+  HskMFuncReq     : WORD;
+  HFuncValue      : UDINT; 
+
+  MFuncGranted    : UINT;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

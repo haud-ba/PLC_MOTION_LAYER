@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="ST_CONFIG_PORTAL" Id="{0ad4e808-c97e-4f59-bad9-477012f961d7}">
+    <Declaration><![CDATA[TYPE ST_CONFIG_PORTAL :
+STRUCT
+  // NCI
+  // axis NC/PtP Id
+  AxisIdentity          : ST_3D_Group;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

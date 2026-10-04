@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="ST_JOB_STATE" Id="{37274462-6f15-4434-9ce7-677e59bcf0fd}">
+    <Declaration><![CDATA[TYPE ST_JOB_STATE :
+STRUCT
+  State         : E_JOB_STATE;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

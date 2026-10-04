@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <DUT Name="ST_DISPENSER_VALVES" Id="{2864f69f-2aad-01ff-151f-2d6ec08c36cb}">
+    <Declaration><![CDATA[TYPE ST_DISPENSER_VALVES :
+STRUCT
+  PistonCheck   AT %I*    : ARRAY[1..MAX_DISPENSER_COMPONENT] OF BOOL; // Piston contact with axis
+  Infeed        AT %Q*    : ARRAY[1..MAX_DISPENSER_COMPONENT] OF BOOL; // infeed  valve control
+  Outfeed       AT %Q*    : ARRAY[1..MAX_DISPENSER_COMPONENT] OF BOOL; // outfeed valve control
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

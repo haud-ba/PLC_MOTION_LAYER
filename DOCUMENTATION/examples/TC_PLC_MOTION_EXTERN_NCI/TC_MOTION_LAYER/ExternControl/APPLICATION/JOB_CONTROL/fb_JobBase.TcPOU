@@ -1,0 +1,1084 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="fb_JobBase" Id="{4f48a38c-92d6-0cbb-014f-c7d4569f2b26}" SpecialFunc="None">
+    <Declaration><![CDATA[//---------------------------------------------------------------------------------------------------------------
+//
+//  HAUD 2026.09.01
+//  - PLC_MOTION_LAYER
+//
+//  fb_JobBase
+//  - facilitates coordination of NCI 3D Group and PtP axis
+//  - config 3D Group for NCI portal
+//  - startup axis and NCI portal
+//  - init and reset for error quit
+//  - command ptp movement to Job starting positions (Home, Meas, Rinse, Weigh)
+//  - command NCI config in Unit_Startup()
+//
+//
+//---------------------------------------------------------------------------------------------------------------
+// This SOFTWARE is provided as an Example by THE PROVIDER "as is" and "with all faults." THE PROVIDER makes no 
+// representations or warranties of any kind concerning the safety, suitability, lack of viruses, inaccuracies, 
+// typographical errors, or other harmful components of this SOFTWARE. There are inherent dangers in the use of 
+// any software, and you are solely responsible for determining whether this SOFTWARE is compatible with your 
+// equipment and other software installed on your equipment. You are also solely responsible for the protection 
+// of your equipment and backup of your data, and THE PROVIDER will not be liable for any damages you may suffer 
+// in connection with using, modifying, or distributing this SOFTWARE.
+//---------------------------------------------------------------------------------------------------------------
+FUNCTION_BLOCK ABSTRACT fb_JobBase
+VAR
+  _eCheck             : E_JOB_CHECK;
+
+  _eResult            : E_PROGRESS;
+  _eInit              : E_PROGRESS;
+
+  _Blocked            : BOOL;   // flow control may use this for breaks during execution
+
+  _rOverrideAxis      : LREAL := 100.0;
+  _rOverrideChannel   : LREAL := 100.0;
+
+  _AxisCtrl           : REFERENCE TO ARRAY[1..MAX_AXIS] OF ST_AXIS_CTRL;
+  _AxisState          : REFERENCE TO ARRAY[1..MAX_AXIS] OF ST_AXIS_STATE;
+  _AxisInfo           : REFERENCE TO ARRAY[1..MAX_AXIS] OF ST_AXIS_INFO;
+  _AxisMoveData       : REFERENCE TO ARRAY[1..MAX_AXIS] OF ST_MOVE_DATA;
+
+  _AxisIdentity       : REFERENCE TO ST_3D_Group;                         // NC Axis Id required for building 3D Group in NCI. You have to configure this
+  _AxisGroupInfo      : ARRAY[1..NCI_AXIS_COUNT] OF ST_AXIS_GROUP_INFO;   // indices for batch processing of NC axis, entry carries index and NC Id
+
+  _ChannelCtrl        : REFERENCE TO ST_NCI_CTRL;
+  _ChannelState       : REFERENCE TO ST_NCI_STATE;
+
+  _JobData            : ST_JOB_PARAMETER;   // job detail has to be written by extending class
+
+  _eDeviceId          : e_Device;           // whoami?
+  _MessageLevel       : E_MessageType;      // how much to tell?
+  _stMsg              : ST_Message;
+END_VAR
+VAR CONSTANT
+  X                   : UINT := 1;
+  Y                   : UINT := 2;
+  Z                   : UINT := 3;
+  NCI_AXIS_COUNT      : UINT := 8;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Folder Name="private" Id="{f0a90aed-d276-0dbb-1995-350ac925cb57}" />
+    <Folder Name="properties" Id="{eddcb9ff-5876-09e6-14bb-01ad2992b562}" />
+    <Property Name="AxisCtrl" Id="{be76e82c-3a4b-0823-2086-267305775207}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY AxisCtrl : reference TO ARRAY[1..MAX_AXIS] OF ST_AXIS_CTRL]]></Declaration>
+      <Set Name="Set" Id="{d9953fa9-c139-0b0e-174e-aef27dc2d93a}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_AxisCtrl REF= AxisCtrl;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="AxisInfo" Id="{7caa567b-7be0-487a-b6c0-cff098066c4f}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY AxisInfo : reference TO ARRAY[1..MAX_AXIS] OF ST_AXIS_INFO]]></Declaration>
+      <Set Name="Set" Id="{87ab2fc6-e291-493b-b5b4-fa912c4472f4}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_AxisInfo ref= AxisInfo;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="AxisOverride" Id="{7f05c335-f8e8-07a0-3d96-1cfb822b0307}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY AxisOverride : lreal]]></Declaration>
+      <Get Name="Get" Id="{5f7ecbfb-3b8f-0a14-1067-5f49326d4e39}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[AxisOverride := _rOverrideAxis;
+]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{b78a1810-8092-0178-35ca-c211120eb87f}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_rOverrideAxis := AxisOverride;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="AxisState" Id="{e31ec142-6f2f-4277-a163-9f42225fcce1}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY AxisState : reference TO ARRAY[1..MAX_AXIS] OF ST_AXIS_STATE]]></Declaration>
+      <Set Name="Set" Id="{99b0fe62-e708-4cac-acdf-b4f03b4fabd2}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_AxisState ref= AxisState;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Method Name="CheckBase" Id="{43d4a84d-48bf-0e61-1520-91266278cfe4}" FolderPath="private\">
+      <Declaration><![CDATA[METHOD PROTECTED CheckBase : BOOL
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[
+IF NOT __isvalidref(_AxisCtrl)
+THEN
+  _eResult                          := E_PROGRESS.PROGRESS_ERROR;
+  _eCheck                           := E_JOB_CHECK.POINTER_NULL_AXIS_CTRL;
+  RETURN;
+END_IF
+
+IF NOT __ISVALIDREF(_AxisState)
+THEN
+  _eResult                          := E_PROGRESS.PROGRESS_ERROR;
+  _eCheck                           := E_JOB_CHECK.POINTER_NULL_AXIS_STATE;
+  RETURN;
+END_IF
+
+IF NOT __ISVALIDREF(_AxisInfo)
+THEN
+  _eResult                          := E_PROGRESS.PROGRESS_ERROR;
+  _eCheck                           := E_JOB_CHECK.POINTER_NULL_AXIS_INFO;
+  RETURN;
+END_IF
+
+IF NOT __ISVALIDREF(_AxisMoveData)
+THEN
+  _eResult                          := E_PROGRESS.PROGRESS_ERROR;
+  _eCheck                           := E_JOB_CHECK.POINTER_NULL_AXIS_MOVE_DATA;
+  RETURN;
+END_IF
+
+IF NOT __ISVALIDREF(_AxisIdentity)
+THEN
+  _eResult                          := E_PROGRESS.PROGRESS_ERROR;
+  _eCheck                           := E_JOB_CHECK.POINTER_NULL_AXIS_IDENTITY;
+  RETURN;
+END_IF
+
+IF NOT __ISVALIDREF(_ChannelCtrl)
+THEN
+  _eResult                          := E_PROGRESS.PROGRESS_ERROR;
+  _eCheck                           := E_JOB_CHECK.POINTER_NULL_NCI_CHN_CTRL;
+  RETURN;
+END_IF
+
+IF NOT __ISVALIDREF(_ChannelState)
+THEN
+  _eResult                          := E_PROGRESS.PROGRESS_ERROR;
+  _eCheck                           := E_JOB_CHECK.POINTER_NULL_NCI_CHN_STATE;
+  RETURN;
+END_IF
+
+_eCheck                             := E_JOB_CHECK.CHECK_DONE;
+CheckBase                           := TRUE;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="ChnAxisIdentity" Id="{5f245310-913e-02e9-3558-34fbcee6b8f5}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY ChnAxisIdentity : reference TO ST_3D_Group]]></Declaration>
+      <Set Name="Set" Id="{c5a1faf8-25bc-0318-2313-5c4c6d1722a2}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_AxisIdentity ref= ChnAxisIdentity;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="ChnCtrl" Id="{6455a8b8-dc61-0e34-0ad1-79935386ff63}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY ChnCtrl : reference TO ST_NCI_CTRL]]></Declaration>
+      <Set Name="Set" Id="{da03aa8b-4867-0bd5-35bf-a823883c98f3}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_ChannelCtrl ref= ChnCtrl;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="ChnOverride" Id="{148ecdf6-6638-0a73-253f-312b8c2d7a46}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY ChnOverride : lreal]]></Declaration>
+      <Get Name="Get" Id="{4a9bccd1-525f-0054-00f8-080ee6454510}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[ChnOverride := _rOverrideChannel;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{c2c85242-c2d7-03d8-3a39-00c0883446fe}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_rOverrideChannel := ChnOverride;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="ChnState" Id="{782bb955-6573-0285-1daf-9ebdac4ac30f}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY ChnState : reference TO ST_NCI_STATE]]></Declaration>
+      <Set Name="Set" Id="{75ba4dc8-35f5-078b-1ece-fc509d677a40}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_ChannelState ref= ChnState;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Method Name="GetGroupIndices" Id="{4ae30ecd-18ad-4a50-b915-93227627b63a}" FolderPath="private\">
+      <Declaration><![CDATA[METHOD PRIVATE GetGroupIndices : e_progress // TC2 NCI - get indices for 8 Axis[] from ChnAxisIdentity(ST_3D_GROUP); X,Y,Z,Q1,Q2,Q3,Q4,Q5
+VAR_INPUT
+  Execute     : BOOL;
+END_VAR
+VAR_INST
+  _idx, _idy  : UDINT;
+  _nState     : E_PROGRESS;
+  _nAxisId    : ARRAY[1..NCI_AXIS_COUNT] OF ST_AXIS_GROUP_INFO; // 8 is the magic number, just as in the TC2 NCI
+  _wValid     : DWORD;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT Execute THEN _nState         := E_PROGRESS.PROGRESS_INIT; END_IF
+IF NOT CheckBase() THEN GetGroupIndices := E_PROGRESS.PROGRESS_ERROR; END_IF
+//---------------------------------------------------------------------------------------------------------------
+CASE _nState 
+OF
+  //-------------------------------------------------------------------------------------------------------------
+  E_PROGRESS.PROGRESS_INIT:
+    IF Execute
+    THEN
+      _nState                           := E_PROGRESS.PROGRESS_BUSY;
+
+      memset(ADR(_wValid),        0, SIZEOF(_wValid));
+      memset(ADR(_nAxisId),       0, SIZEOF(_nAxisId));
+      memset(ADR(_AxisGroupInfo), 0, SIZEOF(_AxisGroupInfo));
+
+      _nAxisId[1].bHasValue             := (_AxisIdentity.nXAxisId  > 0);
+      _nAxisId[1].nAxisId               :=  _AxisIdentity.nXAxisId;
+      _nAxisId[1].bMainAxis             := TRUE;
+
+      _nAxisId[2].bHasValue             := (_AxisIdentity.nYAxisId  > 0);
+      _nAxisId[2].nAxisId               :=  _AxisIdentity.nYAxisId;
+      _nAxisId[2].bMainAxis             := TRUE;
+
+      _nAxisId[3].bHasValue             := (_AxisIdentity.nZAxisId  > 0);
+      _nAxisId[3].nAxisId               :=  _AxisIdentity.nZAxisId;
+      _nAxisId[3].bMainAxis             := TRUE;
+
+      _nAxisId[4].bHasValue             := (_AxisIdentity.nQ1AxisId > 0);
+      _nAxisId[4].nAxisId               :=  _AxisIdentity.nQ1AxisId;
+
+      _nAxisId[5].bHasValue             := (_AxisIdentity.nQ2AxisId > 0);
+      _nAxisId[5].nAxisId               :=  _AxisIdentity.nQ2AxisId;
+
+      _nAxisId[6].bHasValue             := (_AxisIdentity.nQ3AxisId > 0);
+      _nAxisId[6].nAxisId               :=  _AxisIdentity.nQ3AxisId;
+
+      _nAxisId[7].bHasValue             := (_AxisIdentity.nQ4AxisId > 0);
+      _nAxisId[7].nAxisId               :=  _AxisIdentity.nQ4AxisId;
+
+      _nAxisId[8].bHasValue             := (_AxisIdentity.nQ5AxisId > 0);
+      _nAxisId[8].nAxisId               :=  _AxisIdentity.nQ5AxisId;
+    END_IF
+END_CASE
+//---------------------------------------------------------------------------------------------------------------
+CASE _nState 
+OF
+  //-------------------------------------------------------------------------------------------------------------
+  E_PROGRESS.PROGRESS_BUSY:
+    _nState                             := E_PROGRESS.PROGRESS_PREPARE;
+    FOR _idx := 1 TO NCI_AXIS_COUNT
+    DO
+      IF (_nAxisId[_idx].bHasValue)
+      THEN
+        FOR _idy := 1 TO PLC_CONSTANT.MAX_AXIS
+        DO
+          IF (_nAxisId[_idx].nAxisId = _AxisInfo[_idy].nNcAxisId)
+          THEN
+            _nAxisId[_idx].nAxisIndex   := _idy;
+            _nAxisId[_idx].bValid       := TRUE;
+            EXIT;
+          END_IF
+        END_FOR
+      END_IF
+    END_FOR
+END_CASE
+//---------------------------------------------------------------------------------------------------------------
+CASE _nState 
+OF
+  //-------------------------------------------------------------------------------------------------------------
+  E_PROGRESS.PROGRESS_PREPARE:
+    _nState                             := E_PROGRESS.PROGRESS_WORKING;
+    FOR _idx := 1 TO 8
+    DO
+      IF (_nAxisId[_idx].bValid)
+      THEN
+        _wValid                         := Tc2_System.SETBIT32(_wValid, TO_SINT(_idx-1));
+      END_IF
+    END_FOR
+END_CASE
+//---------------------------------------------------------------------------------------------------------------
+CASE _nState 
+OF
+  //-------------------------------------------------------------------------------------------------------------
+  E_PROGRESS.PROGRESS_WORKING:
+    IF (_wValid > 0)
+    THEN
+      _nState                           := E_PROGRESS.PROGRESS_DONE;
+    ELSE
+      _nState                           := E_PROGRESS.PROGRESS_ERROR;
+    END_IF
+
+    _AxisGroupInfo                      := _nAxisId;
+END_CASE
+//---------------------------------------------------------------------------------------------------------------
+GetGroupIndices                         := _nState;
+//---------------------------------------------------------------------------------------------------------------
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Unit_Job" Id="{5d8a502f-4a20-0f70-2ce3-a420beb4f68f}">
+      <Declaration><![CDATA[METHOD Unit_Job : e_progress
+VAR_INPUT
+  Execute       : BOOL;
+  JobParameter  : ST_JOB_PARAMETER;
+END_VAR
+VAR_INST
+  _nSubState,
+  _nResult,
+  _nState       : e_progress;
+
+  _nErrorId     : UDINT;
+  _idx          : UINT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//---------------------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------
+IF NOT Execute THEN _nState           := E_PROGRESS.PROGRESS_INIT; END_IF
+//---------------------------------------------------------------------------------------------------------------
+IF NOT CheckBase() THEN Unit_Job      := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+//---------------------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------
+CASE _nState 
+OF
+  E_PROGRESS.PROGRESS_INIT:
+    IF Execute
+    THEN
+      _idx                            := 1;
+      _nSubState                      := E_PROGRESS.PROGRESS_INIT;
+      _nState                         := E_PROGRESS.PROGRESS_BUSY;
+
+      IF (_MessageLevel > E_MessageType.eMessageError)
+      THEN
+        _stMsg.eType                  := E_MessageType.eMessageInfo;
+        _stMsg.eSubdevice             := e_Subdevice.JobBase_Job;
+        _stMsg.iErrorNumber           := 0;
+        _stMsg.sText                  := concat(' : ', TO_STRING(_nState));
+
+        f_MessageSet(_stMsg);
+      END_IF
+    END_IF
+END_CASE
+//---------------------------------------------------------------------------------------------------------------
+CASE _nState 
+OF
+  E_PROGRESS.PROGRESS_BUSY:
+    CASE _nSubState
+    OF
+      //---------------------------------------------------------------------------
+      E_PROGRESS.PROGRESS_INIT:
+        IF NOT (_AxisGroupInfo[_idx].bValid)
+        THEN
+          _nSubState                  := E_PROGRESS.PROGRESS_BUSY;
+        ELSE
+          _AxisCtrl[_AxisGroupInfo[_idx].nAxisIndex].eCmd        := E_AXIS_CTRL.AXIS_ENABLE;
+    
+          IF (_AxisState[_AxisGroupInfo[_idx].nAxisIndex].eState = E_AXIS_STATE.AXIS_ENABLE + E_PROGRESS.PROGRESS_DONE)
+          THEN
+            _nSubState                := E_PROGRESS.PROGRESS_BUSY;
+
+            IF (_MessageLevel > E_MessageType.eMessageWarning)
+            THEN
+              _stMsg.eType            := E_MessageType.eMessageInfo;
+              _stMsg.eSubdevice       := e_Subdevice.JobBase_Job;
+              _stMsg.iErrorNumber     := _AxisGroupInfo[_idx].nAxisId;
+              _stMsg.sText            := concat('AXIS_ENABLE: ', TO_STRING(E_PROGRESS.PROGRESS_DONE));
+        
+              f_MessageSet(_stMsg);
+            END_IF
+          END_IF
+        END_IF
+
+      //---------------------------------------------------------------------------
+      E_PROGRESS.PROGRESS_BUSY:
+        IF (_idx > NCI_AXIS_COUNT-1)
+        THEN
+          _idx                        := 1;
+          _nSubState                  := E_PROGRESS.PROGRESS_INIT;
+          _nState                     := E_PROGRESS.PROGRESS_PREPARE;
+        ELSE
+          _idx                        := _idx + 1;
+          _nSubState                  := E_PROGRESS.PROGRESS_INIT;
+        END_IF
+    END_CASE
+END_CASE
+//---------------------------------------------------------------------------------------------------------------
+CASE _nState 
+OF
+  //---------------------------------------------------------------------------
+  E_PROGRESS.PROGRESS_PREPARE:
+    CASE _nSubState
+    OF
+      //-----------------------------------------------------------------------
+      E_PROGRESS.PROGRESS_INIT:
+        IF NOT (_AxisGroupInfo[_idx].bValid)
+        THEN
+          _nSubState                  := E_PROGRESS.PROGRESS_BUSY;
+        ELSE
+          _AxisCtrl[_AxisGroupInfo[_idx].nAxisIndex].eCmd        := E_AXIS_CTRL.AXIS_RESET;
+    
+          IF (_AxisState[_AxisGroupInfo[_idx].nAxisIndex].eState = E_AXIS_STATE.AXIS_RESET + E_PROGRESS.PROGRESS_DONE)
+          THEN
+            _nSubState                := E_PROGRESS.PROGRESS_BUSY;
+
+            IF (_MessageLevel > E_MessageType.eMessageWarning)
+            THEN
+              _stMsg.eType            := E_MessageType.eMessageInfo;
+              _stMsg.eSubdevice       := e_Subdevice.JobBase_Job;
+              _stMsg.iErrorNumber     := _AxisGroupInfo[_idx].nAxisId;
+              _stMsg.sText            := concat('AXIS_RESET: ', TO_STRING(E_PROGRESS.PROGRESS_DONE));
+        
+              f_MessageSet(_stMsg);
+            END_IF
+          END_IF
+        END_IF
+      //-----------------------------------------------------------------------
+      E_PROGRESS.PROGRESS_BUSY:
+        IF (_idx > NCI_AXIS_COUNT-1)
+        THEN
+          _idx                        := 1;
+          _nSubState                  := E_PROGRESS.PROGRESS_INIT;
+          _nState                     := E_PROGRESS.PROGRESS_STARTUP;
+        ELSE
+          _idx                        := _idx + 1;
+          _nSubState                  := E_PROGRESS.PROGRESS_INIT;
+        END_IF
+    END_CASE
+
+  //---------------------------------------------------------------------------
+  E_PROGRESS.PROGRESS_STARTUP:
+    CASE _nSubState
+    OF
+      //-----------------------------------------------------------------------
+      E_PROGRESS.PROGRESS_INIT:
+        _ChannelCtrl.eCmd            := E_NCI_CTRL.INIT;
+        _nSubState                    := E_PROGRESS.PROGRESS_BUSY;
+      //-----------------------------------------------------------------------
+      E_PROGRESS.PROGRESS_BUSY:
+        IF (_ChannelState.eState = E_NCI_STATE.INIT + E_PROGRESS.PROGRESS_DONE)
+        THEN
+          _idx                        := 1;
+          _nSubState                  := E_PROGRESS.PROGRESS_INIT;
+          _nState                     := E_PROGRESS.PROGRESS_CHECK;
+
+          IF (_MessageLevel > E_MessageType.eMessageWarning)
+          THEN
+            _stMsg.eType              := E_MessageType.eMessageInfo;
+            _stMsg.eSubdevice         := e_Subdevice.JobBase_Job;
+            _stMsg.iErrorNumber       := _ChannelState.eState;
+            _stMsg.sText              := concat('E_NCI_CTRL.INIT: ', TO_STRING(E_PROGRESS.PROGRESS_DONE));
+      
+            f_MessageSet(_stMsg);
+          END_IF
+        END_IF
+    END_CASE
+  //---------------------------------------------------------------------------
+  E_PROGRESS.PROGRESS_CHECK:
+    CASE _nSubState
+    OF
+      //-----------------------------------------------------------------------
+      E_PROGRESS.PROGRESS_INIT:
+        _nSubState                    := E_PROGRESS.PROGRESS_BUSY;
+
+        _AxisMoveData[_AxisGroupInfo[Z].nAxisIndex].rSetPos    := JobParameter.CollisionZ;   // move up z-axis to collision free position, in order to move X,Y axis safely.
+        _AxisMoveData[_AxisGroupInfo[Z].nAxisIndex].rSetVelo   := JobParameter.DynConstraint[Z].rSetVelo;
+        _AxisMoveData[_AxisGroupInfo[Z].nAxisIndex].rAcc       := JobParameter.DynConstraint[Z].rAcc;
+        _AxisMoveData[_AxisGroupInfo[Z].nAxisIndex].rDec       := JobParameter.DynConstraint[Z].rDec;
+        _AxisMoveData[_AxisGroupInfo[Z].nAxisIndex].rOverride  := _rOverrideAxis;
+
+      //-----------------------------------------------------------------------
+      E_PROGRESS.PROGRESS_BUSY:
+        _AxisCtrl    [_AxisGroupInfo[Z].nAxisIndex].eCmd       := E_AXIS_CTRL.AXIS_MOVE_POS;
+
+        IF (_AxisState[_AxisGroupInfo[Z].nAxisIndex].eState = E_AXIS_STATE.AXIS_MOVE_POS + E_PROGRESS.PROGRESS_ERROR)
+        THEN
+          _nState                     := E_PROGRESS.PROGRESS_ERROR;
+
+          _stMsg.eType                := E_MessageType.eMessageError;
+          _stMsg.eSubdevice           := e_Subdevice.JobBase_Job;
+          _stMsg.iErrorNumber         := _AxisGroupInfo[Z].nAxisId;
+          _stMsg.sText                := concat('Z-AXIS_MOVE_POS: ', TO_STRING(_nState));
+          f_MessageSet(_stMsg);
+
+        ELSIF (_AxisState[_AxisGroupInfo[Z].nAxisIndex].eState = E_AXIS_STATE.AXIS_MOVE_POS + E_PROGRESS.PROGRESS_DONE)
+        THEN
+          _nSubState                  := E_PROGRESS.PROGRESS_PREPARE;
+        END_IF
+
+      //-----------------------------------------------------------------------
+      E_PROGRESS.PROGRESS_PREPARE:
+        _nSubState                    := E_PROGRESS.PROGRESS_STARTUP;
+
+        _AxisMoveData[_AxisGroupInfo[X].nAxisIndex].rSetPos    := JobParameter.Position.x;
+        _AxisMoveData[_AxisGroupInfo[X].nAxisIndex].rSetVelo   := JobParameter.DynConstraint[X].rSetVelo;
+        _AxisMoveData[_AxisGroupInfo[X].nAxisIndex].rAcc       := JobParameter.DynConstraint[X].rAcc;
+        _AxisMoveData[_AxisGroupInfo[X].nAxisIndex].rDec       := JobParameter.DynConstraint[X].rDec;
+        _AxisMoveData[_AxisGroupInfo[X].nAxisIndex].rOverride  := _rOverrideAxis;
+
+        _AxisMoveData[_AxisGroupInfo[Y].nAxisIndex].rSetPos    := JobParameter.Position.Y;
+        _AxisMoveData[_AxisGroupInfo[Y].nAxisIndex].rSetVelo   := JobParameter.DynConstraint[Y].rSetVelo;
+        _AxisMoveData[_AxisGroupInfo[Y].nAxisIndex].rAcc       := JobParameter.DynConstraint[Y].rAcc;
+        _AxisMoveData[_AxisGroupInfo[Y].nAxisIndex].rDec       := JobParameter.DynConstraint[Y].rDec;
+        _AxisMoveData[_AxisGroupInfo[Y].nAxisIndex].rOverride  := _rOverrideAxis;
+
+      //-----------------------------------------------------------------------
+      E_PROGRESS.PROGRESS_STARTUP:
+        _AxisCtrl    [_AxisGroupInfo[X].nAxisIndex].eCmd       := E_AXIS_CTRL.AXIS_MOVE_POS;
+        _AxisCtrl    [_AxisGroupInfo[Y].nAxisIndex].eCmd       := E_AXIS_CTRL.AXIS_MOVE_POS;
+
+        IF (_AxisState[_AxisGroupInfo[X].nAxisIndex].eState = E_AXIS_STATE.AXIS_MOVE_POS + E_PROGRESS.PROGRESS_ERROR) OR
+           (_AxisState[_AxisGroupInfo[Y].nAxisIndex].eState = E_AXIS_STATE.AXIS_MOVE_POS + E_PROGRESS.PROGRESS_ERROR)
+        THEN
+          _nState                     := E_PROGRESS.PROGRESS_ERROR;
+
+          _stMsg.eType                := E_MessageType.eMessageError;
+          _stMsg.eSubdevice           := e_Subdevice.NciJob;
+
+          IF (_AxisState[_AxisGroupInfo[X].nAxisIndex].eState = E_AXIS_STATE.AXIS_MOVE_POS + E_PROGRESS.PROGRESS_ERROR)
+          THEN
+            _stMsg.iErrorNumber       := _AxisGroupInfo[X].nAxisId;
+            _stMsg.sText              := concat('X-AXIS_MOVE_POS: ', TO_STRING(_nState));
+          ELSE
+            _stMsg.iErrorNumber       := _AxisGroupInfo[Y].nAxisId;
+            _stMsg.sText              := concat('Y-AXIS_MOVE_POS: ', TO_STRING(_nState));
+          END_IF
+
+          f_MessageSet(_stMsg);
+
+        ELSE
+          IF (_AxisState[_AxisGroupInfo[X].nAxisIndex].eState = E_AXIS_STATE.AXIS_MOVE_POS + E_PROGRESS.PROGRESS_DONE) AND
+             (_AxisState[_AxisGroupInfo[Y].nAxisIndex].eState = E_AXIS_STATE.AXIS_MOVE_POS + E_PROGRESS.PROGRESS_DONE)
+          THEN
+            _nSubState                := E_PROGRESS.PROGRESS_CHECK;
+          END_IF
+        END_IF
+
+      //-----------------------------------------------------------------------
+      E_PROGRESS.PROGRESS_CHECK:
+        _nSubState                    := E_PROGRESS.PROGRESS_OCCUPIED;
+
+        _AxisMoveData[_AxisGroupInfo[Z].nAxisIndex].rSetPos    := JobParameter.Position.z;   // move z-axis to final position
+        _AxisMoveData[_AxisGroupInfo[Z].nAxisIndex].rSetVelo   := JobParameter.DynConstraint[Z].rSetVelo;
+        _AxisMoveData[_AxisGroupInfo[Z].nAxisIndex].rAcc       := JobParameter.DynConstraint[Z].rAcc;
+        _AxisMoveData[_AxisGroupInfo[Z].nAxisIndex].rDec       := JobParameter.DynConstraint[Z].rDec;
+        _AxisMoveData[_AxisGroupInfo[Z].nAxisIndex].rOverride  := _rOverrideAxis;
+
+      //-----------------------------------------------------------------------
+      E_PROGRESS.PROGRESS_OCCUPIED:
+        _AxisCtrl    [_AxisGroupInfo[Z].nAxisIndex].eCmd       := E_AXIS_CTRL.AXIS_MOVE_POS;
+
+        IF (_AxisState[_AxisGroupInfo[Z].nAxisIndex].eState = E_AXIS_STATE.AXIS_MOVE_POS + E_PROGRESS.PROGRESS_ERROR)
+        THEN
+          _nState                     := E_PROGRESS.PROGRESS_ERROR;
+
+          _stMsg.eType                := E_MessageType.eMessageError;
+          _stMsg.eSubdevice           := e_Subdevice.JobBase_Job;
+          _stMsg.iErrorNumber         := _AxisGroupInfo[Z].nAxisId;
+          _stMsg.sText                := concat('Z-AXIS_MOVE_POS: ', TO_STRING(_nState));
+          f_MessageSet(_stMsg);
+
+        ELSIF (_AxisState[_AxisGroupInfo[Z].nAxisIndex].eState = E_AXIS_STATE.AXIS_MOVE_POS + E_PROGRESS.PROGRESS_DONE)
+        THEN
+          _nSubState                  := E_PROGRESS.PROGRESS_INIT;
+          _nState                     := E_PROGRESS.PROGRESS_OCCUPIED;
+        END_IF
+    END_CASE
+END_CASE
+//---------------------------------------------------------------------------------------------------------------
+CASE _nState 
+OF
+  //---------------------------------------------------------------------------
+  E_PROGRESS.PROGRESS_OCCUPIED:
+    _nState                           := E_PROGRESS.PROGRESS_DONE;
+END_CASE
+//---------------------------------------------------------------------------------------------------------------
+Unit_Job                              := _nState;
+//---------------------------------------------------------------------------------------------------------------
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Unit_Reset" Id="{7a6526a6-f4d4-414f-82d8-587d7da542fd}">
+      <Declaration><![CDATA[METHOD Unit_Reset : e_progress
+VAR_INPUT
+  Execute       : BOOL;
+END_VAR
+VAR_INST
+  _nSubState,
+  _nResult,
+  _nState       : e_progress;
+
+  _nErrorId     : UDINT;
+  _idx          : UINT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//---------------------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------
+IF NOT Execute THEN _nState           := E_PROGRESS.PROGRESS_INIT; END_IF
+//---------------------------------------------------------------------------------------------------------------
+IF NOT CheckBase() THEN Unit_Reset    := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+//---------------------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------
+CASE _nState 
+OF
+  E_PROGRESS.PROGRESS_INIT:
+    IF Execute
+    THEN
+      _idx                            := 1;
+      _nSubState                      := E_PROGRESS.PROGRESS_INIT;
+      _nState                         := E_PROGRESS.PROGRESS_BUSY;
+
+      IF (_MessageLevel > E_MessageType.eMessageError)
+      THEN
+        _stMsg.eType                  := E_MessageType.eMessageInfo;
+        _stMsg.eSubdevice             := e_Subdevice.JobBase_Reset;
+        _stMsg.iErrorNumber           := 0;
+        _stMsg.sText                  := concat(' : ', TO_STRING(_nState));
+
+        f_MessageSet(_stMsg);
+      END_IF
+
+    END_IF
+END_CASE
+//-----------------------------------------------------------------------------
+CASE _nState 
+OF
+  E_PROGRESS.PROGRESS_BUSY:
+    CASE _nSubState
+    OF
+      E_PROGRESS.PROGRESS_INIT:
+        IF NOT (_AxisGroupInfo[_idx].bValid)
+        THEN
+          _nSubState                  := E_PROGRESS.PROGRESS_BUSY;
+        ELSE
+          _AxisCtrl[_AxisGroupInfo[_idx].nAxisIndex].eCmd        := E_AXIS_CTRL.AXIS_RESET;
+    
+          IF (_AxisState[_AxisGroupInfo[_idx].nAxisIndex].eState = E_AXIS_STATE.AXIS_RESET + E_PROGRESS.PROGRESS_DONE)
+          THEN
+            _nSubState                := E_PROGRESS.PROGRESS_BUSY;
+
+            IF (_MessageLevel > E_MessageType.eMessageWarning)
+            THEN
+              _stMsg.eType            := E_MessageType.eMessageInfo;
+              _stMsg.eSubdevice       := e_Subdevice.JobBase_Reset;
+              _stMsg.iErrorNumber     := _AxisGroupInfo[_idx].nAxisId;
+              _stMsg.sText            := concat('AXIS_RESET: ', TO_STRING(E_PROGRESS.PROGRESS_DONE));
+        
+              f_MessageSet(_stMsg);
+            END_IF
+          END_IF
+        END_IF
+
+      E_PROGRESS.PROGRESS_BUSY:
+        IF (_idx > NCI_AXIS_COUNT-1)
+        THEN
+          _idx                        := 1;
+          _nSubState                  := E_PROGRESS.PROGRESS_INIT;
+          _nState                     := E_PROGRESS.PROGRESS_STARTUP;
+        ELSE
+          _idx                        := _idx + 1;
+          _nSubState                  := E_PROGRESS.PROGRESS_INIT;
+        END_IF
+    END_CASE
+END_CASE
+//-----------------------------------------------------------------------------
+CASE _nState 
+OF
+  //---------------------------------------------------------------------------
+  E_PROGRESS.PROGRESS_STARTUP:
+    CASE _nSubState
+    OF
+      E_PROGRESS.PROGRESS_INIT:
+        _ChannelCtrl.eCmd            := E_NCI_CTRL.RESET;
+        _nSubState                    := E_PROGRESS.PROGRESS_BUSY;
+
+      E_PROGRESS.PROGRESS_BUSY:
+        IF (_ChannelState.eState = E_NCI_STATE.RESET + E_PROGRESS.PROGRESS_DONE)
+        THEN
+          _idx                        := 1;
+          _nSubState                  := E_PROGRESS.PROGRESS_INIT;
+          _nState                     := E_PROGRESS.PROGRESS_OCCUPIED;
+
+          IF (_MessageLevel > E_MessageType.eMessageWarning)
+          THEN
+            _stMsg.eType              := E_MessageType.eMessageInfo;
+            _stMsg.eSubdevice         := e_Subdevice.JobBase_Reset;
+            _stMsg.iErrorNumber       := _ChannelState.eState;
+            _stMsg.sText              := concat('E_NCI_CTRL.RESET: ', TO_STRING(E_PROGRESS.PROGRESS_DONE));
+      
+            f_MessageSet(_stMsg);
+          END_IF
+        END_IF
+    END_CASE
+END_CASE
+//-----------------------------------------------------------------------------
+CASE _nState 
+OF
+  //---------------------------------------------------------------------------
+  E_PROGRESS.PROGRESS_OCCUPIED:
+    _nState                           := E_PROGRESS.PROGRESS_DONE;
+END_CASE
+//-----------------------------------------------------------------------------
+Unit_Reset                            := _nState;
+//-----------------------------------------------------------------------------
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Unit_Startup" Id="{409f6438-7f85-02e2-1cba-710d5460b1a4}">
+      <Declaration><![CDATA[METHOD Unit_Startup : e_progress
+VAR_INPUT
+  Execute           : BOOL;
+END_VAR
+VAR_INST
+  _nSubState,
+  _nResult,
+  _nState           : e_progress;
+
+  _nErrorId         : UDINT;
+  _idx              : UINT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//---------------------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------
+IF NOT Execute THEN _nState           := E_PROGRESS.PROGRESS_INIT; END_IF
+//---------------------------------------------------------------------------------------------------------------
+IF NOT CheckBase() THEN Unit_Startup  := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+//---------------------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------
+CASE _nState 
+OF
+  //-------------------------------------------------------------------------------------------------------------
+  E_PROGRESS.PROGRESS_INIT:
+    IF Execute
+    THEN
+      _idx                            := 1;
+      _nResult                        := GetGroupIndices(FALSE);
+      _nState                         := E_PROGRESS.PROGRESS_BUSY;
+
+      IF (_MessageLevel > E_MessageType.eMessageError)
+      THEN
+        _stMsg.eType                  := E_MessageType.eMessageInfo;
+        _stMsg.eSubdevice             := e_Subdevice.JobBase_StartUp;
+        _stMsg.iErrorNumber           := 0;
+        _stMsg.sText                  := concat(' : ', TO_STRING(_nState));
+  
+        f_MessageSet(_stMsg);
+      END_IF
+    END_IF
+END_CASE
+//---------------------------------------------------------------------------------------------------------------
+CASE _nState
+OF
+  //-------------------------------------------------------------------------------------------------------------
+  E_PROGRESS.PROGRESS_BUSY:
+    // check NCI configuration
+    _nResult                          := GetGroupIndices(TRUE);
+
+    IF (_nResult = E_PROGRESS.PROGRESS_ERROR)
+    THEN
+      _nState                         := E_PROGRESS.PROGRESS_ERROR;
+
+      _stMsg.eType                    := E_MessageType.eMessageError;
+      _stMsg.eSubdevice               := e_Subdevice.JobBase_StartUp;
+      _stMsg.iErrorNumber             := 0;
+      _stMsg.sText                    := concat('GetGroupIndices: ', TO_STRING(_nResult));
+      f_MessageSet(_stMsg);
+
+      _nResult                        := GetGroupIndices(FALSE);
+
+    ELSIF (_nResult = E_PROGRESS.PROGRESS_DONE)
+    THEN
+      _nSubState                      := E_PROGRESS.PROGRESS_INIT;
+      _nState                         := E_PROGRESS.PROGRESS_PREPARE;
+
+      IF (_MessageLevel > E_MessageType.eMessageWarning)
+      THEN
+        _stMsg.eType                  := E_MessageType.eMessageInfo;
+        _stMsg.eSubdevice             := e_Subdevice.JobBase_StartUp;
+        _stMsg.iErrorNumber           := 0;
+        _stMsg.sText                  := concat('GetGroupIndices: ', TO_STRING(_nResult));
+  
+        f_MessageSet(_stMsg);
+      END_IF
+
+      _nResult                        := GetGroupIndices(FALSE);
+    END_IF
+END_CASE
+//---------------------------------------------------------------------------------------------------------------
+CASE _nState
+OF
+  //-------------------------------------------------------------------------------------------------------------
+  E_PROGRESS.PROGRESS_PREPARE:
+    CASE _nSubState
+    OF
+      E_PROGRESS.PROGRESS_INIT:
+        IF NOT (_AxisGroupInfo[_idx].bValid)
+        THEN
+          _nSubState                  := E_PROGRESS.PROGRESS_BUSY;
+        ELSE
+          _AxisCtrl[_AxisGroupInfo[_idx].nAxisIndex].eCmd        := E_AXIS_CTRL.AXIS_DISABLE;
+    
+          IF (_AxisState[_AxisGroupInfo[_idx].nAxisIndex].eState = E_AXIS_STATE.AXIS_DISABLE + E_PROGRESS.PROGRESS_DONE)
+          THEN
+            _nSubState                := E_PROGRESS.PROGRESS_BUSY;
+
+            IF (_MessageLevel > E_MessageType.eMessageWarning)
+            THEN
+              _stMsg.eType            := E_MessageType.eMessageInfo;
+              _stMsg.eSubdevice       := e_Subdevice.JobBase_StartUp;
+              _stMsg.iErrorNumber     := _AxisGroupInfo[_idx].nAxisId;
+              _stMsg.sText            := concat('AXIS_DISABLE: ', TO_STRING(E_PROGRESS.PROGRESS_DONE));
+        
+              f_MessageSet(_stMsg);
+            END_IF
+          END_IF
+        END_IF
+
+      E_PROGRESS.PROGRESS_BUSY:
+        IF (_idx > NCI_AXIS_COUNT-1)
+        THEN
+          _idx                        := 1;
+          _nSubState                  := E_PROGRESS.PROGRESS_INIT;
+          _nState                     := E_PROGRESS.PROGRESS_STARTUP;
+        ELSE
+          _idx                        := _idx + 1;
+          _nSubState                  := E_PROGRESS.PROGRESS_INIT;
+        END_IF
+    END_CASE
+  //-------------------------------------------------------------------------------------------------------------
+  E_PROGRESS.PROGRESS_STARTUP:
+    CASE _nSubState
+    OF
+      E_PROGRESS.PROGRESS_INIT:
+        IF NOT (_AxisGroupInfo[_idx].bValid)
+        THEN
+          _nSubState                  := E_PROGRESS.PROGRESS_BUSY;
+        ELSE
+          _AxisCtrl[_AxisGroupInfo[_idx].nAxisIndex].eCmd       := E_AXIS_CTRL.AXIS_RESET;
+      
+          IF (_AxisState[_AxisGroupInfo[_idx].nAxisIndex].eState = E_AXIS_STATE.AXIS_RESET + E_PROGRESS.PROGRESS_ERROR)
+          THEN
+            _nState                   := E_PROGRESS.PROGRESS_ERROR;
+      
+              _stMsg.eType            := E_MessageType.eMessageError;
+              _stMsg.eSubdevice       := e_Subdevice.JobBase_StartUp;
+              _stMsg.iErrorNumber     := _AxisGroupInfo[_idx].nAxisId;
+              _stMsg.sText            := concat('AXIS_RESET: ', TO_STRING(E_PROGRESS.PROGRESS_DONE));
+        
+              f_MessageSet(_stMsg);
+      
+          ELSIF (_AxisState[_AxisGroupInfo[_idx].nAxisIndex].eState = E_AXIS_STATE.AXIS_RESET + E_PROGRESS.PROGRESS_DONE)
+          THEN
+            _nState                   := E_PROGRESS.PROGRESS_BUSY;
+
+            IF (_MessageLevel > E_MessageType.eMessageWarning)
+            THEN
+              _stMsg.eType            := E_MessageType.eMessageInfo;
+              _stMsg.eSubdevice       := e_Subdevice.JobBase_StartUp;
+              _stMsg.iErrorNumber     := _AxisGroupInfo[_idx].nAxisId;
+              _stMsg.sText            := concat('AXIS_RESET: ', TO_STRING(E_PROGRESS.PROGRESS_DONE));
+        
+              f_MessageSet(_stMsg);
+            END_IF
+          END_IF
+        END_IF
+
+      E_PROGRESS.PROGRESS_BUSY:
+        IF (_idx > NCI_AXIS_COUNT-1)
+        THEN
+          _idx                        := 1;
+          _nSubState                  := E_PROGRESS.PROGRESS_INIT;
+          _nState                     := E_PROGRESS.PROGRESS_CHECK;
+        ELSE
+          _idx                        := _idx + 1;
+          _nSubState                  := E_PROGRESS.PROGRESS_INIT;
+        END_IF
+    END_CASE
+  //-------------------------------------------------------------------------------------------------------------
+  E_PROGRESS.PROGRESS_CHECK:
+    CASE _nSubState
+    OF
+      E_PROGRESS.PROGRESS_INIT:
+        _ChannelCtrl.eCmd             := E_NCI_CTRL.INIT;
+        _nSubState                    := E_PROGRESS.PROGRESS_BUSY;
+
+      E_PROGRESS.PROGRESS_BUSY:
+        IF (_ChannelState.eState = E_NCI_STATE.INIT + E_PROGRESS.PROGRESS_DONE)
+        THEN
+          _nSubState                  := E_PROGRESS.PROGRESS_INIT;
+          _nState                     := E_PROGRESS.PROGRESS_OCCUPIED;
+
+          IF (_MessageLevel > E_MessageType.eMessageWarning)
+          THEN
+            _stMsg.eType              := E_MessageType.eMessageInfo;
+            _stMsg.eSubdevice         := e_Subdevice.JobBase_StartUp;
+            _stMsg.iErrorNumber       := _ChannelState.eState;
+            _stMsg.sText              := concat('E_NCI_CTRL.INIT: ', TO_STRING(E_PROGRESS.PROGRESS_DONE));
+      
+            f_MessageSet(_stMsg);
+          END_IF
+        END_IF
+    END_CASE
+  //-------------------------------------------------------------------------------------------------------------
+  E_PROGRESS.PROGRESS_OCCUPIED:
+    CASE _nSubState
+    OF
+      E_PROGRESS.PROGRESS_INIT:
+        _ChannelCtrl.eCmd             := E_NCI_CTRL.RESET;
+        _nSubState                    := E_PROGRESS.PROGRESS_BUSY;
+
+      E_PROGRESS.PROGRESS_BUSY:
+        IF (_ChannelState.eState = E_NCI_STATE.RESET + E_PROGRESS.PROGRESS_DONE)
+        THEN
+          _nSubState                  := E_PROGRESS.PROGRESS_INIT;
+          _nState                     := E_PROGRESS.PROGRESS_WORKING;
+
+          IF (_MessageLevel > E_MessageType.eMessageWarning)
+          THEN
+            _stMsg.eType              := E_MessageType.eMessageInfo;
+            _stMsg.eSubdevice         := e_Subdevice.JobBase_StartUp;
+            _stMsg.iErrorNumber       := _ChannelState.eState;
+            _stMsg.sText              := concat('E_NCI_CTRL.RESET: ', TO_STRING(E_PROGRESS.PROGRESS_DONE));
+      
+            f_MessageSet(_stMsg);
+          END_IF
+        END_IF
+    END_CASE
+  //-------------------------------------------------------------------------------------------------------------
+  E_PROGRESS.PROGRESS_WORKING:
+    CASE _nSubState
+    OF
+      E_PROGRESS.PROGRESS_INIT:
+        _ChannelCtrl.eCmd             := E_NCI_CTRL.CLEAR_GROUP;
+        _nSubState                    := E_PROGRESS.PROGRESS_BUSY;
+
+      E_PROGRESS.PROGRESS_BUSY:
+        IF (_ChannelState.eState = E_NCI_STATE.CLEAR_GROUP + E_PROGRESS.PROGRESS_DONE)
+        THEN
+          _nSubState                  := E_PROGRESS.PROGRESS_INIT;
+          _nState                     := E_PROGRESS.PROGRESS_STILL_WORKING;
+
+          IF (_MessageLevel > E_MessageType.eMessageWarning)
+          THEN
+            _stMsg.eType              := E_MessageType.eMessageInfo;
+            _stMsg.eSubdevice         := e_Subdevice.NciStartUp;
+            _stMsg.iErrorNumber       := _ChannelState.eState;
+            _stMsg.sText              := concat('E_NCI_CTRL.CLEAR_GROUP: ', TO_STRING(E_PROGRESS.PROGRESS_DONE));
+      
+            f_MessageSet(_stMsg);
+          END_IF
+        END_IF
+    END_CASE
+  //-------------------------------------------------------------------------------------------------------------
+  E_PROGRESS.PROGRESS_STILL_WORKING:
+    _nState                           := E_PROGRESS.PROGRESS_DONE;
+
+    IF (_MessageLevel > E_MessageType.eMessageError)
+    THEN
+      _stMsg.eType                    := E_MessageType.eMessageInfo;
+      _stMsg.eSubdevice               := e_Subdevice.NciStartUp;
+      _stMsg.iErrorNumber             := 0;
+      _stMsg.sText                    := concat(' : ', TO_STRING(_nState));
+
+      f_MessageSet(_stMsg);
+    END_IF
+END_CASE
+//---------------------------------------------------------------------------------------------------------------
+Unit_Startup                          := _nState;
+//---------------------------------------------------------------------------------------------------------------
+]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="fb_JobBase">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="fb_JobBase.AxisCtrl.Set">
+      <LineId Id="1" Count="1" />
+    </LineIds>
+    <LineIds Name="fb_JobBase.AxisInfo.Set">
+      <LineId Id="1" Count="1" />
+    </LineIds>
+    <LineIds Name="fb_JobBase.AxisOverride.Get">
+      <LineId Id="1" Count="1" />
+    </LineIds>
+    <LineIds Name="fb_JobBase.AxisOverride.Set">
+      <LineId Id="1" Count="1" />
+    </LineIds>
+    <LineIds Name="fb_JobBase.AxisState.Set">
+      <LineId Id="1" Count="1" />
+    </LineIds>
+    <LineIds Name="fb_JobBase.CheckBase">
+      <LineId Id="1" Count="49" />
+      <LineId Id="58" Count="2" />
+    </LineIds>
+    <LineIds Name="fb_JobBase.ChnAxisIdentity.Set">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="fb_JobBase.ChnCtrl.Set">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="fb_JobBase.ChnOverride.Get">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="fb_JobBase.ChnOverride.Set">
+      <LineId Id="1" Count="1" />
+    </LineIds>
+    <LineIds Name="fb_JobBase.ChnState.Set">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="fb_JobBase.GetGroupIndices">
+      <LineId Id="1" Count="96" />
+    </LineIds>
+    <LineIds Name="fb_JobBase.Unit_Job">
+      <LineId Id="262" Count="1" />
+      <LineId Id="1" Count="0" />
+      <LineId Id="264" Count="0" />
+      <LineId Id="2" Count="8" />
+      <LineId Id="12" Count="249" />
+    </LineIds>
+    <LineIds Name="fb_JobBase.Unit_Reset">
+      <LineId Id="109" Count="6" />
+      <LineId Id="5" Count="5" />
+      <LineId Id="12" Count="96" />
+    </LineIds>
+    <LineIds Name="fb_JobBase.Unit_Startup">
+      <LineId Id="245" Count="6" />
+      <LineId Id="5" Count="36" />
+      <LineId Id="43" Count="0" />
+      <LineId Id="252" Count="0" />
+      <LineId Id="44" Count="15" />
+      <LineId Id="254" Count="0" />
+      <LineId Id="253" Count="0" />
+      <LineId Id="60" Count="184" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="ST_DISPENSER_PARAMETER" Id="{780871cc-2f05-04ca-158e-a128a681012d}">
+    <Declaration><![CDATA[TYPE ST_DISPENSER_PARAMETER :
+STRUCT
+  Component           : UINT  := 1;       // 1 or 2 component dispenser
+  ValveInDelay        : TIME  := T#10MS;  // switch time for infeed valves  [ms]
+  ValveOutDelay       : TIME  := T#10MS;  // switch time for outfeed valves [ms]
+
+  AxisParameter       : ARRAY[1..GVL_APPLICATION.MAX_DISPENSER_COMPONENT] OF ST_DISPENSER_AXIS_PARAMETER;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="U_TOUCH_PROBE_CTRL" Id="{2cc73bcd-7b1c-49f0-9e93-abd826608e56}">
+    <Declaration><![CDATA[TYPE U_TOUCH_PROBE_CTRL :
+UNION
+  stCtrl              : ARRAY[1..MAX_TOUCH_PROBE] OF ST_CTRL_TOUCH_PROBE;
+
+  byCtrl    AT %q*    : ARRAY[1..MAX_TOUCH_PROBE] OF
+                        ARRAY[1..SIZEOF(ST_CTRL_TOUCH_PROBE)] OF BYTE;
+END_UNION
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

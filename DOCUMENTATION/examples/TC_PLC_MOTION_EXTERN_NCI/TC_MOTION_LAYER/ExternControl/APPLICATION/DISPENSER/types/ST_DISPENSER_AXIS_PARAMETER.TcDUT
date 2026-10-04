@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="ST_DISPENSER_AXIS_PARAMETER" Id="{632fa49c-5f62-07d8-041a-283186ca7823}">
+    <Declaration><![CDATA[TYPE ST_DISPENSER_AXIS_PARAMETER :
+STRUCT
+  // configuration data for dispenser axis
+  AxisIndex       : UINT;   // gfbAxisController[] index for PLC MOTION LAYER
+  PistonDiameter  : LREAL :=   2.0;   // diameter for volume calc
+  PistonArea      : LREAL :=  PI;     // (PistonDiameter/2)² * PI
+  LimitUpper      : LREAL :=  10.0;   // upper limit of axis
+  LimitLower      : LREAL :=   0.0;   // lower limit of axis
+  LimitVelo       : LREAL :=  50.0;   // max dispensing velocity --> material constant
+  LimitAccDec     : LREAL := 500.0;   // max dynamic --> material constant
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

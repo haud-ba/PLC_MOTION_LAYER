@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="ST_AXIS_STATE" Id="{fd81a5e0-5def-4df9-bc1a-b501e9cbbbe1}">
+    <Declaration><![CDATA[{attribute 'pack_mode' := '2'}
+TYPE ST_AXIS_STATE :
+STRUCT
+  eState        : E_AXIS_STATE; // mirror the requested command + E_PROGRESS
+  eAxisEncoder  : E_AxisEncoderType;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

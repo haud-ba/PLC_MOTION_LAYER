@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="E_R_PARAMETER" Id="{e34f8ea3-36da-05d2-0524-0e5a2f6e3e25}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+TYPE E_R_PARAMETER :
+(
+	R_START_POS_X         := 900,
+  R_START_POS_Y,
+  R_START_POS_Z,
+  R_PROG_SAFE_Z         := 905,
+
+  R_PROG_DISPENSER_WORKING_DELAY := 907,  // time dispenser delays feedback on start of dispensing axis
+  R_PROG_DISPENSER_FILL := 908,  // intake volume for dispenser, corresponding M func --> E_PROG_DISP_FILL (start fill) --> E_PROG_DISP_FILL_DONE (handshake for fill done, now axis may move on)
+  R_PROG_DISPENSER_VELO := 909   // requested dispensing velocity by GST-Code !rSet(909, <value>)
+
+
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

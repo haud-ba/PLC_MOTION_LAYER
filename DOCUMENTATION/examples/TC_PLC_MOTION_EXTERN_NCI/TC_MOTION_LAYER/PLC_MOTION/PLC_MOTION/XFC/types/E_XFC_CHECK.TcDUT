@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <DUT Name="E_XFC_CHECK" Id="{b4491292-1527-41e4-bb87-13253da4868f}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+{attribute 'to_string'}
+TYPE E_XFC_CHECK :
+(
+  XFC_CHECK_NONE,
+
+  XFC_CHECK_REF_AXIS      := 900,
+  XFC_CHECK_REF_AXIS_ITF,
+  XFC_CHECK_AXIS_INDEX,
+
+	XFC_CHECK_DONE          := 1000
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="ST_HomingOptionsExt" Id="{7e8e90db-3f94-47b4-9b78-df6ff151940a}">
+    <Declaration><![CDATA[TYPE ST_HomingOptionsExt :
+STRUCT
+  // in order for extern control to be 
+  // fully independent of any library types
+  // struct is built with base types
+  ClearPositionLag      : BOOL;
+  SearchDirection       : INT;    // MC_Direction
+  SearchVelocity        : LREAL;
+  SyncDirection         : INT;    // MC_Direction
+  SyncVelocity          : LREAL;
+  ReferenceMode         : UDINT;  // E_EncoderReferenceMode
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

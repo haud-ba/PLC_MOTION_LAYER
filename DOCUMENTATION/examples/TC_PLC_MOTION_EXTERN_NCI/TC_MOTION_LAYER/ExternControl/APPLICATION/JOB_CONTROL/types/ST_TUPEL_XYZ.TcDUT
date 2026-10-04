@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <DUT Name="ST_TUPEL_XYZ" Id="{f3865225-fb4b-0755-002a-43494b88fd97}">
+    <Declaration><![CDATA[TYPE ST_TUPEL_XYZ :
+STRUCT
+  x : LREAL;
+  y : LREAL;
+  z : LREAL;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

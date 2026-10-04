@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <DUT Name="ST_DISPENSER_JOB_PARAMETER" Id="{d516f529-5c0a-08a0-3c5c-8918cbee54b7}">
+    <Declaration><![CDATA[TYPE ST_DISPENSER_JOB_PARAMETER :
+STRUCT
+  Volume    : LREAL := 10.0;      // [mm³]
+  Velocity  : LREAL := 10.0;      // [mm³/s]
+  AccDec    : LREAL := 100.0;     // [mm³/s²]
+  tDelay    : TIME  := T#10MS;    // [ms]
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

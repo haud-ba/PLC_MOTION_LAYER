@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="U_AXIS_CTRL" Id="{7722bd20-ce89-4e75-bde1-1c717b630ec0}">
+    <Declaration><![CDATA[TYPE U_AXIS_CTRL :
+UNION
+
+  stCtrl              : ARRAY[1..MAX_AXIS] OF ST_AXIS_CTRL;
+
+  byCtrl    AT %Q*    : ARRAY[1..MAX_AXIS] OF
+                        ARRAY[1..SIZEOF(ST_AXIS_CTRL)] OF BYTE;
+END_UNION
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

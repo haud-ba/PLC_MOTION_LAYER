@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="ST_R_Parameter" Id="{aa803b17-ec9e-4bb8-929a-2325d17d8ef3}">
+    <Declaration><![CDATA[{attribute 'pack_mode' := '2'}
+TYPE ST_R_Parameter :
+STRUCT
+  _nStart               : DINT := 901;
+  _nCount               : DINT :=   4;
+  _rValue               : ARRAY[0..MAX_R_PARA] OF LREAL;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

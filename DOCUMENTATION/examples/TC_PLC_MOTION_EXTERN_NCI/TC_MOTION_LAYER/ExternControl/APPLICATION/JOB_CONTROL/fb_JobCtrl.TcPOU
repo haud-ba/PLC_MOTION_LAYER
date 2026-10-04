@@ -1,0 +1,1187 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="fb_JobCtrl" Id="{3579e5b0-3b59-0b03-3dcd-ad97fe81800b}" SpecialFunc="None">
+    <Declaration><![CDATA[//---------------------------------------------------------------------------------------------------------------
+//
+//  HAUD 2026.09.20
+//    - PLC_MOTION_LAYER
+//      - This is a Job Control instance for accessing PtP and NCI functionalities
+//    - e_progress as the generic the result offset
+//    - class specific check enum E_JOB_CHECK
+//
+//
+//  fb_JobCtrl
+//  - main functionblock when using XYZ-axis (PtP and NCI) with dispenser
+//  - extends fb_JobBase for executing the axis movements of jobs
+//  - executes PtP and NCI jobs
+//  - procedure for each job: 
+//    - movement and dispenser
+//
+//
+//---------------------------------------------------------------------------------------------------------------
+// This SOFTWARE is provided as an Example by THE PROVIDER "as is" and "with all faults." THE PROVIDER makes no 
+// representations or warranties of any kind concerning the safety, suitability, lack of viruses, inaccuracies, 
+// typographical errors, or other harmful components of this SOFTWARE. There are inherent dangers in the use of 
+// any software, and you are solely responsible for determining whether this SOFTWARE is compatible with your 
+// equipment and other software installed on your equipment. You are also solely responsible for the protection 
+// of your equipment and backup of your data, and THE PROVIDER will not be liable for any damages you may suffer 
+// in connection with using, modifying, or distributing this SOFTWARE.
+//---------------------------------------------------------------------------------------------------------------
+FUNCTION_BLOCK fb_JobCtrl EXTENDS fb_JobBase
+VAR
+  _stCtrl             : REFERENCE TO ST_JOB_CTRL;
+  _stState            : REFERENCE TO ST_JOB_STATE;
+
+  _eCmd,
+  _eCmdOld            : E_JOB_CTRL;
+
+  _eState             : E_JOB_STATE;
+
+//  _fbGstDos           : fb_GstDos; // start of *.nc file, mFunc Handshake for dispenser start
+
+  _stProgParameter    : ST_PROG_PARAMETER; // TODO: get data from file
+
+  _stRParameterNCI    : REFERENCE TO ST_R_Parameter;
+
+  _sProgCtrl,
+  _sProgState         : REFERENCE TO STRING(255);
+
+  _stConfiguration    : REFERENCE TO ST_Configuration;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+IF NOT Check() THEN RETURN; END_IF
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+// get command from outside world
+//-----------------------------------------------------------------------------
+_eCmd                               := _stCtrl.Cmd;
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//  OnChange react to command
+//-----------------------------------------------------------------------------
+IF (_eCmd <> _eCmdOld)
+THEN
+  // get busy
+  _eState                           := Cmd(_eCmd); // get execution state for command
+
+  IF (_MessageLevel > E_MessageType.eMessageInfo)
+  THEN
+    _stMsg.eType                    := E_MessageType.eMessageVerbose;
+    _stMsg.eSubdevice               := e_Subdevice.JobControl;
+    _stMsg.iErrorNumber             := _eCmdOld;
+    _stMsg.sText                    := concat('_eCmdOld: ', TO_STRING(_eCmdOld));
+  
+    f_MessageSet(_stMsg);
+  END_IF
+
+  IF (_MessageLevel > E_MessageType.eMessageError)
+  THEN
+    _stMsg.eType                    := E_MessageType.eMessageInfo;
+    _stMsg.eSubdevice               := e_Subdevice.JobControl;
+    _stMsg.iErrorNumber             := _eState;
+    _stMsg.sText                    := concat('E_JOB_CTRL. ', TO_STRING(_eCmd));
+  
+    f_MessageSet(_stMsg);
+  END_IF
+
+  _eCmdOld                          := _eCmd;
+END_IF
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//  execution result
+//-----------------------------------------------------------------------------
+CASE _eResult
+OF
+  E_PROGRESS.PROGRESS_INVALID:
+    _stState.State                  := TO_UINT(E_PROGRESS.PROGRESS_ERROR);
+
+  E_PROGRESS.PROGRESS_ERROR:
+    _stState.State                  := _eState + E_PROGRESS.PROGRESS_ERROR;
+
+  E_PROGRESS.PROGRESS_DONE:
+    _stState.State                  := _eState + E_PROGRESS.PROGRESS_DONE;
+
+ELSE
+  //-----------------------------------------------------------------------------
+  // execution state result to interface
+  //-----------------------------------------------------------------------------
+  _stState.State                    := _eState + _eResult;
+
+  //-----------------------------------------------------------------------------
+  //-----------------------------------------------------------------------------
+  //  execution state for command
+  //-----------------------------------------------------------------------------
+  CASE _eState
+  OF
+    E_JOB_STATE.JOB_INIT:
+      _eResult                      := Job_Init (TRUE);
+    E_JOB_STATE.JOB_IDLE:
+      _eResult                      := Job_Idle (TRUE);
+    E_JOB_STATE.JOB_RESET:
+      _eResult                      := Job_Reset(TRUE);
+    E_JOB_STATE.JOB_HOME:
+      _eResult                      := Job_Home (TRUE);
+    E_JOB_STATE.JOB_RINSE:
+      _eResult                      := Job_Rinse(TRUE);
+    E_JOB_STATE.JOB_AUTO:
+      _eResult                      := Job_Auto (TRUE);
+  ELSE
+      _eResult                      := E_PROGRESS.PROGRESS_INVALID;
+  END_CASE
+END_CASE
+
+]]></ST>
+    </Implementation>
+    <Folder Name="private" Id="{cf705e72-c4b4-05e6-3b65-99173ba1f73a}" />
+    <Folder Name="properties" Id="{32f6477a-aca9-045b-27aa-7f7abb610d3c}" />
+    <Method Name="Check" Id="{889f5de4-ff2d-0bf6-0b4e-b9732c0de851}" FolderPath="private\">
+      <Declaration><![CDATA[METHOD PRIVATE Check : BOOL
+VAR_INST
+  _eChk       : E_JOB_CHECK;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//---------------------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------
+IF NOT CheckBase() THEN _eChk   := _eCheck; RETURN; END_IF
+//---------------------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------
+IF NOT __ISVALIDREF(_stCtrl)
+THEN
+  _eCheck                       := E_JOB_CHECK.POINTER_NULL_UNIT_CTRL;
+  RETURN;
+END_IF
+
+IF NOT __ISVALIDREF(_stState)
+THEN
+  _eCheck                       := E_JOB_CHECK.POINTER_NULL_UNIT_STATE;
+  RETURN;
+END_IF
+
+IF NOT __ISVALIDREF(_stRParameterNCI)
+THEN
+  _eCheck                       := E_JOB_CHECK.NCI_R_PARAMETER_INVALID;
+  RETURN;
+END_IF
+
+IF NOT __ISVALIDREF(_sProgCtrl)
+THEN
+  _eCheck                       := E_JOB_CHECK.NCI_FILE_CTRL_INVALID;
+  RETURN;
+END_IF
+
+IF NOT __ISVALIDREF(_sProgState)
+THEN
+  _eCheck                       := E_JOB_CHECK.NCI_FILE_STATE_INVALID;
+  RETURN;
+END_IF
+
+IF NOT __ISVALIDREF(_stConfiguration)
+THEN
+  _eCheck                       := E_JOB_CHECK.NCI_CONFIGURATION_INVALID;
+  RETURN;
+END_IF
+
+_eCheck                         := E_JOB_CHECK.CHECK_DONE;
+Check                           := TRUE;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Cmd" Id="{2b6ef42f-9a52-05ec-36a1-197ede094a7c}" FolderPath="private\">
+      <Declaration><![CDATA[METHOD PRIVATE Cmd : E_JOB_STATE
+VAR_INPUT
+  eCmd      : E_JOB_CTRL;
+END_VAR
+VAR_INST
+  _est      : E_JOB_STATE;
+  _ire      : E_PROGRESS;  
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[
+CASE eCmd
+OF
+  //-------------------------------------------------------------------------------------
+  E_JOB_CTRL.JOB_INIT:
+    _ire                          := Job_Init(FALSE);
+    _est                          := E_JOB_STATE.JOB_INIT;
+
+ELSE
+  IF (_eInit <> E_PROGRESS.PROGRESS_DONE)
+  THEN
+    _ire                          := E_PROGRESS.PROGRESS_ERROR;
+    _est                          := E_JOB_STATE.JOB_NULL;
+
+    _stMsg.eType                  := E_MessageType.eMessageError;
+    _stMsg.eDevice                := _eDeviceId;
+    _stMsg.eSubdevice             := e_Subdevice.Application_Cmd;
+    _stMsg.iErrorNumber           := eCmd;
+
+    _stMsg.sText                  := 'eInit.';
+    _stMsg.sText                  := concat(_stMsg.sText, TO_STRING(_eInit));
+    _stMsg.sText                  := concat(_stMsg.sText, ': ');
+    _stMsg.sText                  := concat(_stMsg.sText, TO_STRING(_ire));
+
+    f_MessageSet(_stMsg);
+
+  ELSE
+    CASE eCmd
+    OF
+      //---------------------------------------------------------------------------------
+      E_JOB_CTRL.JOB_IDLE:
+        _est                      := E_JOB_STATE.JOB_IDLE;
+        _ire                      := Job_Idle(FALSE);        
+      //---------------------------------------------------------------------------------
+      E_JOB_CTRL.JOB_RESET:
+        _est                      := E_JOB_STATE.JOB_RESET;
+        _ire                      := Job_Reset(FALSE);
+      //---------------------------------------------------------------------------------
+      E_JOB_CTRL.JOB_HOME:
+        _est                      := E_JOB_STATE.JOB_HOME;
+        _ire                      := Job_Home(FALSE);
+      //---------------------------------------------------------------------------------
+      E_JOB_CTRL.JOB_RINSE:
+        _est                      := E_JOB_STATE.JOB_RINSE;
+        _ire                      := Job_Rinse(FALSE);
+      //---------------------------------------------------------------------------------
+      E_JOB_CTRL.JOB_AUTO:
+        _est                      := E_JOB_STATE.JOB_AUTO;
+        _ire                      := Job_Auto(FALSE);
+
+    //-----------------------------------------------------------------------------------
+    ELSE
+      _est                        := E_JOB_STATE.JOB_NULL;
+
+      IF (eCmd = E_AXIS_CTRL.AXIS_NULL)
+      THEN
+        _ire                      := E_PROGRESS.PROGRESS_DONE;
+      ELSE
+        _ire                      := E_PROGRESS.PROGRESS_INVALID;
+  
+        _stMsg.eType              := E_MessageType.eMessageError;
+        _stMsg.eDevice            := _eDeviceId;
+        _stMsg.eSubdevice         := e_Subdevice.Application_Cmd;
+        _stMsg.iErrorNumber       := eCmd;
+  
+        _stMsg.sText              := 'E_JOB_CTRL.';
+        _stMsg.sText              := concat(_stMsg.sText, TO_STRING(eCmd));
+        _stMsg.sText              := concat(_stMsg.sText, ': ');
+        _stMsg.sText              := concat(_stMsg.sText, TO_STRING(_ire));
+
+        f_MessageSet(_stMsg);
+      END_IF
+    END_CASE
+  END_IF // _eInit
+END_CASE
+
+_eResult                          := _ire;
+Cmd                               := _est;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="Configuration" Id="{e048479d-d443-0157-31d5-55f6ee0bb24d}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY Configuration : reference to ST_Configuration]]></Declaration>
+      <Set Name="Set" Id="{418fa945-cd98-0394-2650-1295cb5181a0}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_stConfiguration REF= Configuration;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="Ctrl" Id="{e728548e-799d-00e7-0d1e-422430cd9b39}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY Ctrl : reference to ST_JOB_CTRL]]></Declaration>
+      <Set Name="Set" Id="{4a1253e8-b0c8-0774-1f6e-3b351c4c3128}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_stCtrl REF= Ctrl;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Method Name="Job_Auto" Id="{c31e844f-493c-06a3-2a87-d5b1a44370fd}">
+      <Declaration><![CDATA[METHOD Job_Auto   : E_PROGRESS
+VAR_INPUT
+  Execute         : BOOL;
+END_VAR
+VAR_INST
+  _eRslt,
+  _eStateError,
+  _eState         : E_PROGRESS;
+
+  _tmpFunc        : E_M_FUNC;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+IF NOT Execute THEN _eState   := _eStateError     := E_PROGRESS.PROGRESS_INIT;  RETURN; END_IF
+//---------------------------------------------------------------------------------------
+IF NOT Check() THEN Job_Auto  := _eState          := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+CASE _eState 
+of
+  E_PROGRESS.PROGRESS_INIT:
+    IF Execute
+    THEN
+      _eState                 := E_PROGRESS.PROGRESS_BUSY;
+      // get job data at start
+      _JobData                := _stConfiguration.JobConfig.ParameterAuto;
+      _eRslt                  := Unit_Job(FALSE, _JobData);   // clear method
+
+      IF (_MessageLevel > E_MessageType.eMessageError)
+      THEN
+        _stMsg.eType          := E_MessageType.eMessageInfo;
+        _stMsg.eSubdevice     := e_Subdevice.JobControl_Auto;
+        _stMsg.iErrorNumber   := _eState;
+        _stMsg.sText          := concat(': ', TO_STRING(_eState));
+      
+        f_MessageSet(_stMsg);
+      END_IF
+    END_IF
+END_CASE
+//---------------------------------------------------------------------------------------
+//  move PtP axis
+//    - X,Y,Z
+//---------------------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_BUSY:
+    _eRslt                    := Unit_Job(TRUE, _JobData);
+    
+    IF (_eRslt = E_PROGRESS.PROGRESS_ERROR)
+    THEN
+      // base class did the messaging
+      // exit with error
+      _eStateError            := _eState;
+      _eState                 := E_PROGRESS.PROGRESS_ERROR;
+      _eRslt                  := Unit_Job(FALSE, _JobData);   // clear method
+
+    ELSIF (_eRslt = E_PROGRESS.PROGRESS_DONE)
+    THEN
+      // move of axis to job starting positions successful
+      // next states are intended for customization
+      _eState                 := E_PROGRESS.PROGRESS_STARTUP;
+      _eRslt                  := Unit_Job(FALSE, _JobData);   // clear method
+    END_IF
+END_CASE
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_PREPARE:
+      // simply an inexpensive placeholder to customize initialization to your needs
+      _eState                 := E_PROGRESS.PROGRESS_STARTUP;
+END_CASE
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_STARTUP:
+      // simply an inexpensive placeholder to customize initialization to your needs
+      _eState                 := E_PROGRESS.PROGRESS_CHECK;
+END_CASE
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_CHECK:
+      _eState                 := E_PROGRESS.PROGRESS_OCCUPIED;
+END_CASE
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_OCCUPIED:
+      _eState                 := E_PROGRESS.PROGRESS_WORKING;
+END_CASE
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_WORKING:
+    _eState                   := E_PROGRESS.PROGRESS_DONE;
+
+    IF (_MessageLevel > E_MessageType.eMessageError)
+    THEN
+      _stMsg.eType            := E_MessageType.eMessageInfo;
+      _stMsg.eSubdevice       := e_Subdevice.JobControl_Auto;
+      _stMsg.iErrorNumber     := _eState;
+      _stMsg.sText            := concat(': ', TO_STRING(_eState));
+    
+      f_MessageSet(_stMsg);
+    END_IF
+END_CASE
+
+
+Job_Auto                      := _eState;
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Job_Home" Id="{3937b1dc-2dd5-0905-1f76-0ec19e1915e9}">
+      <Declaration><![CDATA[METHOD Job_Home   : E_PROGRESS
+VAR_INPUT
+  Execute         : BOOL;
+END_VAR
+VAR_INST
+  _eRslt,
+  _eStateError,
+  _eState         : E_PROGRESS;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+IF NOT Execute THEN _eState   := _eStateError     := E_PROGRESS.PROGRESS_INIT;  RETURN; END_IF
+//---------------------------------------------------------------------------------------
+IF NOT Check() THEN Job_Home  := _eState          := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+CASE _eState 
+of
+  E_PROGRESS.PROGRESS_INIT:
+    IF Execute
+    THEN
+      _eState                 := E_PROGRESS.PROGRESS_BUSY;
+      // get job data at start
+      _JobData                := _stConfiguration.JobConfig.ParameterHome;
+      _eRslt                  := Unit_Job(FALSE, _JobData);   // clear method
+
+      IF (_MessageLevel > E_MessageType.eMessageError)
+      THEN
+        _stMsg.eType          := E_MessageType.eMessageInfo;
+        _stMsg.eSubdevice     := e_Subdevice.JobControl_Home;
+        _stMsg.iErrorNumber   := _eState;
+        _stMsg.sText          := concat(': ', TO_STRING(_eState));
+      
+        f_MessageSet(_stMsg);
+      END_IF
+    END_IF
+END_CASE
+//---------------------------------------------------------------------------------------
+//  move PtP axis
+//    - X,Y,Z
+//---------------------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_BUSY:
+    _eRslt                    := Unit_Job(TRUE, _JobData);
+    
+    IF (_eRslt = E_PROGRESS.PROGRESS_ERROR)
+    THEN
+      // base class did the messaging
+      // exit with error
+      _eStateError            := _eState;
+      _eState                 := E_PROGRESS.PROGRESS_ERROR;
+      _eRslt                  := Unit_Job(FALSE, _JobData);   // clear method
+
+    ELSIF (_eRslt = E_PROGRESS.PROGRESS_DONE)
+    THEN
+      // move of axis to job positions successful
+      // next states are intended for customization
+      _eState                 := E_PROGRESS.PROGRESS_STARTUP;
+      _eRslt                  := Unit_Job(FALSE, _JobData);   // clear method
+    END_IF
+END_CASE
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_PREPARE:
+      // simply an inexpensive placeholder to customize initialization to your needs
+      _eState                 := E_PROGRESS.PROGRESS_STARTUP;
+END_CASE
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_STARTUP:
+      // simply an inexpensive placeholder to customize initialization to your needs
+      _eState                 := E_PROGRESS.PROGRESS_CHECK;
+END_CASE
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_CHECK:
+      _eState                 := E_PROGRESS.PROGRESS_OCCUPIED;
+END_CASE
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_OCCUPIED:
+      _eState                 := E_PROGRESS.PROGRESS_WORKING;
+END_CASE
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_WORKING:
+    _eState                   := E_PROGRESS.PROGRESS_DONE;
+END_CASE
+
+
+Job_Home                      := _eState;
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Job_Idle" Id="{78a87989-4236-0c79-0310-a4d511f7b821}">
+      <Declaration><![CDATA[METHOD Job_Idle : E_PROGRESS
+VAR_INPUT
+  Execute         : BOOL;
+END_VAR
+VAR_INST
+  _eRslt,
+  _eStateError,
+  _eState         : E_PROGRESS;
+END_VAR
+
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+IF NOT Execute THEN _eState   := _eStateError     := E_PROGRESS.PROGRESS_INIT;  RETURN; END_IF
+//---------------------------------------------------------------------------------------
+IF NOT Check() THEN Job_Idle  := _eState          := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+CASE _eState 
+of
+  E_PROGRESS.PROGRESS_INIT:
+    IF Execute
+    THEN
+      _eState                 := E_PROGRESS.PROGRESS_BUSY;
+
+      IF (_MessageLevel > E_MessageType.eMessageError)
+      THEN
+        _stMsg.eType          := E_MessageType.eMessageInfo;
+        _stMsg.eSubdevice     := e_Subdevice.JobControl_Idle;
+        _stMsg.iErrorNumber   := _eState;
+        _stMsg.sText          := concat(': ', TO_STRING(_eState));
+      
+        f_MessageSet(_stMsg);
+      END_IF
+    END_IF
+END_CASE
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_BUSY:
+    _ChannelCtrl.eCmd         := E_NCI_CTRL.IDLE;
+    
+    IF (_ChannelState.eState = E_NCI_STATE.IDLE + E_PROGRESS.PROGRESS_ERROR)
+    THEN
+      // NCI channel did the messaging --> look over there or put in msg here
+      // exit with error
+      _eStateError            := _eState;
+      _eState                 := E_PROGRESS.PROGRESS_ERROR;
+
+
+    ELSIF (_ChannelState.eState = E_NCI_STATE.IDLE + E_PROGRESS.PROGRESS_DONE)
+    THEN
+      // idle state of NCI successful
+      // next states are intended for customization
+      _eState                 := E_PROGRESS.PROGRESS_STARTUP;
+    END_IF
+END_CASE
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_PREPARE:
+      // simply an inexpensive placeholder to customize initialization to your needs
+      _eState                 := E_PROGRESS.PROGRESS_STARTUP;
+END_CASE
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_STARTUP:
+      // simply an inexpensive placeholder to customize initialization to your needs
+      _eState                 := E_PROGRESS.PROGRESS_CHECK;
+END_CASE
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_CHECK:
+      _eState                 := E_PROGRESS.PROGRESS_OCCUPIED;
+END_CASE
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_OCCUPIED:
+      _eState                 := E_PROGRESS.PROGRESS_WORKING;
+END_CASE
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_WORKING:
+    _eState                   := E_PROGRESS.PROGRESS_DONE;
+
+    IF (_MessageLevel > E_MessageType.eMessageError)
+    THEN
+      _stMsg.eType            := E_MessageType.eMessageInfo;
+      _stMsg.eSubdevice       := e_Subdevice.JobControl_Idle;
+      _stMsg.iErrorNumber     := _eState;
+      _stMsg.sText            := concat(': ', TO_STRING(_eState));
+    
+      f_MessageSet(_stMsg);
+    END_IF
+END_CASE
+
+
+Job_Idle                      := _eState;
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Job_Init" Id="{4ba7d13f-673a-4be9-a420-054498f37553}">
+      <Declaration><![CDATA[METHOD Job_Init   : E_PROGRESS
+VAR_INPUT
+  Execute         : BOOL;
+END_VAR
+VAR_INST
+  _eRslt,
+  _eStateError,
+  _eState         : E_PROGRESS;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+IF NOT Execute THEN _eState   := _eStateError     := E_PROGRESS.PROGRESS_INIT;  RETURN; END_IF
+//---------------------------------------------------------------------------------------
+IF NOT Check() THEN Job_Init  := _eState          := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+CASE _eState 
+of
+  E_PROGRESS.PROGRESS_INIT:
+    IF Execute
+    THEN
+      _eState                 := E_PROGRESS.PROGRESS_BUSY;
+      _eRslt                  := Unit_StartUp(FALSE);   // clear method
+
+      IF (_MessageLevel > E_MessageType.eMessageError)
+      THEN
+        _stMsg.eType          := E_MessageType.eMessageInfo;
+        _stMsg.eSubdevice     := e_Subdevice.JobControl_Init;
+        _stMsg.iErrorNumber   := _eState;
+        _stMsg.sText          := concat(': ', TO_STRING(_eState));
+      
+        f_MessageSet(_stMsg);
+      END_IF
+    END_IF
+END_CASE
+//---------------------------------------------------------------------------------------
+//  get config data
+//    - NCI: X,Y,Z and helper axis Ids
+//---------------------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_BUSY:
+    _AxisIdentity             := _stConfiguration.PortalConfig.AxisIdentity;
+    _eState                   := E_PROGRESS.PROGRESS_PREPARE;
+END_CASE
+//---------------------------------------------------------------------------------------
+//  check config data and initialize NCI Group
+//    --> ST_AXIS_GROUP_INFO: data struct for plausibility checks on NCI Group
+//---------------------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_PREPARE:
+    _eRslt                    := Unit_StartUp(TRUE);
+    
+    IF (_eRslt = E_PROGRESS.PROGRESS_ERROR)
+    THEN
+      // base class did the messaging
+      // exit with error
+      _eStateError            := _eState;
+      _eState                 := E_PROGRESS.PROGRESS_ERROR;
+      _eRslt                  := Unit_StartUp(FALSE);   // clear method
+
+    ELSIF (_eRslt = E_PROGRESS.PROGRESS_DONE)
+    THEN
+      // startup of NCI successful
+      // next states are intended for customization
+      _eState                 := E_PROGRESS.PROGRESS_STARTUP;
+      _eRslt                  := Unit_StartUp(FALSE);   // clear method
+    END_IF
+END_CASE
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_STARTUP:
+      // simply an inexpensive placeholder to customize initialization to your needs
+      _eState                 := E_PROGRESS.PROGRESS_CHECK;
+END_CASE
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_CHECK:
+      _eState                 := E_PROGRESS.PROGRESS_OCCUPIED;
+END_CASE
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_OCCUPIED:
+      _eState                 := E_PROGRESS.PROGRESS_WORKING;
+END_CASE
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_WORKING:
+    _eState                   := E_PROGRESS.PROGRESS_DONE;
+
+    IF (_MessageLevel > E_MessageType.eMessageError)
+    THEN
+      _stMsg.eType            := E_MessageType.eMessageInfo;
+      _stMsg.eSubdevice       := e_Subdevice.JobControl_Init;
+      _stMsg.iErrorNumber     := _eState;
+      _stMsg.sText            := concat(': ', TO_STRING(_eState));
+    
+      f_MessageSet(_stMsg);
+    END_IF
+END_CASE
+
+
+Job_Init                      := _eState;
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Job_Reset" Id="{c50df2e0-a582-0d1c-14c5-226f51d436f0}">
+      <Declaration><![CDATA[METHOD Job_Reset  : E_PROGRESS
+VAR_INPUT
+  Execute         : BOOL;
+END_VAR
+VAR_INST
+  _eRslt,
+  _eStateError,
+  _eState         : E_PROGRESS;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+IF NOT Execute THEN _eState   := _eStateError     := E_PROGRESS.PROGRESS_INIT;  RETURN; END_IF
+//---------------------------------------------------------------------------------------
+IF NOT Check() THEN Job_Reset := _eState          := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+CASE _eState 
+of
+  E_PROGRESS.PROGRESS_INIT:
+    IF Execute
+    THEN
+      _eState                 := E_PROGRESS.PROGRESS_BUSY;
+      _eRslt                  := Unit_Reset(FALSE);   // clear method
+
+      IF (_MessageLevel > E_MessageType.eMessageError)
+      THEN
+        _stMsg.eType          := E_MessageType.eMessageInfo;
+        _stMsg.eSubdevice     := e_Subdevice.JobControl_Reset;
+        _stMsg.iErrorNumber   := _eState;
+        _stMsg.sText          := concat(': ', TO_STRING(_eState));
+      
+        f_MessageSet(_stMsg);
+      END_IF
+    END_IF
+END_CASE
+//---------------------------------------------------------------------------------------
+//  clear axis and NCI
+//    - NCI: X,Y,Z and helper axis Ids
+//---------------------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_BUSY:
+    _eRslt                    := Unit_Reset(TRUE);
+    
+    IF (_eRslt = E_PROGRESS.PROGRESS_ERROR)
+    THEN
+      // base class did the messaging
+      // exit with error
+      _eStateError            := _eState;
+      _eState                 := E_PROGRESS.PROGRESS_ERROR;
+      _eRslt                  := Unit_Reset(FALSE);   // clear method
+
+    ELSIF (_eRslt = E_PROGRESS.PROGRESS_DONE)
+    THEN
+      // reset of axis and NCI successful
+      // next states are intended for customization
+      _eState                 := E_PROGRESS.PROGRESS_STARTUP;
+      _eRslt                  := Unit_Reset(FALSE);   // clear method
+    END_IF
+END_CASE
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_PREPARE:
+      // simply an inexpensive placeholder to customize initialization to your needs
+      _eState                 := E_PROGRESS.PROGRESS_STARTUP;
+END_CASE
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_STARTUP:
+      // simply an inexpensive placeholder to customize initialization to your needs
+      _eState                 := E_PROGRESS.PROGRESS_CHECK;
+END_CASE
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_CHECK:
+      _eState                 := E_PROGRESS.PROGRESS_OCCUPIED;
+END_CASE
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_OCCUPIED:
+      _eState                 := E_PROGRESS.PROGRESS_WORKING;
+END_CASE
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_WORKING:
+    _eState                   := E_PROGRESS.PROGRESS_DONE;
+
+    IF (_MessageLevel > E_MessageType.eMessageError)
+    THEN
+      _stMsg.eType            := E_MessageType.eMessageInfo;
+      _stMsg.eSubdevice       := e_Subdevice.JobControl_Reset;
+      _stMsg.iErrorNumber     := _eState;
+      _stMsg.sText            := concat(': ', TO_STRING(_eState));
+    
+      f_MessageSet(_stMsg);
+    END_IF
+END_CASE
+
+
+Job_Reset                     := _eState;
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Job_Rinse" Id="{d294e992-ee10-07a3-15dd-58e7126b3649}">
+      <Declaration><![CDATA[METHOD Job_Rinse  : E_PROGRESS
+VAR_INPUT
+  Execute         : BOOL;
+END_VAR
+VAR_INST
+  _eRslt,
+  _eStateError,
+  _eState         : E_PROGRESS;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+IF NOT Execute THEN _eState   := _eStateError     := E_PROGRESS.PROGRESS_INIT;  RETURN; END_IF
+//---------------------------------------------------------------------------------------
+IF NOT Check() THEN Job_Rinse := _eState          := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+CASE _eState 
+of
+  E_PROGRESS.PROGRESS_INIT:
+    IF Execute
+    THEN
+      _eState                 := E_PROGRESS.PROGRESS_BUSY;
+      // get job data at start
+      _JobData                := _stConfiguration.JobConfig.ParameterRinse;
+      _eRslt                  := Unit_Job(FALSE, _JobData);   // clear method
+
+      IF (_MessageLevel > E_MessageType.eMessageError)
+      THEN
+        _stMsg.eType          := E_MessageType.eMessageInfo;
+        _stMsg.eSubdevice     := e_Subdevice.JobControl_Rinse;
+        _stMsg.iErrorNumber   := _eState;
+        _stMsg.sText          := concat(': ', TO_STRING(_eState));
+      
+        f_MessageSet(_stMsg);
+      END_IF
+    END_IF
+END_CASE
+//---------------------------------------------------------------------------------------
+//  move PtP axis
+//    - X,Y,Z
+//---------------------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_BUSY:
+    _eRslt                    := Unit_Job(TRUE, _JobData);
+    
+    IF (_eRslt = E_PROGRESS.PROGRESS_ERROR)
+    THEN
+      // base class did the messaging
+      // exit with error
+      _eStateError            := _eState;
+      _eState                 := E_PROGRESS.PROGRESS_ERROR;
+      _eRslt                  := Unit_Job(FALSE, _JobData);   // clear method
+
+    ELSIF (_eRslt = E_PROGRESS.PROGRESS_DONE)
+    THEN
+      // move of axis to home positions successful
+      // next states are intended for customization
+      _eState                 := E_PROGRESS.PROGRESS_STARTUP;
+      _eRslt                  := Unit_Job(FALSE, _JobData);   // clear method
+    END_IF
+END_CASE
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_PREPARE:
+      // simply an inexpensive placeholder to customize initialization to your needs
+      _eState                 := E_PROGRESS.PROGRESS_STARTUP;
+END_CASE
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_STARTUP:
+      // simply an inexpensive placeholder to customize initialization to your needs
+      _eState                 := E_PROGRESS.PROGRESS_CHECK;
+END_CASE
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_CHECK:
+      _eState                 := E_PROGRESS.PROGRESS_OCCUPIED;
+END_CASE
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_OCCUPIED:
+      _eState                 := E_PROGRESS.PROGRESS_WORKING;
+END_CASE
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+CASE _eState
+OF
+  E_PROGRESS.PROGRESS_WORKING:
+    _eState                   := E_PROGRESS.PROGRESS_DONE;
+
+    IF (_MessageLevel > E_MessageType.eMessageError)
+    THEN
+      _stMsg.eType            := E_MessageType.eMessageInfo;
+      _stMsg.eSubdevice       := e_Subdevice.JobControl_Rinse;
+      _stMsg.iErrorNumber     := _eState;
+      _stMsg.sText            := concat(': ', TO_STRING(_eState));
+    
+      f_MessageSet(_stMsg);
+    END_IF
+END_CASE
+
+
+Job_Rinse                     := _eState;
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="State" Id="{0e0dc094-82fc-0d7d-2559-1758da7cd4c2}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY State : reference to ST_JOB_STATE]]></Declaration>
+      <Set Name="Set" Id="{2302b4d8-0a56-00d7-0894-0495ace513f7}">
+        <Declaration><![CDATA[
+VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_stState ref= State;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <LineIds Name="fb_JobCtrl">
+      <LineId Id="272" Count="1" />
+      <LineId Id="118" Count="0" />
+      <LineId Id="135" Count="12" />
+      <LineId Id="287" Count="0" />
+      <LineId Id="289" Count="9" />
+      <LineId Id="274" Count="0" />
+      <LineId Id="276" Count="0" />
+      <LineId Id="279" Count="5" />
+      <LineId Id="277" Count="0" />
+      <LineId Id="286" Count="0" />
+      <LineId Id="285" Count="0" />
+      <LineId Id="150" Count="0" />
+      <LineId Id="163" Count="9" />
+      <LineId Id="177" Count="16" />
+      <LineId Id="299" Count="0" />
+      <LineId Id="305" Count="0" />
+      <LineId Id="300" Count="0" />
+      <LineId Id="306" Count="0" />
+      <LineId Id="301" Count="0" />
+      <LineId Id="307" Count="0" />
+      <LineId Id="302" Count="0" />
+      <LineId Id="308" Count="0" />
+      <LineId Id="303" Count="0" />
+      <LineId Id="309" Count="0" />
+      <LineId Id="304" Count="0" />
+      <LineId Id="258" Count="1" />
+      <LineId Id="265" Count="0" />
+      <LineId Id="267" Count="1" />
+      <LineId Id="119" Count="0" />
+      <LineId Id="117" Count="0" />
+    </LineIds>
+    <LineIds Name="fb_JobCtrl.Check">
+      <LineId Id="82" Count="1" />
+      <LineId Id="86" Count="2" />
+      <LineId Id="2" Count="1" />
+      <LineId Id="6" Count="5" />
+      <LineId Id="14" Count="3" />
+      <LineId Id="42" Count="1" />
+      <LineId Id="46" Count="5" />
+      <LineId Id="54" Count="5" />
+      <LineId Id="62" Count="5" />
+      <LineId Id="70" Count="3" />
+      <LineId Id="76" Count="0" />
+      <LineId Id="78" Count="1" />
+    </LineIds>
+    <LineIds Name="fb_JobCtrl.Cmd">
+      <LineId Id="62" Count="6" />
+      <LineId Id="226" Count="0" />
+      <LineId Id="69" Count="4" />
+      <LineId Id="214" Count="11" />
+      <LineId Id="213" Count="0" />
+      <LineId Id="74" Count="3" />
+      <LineId Id="228" Count="6" />
+      <LineId Id="237" Count="12" />
+      <LineId Id="186" Count="24" />
+      <LineId Id="227" Count="0" />
+      <LineId Id="211" Count="1" />
+      <LineId Id="61" Count="0" />
+    </LineIds>
+    <LineIds Name="fb_JobCtrl.Configuration.Set">
+      <LineId Id="1" Count="1" />
+    </LineIds>
+    <LineIds Name="fb_JobCtrl.Ctrl.Set">
+      <LineId Id="1" Count="1" />
+    </LineIds>
+    <LineIds Name="fb_JobCtrl.Job_Auto">
+      <LineId Id="146" Count="15" />
+      <LineId Id="231" Count="9" />
+      <LineId Id="162" Count="62" />
+      <LineId Id="242" Count="9" />
+      <LineId Id="225" Count="4" />
+      <LineId Id="145" Count="0" />
+    </LineIds>
+    <LineIds Name="fb_JobCtrl.Job_Home">
+      <LineId Id="72" Count="12" />
+      <LineId Id="155" Count="0" />
+      <LineId Id="85" Count="0" />
+      <LineId Id="154" Count="0" />
+      <LineId Id="166" Count="0" />
+      <LineId Id="157" Count="8" />
+      <LineId Id="86" Count="67" />
+      <LineId Id="71" Count="0" />
+    </LineIds>
+    <LineIds Name="fb_JobCtrl.Job_Idle">
+      <LineId Id="71" Count="12" />
+      <LineId Id="155" Count="9" />
+      <LineId Id="85" Count="2" />
+      <LineId Id="90" Count="3" />
+      <LineId Id="153" Count="0" />
+      <LineId Id="95" Count="13" />
+      <LineId Id="110" Count="37" />
+      <LineId Id="174" Count="0" />
+      <LineId Id="166" Count="7" />
+      <LineId Id="165" Count="0" />
+      <LineId Id="148" Count="4" />
+      <LineId Id="70" Count="0" />
+    </LineIds>
+    <LineIds Name="fb_JobCtrl.Job_Init">
+      <LineId Id="104" Count="1" />
+      <LineId Id="1" Count="0" />
+      <LineId Id="106" Count="0" />
+      <LineId Id="2" Count="0" />
+      <LineId Id="4" Count="7" />
+      <LineId Id="83" Count="0" />
+      <LineId Id="108" Count="9" />
+      <LineId Id="12" Count="2" />
+      <LineId Id="93" Count="1" />
+      <LineId Id="15" Count="3" />
+      <LineId Id="81" Count="0" />
+      <LineId Id="27" Count="0" />
+      <LineId Id="29" Count="0" />
+      <LineId Id="65" Count="0" />
+      <LineId Id="95" Count="1" />
+      <LineId Id="66" Count="7" />
+      <LineId Id="97" Count="1" />
+      <LineId Id="107" Count="0" />
+      <LineId Id="74" Count="0" />
+      <LineId Id="99" Count="0" />
+      <LineId Id="75" Count="2" />
+      <LineId Id="101" Count="1" />
+      <LineId Id="78" Count="0" />
+      <LineId Id="100" Count="0" />
+      <LineId Id="79" Count="1" />
+      <LineId Id="30" Count="4" />
+      <LineId Id="103" Count="0" />
+      <LineId Id="84" Count="0" />
+      <LineId Id="45" Count="12" />
+      <LineId Id="92" Count="0" />
+      <LineId Id="59" Count="0" />
+      <LineId Id="85" Count="4" />
+      <LineId Id="91" Count="0" />
+      <LineId Id="118" Count="8" />
+      <LineId Id="90" Count="0" />
+      <LineId Id="127" Count="0" />
+      <LineId Id="60" Count="4" />
+    </LineIds>
+    <LineIds Name="fb_JobCtrl.Job_Reset">
+      <LineId Id="83" Count="13" />
+      <LineId Id="187" Count="8" />
+      <LineId Id="186" Count="0" />
+      <LineId Id="97" Count="8" />
+      <LineId Id="167" Count="16" />
+      <LineId Id="108" Count="1" />
+      <LineId Id="112" Count="3" />
+      <LineId Id="184" Count="1" />
+      <LineId Id="133" Count="28" />
+      <LineId Id="197" Count="8" />
+      <LineId Id="196" Count="0" />
+      <LineId Id="162" Count="4" />
+      <LineId Id="82" Count="0" />
+    </LineIds>
+    <LineIds Name="fb_JobCtrl.Job_Rinse">
+      <LineId Id="108" Count="15" />
+      <LineId Id="193" Count="8" />
+      <LineId Id="192" Count="0" />
+      <LineId Id="124" Count="62" />
+      <LineId Id="203" Count="8" />
+      <LineId Id="202" Count="0" />
+      <LineId Id="187" Count="4" />
+      <LineId Id="107" Count="0" />
+    </LineIds>
+    <LineIds Name="fb_JobCtrl.State.Set">
+      <LineId Id="1" Count="1" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

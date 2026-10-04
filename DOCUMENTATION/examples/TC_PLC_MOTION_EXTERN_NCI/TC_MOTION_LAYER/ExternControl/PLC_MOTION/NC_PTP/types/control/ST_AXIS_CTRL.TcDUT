@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="ST_AXIS_CTRL" Id="{025c2229-6236-4e64-9633-ef891a466b30}">
+    <Declaration><![CDATA[{attribute 'pack_mode' := '2'}
+TYPE ST_AXIS_CTRL :
+STRUCT
+  eCmd                : E_AXIS_CTRL;    // commanded axis function
+  eProgress           : E_PROGRESS;     // progress command for synced functions
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

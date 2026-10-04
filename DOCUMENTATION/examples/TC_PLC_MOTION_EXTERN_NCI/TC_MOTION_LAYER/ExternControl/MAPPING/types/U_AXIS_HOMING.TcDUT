@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="U_AXIS_HOMING" Id="{6bd47f7b-27bf-4016-9dbd-a72e017febd6}">
+    <Declaration><![CDATA[TYPE U_AXIS_HOMING :
+UNION
+
+  stCtrl              : ARRAY[1..MAX_AXIS] OF ST_HOMING;
+
+  byCtrl    AT %Q*    : ARRAY[1..MAX_AXIS] OF
+                        ARRAY[1..SIZEOF(ST_HOMING)] OF BYTE;
+END_UNION
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

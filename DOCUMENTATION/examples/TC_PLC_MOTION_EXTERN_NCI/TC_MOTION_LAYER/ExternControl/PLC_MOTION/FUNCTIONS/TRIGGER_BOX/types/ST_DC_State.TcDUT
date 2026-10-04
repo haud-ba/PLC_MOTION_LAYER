@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="ST_DC_State" Id="{5b22c5ba-135e-44a9-9b22-9cb714ba2a2f}">
+    <Declaration><![CDATA[TYPE ST_DC_State :
+STRUCT
+  SysTime     : ULINT;
+  {attribute 'displaymode':='binary'}
+  Feedback    : USINT; // Bit 0: Output 1
+                       // Bit 1: Tristate 1
+                       // Bit 2: Output 2
+                       // Bit 3: Tristate 2
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <DUT Name="ST_MOTION_FUNCTION_POINT" Id="{f5e95c33-b61a-052a-07d5-41fa409c69f1}">
+    <Declaration><![CDATA[{attribute 'pack_mode' := '2'}
+TYPE ST_MOTION_FUNCTION_POINT :
+STRUCT
+   nPointIndex            : UINT;
+   nFunctionType          : UINT;
+   wPointType             : WORD;
+   nRelIndexNextPoint     : UINT;
+   rMasterPos             : LREAL; (* X *)
+   rSlavePos              : LREAL; (* Y *)
+   rSlaveVelo             : LREAL; (* Y' *)
+   rSlaveAcc              : LREAL; (* Y'' *)
+   rSlaveJerk             : LREAL; (* Y''' *)
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>
