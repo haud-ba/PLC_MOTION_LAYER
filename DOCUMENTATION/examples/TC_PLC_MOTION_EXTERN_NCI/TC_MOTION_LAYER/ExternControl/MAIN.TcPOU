@@ -66,6 +66,8 @@ OF
     GVL_APPLICATION.ConfigData.PortalConfig.AxisIdentity.nYAxisId   :=   11;
     GVL_APPLICATION.ConfigData.PortalConfig.AxisIdentity.nZAxisId   :=   12;
 
+    GVL_NCI.AxisConfig[1]                                           := GVL_APPLICATION.ConfigData.PortalConfig.AxisIdentity;
+
     GVL_APPLICATION.ConfigData.JobConfig.ParameterHome.CollisionZ   :=    3.1415;
     GVL_APPLICATION.ConfigData.JobConfig.ParameterHome.Position.x   :=    1.0;
     GVL_APPLICATION.ConfigData.JobConfig.ParameterHome.Position.y   :=    1.0;
@@ -78,17 +80,78 @@ OF
     GVL_APPLICATION.ConfigData.JobConfig.ParameterHome.DynConstraint[1].rDec      :=  1_000.0;
     GVL_APPLICATION.ConfigData.JobConfig.ParameterHome.DynConstraint[1].rJerk     := 10_000.0;
 
-    eInit                             := E_PROGRESS.PROGRESS_INIT;
+    GVL_APPLICATION.ConfigData.JobConfig.ParameterHome.DynConstraint[2].rSetVelo  :=    100.0;
+    GVL_APPLICATION.ConfigData.JobConfig.ParameterHome.DynConstraint[2].rOverride :=    100.0;
+
+    GVL_APPLICATION.ConfigData.JobConfig.ParameterHome.DynConstraint[2].rAcc      :=  1_000.0;
+    GVL_APPLICATION.ConfigData.JobConfig.ParameterHome.DynConstraint[2].rDec      :=  1_000.0;
+    GVL_APPLICATION.ConfigData.JobConfig.ParameterHome.DynConstraint[2].rJerk     := 10_000.0;
+
+    GVL_APPLICATION.ConfigData.JobConfig.ParameterHome.DynConstraint[3].rSetVelo  :=    100.0;
+    GVL_APPLICATION.ConfigData.JobConfig.ParameterHome.DynConstraint[3].rOverride :=    100.0;
+
+    GVL_APPLICATION.ConfigData.JobConfig.ParameterHome.DynConstraint[3].rAcc      :=  1_000.0;
+    GVL_APPLICATION.ConfigData.JobConfig.ParameterHome.DynConstraint[3].rDec      :=  1_000.0;
+    GVL_APPLICATION.ConfigData.JobConfig.ParameterHome.DynConstraint[3].rJerk     := 10_000.0;
+
+    GVL_APPLICATION.ConfigData.JobConfig.ParameterRinse.CollisionZ  :=    2.71828;
+    GVL_APPLICATION.ConfigData.JobConfig.ParameterRinse.Position.x  :=   -1.0;
+    GVL_APPLICATION.ConfigData.JobConfig.ParameterRinse.Position.y  :=   -1.0;
+    GVL_APPLICATION.ConfigData.JobConfig.ParameterRinse.Position.z  :=    0.31830;
+
+    GVL_APPLICATION.ConfigData.JobConfig.ParameterStrip.CollisionZ  :=    7.07107;
+    GVL_APPLICATION.ConfigData.JobConfig.ParameterStrip.Position.x  :=    1.0;
+    GVL_APPLICATION.ConfigData.JobConfig.ParameterStrip.Position.y  :=   -1.0;
+    GVL_APPLICATION.ConfigData.JobConfig.ParameterStrip.Position.z  :=    0.57735;
+
+    GVL_APPLICATION.ConfigData.JobConfig.ParameterAuto.CollisionZ   :=    1.61803;
+    GVL_APPLICATION.ConfigData.JobConfig.ParameterAuto.Position.x   :=   -1.0;
+    GVL_APPLICATION.ConfigData.JobConfig.ParameterAuto.Position.y   :=    1.0;
+    GVL_APPLICATION.ConfigData.JobConfig.ParameterAuto.Position.z   :=    0.57721;
+
+    memcpy(ADR(GVL_APPLICATION.ConfigData.JobConfig.ParameterRinse.DynConstraint), 
+           ADR(GVL_APPLICATION.ConfigData.JobConfig.ParameterHome.DynConstraint), 
+           SIZEOF(GVL_APPLICATION.ConfigData.JobConfig.ParameterHome.DynConstraint));
+
+    memcpy(ADR(GVL_APPLICATION.ConfigData.JobConfig.ParameterStrip.DynConstraint), 
+           ADR(GVL_APPLICATION.ConfigData.JobConfig.ParameterHome.DynConstraint), 
+           SIZEOF(GVL_APPLICATION.ConfigData.JobConfig.ParameterHome.DynConstraint));
+
+    memcpy(ADR(GVL_APPLICATION.ConfigData.JobConfig.ParameterAuto.DynConstraint), 
+           ADR(GVL_APPLICATION.ConfigData.JobConfig.ParameterHome.DynConstraint), 
+           SIZEOF(GVL_APPLICATION.ConfigData.JobConfig.ParameterHome.DynConstraint));
+
+    GVL_APPLICATION.NciUnitControl[1].Cmd   := E_JOB_CTRL.JOB_INIT;
+    eInit                                   := E_PROGRESS.PROGRESS_INIT;
 
   //---------------------------------------------------------------------------------------------------------------
   E_PROGRESS.PROGRESS_INIT:
-    GVL_NCI.ChannelCtrl[1].eCmd       := E_NCI_CTRL.INIT;
+    IF (GVL_APPLICATION.NciUnitState[1].State = E_JOB_STATE.JOB_INIT + E_PROGRESS.PROGRESS_DONE)
+    THEN
+      eInit                                 := E_PROGRESS.PROGRESS_BUSY;
+    END_IF
+
+  E_PROGRESS.PROGRESS_BUSY:
+    eInit                                   := E_PROGRESS.PROGRESS_STILL_WORKING;
 
 
   E_PROGRESS.PROGRESS_STILL_WORKING:  // now your init is done. 
-    eInit                             := E_PROGRESS.PROGRESS_DONE;
+    eInit                                   := E_PROGRESS.PROGRESS_DONE;
 END_CASE
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+//  /NCI portal and jobs
+//    - the job center
+//-----------------------------------------------------------------------------------------------------------------
+GVL_APPLICATION.NciControlUnit[1]();
+GVL_APPLICATION.NciControlUnit[1].AxisCtrl          REF= GVL_AXIS.Ctrl;
+GVL_APPLICATION.NciControlUnit[1].AxisState         REF= GVL_AXIS.State;
+GVL_APPLICATION.NciControlUnit[1].AxisInfo          REF= GVL_AXIS.Info;
 
+GVL_APPLICATION.NciControlUnit[1].ChnAxisIdentity   REF= GVL_NCI.AxisConfig  [1];
+GVL_APPLICATION.NciControlUnit[1].ChnCtrl           REF= GVL_NCI.ChannelCtrl [1];
+GVL_APPLICATION.NciControlUnit[1].ChnState          REF= GVL_NCI.ChannelState[1];
 //-----------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------
@@ -223,7 +286,9 @@ END_CASE
       <LineId Id="202" Count="0" />
       <LineId Id="329" Count="1" />
       <LineId Id="332" Count="0" />
-      <LineId Id="342" Count="5" />
+      <LineId Id="342" Count="2" />
+      <LineId Id="427" Count="1" />
+      <LineId Id="345" Count="2" />
       <LineId Id="336" Count="0" />
       <LineId Id="349" Count="0" />
       <LineId Id="353" Count="1" />
@@ -231,18 +296,32 @@ END_CASE
       <LineId Id="355" Count="0" />
       <LineId Id="348" Count="0" />
       <LineId Id="351" Count="1" />
+      <LineId Id="357" Count="14" />
+      <LineId Id="374" Count="3" />
+      <LineId Id="380" Count="4" />
+      <LineId Id="386" Count="5" />
+      <LineId Id="372" Count="0" />
+      <LineId Id="392" Count="1" />
+      <LineId Id="395" Count="8" />
       <LineId Id="356" Count="0" />
       <LineId Id="335" Count="0" />
       <LineId Id="337" Count="0" />
       <LineId Id="334" Count="0" />
       <LineId Id="203" Count="0" />
       <LineId Id="340" Count="0" />
+      <LineId Id="404" Count="0" />
       <LineId Id="208" Count="0" />
+      <LineId Id="405" Count="4" />
       <LineId Id="206" Count="0" />
       <LineId Id="205" Count="0" />
       <LineId Id="207" Count="0" />
       <LineId Id="201" Count="0" />
+      <LineId Id="410" Count="5" />
       <LineId Id="198" Count="0" />
+      <LineId Id="422" Count="2" />
+      <LineId Id="426" Count="0" />
+      <LineId Id="425" Count="0" />
+      <LineId Id="429" Count="1" />
       <LineId Id="115" Count="1" />
       <LineId Id="126" Count="3" />
       <LineId Id="217" Count="110" />
