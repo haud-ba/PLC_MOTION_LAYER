@@ -10,6 +10,13 @@ VAR_GLOBAL
   // APPLICATION territory
   //-----------------------------------------------------------------------------------------------
   //-----------------------------------------------------------------------------------------------
+  // application configuration
+  //  - placeholder for you to fill with data
+  //  - xml file based configuration
+  //-----------------------------------------------------------------------------------------------
+  Configuration                 fb_Configuration;
+
+  //-----------------------------------------------------------------------------------------------
   // NCI portal control
   //  - handles state and initialisation of NCI portal
   //  - checks NC AxisId at startup from config (ST_3D_GROUP)
@@ -18,8 +25,11 @@ VAR_GLOBAL
   //    - switch on axis in 3D group
   //    - initialize NCI via ST_NCI_CTRL/ST_NCI_STATE (init sequence in PLC_MOTION)
   //    - move main axis to Job position
-
-  fbNciUnitControl              : ARRAY[1..PLC_CONSTANT.MAX_NCI_CH] OF fb_JobCtrl;
+  //-----------------------------------------------------------------------------------------------
+  NciControlUnit                : ARRAY[1..PLC_CONSTANT.MAX_NCI_CH] OF fb_JobCtrl;
+  NciUnitControl                : ARRAY[1..PLC_CONSTANT.MAX_NCI_CH] OF ST_JOB_CTRL;
+  NciUnitState                  : ARRAY[1..PLC_CONSTANT.MAX_NCI_CH] OF ST_JOB_STATE;
+  //-----------------------------------------------------------------------------------------------
 
 END_VAR]]></Declaration>
   </GVL>

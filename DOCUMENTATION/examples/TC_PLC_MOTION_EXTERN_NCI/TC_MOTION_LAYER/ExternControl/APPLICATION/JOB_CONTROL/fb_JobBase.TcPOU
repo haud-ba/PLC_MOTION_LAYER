@@ -347,7 +347,19 @@ GetGroupIndices                         := _nState;
       </Implementation>
     </Method>
     <Method Name="Unit_Job" Id="{5d8a502f-4a20-0f70-2ce3-a420beb4f68f}">
-      <Declaration><![CDATA[METHOD Unit_Job : e_progress
+      <Declaration><![CDATA[//-------------------------------------------------------------------
+//  HAUD 2026.10.11
+//
+// fb_JobBase.UnitJob:
+//  - enables axis in ST_AXIS_GROUP with automated error reset to clear any lingering error state
+//  - clears NCI _ChannelCtrl.eCmd := E_NCI_CTRL.INIT
+//    - initialization in NCI fb_NciChannelCtrl:
+//      .plausibility check on _stCfgAxes
+//      .ItpReset()
+//      .ClearGroup()
+//    - moving X,Y,Z to JobParameter positions 
+//-------------------------------------------------------------------
+METHOD Unit_Job : e_progress
 VAR_INPUT
   Execute       : BOOL;
   JobParameter  : ST_JOB_PARAMETER;
@@ -401,8 +413,11 @@ OF
           _nSubState                  := E_PROGRESS.PROGRESS_BUSY;
         ELSE
           _AxisCtrl[_AxisGroupInfo[_idx].nAxisIndex].eCmd        := E_AXIS_CTRL.AXIS_ENABLE;
-    
-          IF (_AxisState[_AxisGroupInfo[_idx].nAxisIndex].eState = E_AXIS_STATE.AXIS_ENABLE + E_PROGRESS.PROGRESS_DONE)
+
+          IF (_AxisState[_AxisGroupInfo[_idx].nAxisIndex].eState = E_AXIS_STATE.AXIS_ENABLE + E_PROGRESS.PROGRESS_ERROR)
+          THEN
+
+          ELSIF (_AxisState[_AxisGroupInfo[_idx].nAxisIndex].eState = E_AXIS_STATE.AXIS_ENABLE + E_PROGRESS.PROGRESS_DONE)
           THEN
             _nSubState                := E_PROGRESS.PROGRESS_BUSY;
 
@@ -627,7 +642,17 @@ Unit_Job                              := _nState;
       </Implementation>
     </Method>
     <Method Name="Unit_Reset" Id="{7a6526a6-f4d4-414f-82d8-587d7da542fd}">
-      <Declaration><![CDATA[METHOD Unit_Reset : e_progress
+      <Declaration><![CDATA[//-------------------------------------------------------------------
+//  HAUD 2026.10.11
+//
+// fb_JobBase.Unit_Reset:
+//  - clears axis in ST_AXIS_GROUP
+//  - clears NCI _ChannelCtrl.eCmd := E_NCI_CTRL.RESET
+//    - fb_NciChannelCtrl:
+//      .ItpReset()
+//      .Clear M functions
+//-------------------------------------------------------------------
+METHOD Unit_Reset : e_progress
 VAR_INPUT
   Execute       : BOOL;
 END_VAR
@@ -753,7 +778,22 @@ Unit_Reset                            := _nState;
       </Implementation>
     </Method>
     <Method Name="Unit_Startup" Id="{409f6438-7f85-02e2-1cba-710d5460b1a4}">
-      <Declaration><![CDATA[METHOD Unit_Startup : e_progress
+      <Declaration><![CDATA[//-------------------------------------------------------------------
+//  HAUD 2026.10.11
+//
+// fb_JobBase.Unit_Startup:
+//  - checks   Id against array index of axis in ST_AXIS_GROUP
+//  - disables axis in ST_AXIS_GROUP
+//  - clears   axis in ST_AXIS_GROUP
+//  - clears   NCI _ChannelCtrl.eCmd := E_NCI_CTRL.INIT
+//    - initialization in NCI fb_NciChannelCtrl:
+//      .plausibility check on _stCfgAxes
+//      .ItpReset()
+//      .ClearGroup()
+//  - clears   NCI _ChannelCtrl.eCmd := E_NCI_CTRL.RESET
+//  - clears   NCI _ChannelCtrl.eCmd := E_NCI_CTRL.CLEAR_GROUP
+//-------------------------------------------------------------------
+METHOD Unit_Startup : e_progress
 VAR_INPUT
   Execute           : BOOL;
 END_VAR
@@ -1063,7 +1103,9 @@ Unit_Startup                          := _nState;
       <LineId Id="1" Count="0" />
       <LineId Id="264" Count="0" />
       <LineId Id="2" Count="8" />
-      <LineId Id="12" Count="249" />
+      <LineId Id="12" Count="26" />
+      <LineId Id="265" Count="2" />
+      <LineId Id="39" Count="222" />
     </LineIds>
     <LineIds Name="fb_JobBase.Unit_Reset">
       <LineId Id="109" Count="6" />

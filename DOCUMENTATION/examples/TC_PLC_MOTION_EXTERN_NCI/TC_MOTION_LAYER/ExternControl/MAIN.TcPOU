@@ -57,9 +57,32 @@ END_IF
 //-----------------------------------------------------------------------------------------------------------------
 CASE eInit 
 OF
+  //---------------------------------------------------------------------------------------------------------------
   E_PROGRESS.PROGRESS_INVALID:
+    // the NCI and job configuration is hard coded here because it is convenient and instantly visible
+    // pulling config data from xml or database is something you might want to add here
+    // Channel 1
+    GVL_APPLICATION.ConfigData.PortalConfig.AxisIdentity.nXAxisId   :=   10;
+    GVL_APPLICATION.ConfigData.PortalConfig.AxisIdentity.nYAxisId   :=   11;
+    GVL_APPLICATION.ConfigData.PortalConfig.AxisIdentity.nZAxisId   :=   12;
 
+    GVL_APPLICATION.ConfigData.JobConfig.ParameterHome.CollisionZ   :=    3.1415;
+    GVL_APPLICATION.ConfigData.JobConfig.ParameterHome.Position.x   :=    1.0;
+    GVL_APPLICATION.ConfigData.JobConfig.ParameterHome.Position.y   :=    1.0;
+    GVL_APPLICATION.ConfigData.JobConfig.ParameterHome.Position.z   :=    1.0;
+
+    GVL_APPLICATION.ConfigData.JobConfig.ParameterHome.DynConstraint[1].rSetVelo  :=    100.0;
+    GVL_APPLICATION.ConfigData.JobConfig.ParameterHome.DynConstraint[1].rOverride :=    100.0;
+
+    GVL_APPLICATION.ConfigData.JobConfig.ParameterHome.DynConstraint[1].rAcc      :=  1_000.0;
+    GVL_APPLICATION.ConfigData.JobConfig.ParameterHome.DynConstraint[1].rDec      :=  1_000.0;
+    GVL_APPLICATION.ConfigData.JobConfig.ParameterHome.DynConstraint[1].rJerk     := 10_000.0;
+
+    eInit                             := E_PROGRESS.PROGRESS_INIT;
+
+  //---------------------------------------------------------------------------------------------------------------
   E_PROGRESS.PROGRESS_INIT:
+    GVL_NCI.ChannelCtrl[1].eCmd       := E_NCI_CTRL.INIT;
 
 
   E_PROGRESS.PROGRESS_STILL_WORKING:  // now your init is done. 
@@ -196,9 +219,24 @@ END_CASE
       <LineId Id="7" Count="1" />
       <LineId Id="197" Count="0" />
       <LineId Id="200" Count="0" />
+      <LineId Id="338" Count="0" />
       <LineId Id="202" Count="0" />
-      <LineId Id="204" Count="0" />
+      <LineId Id="329" Count="1" />
+      <LineId Id="332" Count="0" />
+      <LineId Id="342" Count="5" />
+      <LineId Id="336" Count="0" />
+      <LineId Id="349" Count="0" />
+      <LineId Id="353" Count="1" />
+      <LineId Id="350" Count="0" />
+      <LineId Id="355" Count="0" />
+      <LineId Id="348" Count="0" />
+      <LineId Id="351" Count="1" />
+      <LineId Id="356" Count="0" />
+      <LineId Id="335" Count="0" />
+      <LineId Id="337" Count="0" />
+      <LineId Id="334" Count="0" />
       <LineId Id="203" Count="0" />
+      <LineId Id="340" Count="0" />
       <LineId Id="208" Count="0" />
       <LineId Id="206" Count="0" />
       <LineId Id="205" Count="0" />
