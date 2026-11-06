@@ -14,8 +14,11 @@ VAR_GLOBAL
   //  - placeholder for you to fill with data
   //  - xml file based configuration
   //-----------------------------------------------------------------------------------------------
-  Configuration                 fb_Configuration;
+  ConfigurationUnit             : fb_Configuration;
+  ConfigControl                 : ST_DATA_CTRL;
+  ConfigState                   : ST_DATA_STATE;
 
+  ConfigData                    : ST_Configuration;
   //-----------------------------------------------------------------------------------------------
   // NCI portal control
   //  - handles state and initialisation of NCI portal

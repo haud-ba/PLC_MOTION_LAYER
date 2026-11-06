@@ -2412,7 +2412,7 @@ External Setpoint Generation:
 				<SvbTask Priority="8" CycleTime="100000" AmsPort="511" Affinity="#x00000004">
 					<Name>NC-Task 1 SVB</Name>
 				</SvbTask>
-				<Axis Id="1" CreateSymbols="true" AxisType="1">
+				<Axis Id="10" CreateSymbols="true" AxisType="1" GroupId="1">
 					<Name>AxisX</Name>
 					<AxisPara>
 						<OtherSettings AllowMotionCmdToSlave="true"/>
@@ -2566,7 +2566,7 @@ External Setpoint Generation:
 						</Var>
 					</Vars>
 				</Axis>
-				<Axis Id="2" CreateSymbols="true" AxisType="1">
+				<Axis Id="11" CreateSymbols="true" AxisType="1" GroupId="2">
 					<Name>AxisY</Name>
 					<AxisPara>
 						<OtherSettings AllowMotionCmdToSlave="true"/>
@@ -2720,7 +2720,7 @@ External Setpoint Generation:
 						</Var>
 					</Vars>
 				</Axis>
-				<Axis Id="3" CreateSymbols="true" AxisType="1">
+				<Axis Id="12" CreateSymbols="true" AxisType="1" GroupId="3">
 					<Name>AxisZ</Name>
 					<AxisPara>
 						<OtherSettings AllowMotionCmdToSlave="true"/>

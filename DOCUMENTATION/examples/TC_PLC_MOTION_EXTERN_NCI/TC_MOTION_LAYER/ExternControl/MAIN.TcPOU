@@ -73,6 +73,21 @@ OF
     GVL_APPLICATION.ConfigData.JobConfig.ParameterHome.Position.y   :=    1.0;
     GVL_APPLICATION.ConfigData.JobConfig.ParameterHome.Position.z   :=    1.0;
 
+    GVL_APPLICATION.ConfigData.JobConfig.ParameterRinse.CollisionZ  :=    2.71828;
+    GVL_APPLICATION.ConfigData.JobConfig.ParameterRinse.Position.x  :=   -1.0;
+    GVL_APPLICATION.ConfigData.JobConfig.ParameterRinse.Position.y  :=   -1.0;
+    GVL_APPLICATION.ConfigData.JobConfig.ParameterRinse.Position.z  :=    0.31830;
+
+    GVL_APPLICATION.ConfigData.JobConfig.ParameterStrip.CollisionZ  :=    7.07107;
+    GVL_APPLICATION.ConfigData.JobConfig.ParameterStrip.Position.x  :=    1.0;
+    GVL_APPLICATION.ConfigData.JobConfig.ParameterStrip.Position.y  :=   -1.0;
+    GVL_APPLICATION.ConfigData.JobConfig.ParameterStrip.Position.z  :=    0.57735;
+
+    GVL_APPLICATION.ConfigData.JobConfig.ParameterAuto.CollisionZ   :=    1.61803;
+    GVL_APPLICATION.ConfigData.JobConfig.ParameterAuto.Position.x   :=   -1.0;
+    GVL_APPLICATION.ConfigData.JobConfig.ParameterAuto.Position.y   :=    1.0;
+    GVL_APPLICATION.ConfigData.JobConfig.ParameterAuto.Position.z   :=    0.57721;
+
     GVL_APPLICATION.ConfigData.JobConfig.ParameterHome.DynConstraint[1].rSetVelo  :=    100.0;
     GVL_APPLICATION.ConfigData.JobConfig.ParameterHome.DynConstraint[1].rOverride :=    100.0;
 
@@ -93,21 +108,6 @@ OF
     GVL_APPLICATION.ConfigData.JobConfig.ParameterHome.DynConstraint[3].rAcc      :=  1_000.0;
     GVL_APPLICATION.ConfigData.JobConfig.ParameterHome.DynConstraint[3].rDec      :=  1_000.0;
     GVL_APPLICATION.ConfigData.JobConfig.ParameterHome.DynConstraint[3].rJerk     := 10_000.0;
-
-    GVL_APPLICATION.ConfigData.JobConfig.ParameterRinse.CollisionZ  :=    2.71828;
-    GVL_APPLICATION.ConfigData.JobConfig.ParameterRinse.Position.x  :=   -1.0;
-    GVL_APPLICATION.ConfigData.JobConfig.ParameterRinse.Position.y  :=   -1.0;
-    GVL_APPLICATION.ConfigData.JobConfig.ParameterRinse.Position.z  :=    0.31830;
-
-    GVL_APPLICATION.ConfigData.JobConfig.ParameterStrip.CollisionZ  :=    7.07107;
-    GVL_APPLICATION.ConfigData.JobConfig.ParameterStrip.Position.x  :=    1.0;
-    GVL_APPLICATION.ConfigData.JobConfig.ParameterStrip.Position.y  :=   -1.0;
-    GVL_APPLICATION.ConfigData.JobConfig.ParameterStrip.Position.z  :=    0.57735;
-
-    GVL_APPLICATION.ConfigData.JobConfig.ParameterAuto.CollisionZ   :=    1.61803;
-    GVL_APPLICATION.ConfigData.JobConfig.ParameterAuto.Position.x   :=   -1.0;
-    GVL_APPLICATION.ConfigData.JobConfig.ParameterAuto.Position.y   :=    1.0;
-    GVL_APPLICATION.ConfigData.JobConfig.ParameterAuto.Position.z   :=    0.57721;
 
     memcpy(ADR(GVL_APPLICATION.ConfigData.JobConfig.ParameterRinse.DynConstraint), 
            ADR(GVL_APPLICATION.ConfigData.JobConfig.ParameterHome.DynConstraint), 
@@ -145,6 +145,9 @@ END_CASE
 //    - the job center
 //-----------------------------------------------------------------------------------------------------------------
 GVL_APPLICATION.NciControlUnit[1]();
+GVL_APPLICATION.NciControlUnit[1].Ctrl              REF= GVL_APPLICATION.NciUnitControl[1];
+GVL_APPLICATION.NciControlUnit[1].State             REF= GVL_APPLICATION.NciUnitState[1];
+
 GVL_APPLICATION.NciControlUnit[1].AxisCtrl          REF= GVL_AXIS.Ctrl;
 GVL_APPLICATION.NciControlUnit[1].AxisState         REF= GVL_AXIS.State;
 GVL_APPLICATION.NciControlUnit[1].AxisInfo          REF= GVL_AXIS.Info;
@@ -291,15 +294,12 @@ END_CASE
       <LineId Id="345" Count="2" />
       <LineId Id="336" Count="0" />
       <LineId Id="349" Count="0" />
-      <LineId Id="353" Count="1" />
-      <LineId Id="350" Count="0" />
-      <LineId Id="355" Count="0" />
-      <LineId Id="348" Count="0" />
-      <LineId Id="351" Count="1" />
-      <LineId Id="357" Count="14" />
+      <LineId Id="353" Count="0" />
       <LineId Id="374" Count="3" />
       <LineId Id="380" Count="4" />
-      <LineId Id="386" Count="5" />
+      <LineId Id="386" Count="4" />
+      <LineId Id="431" Count="20" />
+      <LineId Id="391" Count="0" />
       <LineId Id="372" Count="0" />
       <LineId Id="392" Count="1" />
       <LineId Id="395" Count="8" />
@@ -318,6 +318,7 @@ END_CASE
       <LineId Id="201" Count="0" />
       <LineId Id="410" Count="5" />
       <LineId Id="198" Count="0" />
+      <LineId Id="452" Count="2" />
       <LineId Id="422" Count="2" />
       <LineId Id="426" Count="0" />
       <LineId Id="425" Count="0" />
