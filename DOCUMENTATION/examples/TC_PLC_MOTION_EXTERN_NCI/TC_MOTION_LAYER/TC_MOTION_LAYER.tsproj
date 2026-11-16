@@ -2378,7 +2378,7 @@ External Setpoint Generation:
 			</ArrayInfo>
 		</DataType>
 	</DataTypes>
-	<Project ProjectGUID="{08BC3537-5373-48FE-AA9D-69587F9B5691}" TargetNetId="10.201.25.110.1.1" Target64Bit="true" ShowHideConfigurations="#x6">
+	<Project ProjectGUID="{08BC3537-5373-48FE-AA9D-69587F9B5691}" TargetNetId="5.163.199.237.1.1" Target64Bit="true" ShowHideConfigurations="#x6">
 		<System>
 			<Settings MaxCpus="8" NonWinCpus="6" RouterMemory="134217728" MaxStackSize="512">
 				<Cpu CpuId="2" BaseTime="2500"/>
@@ -2397,7 +2397,7 @@ External Setpoint Generation:
 		</System>
 		<Motion>
 			<NC>
-				<SafTask Priority="4" CycleTime="2500" AmsPort="501" Affinity="#x00000004" IoAtBegin="true" SafTaskInfo="256" HighPrioAds="true">
+				<SafTask Priority="4" CycleTime="2500" AmsPort="501" Affinity="#x00000004" IoAtBegin="true" AmsNetId="10.201.25.110.1.1" SafTaskInfo="256" HighPrioAds="true">
 					<Name>NC-Task 1 SAF</Name>
 					<Vars VarGrpType="1" InsertType="1">
 						<Name>Inputs</Name>
@@ -3407,8 +3407,8 @@ External Setpoint Generation:
 			</NC>
 		</Motion>
 		<Plc>
-			<Project GUID="{FF61B10C-B72E-4A7C-A8B2-8A4CC1B13313}" Name="ExternControl" PrjFilePath="ExternControl\ExternControl.plcproj" TmcFilePath="ExternControl\ExternControl.tmc" ReloadTmc="true" AmsPort="852" FileArchiveSettings="#x000e" SymbolicMapping="true">
-				<Instance Id="#x08502040" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcHash="{D58F4E23-BDAD-5F69-7E45-4070D2FABDBB}" TmcPath="ExternControl\ExternControl.tmc">
+			<Project GUID="{FF61B10C-B72E-4A7C-A8B2-8A4CC1B13313}" Name="ExternControl" PrjFilePath="ExternControl\ExternControl.plcproj" TmcFilePath="ExternControl\ExternControl.tmc" CompilerDefines="BSD" ReloadTmc="true" AmsPort="852" FileArchiveSettings="#x000e" SymbolicMapping="true">
+				<Instance Id="#x08502040" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcHash="{0215F28C-C13B-7815-4C5A-4107FC9EE695}" TmcPath="ExternControl\ExternControl.tmc">
 					<Name>ExternControl Instance</Name>
 					<CLSID ClassFactory="TcPlc30">{08500001-0000-0000-F000-000000000064}</CLSID>
 					<Vars VarGrpType="2" AreaNo="1">
@@ -3527,8 +3527,8 @@ External Setpoint Generation:
 					</TaskPouOids>
 				</Instance>
 			</Project>
-			<Project GUID="{15B1A673-79C3-4349-91F3-F549A08073E6}" Name="PLC_MOTION" PrjFilePath="PLC_MOTION\PLC_MOTION.plcproj" TmcFilePath="PLC_MOTION\PLC_MOTION.tmc" CompilerDefines="AXIS_MAP, NCI_MAP, CAM_MAP, SAW_MAP, TRIGGER_MAP" ReloadTmc="true" AmsPort="851" FileArchiveSettings="#x000e" SymbolicMapping="true">
-				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcHash="{1A770773-D9FB-3E3A-314E-C0EA31D11535}" TmcPath="PLC_MOTION\PLC_MOTION.tmc">
+			<Project GUID="{15B1A673-79C3-4349-91F3-F549A08073E6}" Name="PLC_MOTION" PrjFilePath="PLC_MOTION\PLC_MOTION.plcproj" TmcFilePath="PLC_MOTION\PLC_MOTION.tmc" CompilerDefines="AXIS_MAP, NCI_MAP, CAM_MAP, SAW_MAP, TRIGGER_MAP, BSD" ReloadTmc="true" AmsPort="851" FileArchiveSettings="#x000e" SymbolicMapping="true">
+				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcHash="{0813EF8E-F9B2-2529-005A-EE66B3384D06}" TmcPath="PLC_MOTION\PLC_MOTION.tmc">
 					<Name>PLC_MOTION Instance</Name>
 					<CLSID ClassFactory="TcPlc30">{08500001-0000-0000-F000-000000000064}</CLSID>
 					<Vars VarGrpType="2" AreaNo="1">

@@ -148,6 +148,8 @@ END_CASE
 //  /NCI portal and jobs
 //    - the job center
 //-----------------------------------------------------------------------------------------------------------------
+GVL_APPLICATION.NciControlUnit[1].MessageDevice     :=   e_Device.NciChannelCtrl + 1;
+//-----------------------------------------------------------------------------------------------------------------
 GVL_APPLICATION.NciControlUnit[1]();
 GVL_APPLICATION.NciControlUnit[1].Ctrl              REF= GVL_APPLICATION.NciUnitControl[1];
 GVL_APPLICATION.NciControlUnit[1].State             REF= GVL_APPLICATION.NciUnitState[1];
@@ -326,6 +328,7 @@ END_CASE
       <LineId Id="473" Count="3" />
       <LineId Id="201" Count="0" />
       <LineId Id="410" Count="5" />
+      <LineId Id="477" Count="1" />
       <LineId Id="198" Count="0" />
       <LineId Id="452" Count="1" />
       <LineId Id="459" Count="0" />

@@ -52,9 +52,6 @@ END_VAR
     <Implementation>
       <ST><![CDATA[//-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-_stMsg.eDevice        := e_Device.NciChannelCtrl;
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
 IF NOT Check() THEN RETURN; END_IF
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -534,6 +531,16 @@ CASE _eState
 OF
   E_PROGRESS.PROGRESS_WORKING:
     _eState                   := E_PROGRESS.PROGRESS_DONE;
+
+    IF (_MessageLevel > E_MessageType.eMessageError)
+    THEN
+      _stMsg.eType            := E_MessageType.eMessageInfo;
+      _stMsg.eSubdevice       := e_Subdevice.JobControl_Home;
+      _stMsg.iErrorNumber     := _eState;
+      _stMsg.sText            := concat(': ', TO_STRING(_eState));
+    
+      f_MessageSet(_stMsg);
+    END_IF
 END_CASE
 
 
@@ -1011,6 +1018,27 @@ Job_Rinse                     := _eState;
 ]]></ST>
       </Implementation>
     </Method>
+    <Property Name="MessageDevice" Id="{09c91800-c66b-40c3-9856-ea1b5716d5cf}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY MessageDevice : e_device]]></Declaration>
+      <Get Name="Get" Id="{52dc341a-0cee-4cd6-af1e-677c5c03f677}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[MessageDevice := _eDeviceId;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{35619513-466f-4358-b326-645339024efd}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_eDeviceId      := MessageDevice;
+_stMsg.eDevice  := _eDeviceId;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
     <Property Name="ProgramName" Id="{2209fe1e-6ea7-424c-9a77-49300b5333cf}" FolderPath="properties\">
       <Declaration><![CDATA[PROPERTY ProgramName : reference to string(255)]]></Declaration>
       <Set Name="Set" Id="{670f5e43-603a-4f7c-934e-88b15e3143b8}">
@@ -1061,8 +1089,6 @@ END_VAR
       </Set>
     </Property>
     <LineIds Name="fb_JobCtrl">
-      <LineId Id="311" Count="1" />
-      <LineId Id="310" Count="0" />
       <LineId Id="272" Count="1" />
       <LineId Id="118" Count="0" />
       <LineId Id="135" Count="12" />
@@ -1146,7 +1172,10 @@ END_VAR
       <LineId Id="154" Count="0" />
       <LineId Id="166" Count="0" />
       <LineId Id="157" Count="8" />
-      <LineId Id="86" Count="67" />
+      <LineId Id="86" Count="62" />
+      <LineId Id="177" Count="0" />
+      <LineId Id="168" Count="8" />
+      <LineId Id="149" Count="4" />
       <LineId Id="71" Count="0" />
     </LineIds>
     <LineIds Name="fb_JobCtrl.Job_Idle">
@@ -1226,6 +1255,12 @@ END_VAR
       <LineId Id="202" Count="0" />
       <LineId Id="187" Count="4" />
       <LineId Id="107" Count="0" />
+    </LineIds>
+    <LineIds Name="fb_JobCtrl.MessageDevice.Get">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="fb_JobCtrl.MessageDevice.Set">
+      <LineId Id="1" Count="2" />
     </LineIds>
     <LineIds Name="fb_JobCtrl.ProgramName.Set">
       <LineId Id="1" Count="1" />
