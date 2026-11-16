@@ -1817,71 +1817,6 @@ External Setpoint Generation:
 			</Relations>
 		</DataType>
 		<DataType>
-			<Name GUID="{A5496B58-EE0C-DFBC-437B-0A924951543B}" IecBaseType="true" AutoDeleteType="true">ARRAY [1..6] OF ARRAY [1..6] OF BYTE</Name>
-			<BitSize>288</BitSize>
-			<BaseType GUID="{18071995-0000-0000-0000-000000000001}">BYTE</BaseType>
-			<ArrayInfo>
-				<LBound>1</LBound>
-				<Elements>6</Elements>
-			</ArrayInfo>
-			<ArrayInfo Level="1">
-				<LBound>1</LBound>
-				<Elements>6</Elements>
-			</ArrayInfo>
-		</DataType>
-		<DataType>
-			<Name GUID="{2B5C121A-3AC3-57FB-B731-2331FD47E935}" IecBaseType="true" AutoDeleteType="true">ARRAY [1..6] OF ARRAY [1..38] OF BYTE</Name>
-			<BitSize>1824</BitSize>
-			<BaseType GUID="{18071995-0000-0000-0000-000000000001}">BYTE</BaseType>
-			<ArrayInfo>
-				<LBound>1</LBound>
-				<Elements>6</Elements>
-			</ArrayInfo>
-			<ArrayInfo Level="1">
-				<LBound>1</LBound>
-				<Elements>38</Elements>
-			</ArrayInfo>
-		</DataType>
-		<DataType>
-			<Name GUID="{5D0481D0-25C0-7560-F931-87B2FC0AC3A0}" IecBaseType="true" AutoDeleteType="true">ARRAY [1..6] OF ARRAY [1..10] OF BYTE</Name>
-			<BitSize>480</BitSize>
-			<BaseType GUID="{18071995-0000-0000-0000-000000000001}">BYTE</BaseType>
-			<ArrayInfo>
-				<LBound>1</LBound>
-				<Elements>6</Elements>
-			</ArrayInfo>
-			<ArrayInfo Level="1">
-				<LBound>1</LBound>
-				<Elements>10</Elements>
-			</ArrayInfo>
-		</DataType>
-		<DataType>
-			<Name GUID="{386ADCFF-CF50-6248-737F-202F3641B276}" IecBaseType="true" AutoDeleteType="true">ARRAY [1..6] OF ARRAY [1..40] OF BYTE</Name>
-			<BitSize>1920</BitSize>
-			<BaseType GUID="{18071995-0000-0000-0000-000000000001}">BYTE</BaseType>
-			<ArrayInfo>
-				<LBound>1</LBound>
-				<Elements>6</Elements>
-			</ArrayInfo>
-			<ArrayInfo Level="1">
-				<LBound>1</LBound>
-				<Elements>40</Elements>
-			</ArrayInfo>
-		</DataType>
-		<DataType>
-			<Name GUID="{53B14C2B-11FF-B714-286D-1E1C0BC25CF2}" IecBaseType="true" AutoDeleteType="true">ARRAY [1..6] OF ARRAY [1..196] OF BYTE</Name>
-			<BitSize>9408</BitSize>
-			<BaseType GUID="{18071995-0000-0000-0000-000000000001}">BYTE</BaseType>
-			<ArrayInfo>
-				<LBound>1</LBound>
-				<Elements>6</Elements>
-			</ArrayInfo>
-			<ArrayInfo Level="1">
-				<LBound>1</LBound>
-				<Elements>196</Elements>
-			</ArrayInfo>
-		</DataType>
-		<DataType>
 			<Name GUID="{E5B4B710-2AC3-1039-86D5-33777854E02B}" AutoDeleteType="true">E_PROGRESS</Name>
 			<Comment><![CDATA[{attribute 'strict'}]]></Comment>
 			<BitSize>16</BitSize>
@@ -1951,6 +1886,71 @@ External Setpoint Generation:
 					<Name>generate_implicit_init_function</Name>
 				</Property>
 			</Properties>
+		</DataType>
+		<DataType>
+			<Name GUID="{A5496B58-EE0C-DFBC-437B-0A924951543B}" IecBaseType="true" AutoDeleteType="true">ARRAY [1..6] OF ARRAY [1..6] OF BYTE</Name>
+			<BitSize>288</BitSize>
+			<BaseType GUID="{18071995-0000-0000-0000-000000000001}">BYTE</BaseType>
+			<ArrayInfo>
+				<LBound>1</LBound>
+				<Elements>6</Elements>
+			</ArrayInfo>
+			<ArrayInfo Level="1">
+				<LBound>1</LBound>
+				<Elements>6</Elements>
+			</ArrayInfo>
+		</DataType>
+		<DataType>
+			<Name GUID="{2B5C121A-3AC3-57FB-B731-2331FD47E935}" IecBaseType="true" AutoDeleteType="true">ARRAY [1..6] OF ARRAY [1..38] OF BYTE</Name>
+			<BitSize>1824</BitSize>
+			<BaseType GUID="{18071995-0000-0000-0000-000000000001}">BYTE</BaseType>
+			<ArrayInfo>
+				<LBound>1</LBound>
+				<Elements>6</Elements>
+			</ArrayInfo>
+			<ArrayInfo Level="1">
+				<LBound>1</LBound>
+				<Elements>38</Elements>
+			</ArrayInfo>
+		</DataType>
+		<DataType>
+			<Name GUID="{5D0481D0-25C0-7560-F931-87B2FC0AC3A0}" IecBaseType="true" AutoDeleteType="true">ARRAY [1..6] OF ARRAY [1..10] OF BYTE</Name>
+			<BitSize>480</BitSize>
+			<BaseType GUID="{18071995-0000-0000-0000-000000000001}">BYTE</BaseType>
+			<ArrayInfo>
+				<LBound>1</LBound>
+				<Elements>6</Elements>
+			</ArrayInfo>
+			<ArrayInfo Level="1">
+				<LBound>1</LBound>
+				<Elements>10</Elements>
+			</ArrayInfo>
+		</DataType>
+		<DataType>
+			<Name GUID="{386ADCFF-CF50-6248-737F-202F3641B276}" IecBaseType="true" AutoDeleteType="true">ARRAY [1..6] OF ARRAY [1..40] OF BYTE</Name>
+			<BitSize>1920</BitSize>
+			<BaseType GUID="{18071995-0000-0000-0000-000000000001}">BYTE</BaseType>
+			<ArrayInfo>
+				<LBound>1</LBound>
+				<Elements>6</Elements>
+			</ArrayInfo>
+			<ArrayInfo Level="1">
+				<LBound>1</LBound>
+				<Elements>40</Elements>
+			</ArrayInfo>
+		</DataType>
+		<DataType>
+			<Name GUID="{53B14C2B-11FF-B714-286D-1E1C0BC25CF2}" IecBaseType="true" AutoDeleteType="true">ARRAY [1..6] OF ARRAY [1..196] OF BYTE</Name>
+			<BitSize>9408</BitSize>
+			<BaseType GUID="{18071995-0000-0000-0000-000000000001}">BYTE</BaseType>
+			<ArrayInfo>
+				<LBound>1</LBound>
+				<Elements>6</Elements>
+			</ArrayInfo>
+			<ArrayInfo Level="1">
+				<LBound>1</LBound>
+				<Elements>196</Elements>
+			</ArrayInfo>
 		</DataType>
 		<DataType>
 			<Name GUID="{80428B00-588B-BBC4-BBEC-6AD6FE028B55}" IecBaseType="true" AutoDeleteType="true">ARRAY [1..12] OF ARRAY [1..40] OF BYTE</Name>
@@ -3408,7 +3408,7 @@ External Setpoint Generation:
 		</Motion>
 		<Plc>
 			<Project GUID="{FF61B10C-B72E-4A7C-A8B2-8A4CC1B13313}" Name="ExternControl" PrjFilePath="ExternControl\ExternControl.plcproj" TmcFilePath="ExternControl\ExternControl.tmc" ReloadTmc="true" AmsPort="852" FileArchiveSettings="#x000e" SymbolicMapping="true">
-				<Instance Id="#x08502040" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcHash="{C41E7FDC-02B2-01FE-AC9A-B62638324417}" TmcPath="ExternControl\ExternControl.tmc">
+				<Instance Id="#x08502040" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcHash="{A2E0E1EF-198B-C20F-4D15-C7C2F44DFAC2}" TmcPath="ExternControl\ExternControl.tmc">
 					<Name>ExternControl Instance</Name>
 					<CLSID ClassFactory="TcPlc30">{08500001-0000-0000-F000-000000000064}</CLSID>
 					<Vars VarGrpType="2" AreaNo="1">
@@ -3469,6 +3469,11 @@ External Setpoint Generation:
 					<Vars VarGrpType="1">
 						<Name>PlcTask Inputs</Name>
 						<Var>
+							<Name>MAIN.eInitPlcMotion</Name>
+							<Comment><![CDATA[ startup indicator from PLC_MOTION plc]]></Comment>
+							<Type GUID="{E5B4B710-2AC3-1039-86D5-33777854E02B}">E_PROGRESS</Type>
+						</Var>
+						<Var>
 							<Name>MAPPING_in.AxisState.byState</Name>
 							<Type GUID="{A5496B58-EE0C-DFBC-437B-0A924951543B}">ARRAY [1..6] OF ARRAY [1..6] OF BYTE</Type>
 						</Var>
@@ -3487,11 +3492,6 @@ External Setpoint Generation:
 						<Var>
 							<Name>MAPPING_in.CamInfo.byState</Name>
 							<Type GUID="{53B14C2B-11FF-B714-286D-1E1C0BC25CF2}">ARRAY [1..6] OF ARRAY [1..196] OF BYTE</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.eInitPlcMotion</Name>
-							<Comment><![CDATA[ startup indicator from PLC_MOTION plc]]></Comment>
-							<Type GUID="{E5B4B710-2AC3-1039-86D5-33777854E02B}">E_PROGRESS</Type>
 						</Var>
 						<Var>
 							<Name>MAPPING_in.TriggerState.byState</Name>
@@ -3528,7 +3528,7 @@ External Setpoint Generation:
 				</Instance>
 			</Project>
 			<Project GUID="{15B1A673-79C3-4349-91F3-F549A08073E6}" Name="PLC_MOTION" PrjFilePath="PLC_MOTION\PLC_MOTION.plcproj" TmcFilePath="PLC_MOTION\PLC_MOTION.tmc" CompilerDefines="AXIS_MAP, NCI_MAP, CAM_MAP, SAW_MAP, TRIGGER_MAP" ReloadTmc="true" AmsPort="851" FileArchiveSettings="#x000e" SymbolicMapping="true">
-				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcHash="{E7F012EA-6A99-412A-945B-2A5D75655249}" TmcPath="PLC_MOTION\PLC_MOTION.tmc">
+				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcHash="{775CBD37-25D0-5FB3-748C-D4397B47EE4C}" TmcPath="PLC_MOTION\PLC_MOTION.tmc">
 					<Name>PLC_MOTION Instance</Name>
 					<CLSID ClassFactory="TcPlc30">{08500001-0000-0000-F000-000000000064}</CLSID>
 					<Vars VarGrpType="2" AreaNo="1">

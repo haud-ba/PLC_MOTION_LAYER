@@ -255,7 +255,7 @@ ELSE
     ELSE
       _est                        := E_JOB_STATE.JOB_NULL;
 
-      IF (eCmd = E_AXIS_CTRL.AXIS_NULL)
+      IF (eCmd = E_JOB_CTRL.JOB_NULL)
       THEN
         _ire                      := E_PROGRESS.PROGRESS_DONE;
       ELSE

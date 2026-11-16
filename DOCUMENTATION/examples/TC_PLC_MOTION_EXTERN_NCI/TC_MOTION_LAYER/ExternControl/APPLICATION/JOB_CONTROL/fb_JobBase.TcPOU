@@ -416,6 +416,7 @@ OF
 
           IF (_AxisState[_AxisGroupInfo[_idx].nAxisIndex].eState = E_AXIS_STATE.AXIS_ENABLE + E_PROGRESS.PROGRESS_ERROR)
           THEN
+            _nSubState                := E_PROGRESS.PROGRESS_ERROR;
 
           ELSIF (_AxisState[_AxisGroupInfo[_idx].nAxisIndex].eState = E_AXIS_STATE.AXIS_ENABLE + E_PROGRESS.PROGRESS_DONE)
           THEN
@@ -1105,7 +1106,9 @@ Unit_Startup                          := _nState;
       <LineId Id="2" Count="8" />
       <LineId Id="12" Count="26" />
       <LineId Id="265" Count="2" />
-      <LineId Id="39" Count="222" />
+      <LineId Id="39" Count="0" />
+      <LineId Id="268" Count="0" />
+      <LineId Id="40" Count="221" />
     </LineIds>
     <LineIds Name="fb_JobBase.Unit_Reset">
       <LineId Id="109" Count="6" />

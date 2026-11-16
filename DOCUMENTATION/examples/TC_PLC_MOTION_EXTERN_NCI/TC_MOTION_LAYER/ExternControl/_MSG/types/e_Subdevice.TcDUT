@@ -66,6 +66,10 @@ TYPE e_Subdevice :
   fbWriteParameter,
   fbWriteBoolParameter,
   fbWriteParameterPersistent,
+  fbXmlRead,
+  fbXmlWrite,
+  fbCreateFolder,
+
 
   fbBuildGroup            := 200,
   fbClearGroup,

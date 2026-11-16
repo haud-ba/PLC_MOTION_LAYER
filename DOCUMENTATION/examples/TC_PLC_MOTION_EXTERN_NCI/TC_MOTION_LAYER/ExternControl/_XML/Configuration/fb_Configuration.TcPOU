@@ -124,7 +124,7 @@ THEN
   RETURN;
 END_IF
 //-------------------------------------------------------------------------
-IF NOT (_pStationParameter <> 0)
+IF NOT (_pParameter <> 0)
 THEN
   _eCheck               := E_DATA_CHECK.POINTER_STATION_PARAMETER_INVALID;
   RETURN;
@@ -164,7 +164,7 @@ OF
     _eState               := E_DATA_STATE.READ;
   //---------------------------------------------------------------
   E_DATA_CTRL.WRITE:
-    _stConfiguration.XtsStationParameter  := _pStationParameter^;
+    _stConfiguration.PortalConfig  := _pParameter^;
 
     _eResult              := XmlWrite(FALSE);
     _eState               := E_DATA_STATE.WRITE;
