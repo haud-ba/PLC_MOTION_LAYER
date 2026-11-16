@@ -120,7 +120,7 @@ ELSE
   CASE _eState
   OF
     E_JOB_STATE.JOB_INIT:
-      _eResult                      := Job_Init (TRUE);
+      _eResult          := _eInit   := Job_Init (TRUE);
     E_JOB_STATE.JOB_IDLE:
       _eResult                      := Job_Idle (TRUE);
     E_JOB_STATE.JOB_RESET:
@@ -212,7 +212,7 @@ OF
 
   //-------------------------------------------------------------------------------------
   E_JOB_CTRL.JOB_INIT:
-    _ire                          := Job_Init(FALSE);
+    _ire             := _eInit    := Job_Init(FALSE);
     _est                          := E_JOB_STATE.JOB_INIT;
 
 ELSE
