@@ -2,7 +2,7 @@
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.20">
   <Task Name="PlcTask" Id="{ea306e18-f07d-4cb5-ace7-68bc2dd91240}">
     <!--CycleTime in micro seconds.-->
-    <CycleTime>1000</CycleTime>
+    <CycleTime>250</CycleTime>
     <Priority>20</Priority>
     <PouCall>
       <Name>MAPPING_AXIS_in</Name>

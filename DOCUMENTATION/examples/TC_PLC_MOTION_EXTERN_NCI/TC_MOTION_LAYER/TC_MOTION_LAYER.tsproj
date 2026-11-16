@@ -2381,8 +2381,8 @@ External Setpoint Generation:
 	<Project ProjectGUID="{08BC3537-5373-48FE-AA9D-69587F9B5691}" TargetNetId="10.201.25.110.1.1" Target64Bit="true" ShowHideConfigurations="#x6">
 		<System>
 			<Settings MaxCpus="8" NonWinCpus="6" RouterMemory="134217728" MaxStackSize="512">
-				<Cpu CpuId="2"/>
-				<Cpu CpuId="3"/>
+				<Cpu CpuId="2" BaseTime="2500"/>
+				<Cpu CpuId="3" BaseTime="1250"/>
 				<Cpu CpuId="4"/>
 				<Cpu CpuId="5"/>
 				<Cpu CpuId="6"/>
@@ -2390,14 +2390,14 @@ External Setpoint Generation:
 				<IoIdleTask Affinity="#x00000004"/>
 			</Settings>
 			<Tasks>
-				<Task Id="3" Priority="20" CycleTime="10000" AmsPort="350" Affinity="#x00000008" AdtTasks="true">
+				<Task Id="3" Priority="20" CycleTime="2500" AmsPort="350" Affinity="#x00000008" AdtTasks="true">
 					<Name>PlcTask</Name>
 				</Task>
 			</Tasks>
 		</System>
 		<Motion>
 			<NC>
-				<SafTask Priority="4" CycleTime="20000" AmsPort="501" Affinity="#x00000004" IoAtBegin="true" AmsNetId="5.163.199.237.1.1" SafTaskInfo="256" HighPrioAds="true">
+				<SafTask Priority="4" CycleTime="2500" AmsPort="501" Affinity="#x00000004" IoAtBegin="true" SafTaskInfo="256" HighPrioAds="true">
 					<Name>NC-Task 1 SAF</Name>
 					<Vars VarGrpType="1" InsertType="1">
 						<Name>Inputs</Name>
@@ -2409,7 +2409,7 @@ External Setpoint Generation:
 						<Name>Image</Name>
 					</Image>
 				</SafTask>
-				<SvbTask Priority="8" CycleTime="100000" AmsPort="511" Affinity="#x00000004">
+				<SvbTask Priority="8" CycleTime="50000" AmsPort="511" Affinity="#x00000004">
 					<Name>NC-Task 1 SVB</Name>
 				</SvbTask>
 				<Axis Id="10" CreateSymbols="true" AxisType="1" GroupId="1">
@@ -3408,7 +3408,7 @@ External Setpoint Generation:
 		</Motion>
 		<Plc>
 			<Project GUID="{FF61B10C-B72E-4A7C-A8B2-8A4CC1B13313}" Name="ExternControl" PrjFilePath="ExternControl\ExternControl.plcproj" TmcFilePath="ExternControl\ExternControl.tmc" ReloadTmc="true" AmsPort="852" FileArchiveSettings="#x000e" SymbolicMapping="true">
-				<Instance Id="#x08502040" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcHash="{9DCFA222-0F88-2202-8DBA-580533D141F8}" TmcPath="ExternControl\ExternControl.tmc">
+				<Instance Id="#x08502040" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcHash="{D58F4E23-BDAD-5F69-7E45-4070D2FABDBB}" TmcPath="ExternControl\ExternControl.tmc">
 					<Name>ExternControl Instance</Name>
 					<CLSID ClassFactory="TcPlc30">{08500001-0000-0000-F000-000000000064}</CLSID>
 					<Vars VarGrpType="2" AreaNo="1">
@@ -3518,7 +3518,7 @@ External Setpoint Generation:
 								<OTCID>#x02010030</OTCID>
 							</ManualConfig>
 							<Priority>20</Priority>
-							<CycleTime>1000000</CycleTime>
+							<CycleTime>250000</CycleTime>
 						</Context>
 					</Contexts>
 					<JsonDynPous><![CDATA[null]]></JsonDynPous>
@@ -3743,7 +3743,7 @@ External Setpoint Generation:
 								<OTCID>#x02010030</OTCID>
 							</ManualConfig>
 							<Priority>20</Priority>
-							<CycleTime>1000000</CycleTime>
+							<CycleTime>250000</CycleTime>
 						</Context>
 					</Contexts>
 					<JsonDynPous><![CDATA[null]]></JsonDynPous>
@@ -3758,7 +3758,7 @@ External Setpoint Generation:
 	</Project>
 	<Mappings>
 		<MappingInfo Identifier="{00000000-2041-0850-4020-500800205008}" Id="#x02030020"/>
-		<MappingInfo Identifier="{05000010-2001-0850-1000-040300205008}" Id="#x02030010" Watchdog="04000000080000000400000004000000"/>
+		<MappingInfo Identifier="{05000010-2001-0850-1000-040300205008}" Id="#x02030010" Watchdog="04000000040000000400000004000000"/>
 		<OwnerA Name="TIPC^ExternControl^ExternControl Instance">
 			<OwnerB Name="TIPC^PLC_MOTION^PLC_MOTION Instance">
 				<Link VarA="PlcTask Inputs^MAIN.eInitPlcMotion" VarB="PlcTask Outputs^MAIN_AXIS.eInit"/>

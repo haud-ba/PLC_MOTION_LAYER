@@ -606,7 +606,8 @@ OF
           IF (_AxisState[_AxisGroupInfo[X].nAxisIndex].eState = E_AXIS_STATE.AXIS_MOVE_POS + E_PROGRESS.PROGRESS_DONE) AND
              (_AxisState[_AxisGroupInfo[Y].nAxisIndex].eState = E_AXIS_STATE.AXIS_MOVE_POS + E_PROGRESS.PROGRESS_DONE)
           THEN
-            _nSubState                := E_PROGRESS.PROGRESS_CHECK;
+            _AxisCtrl    [_AxisGroupInfo[Z].nAxisIndex].eCmd   := E_AXIS_CTRL.AXIS_NULL;
+            _nSubState                                         := E_PROGRESS.PROGRESS_CHECK;
           END_IF
         END_IF
 
@@ -1123,7 +1124,9 @@ Unit_Startup                          := _nState;
       <LineId Id="265" Count="2" />
       <LineId Id="39" Count="0" />
       <LineId Id="268" Count="0" />
-      <LineId Id="40" Count="221" />
+      <LineId Id="40" Count="175" />
+      <LineId Id="269" Count="0" />
+      <LineId Id="216" Count="45" />
     </LineIds>
     <LineIds Name="fb_JobBase.Unit_Reset">
       <LineId Id="109" Count="6" />
