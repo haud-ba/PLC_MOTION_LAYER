@@ -50,7 +50,7 @@ VAR
   _JobData            : ST_JOB_PARAMETER;   // job detail has to be written by extending class
 
   _eDeviceId          : e_Device;           // whoami?
-  _MessageLevel       : E_MessageType;      // how much to tell?
+  _MessageLevel       : E_MessageType := E_MessageType.eMessageVerbose;      // how much to tell?
   _stMsg              : ST_Message;
 END_VAR
 VAR CONSTANT
@@ -85,6 +85,18 @@ END_VAR
 ]]></Declaration>
         <Implementation>
           <ST><![CDATA[_AxisInfo ref= AxisInfo;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="AxisMoveData" Id="{405f6a32-52be-4b84-8198-bb6620179590}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY AxisMoveData : reference TO ARRAY[1..MAX_AXIS] OF ST_MOVE_DATA]]></Declaration>
+      <Set Name="Set" Id="{8595e2a5-36e5-4b8a-8d84-da1cedf51e18}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_AxisMoveData REF= AxisMoveData;
 ]]></ST>
         </Implementation>
       </Set>
@@ -939,7 +951,7 @@ OF
       
           ELSIF (_AxisState[_AxisGroupInfo[_idx].nAxisIndex].eState = E_AXIS_STATE.AXIS_RESET + E_PROGRESS.PROGRESS_DONE)
           THEN
-            _nState                   := E_PROGRESS.PROGRESS_BUSY;
+            _nSubState                := E_PROGRESS.PROGRESS_BUSY;
 
             IF (_MessageLevel > E_MessageType.eMessageWarning)
             THEN
@@ -1066,6 +1078,9 @@ Unit_Startup                          := _nState;
       <LineId Id="1" Count="1" />
     </LineIds>
     <LineIds Name="fb_JobBase.AxisInfo.Set">
+      <LineId Id="1" Count="1" />
+    </LineIds>
+    <LineIds Name="fb_JobBase.AxisMoveData.Set">
       <LineId Id="1" Count="1" />
     </LineIds>
     <LineIds Name="fb_JobBase.AxisOverride.Get">

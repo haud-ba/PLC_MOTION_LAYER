@@ -147,14 +147,19 @@ END_CASE
 GVL_APPLICATION.NciControlUnit[1]();
 GVL_APPLICATION.NciControlUnit[1].Ctrl              REF= GVL_APPLICATION.NciUnitControl[1];
 GVL_APPLICATION.NciControlUnit[1].State             REF= GVL_APPLICATION.NciUnitState[1];
+GVL_APPLICATION.NciControlUnit[1].Configuration     ref= GVL_APPLICATION.ConfigData;
 
 GVL_APPLICATION.NciControlUnit[1].AxisCtrl          REF= GVL_AXIS.Ctrl;
 GVL_APPLICATION.NciControlUnit[1].AxisState         REF= GVL_AXIS.State;
 GVL_APPLICATION.NciControlUnit[1].AxisInfo          REF= GVL_AXIS.Info;
+GVL_APPLICATION.NciControlUnit[1].AxisMoveData      REF= GVL_AXIS.Data;
 
 GVL_APPLICATION.NciControlUnit[1].ChnAxisIdentity   REF= GVL_NCI.AxisConfig  [1];
 GVL_APPLICATION.NciControlUnit[1].ChnCtrl           REF= GVL_NCI.ChannelCtrl [1];
 GVL_APPLICATION.NciControlUnit[1].ChnState          REF= GVL_NCI.ChannelState[1];
+GVL_APPLICATION.NciControlUnit[1].R_ParameterRead   REF= GVL_NCI.R_ParameterRead[1];
+GVL_APPLICATION.NciControlUnit[1].ProgramName       REF= GVL_NCI.ProgramName[1];
+GVL_APPLICATION.NciControlUnit[1].ProgramNameActive REF= GVL_NCI.ProgramNameActive[1];
 //-----------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------
@@ -318,11 +323,15 @@ END_CASE
       <LineId Id="201" Count="0" />
       <LineId Id="410" Count="5" />
       <LineId Id="198" Count="0" />
-      <LineId Id="452" Count="2" />
+      <LineId Id="452" Count="1" />
+      <LineId Id="459" Count="0" />
+      <LineId Id="454" Count="0" />
       <LineId Id="422" Count="2" />
+      <LineId Id="455" Count="0" />
       <LineId Id="426" Count="0" />
       <LineId Id="425" Count="0" />
       <LineId Id="429" Count="1" />
+      <LineId Id="456" Count="2" />
       <LineId Id="115" Count="1" />
       <LineId Id="126" Count="3" />
       <LineId Id="217" Count="110" />

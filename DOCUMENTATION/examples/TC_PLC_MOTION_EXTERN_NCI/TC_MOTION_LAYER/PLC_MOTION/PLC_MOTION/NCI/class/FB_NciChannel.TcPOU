@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.20">
   <POU Name="FB_NciChannel" Id="{4fc926fe-507f-0c5c-2d9c-1283cf9bcfbb}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK ABSTRACT FB_NciChannel IMPLEMENTS I_NciChannel
 VAR
@@ -247,7 +247,7 @@ THEN
   RETURN;
 END_IF
 
-IF (_stCfgAxes <> 0)
+IF NOT (_stCfgAxes <> 0)
 THEN
   _eCheck                         := E_CHECK_STATE.NCI_AXIS_CONFIG_POINTER_INVALID;
   RETURN;

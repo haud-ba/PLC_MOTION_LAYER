@@ -247,7 +247,7 @@ THEN
   RETURN;
 END_IF
 
-IF (_stCfgAxes <> 0)
+IF NOT (_stCfgAxes <> 0)
 THEN
   _eCheck                         := E_CHECK_STATE.NCI_AXIS_CONFIG_POINTER_INVALID;
   RETURN;

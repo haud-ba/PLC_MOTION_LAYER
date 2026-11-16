@@ -41,7 +41,7 @@ VAR
 
   _stProgParameter    : ST_PROG_PARAMETER; // TODO: get data from file
 
-  _stRParameterNCI    : REFERENCE TO ST_R_Parameter;
+  _R_ParameterRead    : REFERENCE TO ST_R_Parameter;
 
   _sProgCtrl,
   _sProgState         : REFERENCE TO STRING(255);
@@ -51,6 +51,9 @@ END_VAR
 ]]></Declaration>
     <Implementation>
       <ST><![CDATA[//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+_stMsg.eDevice        := e_Device.NciChannelCtrl;
+//-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 IF NOT Check() THEN RETURN; END_IF
 //-----------------------------------------------------------------------------
@@ -96,7 +99,7 @@ END_IF
 CASE _eResult
 OF
   E_PROGRESS.PROGRESS_INVALID:
-    _stState.State                  := TO_UINT(E_PROGRESS.PROGRESS_ERROR);
+    _stState.State                  := TO_UINT(E_PROGRESS.PROGRESS_INVALID);
 
   E_PROGRESS.PROGRESS_ERROR:
     _stState.State                  := _eState + E_PROGRESS.PROGRESS_ERROR;
@@ -128,8 +131,6 @@ ELSE
       _eResult                      := Job_Rinse(TRUE);
     E_JOB_STATE.JOB_AUTO:
       _eResult                      := Job_Auto (TRUE);
-  ELSE
-      _eResult                      := E_PROGRESS.PROGRESS_INVALID;
   END_CASE
 END_CASE
 
@@ -161,7 +162,7 @@ THEN
   RETURN;
 END_IF
 
-IF NOT __ISVALIDREF(_stRParameterNCI)
+IF NOT __ISVALIDREF(_R_ParameterRead)
 THEN
   _eCheck                       := E_JOB_CHECK.NCI_R_PARAMETER_INVALID;
   RETURN;
@@ -204,6 +205,11 @@ END_VAR
         <ST><![CDATA[
 CASE eCmd
 OF
+  //-------------------------------------------------------------------------------------
+  E_JOB_CTRL.JOB_NULL:
+    _ire                          := E_PROGRESS.PROGRESS_INVALID;
+    _est                          := E_JOB_STATE.JOB_NULL;
+
   //-------------------------------------------------------------------------------------
   E_JOB_CTRL.JOB_INIT:
     _ire                          := Job_Init(FALSE);
@@ -322,7 +328,7 @@ END_VAR
       <Implementation>
         <ST><![CDATA[//---------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------
-IF NOT Execute THEN _eState   := _eStateError     := E_PROGRESS.PROGRESS_INIT;  RETURN; END_IF
+IF NOT Execute THEN _eState   := _eStateError     := E_PROGRESS.PROGRESS_INIT;  END_IF
 //---------------------------------------------------------------------------------------
 IF NOT Check() THEN Job_Auto  := _eState          := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
 //---------------------------------------------------------------------------------------
@@ -441,7 +447,7 @@ END_VAR
       <Implementation>
         <ST><![CDATA[//---------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------
-IF NOT Execute THEN _eState   := _eStateError     := E_PROGRESS.PROGRESS_INIT;  RETURN; END_IF
+IF NOT Execute THEN _eState   := _eStateError     := E_PROGRESS.PROGRESS_INIT;  END_IF
 //---------------------------------------------------------------------------------------
 IF NOT Check() THEN Job_Home  := _eState          := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
 //---------------------------------------------------------------------------------------
@@ -551,7 +557,7 @@ END_VAR
       <Implementation>
         <ST><![CDATA[//---------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------
-IF NOT Execute THEN _eState   := _eStateError     := E_PROGRESS.PROGRESS_INIT;  RETURN; END_IF
+IF NOT Execute THEN _eState   := _eStateError     := E_PROGRESS.PROGRESS_INIT;  END_IF
 //---------------------------------------------------------------------------------------
 IF NOT Check() THEN Job_Idle  := _eState          := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
 //---------------------------------------------------------------------------------------
@@ -664,7 +670,7 @@ END_VAR
       <Implementation>
         <ST><![CDATA[//---------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------
-IF NOT Execute THEN _eState   := _eStateError     := E_PROGRESS.PROGRESS_INIT;  RETURN; END_IF
+IF NOT Execute THEN _eState   := _eStateError     := E_PROGRESS.PROGRESS_INIT;  END_IF
 //---------------------------------------------------------------------------------------
 IF NOT Check() THEN Job_Init  := _eState          := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
 //---------------------------------------------------------------------------------------
@@ -783,7 +789,7 @@ END_VAR
       <Implementation>
         <ST><![CDATA[//---------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------
-IF NOT Execute THEN _eState   := _eStateError     := E_PROGRESS.PROGRESS_INIT;  RETURN; END_IF
+IF NOT Execute THEN _eState   := _eStateError     := E_PROGRESS.PROGRESS_INIT;  END_IF
 //---------------------------------------------------------------------------------------
 IF NOT Check() THEN Job_Reset := _eState          := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
 //---------------------------------------------------------------------------------------
@@ -900,7 +906,7 @@ END_VAR
       <Implementation>
         <ST><![CDATA[//---------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------
-IF NOT Execute THEN _eState   := _eStateError     := E_PROGRESS.PROGRESS_INIT;  RETURN; END_IF
+IF NOT Execute THEN _eState   := _eStateError     := E_PROGRESS.PROGRESS_INIT;  END_IF
 //---------------------------------------------------------------------------------------
 IF NOT Check() THEN Job_Rinse := _eState          := E_PROGRESS.PROGRESS_ERROR; RETURN; END_IF
 //---------------------------------------------------------------------------------------
@@ -1005,6 +1011,42 @@ Job_Rinse                     := _eState;
 ]]></ST>
       </Implementation>
     </Method>
+    <Property Name="ProgramName" Id="{2209fe1e-6ea7-424c-9a77-49300b5333cf}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY ProgramName : reference to string(255)]]></Declaration>
+      <Set Name="Set" Id="{670f5e43-603a-4f7c-934e-88b15e3143b8}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_sProgCtrl REF= ProgramName;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="ProgramNameActive" Id="{f66b35a9-021d-406e-b383-70cf4f84524e}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY ProgramNameActive : reference to string(255)]]></Declaration>
+      <Set Name="Set" Id="{bbd8d427-907f-49bd-a03e-e7d8d73f72e3}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_sProgState REF= ProgramNameActive;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="R_ParameterRead" Id="{bf491d81-baf6-4b30-b997-ef94ab60680f}" FolderPath="properties\">
+      <Declaration><![CDATA[PROPERTY R_ParameterRead : reference to ST_R_Parameter]]></Declaration>
+      <Set Name="Set" Id="{f7c387e0-c925-47b3-801d-a2b7deb1a6af}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_R_ParameterRead REF= R_ParameterRead;
+]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
     <Property Name="State" Id="{0e0dc094-82fc-0d7d-2559-1758da7cd4c2}" FolderPath="properties\">
       <Declaration><![CDATA[PROPERTY State : reference to ST_JOB_STATE]]></Declaration>
       <Set Name="Set" Id="{2302b4d8-0a56-00d7-0894-0495ace513f7}">
@@ -1019,6 +1061,8 @@ END_VAR
       </Set>
     </Property>
     <LineIds Name="fb_JobCtrl">
+      <LineId Id="311" Count="1" />
+      <LineId Id="310" Count="0" />
       <LineId Id="272" Count="1" />
       <LineId Id="118" Count="0" />
       <LineId Id="135" Count="12" />
@@ -1044,8 +1088,7 @@ END_VAR
       <LineId Id="303" Count="0" />
       <LineId Id="309" Count="0" />
       <LineId Id="304" Count="0" />
-      <LineId Id="258" Count="1" />
-      <LineId Id="265" Count="0" />
+      <LineId Id="258" Count="0" />
       <LineId Id="267" Count="1" />
       <LineId Id="119" Count="0" />
       <LineId Id="117" Count="0" />
@@ -1065,7 +1108,11 @@ END_VAR
       <LineId Id="78" Count="1" />
     </LineIds>
     <LineIds Name="fb_JobCtrl.Cmd">
-      <LineId Id="62" Count="6" />
+      <LineId Id="62" Count="2" />
+      <LineId Id="252" Count="0" />
+      <LineId Id="250" Count="1" />
+      <LineId Id="253" Count="1" />
+      <LineId Id="65" Count="3" />
       <LineId Id="226" Count="0" />
       <LineId Id="69" Count="4" />
       <LineId Id="214" Count="11" />
@@ -1179,6 +1226,15 @@ END_VAR
       <LineId Id="202" Count="0" />
       <LineId Id="187" Count="4" />
       <LineId Id="107" Count="0" />
+    </LineIds>
+    <LineIds Name="fb_JobCtrl.ProgramName.Set">
+      <LineId Id="1" Count="1" />
+    </LineIds>
+    <LineIds Name="fb_JobCtrl.ProgramNameActive.Set">
+      <LineId Id="1" Count="1" />
+    </LineIds>
+    <LineIds Name="fb_JobCtrl.R_ParameterRead.Set">
+      <LineId Id="1" Count="1" />
     </LineIds>
     <LineIds Name="fb_JobCtrl.State.Set">
       <LineId Id="1" Count="1" />
